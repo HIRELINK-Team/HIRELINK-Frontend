@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import ageRestrictionImage from '../../assets/images/student/age-restriction.png'
 import locationIcon from '../../assets/icons/student/location.svg'
 import searchIcon from '../../assets/icons/student/search.svg'
-import { OnboardingField } from '../../components/student/OnboardingField/OnboardingField'
-import { OnboardingScaffold } from '../../components/student/OnboardingScaffold/OnboardingScaffold'
-import { SelectionCard } from '../../components/student/SelectionCard/SelectionCard'
-
-import './StudentOnboardingPage.css'
+import ageRestrictionImage from '../../assets/images/student/age-restriction.png'
+import { OnboardingField } from '../../components/student/onboarding/OnboardingField'
+import { OnboardingScaffold } from '../../components/student/onboarding/OnboardingScaffold'
+import { SelectionCard } from '../../components/student/onboarding/SelectionCard'
 
 type BasicInfoStep =
   | 'name'
@@ -59,6 +57,8 @@ const BASIC_INFO_PROGRESS: Record<BasicInfoStep, number> = {
   location: 5,
   koreanLevel: 6,
 }
+
+const BASIC_INFO_TOTAL_SUB_STEPS = Math.max(...Object.values(BASIC_INFO_PROGRESS))
 
 const INITIAL_INFO: BasicInfo = {
   name: '',
@@ -112,15 +112,17 @@ export default function StudentOnboardingPage() {
 
   if (step === 'ageRestricted') {
     return (
-      <main className="student-age-restriction">
-        <img alt="" className="student-age-restriction__image" src={ageRestrictionImage} />
-        <h1>아직은 서비스를{`\n`}이용할 수 없어요</h1>
-        <p>
+      <main className="mx-auto flex min-h-[100svh] w-full max-w-[430px] flex-col items-center bg-[#F5F5F5] px-6 pt-[262px] pb-[calc(37px+env(safe-area-inset-bottom))] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+        <img alt="" className="h-auto w-[106px]" src={ageRestrictionImage} />
+        <h1 className="mt-[14px] mb-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold">
+          아직은 서비스를{`\n`}이용할 수 없어요
+        </h1>
+        <p className="mt-[39px] mb-0 whitespace-pre-line text-[13px] leading-[1.5] text-[#8B95A1]">
           하이어링크는 만 18세 이상부터 이용할 수 있어요.{`\n`}
           이용 가능 연령이 되면 다시 찾아주세요!
         </p>
         <button
-          className="student-age-restriction__cta"
+          className="mt-auto h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
           type="button"
           onClick={() => {
             updateInfo('birthYear', '')
@@ -211,7 +213,7 @@ export default function StudentOnboardingPage() {
       onBack={handleBack}
       onCtaClick={handleNext}
       stageLabel="기본정보 입력"
-      totalSubSteps={6}
+      totalSubSteps={BASIC_INFO_TOTAL_SUB_STEPS}
     >
       {step === 'name' ? (
         <OnboardingField
@@ -241,9 +243,13 @@ export default function StudentOnboardingPage() {
           maxLength={6}
           placeholder="인증번호 6자리"
           trailing={
-            <span className="student-onboarding-page__verification-actions">
-              <span>{remainingTime}</span>
-              <button type="button" onClick={() => setRemainingSeconds(143)}>
+            <span className="flex shrink-0 items-center gap-[7px]">
+              <span className="text-[15px] leading-[1.5] font-medium text-[#00B894]">{remainingTime}</span>
+              <button
+                className="rounded-[44px] border-[0.7px] border-[#B0B8C1] bg-transparent px-2.5 py-1.5 text-[13px] leading-[1.5] text-[#191F28]"
+                type="button"
+                onClick={() => setRemainingSeconds(143)}
+              >
                 재요청
               </button>
             </span>
@@ -268,9 +274,10 @@ export default function StudentOnboardingPage() {
       ) : null}
 
       {step === 'nationality' ? (
-        <label className="student-onboarding-page__select-field">
-          <span>국적</span>
+        <label className="mt-[27px] block">
+          <span className="block text-[17px] leading-[1.5] text-[#191F28]">국적</span>
           <select
+            className="h-[57px] w-full appearance-auto border-0 border-b border-[#B0B8C1] bg-transparent py-0 pr-0 pl-[37px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28] outline-none"
             value={info.nationality}
             onChange={(event) => updateInfo('nationality', event.target.value)}
           >
@@ -286,23 +293,23 @@ export default function StudentOnboardingPage() {
           <OnboardingField
             label="주소"
             placeholder="주소 검색"
-            trailing={<img alt="" className="student-onboarding-page__search-icon" src={searchIcon} />}
+            trailing={<img alt="" className="h-[22px] w-[22px] shrink-0" src={searchIcon} />}
             value={info.location}
             onChange={(event) => updateInfo('location', event.target.value)}
           />
           <button
-            className="student-onboarding-page__location-button"
+            className="mt-[15px] flex h-[54px] w-full items-center gap-4 rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[23px] text-left text-[17px] leading-[1.5] text-[#191F28]"
             type="button"
             onClick={() => updateInfo('location', '서울특별시 동작구 상도동')}
           >
-            <img alt="" src={locationIcon} />
+            <img alt="" className="h-[14px] w-[14px]" src={locationIcon} />
             현재 위치로 찾기
           </button>
         </div>
       ) : null}
 
       {step === 'koreanLevel' ? (
-        <div className="student-onboarding-page__level-list">
+        <div className="mt-[27px] space-y-2.5">
           {KOREAN_LEVELS.map((level) => (
             <SelectionCard
               description={level.description}
