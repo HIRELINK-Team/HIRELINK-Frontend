@@ -1,19 +1,20 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react';
 
-import backIcon from '../../../assets/icons/student/back.svg'
+import backIcon from '../../../assets/icons/student/back.svg';
 
 type OnboardingScaffoldProps = {
-  activeSubStep: number
-  children: ReactNode
-  ctaLabel: string
-  currentStage: number
-  isCtaDisabled?: boolean
-  onBack: () => void
-  onCtaClick: () => void
-  question: string
-  stageLabel: string
-  totalSubSteps: number
-}
+  activeSubStep: number;
+  children: ReactNode;
+  ctaLabel: string;
+  currentStage: number;
+  isCtaDisabled?: boolean;
+  onBack: () => void;
+  onCtaClick: () => void;
+  question: string;
+  showProgress?: boolean;
+  stageLabel: string;
+  totalSubSteps: number;
+};
 
 export function OnboardingScaffold({
   activeSubStep,
@@ -24,12 +25,13 @@ export function OnboardingScaffold({
   onBack,
   onCtaClick,
   question,
+  showProgress = true,
   stageLabel,
   totalSubSteps,
 }: OnboardingScaffoldProps) {
   const progressStyle: CSSProperties = {
     gridTemplateColumns: `repeat(${totalSubSteps}, minmax(0, 1fr))`,
-  }
+  };
 
   return (
     <main
@@ -47,21 +49,32 @@ export function OnboardingScaffold({
 
       <header className="mt-[37px]">
         <p className="flex items-baseline gap-1 text-[15px] leading-[1.5] text-[#8B95A1]">
-          <strong className="text-[17px] leading-[1.5] font-bold text-[#00B894]">{currentStage}/5</strong>
+          <strong className="text-[17px] leading-[1.5] font-bold text-[#00B894]">
+            {currentStage}/5
+          </strong>
           {stageLabel}
         </p>
-        <div aria-hidden="true" className="mt-[35px] grid gap-[5px]" style={progressStyle}>
-          {Array.from({ length: totalSubSteps }, (_, index) => (
-            <span
-              className={`h-0.5 ${index < activeSubStep ? 'bg-[#00B894]' : 'bg-[#B0B8C1]'}`}
-              key={index}
-            />
-          ))}
-        </div>
+        {showProgress ? (
+          <div
+            aria-hidden="true"
+            className="mt-[35px] grid gap-[5px]"
+            style={progressStyle}
+          >
+            {Array.from({ length: totalSubSteps }, (_, index) => (
+              <span
+                className={`h-0.5 ${index < activeSubStep ? 'bg-[#00B894]' : 'bg-[#B0B8C1]'}`}
+                key={index}
+              />
+            ))}
+          </div>
+        ) : null}
       </header>
 
       <section className="mt-10">
-        <h1 className="m-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold" id="onboarding-question">
+        <h1
+          className="m-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold"
+          id="onboarding-question"
+        >
           {question}
         </h1>
         {children}
@@ -78,5 +91,5 @@ export function OnboardingScaffold({
         </button>
       </div>
     </main>
-  )
+  );
 }

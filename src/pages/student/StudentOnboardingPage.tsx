@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react';
 
-import locationIcon from '../../assets/icons/student/location.svg'
-import searchIcon from '../../assets/icons/student/search.svg'
-import ageRestrictionImage from '../../assets/images/student/age-restriction.png'
-import { OnboardingField } from '../../components/student/onboarding/OnboardingField'
-import { OnboardingScaffold } from '../../components/student/onboarding/OnboardingScaffold'
-import { SelectionCard } from '../../components/student/onboarding/SelectionCard'
+import locationIcon from '../../assets/icons/student/location.svg';
+import searchIcon from '../../assets/icons/student/search.svg';
+import ageRestrictionImage from '../../assets/images/student/age-restriction.png';
+import { ExperienceCard } from '../../components/student/onboarding/ExperienceCard';
+import { ExperienceForm } from '../../components/student/onboarding/ExperienceForm';
+import { OnboardingField } from '../../components/student/onboarding/OnboardingField';
+import { OnboardingScaffold } from '../../components/student/onboarding/OnboardingScaffold';
+import { SelectionCard } from '../../components/student/onboarding/SelectionCard';
+import type { Experience, ExperienceDraft } from '../../types/experience';
 
 type BasicInfoStep =
   | 'name'
@@ -14,29 +17,50 @@ type BasicInfoStep =
   | 'birthYear'
   | 'nationality'
   | 'location'
-  | 'koreanLevel'
+  | 'koreanLevel';
 
-type BasicInfoView = BasicInfoStep | 'ageRestricted'
+type BasicInfoView = BasicInfoStep | 'ageRestricted';
 
-type KoreanLevel = 'beginner' | 'intermediate' | 'advanced'
+type OnboardingView = BasicInfoView | 'experienceForm' | 'experienceList';
+
+type StudentOnboardingPageProps = {
+  initialStep?: OnboardingView;
+};
+
+type KoreanLevel = 'beginner' | 'intermediate' | 'advanced';
 
 type BasicInfo = {
-  birthYear: string
-  koreanLevel: KoreanLevel
-  location: string
-  name: string
-  nationality: string
-  phone: string
-  verificationCode: string
-}
+  birthYear: string;
+  koreanLevel: KoreanLevel;
+  location: string;
+  name: string;
+  nationality: string;
+  phone: string;
+  verificationCode: string;
+};
 
-const COUNTRY_OPTIONS = ['베트남', '중국', '몽골', '우즈베키스탄', '일본', '기타']
+const COUNTRY_OPTIONS = [
+  '베트남',
+  '중국',
+  '몽골',
+  '우즈베키스탄',
+  '일본',
+  '기타',
+];
 
-const KOREAN_LEVELS: Array<{ description: string; label: string; value: KoreanLevel }> = [
+const KOREAN_LEVELS: Array<{
+  description: string;
+  label: string;
+  value: KoreanLevel;
+}> = [
   { value: 'beginner', label: '초급', description: '간단한 인사만 가능해요.' },
-  { value: 'intermediate', label: '중급', description: '일상 대화 정도는 할 수 있어요.' },
+  {
+    value: 'intermediate',
+    label: '중급',
+    description: '일상 대화 정도는 할 수 있어요.',
+  },
   { value: 'advanced', label: '고급', description: '업무 대화도 가능해요.' },
-]
+];
 
 const STEP_ORDER: BasicInfoStep[] = [
   'name',
@@ -46,7 +70,7 @@ const STEP_ORDER: BasicInfoStep[] = [
   'nationality',
   'location',
   'koreanLevel',
-]
+];
 
 const BASIC_INFO_PROGRESS: Record<BasicInfoStep, number> = {
   name: 1,
@@ -56,9 +80,15 @@ const BASIC_INFO_PROGRESS: Record<BasicInfoStep, number> = {
   nationality: 4,
   location: 5,
   koreanLevel: 6,
-}
+};
 
-const BASIC_INFO_TOTAL_SUB_STEPS = Math.max(...Object.values(BASIC_INFO_PROGRESS))
+const BASIC_INFO_TOTAL_SUB_STEPS = Math.max(
+  ...Object.values(BASIC_INFO_PROGRESS),
+);
+
+function isBasicInfoStep(step: OnboardingView): step is BasicInfoStep {
+  return STEP_ORDER.some((basicInfoStep) => basicInfoStep === step);
+}
 
 const INITIAL_INFO: BasicInfo = {
   name: '',
@@ -68,47 +98,138 @@ const INITIAL_INFO: BasicInfo = {
   nationality: '베트남',
   location: '',
   koreanLevel: 'beginner',
-}
+};
+
+const EMPTY_EXPERIENCE_DRAFT: ExperienceDraft = {
+  workplace: '',
+  startMonth: '',
+  endMonth: '',
+  duties: '',
+};
+
+const INITIAL_EXPERIENCES: Experience[] = [
+  {
+    id: 'cafe-part-time',
+    workplace: '카페 아르바이트',
+    startMonth: '2023.03',
+    endMonth: '2023.09',
+    duties: '음료 제조, 고객 응대',
+  },
+];
 
 function formatPhone(value: string) {
-  const digits = value.replace(/\D/g, '').slice(0, 11)
+  const digits = value.replace(/\D/g, '').slice(0, 11);
 
-  if (digits.length <= 3) return digits
-  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`
-  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
 }
 
 function isValidPhone(value: string) {
-  return /^01[0-9]-\d{3,4}-\d{4}$/.test(value)
+  return /^01[0-9]-\d{3,4}-\d{4}$/.test(value);
 }
 
-export default function StudentOnboardingPage() {
-  const [info, setInfo] = useState<BasicInfo>(INITIAL_INFO)
-  const [phoneError, setPhoneError] = useState('')
-  const [remainingSeconds, setRemainingSeconds] = useState(143)
-  const [step, setStep] = useState<BasicInfoView>('name')
-  const [verificationError, setVerificationError] = useState('')
+export default function StudentOnboardingPage({
+  initialStep = 'name',
+}: StudentOnboardingPageProps) {
+  const [experienceDraft, setExperienceDraft] = useState<ExperienceDraft>(
+    EMPTY_EXPERIENCE_DRAFT,
+  );
+  const [experienceEditingId, setExperienceEditingId] = useState<string | null>(
+    null,
+  );
+  const [experiences, setExperiences] =
+    useState<Experience[]>(INITIAL_EXPERIENCES);
+  const [info, setInfo] = useState<BasicInfo>(INITIAL_INFO);
+  const [phoneError, setPhoneError] = useState('');
+  const [remainingSeconds, setRemainingSeconds] = useState(143);
+  const [step, setStep] = useState<OnboardingView>(initialStep);
+  const [verificationError, setVerificationError] = useState('');
 
   useEffect(() => {
-    if (step !== 'verification' || remainingSeconds === 0) return undefined
+    if (step !== 'verification' || remainingSeconds === 0) return undefined;
 
     const timerId = window.setInterval(() => {
-      setRemainingSeconds((currentSeconds) => Math.max(0, currentSeconds - 1))
-    }, 1000)
+      setRemainingSeconds((currentSeconds) => Math.max(0, currentSeconds - 1));
+    }, 1000);
 
-    return () => window.clearInterval(timerId)
-  }, [remainingSeconds, step])
+    return () => window.clearInterval(timerId);
+  }, [remainingSeconds, step]);
 
-  const currentIndex = step === 'ageRestricted' ? -1 : STEP_ORDER.indexOf(step)
+  const currentIndex = isBasicInfoStep(step) ? STEP_ORDER.indexOf(step) : -1;
   const remainingTime = useMemo(() => {
-    const minutes = Math.floor(remainingSeconds / 60)
-    const seconds = remainingSeconds % 60
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-  }, [remainingSeconds])
+    const minutes = Math.floor(remainingSeconds / 60);
+    const seconds = remainingSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }, [remainingSeconds]);
 
-  const updateInfo = <Key extends keyof BasicInfo>(key: Key, value: BasicInfo[Key]) => {
-    setInfo((currentInfo) => ({ ...currentInfo, [key]: value }))
-  }
+  const updateInfo = <Key extends keyof BasicInfo>(
+    key: Key,
+    value: BasicInfo[Key],
+  ) => {
+    setInfo((currentInfo) => ({ ...currentInfo, [key]: value }));
+  };
+
+  const updateExperienceDraft = <Key extends keyof ExperienceDraft>(
+    key: Key,
+    value: ExperienceDraft[Key],
+  ) => {
+    setExperienceDraft((currentDraft) => ({ ...currentDraft, [key]: value }));
+  };
+
+  const handleExperienceCreate = () => {
+    setExperienceDraft(EMPTY_EXPERIENCE_DRAFT);
+    setExperienceEditingId(null);
+    setStep('experienceForm');
+  };
+
+  const handleExperienceEdit = (experienceId: string) => {
+    const experience = experiences.find((item) => item.id === experienceId);
+    if (!experience) return;
+
+    setExperienceDraft({
+      workplace: experience.workplace,
+      startMonth: experience.startMonth,
+      endMonth: experience.endMonth,
+      duties: experience.duties,
+    });
+    setExperienceEditingId(experienceId);
+    setStep('experienceForm');
+  };
+
+  const handleExperienceDelete = (experienceId: string) => {
+    setExperiences((currentExperiences) =>
+      currentExperiences.filter((experience) => experience.id !== experienceId),
+    );
+  };
+
+  const isExperienceDraftValid =
+    experienceDraft.workplace.trim().length > 0 &&
+    /^\d{4}\.\d{2}$/.test(experienceDraft.startMonth) &&
+    /^\d{4}\.\d{2}$/.test(experienceDraft.endMonth) &&
+    experienceDraft.startMonth <= experienceDraft.endMonth &&
+    experienceDraft.duties.trim().length > 0;
+
+  const handleExperienceSave = () => {
+    if (!isExperienceDraftValid) return;
+
+    if (experienceEditingId) {
+      setExperiences((currentExperiences) =>
+        currentExperiences.map((experience) =>
+          experience.id === experienceEditingId
+            ? { ...experience, ...experienceDraft }
+            : experience,
+        ),
+      );
+    } else {
+      setExperiences((currentExperiences) => [
+        ...currentExperiences,
+        { ...experienceDraft, id: `experience-${Date.now()}` },
+      ]);
+    }
+
+    setStep('experienceList');
+  };
 
   if (step === 'ageRestricted') {
     return (
@@ -125,71 +246,131 @@ export default function StudentOnboardingPage() {
           className="mt-auto h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
           type="button"
           onClick={() => {
-            updateInfo('birthYear', '')
-            setStep('birthYear')
+            updateInfo('birthYear', '');
+            setStep('birthYear');
           }}
         >
           확인
         </button>
       </main>
-    )
+    );
+  }
+
+  if (step === 'experienceForm') {
+    return (
+      <ExperienceForm
+        draft={experienceDraft}
+        isEditing={Boolean(experienceEditingId)}
+        isSubmitDisabled={!isExperienceDraftValid}
+        onBack={() => setStep('experienceList')}
+        onChange={updateExperienceDraft}
+        onSubmit={handleExperienceSave}
+      />
+    );
+  }
+
+  if (step === 'experienceList') {
+    return (
+      <OnboardingScaffold
+        activeSubStep={0}
+        ctaLabel="확인"
+        currentStage={2}
+        question={'이전에 해본 아르바이트나\n근무경험을 알려주세요.'}
+        showProgress={false}
+        stageLabel="경력 입력"
+        totalSubSteps={1}
+        onBack={() => setStep('koreanLevel')}
+        onCtaClick={() => undefined}
+      >
+        <button
+          className="mt-[27px] flex h-[54px] w-full items-center gap-4 rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[29px] text-[17px] leading-[1.5]"
+          type="button"
+          onClick={handleExperienceCreate}
+        >
+          <span aria-hidden="true">+</span>
+          경력 추가하기
+        </button>
+
+        {experiences.length > 0 ? (
+          <div className="mt-2.5 space-y-2.5">
+            {experiences.map((experience) => (
+              <ExperienceCard
+                experience={experience}
+                key={experience.id}
+                onDelete={handleExperienceDelete}
+                onEdit={handleExperienceEdit}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-6 text-center text-[15px] leading-[1.5] text-[#8B95A1]">
+            등록한 경력이 없어요. 필요하면 나중에 추가할 수 있어요.
+          </p>
+        )}
+      </OnboardingScaffold>
+    );
   }
 
   const handleBack = () => {
-    if (currentIndex === 0) return
+    if (currentIndex === 0) return;
 
-    setPhoneError('')
-    setVerificationError('')
-    setStep(STEP_ORDER[currentIndex - 1])
-  }
+    setPhoneError('');
+    setVerificationError('');
+    setStep(STEP_ORDER[currentIndex - 1]);
+  };
 
   const handleNext = () => {
     if (step === 'phone') {
       if (!isValidPhone(info.phone)) {
-        setPhoneError('다시 입력해주세요.')
-        return
+        setPhoneError('다시 입력해주세요.');
+        return;
       }
 
-      setPhoneError('')
-      setRemainingSeconds(143)
-      setStep('verification')
-      return
+      setPhoneError('');
+      setRemainingSeconds(143);
+      setStep('verification');
+      return;
     }
 
     if (step === 'verification') {
       if (info.verificationCode !== '578412') {
-        setVerificationError('인증번호가 틀렸어요. 다시 입력해주세요.')
-        return
+        setVerificationError('인증번호가 틀렸어요. 다시 입력해주세요.');
+        return;
       }
 
-      setVerificationError('')
+      setVerificationError('');
     }
 
     if (step === 'birthYear') {
-      if (!/^\d{4}$/.test(info.birthYear)) return
+      if (!/^\d{4}$/.test(info.birthYear)) return;
 
-      const latestEligibleBirthYear = new Date().getFullYear() - 19
+      const latestEligibleBirthYear = new Date().getFullYear() - 19;
       if (Number(info.birthYear) > latestEligibleBirthYear) {
-        setStep('ageRestricted')
-        return
+        setStep('ageRestricted');
+        return;
       }
     }
-    if (step === 'location' && !info.location.trim()) return
+    if (step === 'location' && !info.location.trim()) return;
+
+    if (step === 'koreanLevel') {
+      setStep('experienceList');
+      return;
+    }
 
     if (currentIndex < STEP_ORDER.length - 1) {
-      setStep(STEP_ORDER[currentIndex + 1])
+      setStep(STEP_ORDER[currentIndex + 1]);
     }
-  }
+  };
 
   const handlePhoneChange = (value: string) => {
-    updateInfo('phone', formatPhone(value))
-    setPhoneError('')
-  }
+    updateInfo('phone', formatPhone(value));
+    setPhoneError('');
+  };
 
   const isCtaDisabled =
     (step === 'name' && !info.name.trim()) ||
     (step === 'birthYear' && !/^\d{4}$/.test(info.birthYear)) ||
-    (step === 'location' && !info.location.trim())
+    (step === 'location' && !info.location.trim());
 
   const questions: Record<BasicInfoStep, string> = {
     name: '본인의 이름을\n적어주세요.',
@@ -199,9 +380,9 @@ export default function StudentOnboardingPage() {
     nationality: '본인의 국적을\n선택해주세요.',
     location: '현재 거주지역을\n입력해주세요.',
     koreanLevel: '한국어 실력은\n어느 정도인가요?',
-  }
+  };
 
-  const ctaLabel = step === 'phone' ? '인증번호 받기' : '확인'
+  const ctaLabel = step === 'phone' ? '인증번호 받기' : '확인';
 
   return (
     <OnboardingScaffold
@@ -244,7 +425,9 @@ export default function StudentOnboardingPage() {
           placeholder="인증번호 6자리"
           trailing={
             <span className="flex shrink-0 items-center gap-[7px]">
-              <span className="text-[15px] leading-[1.5] font-medium text-[#00B894]">{remainingTime}</span>
+              <span className="text-[15px] leading-[1.5] font-medium text-[#00B894]">
+                {remainingTime}
+              </span>
               <button
                 className="rounded-[44px] border-[0.7px] border-[#B0B8C1] bg-transparent px-2.5 py-1.5 text-[13px] leading-[1.5] text-[#191F28]"
                 type="button"
@@ -256,8 +439,11 @@ export default function StudentOnboardingPage() {
           }
           value={info.verificationCode}
           onChange={(event) => {
-            updateInfo('verificationCode', event.target.value.replace(/\D/g, ''))
-            setVerificationError('')
+            updateInfo(
+              'verificationCode',
+              event.target.value.replace(/\D/g, ''),
+            );
+            setVerificationError('');
           }}
         />
       ) : null}
@@ -269,13 +455,17 @@ export default function StudentOnboardingPage() {
           maxLength={4}
           placeholder="2000"
           value={info.birthYear}
-          onChange={(event) => updateInfo('birthYear', event.target.value.replace(/\D/g, ''))}
+          onChange={(event) =>
+            updateInfo('birthYear', event.target.value.replace(/\D/g, ''))
+          }
         />
       ) : null}
 
       {step === 'nationality' ? (
         <label className="mt-[27px] block">
-          <span className="block text-[17px] leading-[1.5] text-[#191F28]">국적</span>
+          <span className="block text-[17px] leading-[1.5] text-[#191F28]">
+            국적
+          </span>
           <select
             className="h-[57px] w-full appearance-auto border-0 border-b border-[#B0B8C1] bg-transparent py-0 pr-0 pl-[37px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28] outline-none"
             value={info.nationality}
@@ -293,7 +483,13 @@ export default function StudentOnboardingPage() {
           <OnboardingField
             label="주소"
             placeholder="주소 검색"
-            trailing={<img alt="" className="h-[22px] w-[22px] shrink-0" src={searchIcon} />}
+            trailing={
+              <img
+                alt=""
+                className="h-[22px] w-[22px] shrink-0"
+                src={searchIcon}
+              />
+            }
             value={info.location}
             onChange={(event) => updateInfo('location', event.target.value)}
           />
@@ -323,5 +519,5 @@ export default function StudentOnboardingPage() {
         </div>
       ) : null}
     </OnboardingScaffold>
-  )
+  );
 }
