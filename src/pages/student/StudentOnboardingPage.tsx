@@ -20,6 +20,7 @@ import type {
   AcademicStatus,
   ResidenceInfo,
   ResidenceQualification,
+  TopikLevel,
 } from '../../types/residence';
 import type {
   Weekday,
@@ -50,7 +51,8 @@ type OnboardingView =
   | 'workTimeSelection'
   | 'workLocationSelection'
   | 'residenceQualification'
-  | 'academicStatus';
+  | 'academicStatus'
+  | 'topikLevel';
 
 type StudentOnboardingPageProps = {
   initialStep?: OnboardingView;
@@ -260,7 +262,18 @@ const ACADEMIC_STATUS_OPTIONS: Record<
 const INITIAL_RESIDENCE_INFO: ResidenceInfo = {
   residenceQualification: 'D2_1',
   academicStatus: 'ENROLLED',
+  topikLevel: 'LEVEL_4',
 };
+
+const TOPIK_LEVEL_OPTIONS: Array<{ label: string; value: TopikLevel }> = [
+  { value: 'NONE', label: 'TOPIK 없음' },
+  { value: 'LEVEL_1', label: '1급' },
+  { value: 'LEVEL_2', label: '2급' },
+  { value: 'LEVEL_3', label: '3급' },
+  { value: 'LEVEL_4', label: '4급' },
+  { value: 'LEVEL_5', label: '5급' },
+  { value: 'LEVEL_6', label: '6급' },
+];
 
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -313,8 +326,10 @@ export default function StudentOnboardingPage({
   ] = useState(false);
   const [isAcademicStatusSheetOpen, setIsAcademicStatusSheetOpen] =
     useState(false);
+  const [isTopikLevelSheetOpen, setIsTopikLevelSheetOpen] = useState(false);
   const [isAcademicStatusSubmitted, setIsAcademicStatusSubmitted] =
     useState(false);
+  const [isTopikLevelSubmitted, setIsTopikLevelSubmitted] = useState(false);
   const [residenceInfo, setResidenceInfo] = useState<ResidenceInfo>(
     INITIAL_RESIDENCE_INFO,
   );
@@ -324,6 +339,9 @@ export default function StudentOnboardingPage({
     );
   const [academicStatusDraft, setAcademicStatusDraft] =
     useState<AcademicStatus>(INITIAL_RESIDENCE_INFO.academicStatus);
+  const [topikLevelDraft, setTopikLevelDraft] = useState<TopikLevel>(
+    INITIAL_RESIDENCE_INFO.topikLevel,
+  );
   const [workLocation, setWorkLocation] = useState<WorkLocation>(
     INITIAL_WORK_LOCATION,
   );
@@ -469,6 +487,7 @@ export default function StudentOnboardingPage({
     setResidenceInfo({
       residenceQualification: residenceQualificationDraft,
       academicStatus: firstAcademicStatus,
+      topikLevel: residenceInfo.topikLevel,
     });
     setAcademicStatusDraft(firstAcademicStatus);
     setIsResidenceQualificationSheetOpen(false);
@@ -488,6 +507,19 @@ export default function StudentOnboardingPage({
 
   const handleAcademicStatusNext = () => {
     setIsAcademicStatusSubmitted(true);
+    setStep('topikLevel');
+  };
+
+  const handleTopikLevelConfirm = () => {
+    setResidenceInfo((currentResidenceInfo) => ({
+      ...currentResidenceInfo,
+      topikLevel: topikLevelDraft,
+    }));
+    setIsTopikLevelSheetOpen(false);
+  };
+
+  const handleTopikLevelNext = () => {
+    setIsTopikLevelSubmitted(true);
   };
 
   const isExperienceDraftValid =
@@ -940,6 +972,67 @@ export default function StudentOnboardingPage({
             onClose={() => setIsAcademicStatusSheetOpen(false)}
             onConfirm={handleAcademicStatusConfirm}
             onSelect={setAcademicStatusDraft}
+          />
+        ) : null}
+      </OnboardingScaffold>
+    );
+  }
+
+  if (step === 'topikLevel') {
+    const topikLevelLabel = TOPIK_LEVEL_OPTIONS.find(
+      (option) => option.value === residenceInfo.topikLevel,
+    )?.label;
+
+    return (
+      <OnboardingScaffold
+        activeSubStep={3}
+        ctaLabel="확인"
+        currentStage={4}
+        question={'현재 보유하고 있는\nTOPIK 등급을 선택해주세요.'}
+        stageLabel="체류자격 입력"
+        totalSubSteps={4}
+        onBack={() => setStep('academicStatus')}
+        onCtaClick={handleTopikLevelNext}
+      >
+        <button
+          aria-haspopup="dialog"
+          className="mt-[27px] flex h-[57px] w-full items-center border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
+          type="button"
+          onClick={() => {
+            setTopikLevelDraft(residenceInfo.topikLevel);
+            setIsTopikLevelSheetOpen(true);
+          }}
+        >
+          <span>
+            <span className="block text-[17px] leading-[1.5]">TOPIK</span>
+            <span className="block text-[26px] leading-[1.5] font-semibold">
+              {topikLevelLabel}
+            </span>
+          </span>
+          <span
+            aria-hidden="true"
+            className="ml-auto flex h-[8.5px] w-[17px] items-center justify-center"
+          >
+            <img
+              alt=""
+              className="h-[17px] w-[8.5px] -rotate-90"
+              src={academicStatusChevronIcon}
+            />
+          </span>
+        </button>
+        <p aria-live="polite" className="sr-only">
+          {isTopikLevelSubmitted
+            ? 'TOPIK 등급이 저장되었습니다. 다음 단계는 체류기간 만료일 입력입니다.'
+            : ''}
+        </p>
+        {isTopikLevelSheetOpen ? (
+          <OnboardingBottomSheet
+            options={TOPIK_LEVEL_OPTIONS}
+            selectedValue={topikLevelDraft}
+            title="등급 선택"
+            onClose={() => setIsTopikLevelSheetOpen(false)}
+            onConfirm={handleTopikLevelConfirm}
+            onSelect={setTopikLevelDraft}
           />
         ) : null}
       </OnboardingScaffold>

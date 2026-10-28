@@ -17,7 +17,17 @@ export type AcademicStatus =
   | 'TRAINING_COMPLETED'
   | 'TRAINING_INTERRUPTED';
 
+export type TopikLevel =
+  | 'NONE'
+  | 'LEVEL_1'
+  | 'LEVEL_2'
+  | 'LEVEL_3'
+  | 'LEVEL_4'
+  | 'LEVEL_5'
+  | 'LEVEL_6';
+
 export type ResidenceInfo = {
   academicStatus: AcademicStatus;
   residenceQualification: ResidenceQualification;
+  topikLevel: TopikLevel;
 };
