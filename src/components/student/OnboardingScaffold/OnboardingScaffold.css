@@ -1,0 +1,125 @@
+.student-onboarding {
+  --mint-500: #00b894;
+  --gray-900: #191f28;
+  --gray-500: #8b95a1;
+  --gray-400: #b0b8c1;
+  --background: #f5f5f5;
+  background: var(--background);
+  box-sizing: border-box;
+  color: var(--gray-900);
+  display: flex;
+  flex-direction: column;
+  font-family: Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  letter-spacing: -0.02em;
+  min-height: 100svh;
+  padding: 65px 24px calc(37px + env(safe-area-inset-bottom));
+  position: relative;
+}
+
+.student-onboarding *,
+.student-onboarding *::before,
+.student-onboarding *::after {
+  box-sizing: border-box;
+}
+
+.student-onboarding__back-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  left: 20px;
+  padding: 0;
+  position: absolute;
+  top: 65px;
+  width: 24px;
+}
+
+.student-onboarding__back-button img {
+  height: 16px;
+  width: 8px;
+}
+
+.student-onboarding__header {
+  margin-top: 37px;
+}
+
+.student-onboarding__step {
+  align-items: baseline;
+  color: var(--gray-500);
+  display: flex;
+  font-size: 15px;
+  font-weight: 400;
+  gap: 4px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.student-onboarding__step strong {
+  color: var(--mint-500);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.student-onboarding__progress {
+  display: grid;
+  gap: 5px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin-top: 35px;
+}
+
+.student-onboarding__progress-bar {
+  background: var(--gray-400);
+  height: 2px;
+}
+
+.student-onboarding__progress-bar--active {
+  background: var(--mint-500);
+}
+
+.student-onboarding__content {
+  margin-top: 40px;
+}
+
+.student-onboarding__content h1 {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.student-onboarding__cta-wrap {
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.student-onboarding__cta {
+  background: var(--mint-500);
+  border: 0;
+  border-radius: 15px;
+  color: var(--background);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 500;
+  height: 57px;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+  width: 100%;
+}
+
+.student-onboarding__cta:disabled {
+  background: var(--gray-400);
+}
+
+.student-onboarding__cta:not(:disabled):active {
+  background: #009376;
+}
+
+@media (min-width: 431px) {
+  .student-onboarding {
+    margin: 0 auto;
+    max-width: 430px;
+  }
+}
