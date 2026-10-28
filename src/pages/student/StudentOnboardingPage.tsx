@@ -2,13 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 
 import locationIcon from '../../assets/icons/student/location.svg';
 import searchIcon from '../../assets/icons/student/search.svg';
+import clearIcon from '../../assets/icons/student/clear.svg';
 import ageRestrictionImage from '../../assets/images/student/age-restriction.png';
 import { ExperienceCard } from '../../components/student/onboarding/ExperienceCard';
 import { ExperienceForm } from '../../components/student/onboarding/ExperienceForm';
+import { IndustryChip } from '../../components/student/onboarding/IndustryChip';
 import { OnboardingField } from '../../components/student/onboarding/OnboardingField';
 import { OnboardingScaffold } from '../../components/student/onboarding/OnboardingScaffold';
 import { SelectionCard } from '../../components/student/onboarding/SelectionCard';
 import type { Experience, ExperienceDraft } from '../../types/experience';
+import type { IndustryId, IndustryOption } from '../../types/industry';
 
 type BasicInfoStep =
   | 'name'
@@ -21,7 +24,8 @@ type BasicInfoStep =
 
 type BasicInfoView = BasicInfoStep | 'ageRestricted';
 
-type OnboardingView = BasicInfoView | 'experienceForm' | 'experienceList';
+type OnboardingView =
+  BasicInfoView | 'experienceForm' | 'experienceList' | 'industrySelection';
 
 type StudentOnboardingPageProps = {
   initialStep?: OnboardingView;
@@ -117,6 +121,25 @@ const INITIAL_EXPERIENCES: Experience[] = [
   },
 ];
 
+const INDUSTRY_ROWS: IndustryOption[][] = [
+  [
+    { id: 'foodCafe', label: '음식점·카페' },
+    { id: 'retail', label: '매장·판매' },
+  ],
+  [
+    { id: 'officeTourism', label: '사무·행사·관광' },
+    { id: 'translation', label: '통·번역' },
+    { id: 'dutyFree', label: '면세점' },
+  ],
+  [
+    { id: 'majorStudy', label: '전공·학업' },
+    { id: 'internship', label: '인턴십' },
+    { id: 'other', label: '기타' },
+  ],
+];
+
+const INITIAL_SELECTED_INDUSTRIES: IndustryId[] = ['foodCafe', 'dutyFree'];
+
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
 
@@ -141,8 +164,14 @@ export default function StudentOnboardingPage({
   const [experiences, setExperiences] =
     useState<Experience[]>(INITIAL_EXPERIENCES);
   const [info, setInfo] = useState<BasicInfo>(INITIAL_INFO);
+  const [isIndustrySelectionSubmitted, setIsIndustrySelectionSubmitted] =
+    useState(false);
+  const [otherIndustry, setOtherIndustry] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [remainingSeconds, setRemainingSeconds] = useState(143);
+  const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>(
+    INITIAL_SELECTED_INDUSTRIES,
+  );
   const [step, setStep] = useState<OnboardingView>(initialStep);
   const [verificationError, setVerificationError] = useState('');
 
@@ -201,6 +230,36 @@ export default function StudentOnboardingPage({
     setExperiences((currentExperiences) =>
       currentExperiences.filter((experience) => experience.id !== experienceId),
     );
+  };
+
+  const handleIndustryToggle = (industryId: IndustryId) => {
+    setIsIndustrySelectionSubmitted(false);
+    const isOtherBeingDeselected =
+      industryId === 'other' && selectedIndustries.includes('other');
+
+    if (isOtherBeingDeselected) {
+      setOtherIndustry('');
+    }
+
+    setSelectedIndustries((currentIndustries) => {
+      const isSelected = currentIndustries.includes(industryId);
+
+      return isSelected
+        ? currentIndustries.filter(
+            (currentIndustry) => currentIndustry !== industryId,
+          )
+        : [...currentIndustries, industryId];
+    });
+  };
+
+  const handleIndustryConfirm = () => {
+    setIsIndustrySelectionSubmitted(true);
+  };
+
+  const handleIndustryNoPreference = () => {
+    setSelectedIndustries([]);
+    setOtherIndustry('');
+    setIsIndustrySelectionSubmitted(true);
   };
 
   const isExperienceDraftValid =
@@ -280,7 +339,7 @@ export default function StudentOnboardingPage({
         stageLabel="경력 입력"
         totalSubSteps={1}
         onBack={() => setStep('koreanLevel')}
-        onCtaClick={() => undefined}
+        onCtaClick={() => setStep('industrySelection')}
       >
         <button
           className="mt-[27px] flex h-[54px] w-full items-center gap-4 rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[29px] text-[17px] leading-[1.5]"
@@ -307,6 +366,91 @@ export default function StudentOnboardingPage({
             등록한 경력이 없어요. 필요하면 나중에 추가할 수 있어요.
           </p>
         )}
+      </OnboardingScaffold>
+    );
+  }
+
+  if (step === 'industrySelection') {
+    const isOtherSelected = selectedIndustries.includes('other');
+
+    return (
+      <OnboardingScaffold
+        activeSubStep={1}
+        ctaLabel="확인"
+        currentStage={3}
+        footer={
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              className="h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
+              type="button"
+              onClick={handleIndustryConfirm}
+            >
+              확인
+            </button>
+            <button
+              className="h-[57px] rounded-[15px] border-[0.7px] border-[#191F28] bg-transparent text-[20px] leading-[1.5] font-normal text-[#191F28]"
+              type="button"
+              onClick={handleIndustryNoPreference}
+            >
+              상관없어요
+            </button>
+          </div>
+        }
+        question={'원하는 업종을\n선택해주세요.'}
+        stageLabel="구직조건 입력"
+        totalSubSteps={3}
+        onBack={() => setStep('experienceList')}
+        onCtaClick={handleIndustryConfirm}
+      >
+        <div className="mt-[27px] space-y-[5px]">
+          {INDUSTRY_ROWS.map((industryRow) => (
+            <div className="flex items-center gap-2" key={industryRow[0].id}>
+              {industryRow.map((industry) => (
+                <IndustryChip
+                  isSelected={selectedIndustries.includes(industry.id)}
+                  key={industry.id}
+                  label={industry.label}
+                  onClick={() => handleIndustryToggle(industry.id)}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {isOtherSelected ? (
+          <label className="mt-[27px] block">
+            <span className="block text-[17px] leading-[1.5] text-[#191F28]">
+              기타:
+            </span>
+            <span className="relative mt-2 block">
+              <input
+                className="h-[57px] w-full border-0 border-b border-[#B0B8C1] bg-transparent py-0 pr-8 text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28] outline-none placeholder:text-[#B0B8C1]"
+                placeholder="업종 입력"
+                value={otherIndustry}
+                onChange={(event) => {
+                  setOtherIndustry(event.target.value);
+                  setIsIndustrySelectionSubmitted(false);
+                }}
+              />
+              {otherIndustry ? (
+                <button
+                  aria-label="기타 업종 입력 지우기"
+                  className="absolute top-1/2 right-4 -translate-y-1/2"
+                  type="button"
+                  onClick={() => setOtherIndustry('')}
+                >
+                  <img alt="" src={clearIcon} />
+                </button>
+              ) : null}
+            </span>
+          </label>
+        ) : null}
+
+        <p aria-live="polite" className="sr-only">
+          {isIndustrySelectionSubmitted
+            ? '희망 업종 선택이 저장되었습니다.'
+            : ''}
+        </p>
       </OnboardingScaffold>
     );
   }

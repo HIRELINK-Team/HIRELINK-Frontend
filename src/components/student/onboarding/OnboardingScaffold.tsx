@@ -7,6 +7,7 @@ type OnboardingScaffoldProps = {
   children: ReactNode;
   ctaLabel: string;
   currentStage: number;
+  footer?: ReactNode;
   isCtaDisabled?: boolean;
   onBack: () => void;
   onCtaClick: () => void;
@@ -21,6 +22,7 @@ export function OnboardingScaffold({
   children,
   ctaLabel,
   currentStage,
+  footer,
   isCtaDisabled = false,
   onBack,
   onCtaClick,
@@ -81,14 +83,16 @@ export function OnboardingScaffold({
       </section>
 
       <div className="mt-auto pt-8">
-        <button
-          className="h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376] disabled:bg-[#B0B8C1] disabled:active:bg-[#B0B8C1]"
-          disabled={isCtaDisabled}
-          type="button"
-          onClick={onCtaClick}
-        >
-          {ctaLabel}
-        </button>
+        {footer ?? (
+          <button
+            className="h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376] disabled:bg-[#B0B8C1] disabled:active:bg-[#B0B8C1]"
+            disabled={isCtaDisabled}
+            type="button"
+            onClick={onCtaClick}
+          >
+            {ctaLabel}
+          </button>
+        )}
       </div>
     </main>
   );
