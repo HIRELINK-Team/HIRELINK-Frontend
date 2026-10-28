@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import backIcon from '../../assets/icons/student/back.svg';
 import locationIcon from '../../assets/icons/student/location.svg';
 import searchIcon from '../../assets/icons/student/search.svg';
 import clearIcon from '../../assets/icons/student/clear.svg';
@@ -18,6 +19,10 @@ import type {
   WorkAvailability,
   WorkTimeMode,
 } from '../../types/workAvailability';
+import type {
+  WorkLocation,
+  WorkLocationRadius,
+} from '../../types/workLocation';
 
 type BasicInfoStep =
   | 'name'
@@ -35,7 +40,8 @@ type OnboardingView =
   | 'experienceForm'
   | 'experienceList'
   | 'industrySelection'
-  | 'workTimeSelection';
+  | 'workTimeSelection'
+  | 'workLocationSelection';
 
 type StudentOnboardingPageProps = {
   initialStep?: OnboardingView;
@@ -171,6 +177,13 @@ const INITIAL_WORK_AVAILABILITY: WorkAvailability = {
   },
 };
 
+const WORK_LOCATION_RADIUS_OPTIONS: WorkLocationRadius[] = [100, 500, 1000];
+
+const INITIAL_WORK_LOCATION: WorkLocation = {
+  address: '',
+  radius: 100,
+};
+
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
 
@@ -211,6 +224,14 @@ export default function StudentOnboardingPage({
   const [workTimeMode, setWorkTimeMode] = useState<WorkTimeMode>('daytime');
   const [isWorkTimeSelectionSubmitted, setIsWorkTimeSelectionSubmitted] =
     useState(false);
+  const [
+    isWorkLocationRadiusSelectionOpen,
+    setIsWorkLocationRadiusSelectionOpen,
+  ] = useState(false);
+  const [isWorkLocationSubmitted, setIsWorkLocationSubmitted] = useState(false);
+  const [workLocation, setWorkLocation] = useState<WorkLocation>(
+    INITIAL_WORK_LOCATION,
+  );
 
   useEffect(() => {
     if (step !== 'verification' || remainingSeconds === 0) return undefined;
@@ -314,6 +335,35 @@ export default function StudentOnboardingPage({
 
   const handleWorkTimeConfirm = () => {
     setIsWorkTimeSelectionSubmitted(true);
+    setStep('workLocationSelection');
+  };
+
+  const handleWorkLocationChange = (address: string) => {
+    setWorkLocation((currentLocation) => ({
+      ...currentLocation,
+      address,
+    }));
+    setIsWorkLocationSubmitted(false);
+  };
+
+  const handleCurrentWorkLocation = () => {
+    handleWorkLocationChange('강남역');
+  };
+
+  const handleWorkLocationConfirm = () => {
+    if (!workLocation.address.trim()) return;
+
+    setIsWorkLocationRadiusSelectionOpen(true);
+  };
+
+  const handleWorkLocationRadiusChange = (radius: WorkLocationRadius) => {
+    setWorkLocation((currentLocation) => ({ ...currentLocation, radius }));
+    setIsWorkLocationSubmitted(false);
+  };
+
+  const handleWorkLocationRadiusConfirm = () => {
+    setIsWorkLocationRadiusSelectionOpen(false);
+    setIsWorkLocationSubmitted(true);
   };
 
   const isExperienceDraftValid =
@@ -533,6 +583,118 @@ export default function StudentOnboardingPage({
         <p aria-live="polite" className="sr-only">
           {isWorkTimeSelectionSubmitted
             ? '근무 가능 시간이 저장되었습니다.'
+            : ''}
+        </p>
+      </OnboardingScaffold>
+    );
+  }
+
+  if (step === 'workLocationSelection') {
+    const selectedRadiusIndex = WORK_LOCATION_RADIUS_OPTIONS.indexOf(
+      workLocation.radius,
+    );
+
+    if (isWorkLocationRadiusSelectionOpen) {
+      return (
+        <main className="relative mx-auto flex min-h-[100svh] w-full max-w-[430px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+          <header className="flex h-[116px] items-end gap-7 bg-white px-6 pb-[18px]">
+            <button
+              aria-label="희망 근무 위치 입력으로 돌아가기"
+              className="flex size-6 items-center justify-center border-0 bg-transparent p-0"
+              type="button"
+              onClick={() => setIsWorkLocationRadiusSelectionOpen(false)}
+            >
+              <img alt="" className="h-4 w-2" src={backIcon} />
+            </button>
+            <span className="flex h-[41px] max-w-[250px] items-center gap-2 rounded-[22px] bg-[#EEF1F5] px-5 text-[15px] leading-[1.5] font-medium">
+              <img alt="" className="h-[14px] w-[14px]" src={locationIcon} />
+              <span className="truncate">{workLocation.address}</span>
+            </span>
+          </header>
+
+          <section className="rounded-b-[15px] bg-white px-6 pt-[13px] pb-[24px] shadow-[0_2px_8px_rgba(25,31,40,0.08)]">
+            <h1 className="m-0 text-[17px] leading-[1.5] font-medium">
+              반경 선택하기
+            </h1>
+            <input
+              aria-label="이동 가능 반경"
+              className="mt-5 h-1 w-full cursor-pointer accent-[#00B894]"
+              max={WORK_LOCATION_RADIUS_OPTIONS.length - 1}
+              min="0"
+              step="1"
+              type="range"
+              value={selectedRadiusIndex}
+              onChange={(event) =>
+                handleWorkLocationRadiusChange(
+                  WORK_LOCATION_RADIUS_OPTIONS[Number(event.target.value)],
+                )
+              }
+            />
+            <div className="mt-3 flex justify-between text-[15px] leading-[1.5] text-[#8B95A1]">
+              <span>100m</span>
+              <span>500m</span>
+              <span>1km</span>
+            </div>
+          </section>
+
+          <p className="mt-8 px-6 text-center text-[15px] leading-[1.5] text-[#8B95A1]">
+            지도와 거리 시각화는 MVP 범위에서 제외됩니다.
+          </p>
+
+          <div className="mt-auto px-6 pb-[calc(37px+env(safe-area-inset-bottom))]">
+            <button
+              className="h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
+              type="button"
+              onClick={handleWorkLocationRadiusConfirm}
+            >
+              확인
+            </button>
+          </div>
+        </main>
+      );
+    }
+
+    return (
+      <OnboardingScaffold
+        activeSubStep={3}
+        ctaLabel="확인"
+        currentStage={3}
+        isCtaDisabled={!workLocation.address.trim()}
+        question={'원하는 근무 희망위치를\n입력해주세요.'}
+        stageLabel="구직조건 입력"
+        totalSubSteps={3}
+        onBack={() => setStep('workTimeSelection')}
+        onCtaClick={handleWorkLocationConfirm}
+      >
+        <label className="mt-[27px] block">
+          <span className="block text-[17px] leading-[1.5] text-[#191F28]">
+            주소
+          </span>
+          <span className="relative mt-2 flex h-[57px] items-center border-0 border-b border-[#B0B8C1]">
+            <img
+              alt=""
+              className="h-[22px] w-[22px] shrink-0"
+              src={searchIcon}
+            />
+            <input
+              className="h-full min-w-0 flex-1 border-0 bg-transparent pl-[14px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28] outline-none placeholder:font-normal placeholder:text-[#B0B8C1]"
+              placeholder="주소 검색"
+              value={workLocation.address}
+              onChange={(event) => handleWorkLocationChange(event.target.value)}
+            />
+          </span>
+        </label>
+        <button
+          className="mt-[15px] flex h-[54px] w-full items-center gap-4 rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[23px] text-left text-[17px] leading-[1.5] text-[#191F28]"
+          type="button"
+          onClick={handleCurrentWorkLocation}
+        >
+          <img alt="" className="h-[14px] w-[14px]" src={locationIcon} />
+          현재 위치로 찾기
+        </button>
+        <p aria-live="polite" className="sr-only">
+          {isWorkLocationSubmitted
+            ? '희망 근무 위치와 이동 가능 범위가 저장되었습니다.'
             : ''}
         </p>
       </OnboardingScaffold>
