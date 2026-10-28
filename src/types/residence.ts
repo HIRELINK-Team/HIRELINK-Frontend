@@ -28,6 +28,7 @@ export type TopikLevel =
 
 export type ResidenceInfo = {
   academicStatus: AcademicStatus;
+  residenceExpiryDate: string;
   residenceQualification: ResidenceQualification;
   topikLevel: TopikLevel;
 };

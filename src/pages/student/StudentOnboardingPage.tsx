@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import academicStatusChevronIcon from '../../assets/icons/student/academic-status-chevron.svg';
 import backIcon from '../../assets/icons/student/back.svg';
+import residenceExpiryCalendarIcon from '../../assets/icons/student/residence-expiry-calendar.svg';
 import locationIcon from '../../assets/icons/student/location.svg';
 import searchIcon from '../../assets/icons/student/search.svg';
 import clearIcon from '../../assets/icons/student/clear.svg';
@@ -12,6 +13,7 @@ import { IndustryChip } from '../../components/student/onboarding/IndustryChip';
 import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
 import { OnboardingField } from '../../components/student/onboarding/OnboardingField';
 import { OnboardingScaffold } from '../../components/student/onboarding/OnboardingScaffold';
+import { ResidenceExpiryDatePicker } from '../../components/student/onboarding/ResidenceExpiryDatePicker';
 import { SelectionCard } from '../../components/student/onboarding/SelectionCard';
 import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
 import type { Experience, ExperienceDraft } from '../../types/experience';
@@ -52,7 +54,8 @@ type OnboardingView =
   | 'workLocationSelection'
   | 'residenceQualification'
   | 'academicStatus'
-  | 'topikLevel';
+  | 'topikLevel'
+  | 'residenceExpiry';
 
 type StudentOnboardingPageProps = {
   initialStep?: OnboardingView;
@@ -262,6 +265,7 @@ const ACADEMIC_STATUS_OPTIONS: Record<
 const INITIAL_RESIDENCE_INFO: ResidenceInfo = {
   residenceQualification: 'D2_1',
   academicStatus: 'ENROLLED',
+  residenceExpiryDate: '',
   topikLevel: 'LEVEL_4',
 };
 
@@ -274,6 +278,10 @@ const TOPIK_LEVEL_OPTIONS: Array<{ label: string; value: TopikLevel }> = [
   { value: 'LEVEL_5', label: '5급' },
   { value: 'LEVEL_6', label: '6급' },
 ];
+
+function formatResidenceExpiryDate(date: string) {
+  return date ? date.replaceAll('-', '.') : '';
+}
 
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -327,9 +335,13 @@ export default function StudentOnboardingPage({
   const [isAcademicStatusSheetOpen, setIsAcademicStatusSheetOpen] =
     useState(false);
   const [isTopikLevelSheetOpen, setIsTopikLevelSheetOpen] = useState(false);
+  const [isResidenceExpiryDatePickerOpen, setIsResidenceExpiryDatePickerOpen] =
+    useState(false);
   const [isAcademicStatusSubmitted, setIsAcademicStatusSubmitted] =
     useState(false);
   const [isTopikLevelSubmitted, setIsTopikLevelSubmitted] = useState(false);
+  const [isResidenceExpirySubmitted, setIsResidenceExpirySubmitted] =
+    useState(false);
   const [residenceInfo, setResidenceInfo] = useState<ResidenceInfo>(
     INITIAL_RESIDENCE_INFO,
   );
@@ -341,6 +353,9 @@ export default function StudentOnboardingPage({
     useState<AcademicStatus>(INITIAL_RESIDENCE_INFO.academicStatus);
   const [topikLevelDraft, setTopikLevelDraft] = useState<TopikLevel>(
     INITIAL_RESIDENCE_INFO.topikLevel,
+  );
+  const [residenceExpiryDateDraft, setResidenceExpiryDateDraft] = useState(
+    INITIAL_RESIDENCE_INFO.residenceExpiryDate,
   );
   const [workLocation, setWorkLocation] = useState<WorkLocation>(
     INITIAL_WORK_LOCATION,
@@ -487,6 +502,7 @@ export default function StudentOnboardingPage({
     setResidenceInfo({
       residenceQualification: residenceQualificationDraft,
       academicStatus: firstAcademicStatus,
+      residenceExpiryDate: residenceInfo.residenceExpiryDate,
       topikLevel: residenceInfo.topikLevel,
     });
     setAcademicStatusDraft(firstAcademicStatus);
@@ -520,6 +536,22 @@ export default function StudentOnboardingPage({
 
   const handleTopikLevelNext = () => {
     setIsTopikLevelSubmitted(true);
+    setStep('residenceExpiry');
+  };
+
+  const handleResidenceExpiryDateConfirm = (date: string) => {
+    setResidenceInfo((currentResidenceInfo) => ({
+      ...currentResidenceInfo,
+      residenceExpiryDate: date,
+    }));
+    setResidenceExpiryDateDraft(date);
+    setIsResidenceExpiryDatePickerOpen(false);
+  };
+
+  const handleResidenceExpiryNext = () => {
+    if (!residenceInfo.residenceExpiryDate) return;
+
+    setIsResidenceExpirySubmitted(true);
   };
 
   const isExperienceDraftValid =
@@ -1033,6 +1065,71 @@ export default function StudentOnboardingPage({
             onClose={() => setIsTopikLevelSheetOpen(false)}
             onConfirm={handleTopikLevelConfirm}
             onSelect={setTopikLevelDraft}
+          />
+        ) : null}
+      </OnboardingScaffold>
+    );
+  }
+
+  if (step === 'residenceExpiry') {
+    const residenceExpiryDateLabel = residenceInfo.residenceExpiryDate
+      ? formatResidenceExpiryDate(residenceInfo.residenceExpiryDate)
+      : 'YYYY.MM.DD';
+
+    return (
+      <OnboardingScaffold
+        activeSubStep={4}
+        ctaLabel="확인"
+        currentStage={4}
+        isCtaDisabled={!residenceInfo.residenceExpiryDate}
+        question={'체류기간 만료일을\n적어주세요.'}
+        stageLabel="체류자격 입력"
+        totalSubSteps={4}
+        onBack={() => setStep('topikLevel')}
+        onCtaClick={handleResidenceExpiryNext}
+      >
+        <button
+          aria-haspopup="dialog"
+          className="mt-[27px] flex h-[57px] w-full items-center border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
+          type="button"
+          onClick={() => {
+            setResidenceExpiryDateDraft(residenceInfo.residenceExpiryDate);
+            setIsResidenceExpiryDatePickerOpen(true);
+          }}
+        >
+          <span>
+            <span className="block text-[17px] leading-[1.5]">
+              체류기간 만료일
+            </span>
+            <span
+              className={`block text-[26px] leading-[1.5] ${
+                residenceInfo.residenceExpiryDate
+                  ? 'font-semibold text-[#191F28]'
+                  : 'font-normal text-[#B0B8C1]'
+              }`}
+            >
+              {residenceExpiryDateLabel}
+            </span>
+          </span>
+          <img
+            alt=""
+            className="ml-auto size-6"
+            src={residenceExpiryCalendarIcon}
+          />
+        </button>
+        <p className="mt-[9px] text-[15px] leading-[1.5] text-[#B0B8C1]">
+          근무 허가 여부는 별도 확인이 필요해요.
+        </p>
+        <p aria-live="polite" className="sr-only">
+          {isResidenceExpirySubmitted
+            ? '체류기간 만료일이 저장되었습니다. 다음 단계인 매칭 우선순위 화면은 아직 준비 중입니다.'
+            : ''}
+        </p>
+        {isResidenceExpiryDatePickerOpen ? (
+          <ResidenceExpiryDatePicker
+            initialDate={residenceExpiryDateDraft}
+            onClose={() => setIsResidenceExpiryDatePickerOpen(false)}
+            onConfirm={handleResidenceExpiryDateConfirm}
           />
         ) : null}
       </OnboardingScaffold>
