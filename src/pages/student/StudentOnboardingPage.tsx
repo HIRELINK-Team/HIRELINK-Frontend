@@ -10,6 +10,7 @@ import ageRestrictionImage from '../../assets/images/student/age-restriction.png
 import { ExperienceCard } from '../../components/student/onboarding/ExperienceCard';
 import { ExperienceForm } from '../../components/student/onboarding/ExperienceForm';
 import { IndustryChip } from '../../components/student/onboarding/IndustryChip';
+import { MatchingPriorityList } from '../../components/student/onboarding/MatchingPriorityList';
 import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
 import { OnboardingField } from '../../components/student/onboarding/OnboardingField';
 import { OnboardingScaffold } from '../../components/student/onboarding/OnboardingScaffold';
@@ -18,6 +19,7 @@ import { SelectionCard } from '../../components/student/onboarding/SelectionCard
 import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
 import type { Experience, ExperienceDraft } from '../../types/experience';
 import type { IndustryId, IndustryOption } from '../../types/industry';
+import type { MatchingPriority } from '../../types/matchingPriority';
 import type {
   AcademicStatus,
   ResidenceInfo,
@@ -55,7 +57,8 @@ type OnboardingView =
   | 'residenceQualification'
   | 'academicStatus'
   | 'topikLevel'
-  | 'residenceExpiry';
+  | 'residenceExpiry'
+  | 'matchingPriority';
 
 type StudentOnboardingPageProps = {
   initialStep?: OnboardingView;
@@ -279,6 +282,33 @@ const TOPIK_LEVEL_OPTIONS: Array<{ label: string; value: TopikLevel }> = [
   { value: 'LEVEL_6', label: '6급' },
 ];
 
+const INITIAL_MATCHING_PRIORITIES: MatchingPriority[] = [
+  {
+    id: 'workTime',
+    label: '\uADFC\uBB34\uC2DC\uAC04',
+    description:
+      '\uC6D0\uD558\uB294 \uC2DC\uAC04\uB300\uC5D0 \uC77C\uD558\uACE0 \uC2F6\uC5B4\uC694.',
+  },
+  {
+    id: 'wage',
+    label: '\uAE09\uC5EC',
+    description:
+      '\uB9CC\uC871\uC2A4\uB7EC\uC6B4 \uAE09\uC5EC\uB97C \uBC1B\uACE0 \uC2F6\uC5B4\uC694.',
+  },
+  {
+    id: 'distance',
+    label: '\uAC70\uB9AC',
+    description:
+      '\uC9D1 \uAC00\uAE4C\uC6B4 \uACF3\uC5D0\uC11C \uC77C\uD558\uACE0 \uC2F6\uC5B4\uC694.',
+  },
+  {
+    id: 'industry',
+    label: '\uC5C5\uC885',
+    description:
+      '\uC6D0\uD558\uB294 \uBD84\uC57C\uC5D0\uC11C \uC77C\uD558\uACE0 \uC2F6\uC5B4\uC694.',
+  },
+];
+
 function formatResidenceExpiryDate(date: string) {
   return date ? date.replaceAll('-', '.') : '';
 }
@@ -342,6 +372,8 @@ export default function StudentOnboardingPage({
   const [isTopikLevelSubmitted, setIsTopikLevelSubmitted] = useState(false);
   const [isResidenceExpirySubmitted, setIsResidenceExpirySubmitted] =
     useState(false);
+  const [isMatchingPrioritySubmitted, setIsMatchingPrioritySubmitted] =
+    useState(false);
   const [residenceInfo, setResidenceInfo] = useState<ResidenceInfo>(
     INITIAL_RESIDENCE_INFO,
   );
@@ -357,6 +389,9 @@ export default function StudentOnboardingPage({
   const [residenceExpiryDateDraft, setResidenceExpiryDateDraft] = useState(
     INITIAL_RESIDENCE_INFO.residenceExpiryDate,
   );
+  const [matchingPriorities, setMatchingPriorities] = useState<
+    MatchingPriority[]
+  >(INITIAL_MATCHING_PRIORITIES);
   const [workLocation, setWorkLocation] = useState<WorkLocation>(
     INITIAL_WORK_LOCATION,
   );
@@ -552,6 +587,11 @@ export default function StudentOnboardingPage({
     if (!residenceInfo.residenceExpiryDate) return;
 
     setIsResidenceExpirySubmitted(true);
+    setStep('matchingPriority');
+  };
+
+  const handleMatchingPrioritySubmit = () => {
+    setIsMatchingPrioritySubmitted(true);
   };
 
   const isExperienceDraftValid =
@@ -1132,6 +1172,41 @@ export default function StudentOnboardingPage({
             onConfirm={handleResidenceExpiryDateConfirm}
           />
         ) : null}
+      </OnboardingScaffold>
+    );
+  }
+
+  if (step === 'matchingPriority') {
+    return (
+      <OnboardingScaffold
+        activeSubStep={0}
+        contentClassName="mt-6"
+        ctaLabel={'\uB9E4\uCE6D\uD558\uAE30'}
+        currentStage={5}
+        question={
+          '\uC6B0\uC120\uC21C\uC704\uB97C \uC815\uD574\uC8FC\uC138\uC694.'
+        }
+        showProgress={false}
+        stageLabel={'\uC6B0\uC120\uC21C\uC704 \uC120\uD0DD'}
+        stageLabelLayout="stacked"
+        totalSubSteps={1}
+        onBack={() => setStep('residenceExpiry')}
+        onCtaClick={handleMatchingPrioritySubmit}
+      >
+        <p className="mt-2 text-[15px] leading-[1.5] text-[#B0B8C1]">
+          {
+            '\uC911\uC694\uD55C \uC21C\uC11C\uB300\uB85C \uB04C\uC5B4\uB2E4 \uB193\uC73C\uC138\uC694.'
+          }
+        </p>
+        <MatchingPriorityList
+          priorities={matchingPriorities}
+          onChange={setMatchingPriorities}
+        />
+        <p aria-live="polite" className="sr-only">
+          {isMatchingPrioritySubmitted
+            ? '\uB9E4\uCE6D \uC870\uAC74\uC774 \uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uD648\uACFC \uB9E4\uCE6D \uACB0\uACFC \uD654\uBA74\uC740 \uC544\uC9C1 \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4.'
+            : ''}
+        </p>
       </OnboardingScaffold>
     );
   }

@@ -6,6 +6,7 @@ type OnboardingScaffoldProps = {
   activeSubStep: number;
   children: ReactNode;
   ctaLabel: string;
+  contentClassName?: string;
   currentStage: number;
   footer?: ReactNode;
   isCtaDisabled?: boolean;
@@ -13,6 +14,7 @@ type OnboardingScaffoldProps = {
   onCtaClick: () => void;
   question: string;
   showProgress?: boolean;
+  stageLabelLayout?: 'inline' | 'stacked';
   stageLabel: string;
   totalSubSteps: number;
 };
@@ -21,6 +23,7 @@ export function OnboardingScaffold({
   activeSubStep,
   children,
   ctaLabel,
+  contentClassName = 'mt-10',
   currentStage,
   footer,
   isCtaDisabled = false,
@@ -28,6 +31,7 @@ export function OnboardingScaffold({
   onCtaClick,
   question,
   showProgress = true,
+  stageLabelLayout = 'inline',
   stageLabel,
   totalSubSteps,
 }: OnboardingScaffoldProps) {
@@ -50,11 +54,21 @@ export function OnboardingScaffold({
       </button>
 
       <header className="mt-[37px]">
-        <p className="flex items-baseline gap-1 text-[15px] leading-[1.5] text-[#8B95A1]">
+        <p
+          className={`${
+            stageLabelLayout === 'stacked'
+              ? 'block text-[15px] leading-[1.5] text-[#8B95A1]'
+              : 'flex items-baseline gap-1 text-[15px] leading-[1.5] text-[#8B95A1]'
+          }`}
+        >
           <strong className="text-[17px] leading-[1.5] font-bold text-[#00B894]">
             {currentStage}/5
           </strong>
-          {stageLabel}
+          {stageLabelLayout === 'stacked' ? (
+            <span className="block">{stageLabel}</span>
+          ) : (
+            stageLabel
+          )}
         </p>
         {showProgress ? (
           <div
@@ -72,7 +86,7 @@ export function OnboardingScaffold({
         ) : null}
       </header>
 
-      <section className="mt-10">
+      <section className={contentClassName}>
         <h1
           className="m-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold"
           id="onboarding-question"
