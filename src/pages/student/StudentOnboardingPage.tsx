@@ -10,8 +10,14 @@ import { IndustryChip } from '../../components/student/onboarding/IndustryChip';
 import { OnboardingField } from '../../components/student/onboarding/OnboardingField';
 import { OnboardingScaffold } from '../../components/student/onboarding/OnboardingScaffold';
 import { SelectionCard } from '../../components/student/onboarding/SelectionCard';
+import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
 import type { Experience, ExperienceDraft } from '../../types/experience';
 import type { IndustryId, IndustryOption } from '../../types/industry';
+import type {
+  Weekday,
+  WorkAvailability,
+  WorkTimeMode,
+} from '../../types/workAvailability';
 
 type BasicInfoStep =
   | 'name'
@@ -25,7 +31,11 @@ type BasicInfoStep =
 type BasicInfoView = BasicInfoStep | 'ageRestricted';
 
 type OnboardingView =
-  BasicInfoView | 'experienceForm' | 'experienceList' | 'industrySelection';
+  | BasicInfoView
+  | 'experienceForm'
+  | 'experienceList'
+  | 'industrySelection'
+  | 'workTimeSelection';
 
 type StudentOnboardingPageProps = {
   initialStep?: OnboardingView;
@@ -140,6 +150,27 @@ const INDUSTRY_ROWS: IndustryOption[][] = [
 
 const INITIAL_SELECTED_INDUSTRIES: IndustryId[] = ['foodCafe', 'dutyFree'];
 
+const INITIAL_WORK_AVAILABILITY: WorkAvailability = {
+  daytime: {
+    mon: [0, 1, 2, 3, 4, 5, 6, 7],
+    tue: [],
+    wed: [12, 13, 14, 15, 16, 17, 18, 19],
+    thu: [],
+    fri: [],
+    sat: [],
+    sun: [],
+  },
+  nighttime: {
+    mon: [0, 1, 2, 3, 4, 5, 6, 7],
+    tue: [],
+    wed: [10, 11, 12, 13, 14, 15],
+    thu: [],
+    fri: [],
+    sat: [],
+    sun: [],
+  },
+};
+
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
 
@@ -174,6 +205,12 @@ export default function StudentOnboardingPage({
   );
   const [step, setStep] = useState<OnboardingView>(initialStep);
   const [verificationError, setVerificationError] = useState('');
+  const [workAvailability, setWorkAvailability] = useState<WorkAvailability>(
+    INITIAL_WORK_AVAILABILITY,
+  );
+  const [workTimeMode, setWorkTimeMode] = useState<WorkTimeMode>('daytime');
+  const [isWorkTimeSelectionSubmitted, setIsWorkTimeSelectionSubmitted] =
+    useState(false);
 
   useEffect(() => {
     if (step !== 'verification' || remainingSeconds === 0) return undefined;
@@ -254,12 +291,29 @@ export default function StudentOnboardingPage({
 
   const handleIndustryConfirm = () => {
     setIsIndustrySelectionSubmitted(true);
+    setStep('workTimeSelection');
   };
 
   const handleIndustryNoPreference = () => {
     setSelectedIndustries([]);
     setOtherIndustry('');
     setIsIndustrySelectionSubmitted(true);
+    setStep('workTimeSelection');
+  };
+
+  const handleWorkTimeSlotsChange = (day: Weekday, slots: number[]) => {
+    setIsWorkTimeSelectionSubmitted(false);
+    setWorkAvailability((currentAvailability) => ({
+      ...currentAvailability,
+      [workTimeMode]: {
+        ...currentAvailability[workTimeMode],
+        [day]: slots,
+      },
+    }));
+  };
+
+  const handleWorkTimeConfirm = () => {
+    setIsWorkTimeSelectionSubmitted(true);
   };
 
   const isExperienceDraftValid =
@@ -449,6 +503,36 @@ export default function StudentOnboardingPage({
         <p aria-live="polite" className="sr-only">
           {isIndustrySelectionSubmitted
             ? '희망 업종 선택이 저장되었습니다.'
+            : ''}
+        </p>
+      </OnboardingScaffold>
+    );
+  }
+
+  if (step === 'workTimeSelection') {
+    return (
+      <OnboardingScaffold
+        activeSubStep={2}
+        ctaLabel="확인"
+        currentStage={3}
+        question={'원하는 근무시간대를\n선택해주세요.'}
+        stageLabel="구직조건 입력"
+        totalSubSteps={3}
+        onBack={() => setStep('industrySelection')}
+        onCtaClick={handleWorkTimeConfirm}
+      >
+        <p className="mt-[14px] text-[15px] leading-[1.5] text-[#939393]">
+          드래그하여 선택해주세요.
+        </p>
+        <WorkTimeGrid
+          mode={workTimeMode}
+          selectedSlots={workAvailability[workTimeMode]}
+          onModeChange={setWorkTimeMode}
+          onSlotsChange={handleWorkTimeSlotsChange}
+        />
+        <p aria-live="polite" className="sr-only">
+          {isWorkTimeSelectionSubmitted
+            ? '근무 가능 시간이 저장되었습니다.'
             : ''}
         </p>
       </OnboardingScaffold>
