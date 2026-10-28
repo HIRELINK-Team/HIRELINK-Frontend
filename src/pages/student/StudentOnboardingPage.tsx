@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import academicStatusChevronIcon from '../../assets/icons/student/academic-status-chevron.svg';
 import backIcon from '../../assets/icons/student/back.svg';
 import locationIcon from '../../assets/icons/student/location.svg';
 import searchIcon from '../../assets/icons/student/search.svg';
@@ -8,12 +9,18 @@ import ageRestrictionImage from '../../assets/images/student/age-restriction.png
 import { ExperienceCard } from '../../components/student/onboarding/ExperienceCard';
 import { ExperienceForm } from '../../components/student/onboarding/ExperienceForm';
 import { IndustryChip } from '../../components/student/onboarding/IndustryChip';
+import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
 import { OnboardingField } from '../../components/student/onboarding/OnboardingField';
 import { OnboardingScaffold } from '../../components/student/onboarding/OnboardingScaffold';
 import { SelectionCard } from '../../components/student/onboarding/SelectionCard';
 import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
 import type { Experience, ExperienceDraft } from '../../types/experience';
 import type { IndustryId, IndustryOption } from '../../types/industry';
+import type {
+  AcademicStatus,
+  ResidenceInfo,
+  ResidenceQualification,
+} from '../../types/residence';
 import type {
   Weekday,
   WorkAvailability,
@@ -41,7 +48,9 @@ type OnboardingView =
   | 'experienceList'
   | 'industrySelection'
   | 'workTimeSelection'
-  | 'workLocationSelection';
+  | 'workLocationSelection'
+  | 'residenceQualification'
+  | 'academicStatus';
 
 type StudentOnboardingPageProps = {
   initialStep?: OnboardingView;
@@ -184,6 +193,75 @@ const INITIAL_WORK_LOCATION: WorkLocation = {
   radius: 100,
 };
 
+const RESIDENCE_QUALIFICATION_OPTIONS: Array<{
+  label: string;
+  value: ResidenceQualification;
+}> = [
+  { value: 'D2_1', label: '전문학사(D-2-1)' },
+  { value: 'D2_2', label: '학사(D-2-2)' },
+  { value: 'D2_3', label: '석사(D-2-3)' },
+  { value: 'D2_4', label: '박사(D-2-4)' },
+  { value: 'D2_6', label: '교환학생(D-2-6)' },
+  { value: 'D2_7', label: '일·학습연계(D-2-7)' },
+  { value: 'D2_8', label: '방문학생(D-2-8)' },
+  { value: 'D4_1', label: '한국어/외국어 연수(D-4-1)' },
+];
+
+const ACADEMIC_STATUS_OPTIONS: Record<
+  ResidenceQualification,
+  Array<{ label: string; value: AcademicStatus }>
+> = {
+  D2_1: [
+    { value: 'ENROLLED', label: '재학 중' },
+    { value: 'COMPLETED', label: '수료' },
+    { value: 'GRADUATED', label: '졸업' },
+    { value: 'LEAVE_OF_ABSENCE', label: '휴학 중' },
+  ],
+  D2_2: [
+    { value: 'ENROLLED', label: '재학 중' },
+    { value: 'COMPLETED', label: '수료' },
+    { value: 'GRADUATED', label: '졸업' },
+    { value: 'LEAVE_OF_ABSENCE', label: '휴학 중' },
+  ],
+  D2_3: [
+    { value: 'ENROLLED', label: '재학 중' },
+    { value: 'COMPLETED', label: '수료' },
+    { value: 'GRADUATED', label: '졸업' },
+    { value: 'LEAVE_OF_ABSENCE', label: '휴학 중' },
+  ],
+  D2_4: [
+    { value: 'ENROLLED', label: '재학 중' },
+    { value: 'COMPLETED', label: '수료' },
+    { value: 'GRADUATED', label: '졸업' },
+    { value: 'LEAVE_OF_ABSENCE', label: '휴학 중' },
+  ],
+  D2_6: [
+    { value: 'EXCHANGE_IN_PROGRESS', label: '교환학생 진행 중' },
+    { value: 'EXCHANGE_ENDED', label: '교환학기 종료' },
+    { value: 'INTERRUPTED', label: '중단' },
+  ],
+  D2_7: [
+    { value: 'PROGRAM_IN_PROGRESS', label: '과정 참여 중' },
+    { value: 'PROGRAM_COMPLETED', label: '과정 수료' },
+    { value: 'INTERRUPTED', label: '휴학/중단' },
+  ],
+  D2_8: [
+    { value: 'VISITING_IN_PROGRESS', label: '방문학기 진행 중' },
+    { value: 'VISITING_ENDED', label: '방문학기 종료' },
+    { value: 'INTERRUPTED', label: '중단' },
+  ],
+  D4_1: [
+    { value: 'TRAINING_IN_PROGRESS', label: '연수 중' },
+    { value: 'TRAINING_COMPLETED', label: '연수 수료' },
+    { value: 'TRAINING_INTERRUPTED', label: '연수 중단' },
+  ],
+};
+
+const INITIAL_RESIDENCE_INFO: ResidenceInfo = {
+  residenceQualification: 'D2_1',
+  academicStatus: 'ENROLLED',
+};
+
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
 
@@ -229,6 +307,23 @@ export default function StudentOnboardingPage({
     setIsWorkLocationRadiusSelectionOpen,
   ] = useState(false);
   const [isWorkLocationSubmitted, setIsWorkLocationSubmitted] = useState(false);
+  const [
+    isResidenceQualificationSheetOpen,
+    setIsResidenceQualificationSheetOpen,
+  ] = useState(false);
+  const [isAcademicStatusSheetOpen, setIsAcademicStatusSheetOpen] =
+    useState(false);
+  const [isAcademicStatusSubmitted, setIsAcademicStatusSubmitted] =
+    useState(false);
+  const [residenceInfo, setResidenceInfo] = useState<ResidenceInfo>(
+    INITIAL_RESIDENCE_INFO,
+  );
+  const [residenceQualificationDraft, setResidenceQualificationDraft] =
+    useState<ResidenceQualification>(
+      INITIAL_RESIDENCE_INFO.residenceQualification,
+    );
+  const [academicStatusDraft, setAcademicStatusDraft] =
+    useState<AcademicStatus>(INITIAL_RESIDENCE_INFO.academicStatus);
   const [workLocation, setWorkLocation] = useState<WorkLocation>(
     INITIAL_WORK_LOCATION,
   );
@@ -364,6 +459,35 @@ export default function StudentOnboardingPage({
   const handleWorkLocationRadiusConfirm = () => {
     setIsWorkLocationRadiusSelectionOpen(false);
     setIsWorkLocationSubmitted(true);
+    setStep('residenceQualification');
+  };
+
+  const handleResidenceQualificationConfirm = () => {
+    const firstAcademicStatus =
+      ACADEMIC_STATUS_OPTIONS[residenceQualificationDraft][0].value;
+
+    setResidenceInfo({
+      residenceQualification: residenceQualificationDraft,
+      academicStatus: firstAcademicStatus,
+    });
+    setAcademicStatusDraft(firstAcademicStatus);
+    setIsResidenceQualificationSheetOpen(false);
+  };
+
+  const handleResidenceQualificationNext = () => {
+    setStep('academicStatus');
+  };
+
+  const handleAcademicStatusConfirm = () => {
+    setResidenceInfo((currentResidenceInfo) => ({
+      ...currentResidenceInfo,
+      academicStatus: academicStatusDraft,
+    }));
+    setIsAcademicStatusSheetOpen(false);
+  };
+
+  const handleAcademicStatusNext = () => {
+    setIsAcademicStatusSubmitted(true);
   };
 
   const isExperienceDraftValid =
@@ -697,6 +821,127 @@ export default function StudentOnboardingPage({
             ? '희망 근무 위치와 이동 가능 범위가 저장되었습니다.'
             : ''}
         </p>
+      </OnboardingScaffold>
+    );
+  }
+
+  if (step === 'residenceQualification') {
+    const residenceQualificationLabel = RESIDENCE_QUALIFICATION_OPTIONS.find(
+      (option) => option.value === residenceInfo.residenceQualification,
+    )?.label;
+
+    return (
+      <OnboardingScaffold
+        activeSubStep={1}
+        ctaLabel="확인"
+        currentStage={4}
+        question={'현재 체류자격이\n무엇인가요?'}
+        stageLabel="체류자격 입력"
+        totalSubSteps={4}
+        onBack={() => setStep('workLocationSelection')}
+        onCtaClick={handleResidenceQualificationNext}
+      >
+        <button
+          aria-haspopup="dialog"
+          className="mt-[27px] flex h-[57px] w-full items-center border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
+          type="button"
+          onClick={() => {
+            setResidenceQualificationDraft(
+              residenceInfo.residenceQualification,
+            );
+            setIsResidenceQualificationSheetOpen(true);
+          }}
+        >
+          <span>
+            <span className="block text-[17px] leading-[1.5]">체류자격</span>
+            <span className="block text-[26px] leading-[1.5] font-semibold">
+              {residenceQualificationLabel}
+            </span>
+          </span>
+          <span
+            aria-hidden="true"
+            className="ml-auto flex h-[8.5px] w-[17px] items-center justify-center"
+          >
+            <img
+              alt=""
+              className="h-[17px] w-[8.5px] -rotate-90"
+              src={academicStatusChevronIcon}
+            />
+          </span>
+        </button>
+        {isResidenceQualificationSheetOpen ? (
+          <OnboardingBottomSheet
+            options={RESIDENCE_QUALIFICATION_OPTIONS}
+            selectedValue={residenceQualificationDraft}
+            title="체류자격 선택"
+            onClose={() => setIsResidenceQualificationSheetOpen(false)}
+            onConfirm={handleResidenceQualificationConfirm}
+            onSelect={setResidenceQualificationDraft}
+          />
+        ) : null}
+      </OnboardingScaffold>
+    );
+  }
+
+  if (step === 'academicStatus') {
+    const academicStatusOptions =
+      ACADEMIC_STATUS_OPTIONS[residenceInfo.residenceQualification];
+    const academicStatusLabel = academicStatusOptions.find(
+      (option) => option.value === residenceInfo.academicStatus,
+    )?.label;
+
+    return (
+      <OnboardingScaffold
+        activeSubStep={2}
+        ctaLabel="확인"
+        currentStage={4}
+        question={'현재 학업상태를\n알려주세요.'}
+        stageLabel="체류자격 입력"
+        totalSubSteps={4}
+        onBack={() => setStep('residenceQualification')}
+        onCtaClick={handleAcademicStatusNext}
+      >
+        <button
+          aria-haspopup="dialog"
+          className="mt-[27px] flex h-[57px] w-full items-center border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
+          type="button"
+          onClick={() => {
+            setAcademicStatusDraft(residenceInfo.academicStatus);
+            setIsAcademicStatusSheetOpen(true);
+          }}
+        >
+          <span>
+            <span className="block text-[17px] leading-[1.5]">학업상태</span>
+            <span className="block text-[26px] leading-[1.5] font-semibold">
+              {academicStatusLabel}
+            </span>
+          </span>
+          <span
+            aria-hidden="true"
+            className="ml-auto flex h-[8.5px] w-[17px] items-center justify-center"
+          >
+            <img
+              alt=""
+              className="h-[17px] w-[8.5px] -rotate-90"
+              src={academicStatusChevronIcon}
+            />
+          </span>
+        </button>
+        <p aria-live="polite" className="sr-only">
+          {isAcademicStatusSubmitted
+            ? '체류자격과 학업상태가 저장되었습니다. 다음 단계는 TOPIK 등급 입력입니다.'
+            : ''}
+        </p>
+        {isAcademicStatusSheetOpen ? (
+          <OnboardingBottomSheet
+            options={academicStatusOptions}
+            selectedValue={academicStatusDraft}
+            title="학업상태 선택"
+            onClose={() => setIsAcademicStatusSheetOpen(false)}
+            onConfirm={handleAcademicStatusConfirm}
+            onSelect={setAcademicStatusDraft}
+          />
+        ) : null}
       </OnboardingScaffold>
     );
   }
