@@ -5,6 +5,7 @@ import { RecommendedJobDetail } from '../../components/student/matching/Recommen
 import { RecommendedJobCard } from '../../components/student/matching/RecommendedJobCard';
 import { ApplicationConfirmationStep } from '../../components/student/matching/ApplicationConfirmationStep';
 import { ApplicationCompleteStep } from '../../components/student/matching/ApplicationCompleteStep';
+import { MatchingOfferOverlay } from '../../components/student/matching/MatchingOfferOverlay';
 import { WorkStartDateStep } from '../../components/student/matching/WorkStartDateStep';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import {
@@ -14,6 +15,7 @@ import {
 import type { StudentNavigationTab } from '../../types/studentHome';
 import type {
   RecommendedJob,
+  StudentOfferAction,
   StudentMatchingView,
 } from '../../types/studentMatching';
 
@@ -21,6 +23,7 @@ type StudentMatchingPageProps = {
   initialSelectedJob?: RecommendedJob | null;
   initialView?: StudentMatchingView;
   onBack?: () => void;
+  onOfferAction?: (action: StudentOfferAction, job: RecommendedJob) => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onViewChange?: (
     view: Exclude<StudentMatchingView, 'result'>,
@@ -32,6 +35,7 @@ export default function StudentMatchingPage({
   initialSelectedJob = null,
   initialView = 'result',
   onBack,
+  onOfferAction,
   onTabChange,
   onViewChange,
 }: StudentMatchingPageProps) {
@@ -113,6 +117,16 @@ export default function StudentMatchingPage({
     onTabChange?.('home');
   };
 
+  const handleOfferBack = () => {
+    setMatchingView('result');
+  };
+
+  const handleOfferAction = (action: StudentOfferAction) => {
+    if (selectedJob) {
+      onOfferAction?.(action, selectedJob);
+    }
+  };
+
   if (matchingView === 'detail' && selectedJob) {
     return (
       <RecommendedJobDetail
@@ -164,7 +178,9 @@ export default function StudentMatchingPage({
 
   return (
     <main
-      className="relative mx-auto min-h-[990px] w-full max-w-[430px] bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+      className={`relative mx-auto w-full max-w-[430px] bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28] ${
+        matchingView === 'offer' ? 'min-h-[844px]' : 'min-h-[990px]'
+      }`}
       data-matching-view={matchingView}
       data-selected-job-id={selectedJob?.id}
     >
@@ -206,6 +222,13 @@ export default function StudentMatchingPage({
         bottomOffsetClassName="bottom-[31px]"
         onTabChange={handleTabChange}
       />
+      {matchingView === 'offer' && selectedJob ? (
+        <MatchingOfferOverlay
+          job={selectedJob}
+          onAction={handleOfferAction}
+          onBack={handleOfferBack}
+        />
+      ) : null}
     </main>
   );
 }

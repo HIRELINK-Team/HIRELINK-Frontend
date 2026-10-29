@@ -24,6 +24,8 @@ export type RecommendedJob = {
   showsApplyButton: boolean;
 };
 
+export type StudentOfferAction = 'accept' | 'decline';
+
 export type StudentMatchingView =
   | 'result'
   | 'detail'
