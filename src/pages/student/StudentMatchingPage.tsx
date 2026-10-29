@@ -3,6 +3,7 @@ import { useState } from 'react';
 import backIcon from '../../assets/icons/student/matching/back.svg';
 import { RecommendedJobDetail } from '../../components/student/matching/RecommendedJobDetail';
 import { RecommendedJobCard } from '../../components/student/matching/RecommendedJobCard';
+import { ApplicationConfirmationStep } from '../../components/student/matching/ApplicationConfirmationStep';
 import { WorkStartDateStep } from '../../components/student/matching/WorkStartDateStep';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import {
@@ -81,7 +82,18 @@ export default function StudentMatchingPage({
 
   const handleStartDateNext = () => {
     if (selectedJob) {
+      setMatchingView('confirm');
       onViewChange?.('confirm', selectedJob);
+    }
+  };
+
+  const handleConfirmationBack = () => {
+    setMatchingView('startDate');
+  };
+
+  const handleApplicationConfirmation = () => {
+    if (selectedJob) {
+      onViewChange?.('complete', selectedJob);
     }
   };
 
@@ -108,6 +120,17 @@ export default function StudentMatchingPage({
         onDatePickerClose={handleStartDatePickerClose}
         onDatePickerOpen={handleStartDatePickerOpen}
         onNext={handleStartDateNext}
+      />
+    );
+  }
+
+  if (matchingView === 'confirm' && selectedJob) {
+    return (
+      <ApplicationConfirmationStep
+        job={selectedJob}
+        workStartDate={workStartDate}
+        onBack={handleConfirmationBack}
+        onConfirm={handleApplicationConfirmation}
       />
     );
   }
