@@ -6,6 +6,7 @@ import { RecommendedJobCard } from '../../components/student/matching/Recommende
 import { ApplicationConfirmationStep } from '../../components/student/matching/ApplicationConfirmationStep';
 import { ApplicationCompleteStep } from '../../components/student/matching/ApplicationCompleteStep';
 import { MatchingOfferOverlay } from '../../components/student/matching/MatchingOfferOverlay';
+import { RecommendationRefreshModal } from '../../components/student/matching/RecommendationRefreshModal';
 import { WorkStartDateStep } from '../../components/student/matching/WorkStartDateStep';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import {
@@ -20,10 +21,12 @@ import type {
 } from '../../types/studentMatching';
 
 type StudentMatchingPageProps = {
+  initialRefreshPopupOpen?: boolean;
   initialSelectedJob?: RecommendedJob | null;
   initialView?: StudentMatchingView;
   onBack?: () => void;
   onOfferAction?: (action: StudentOfferAction, job: RecommendedJob) => void;
+  onRecommendationRefresh?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onViewChange?: (
     view: Exclude<StudentMatchingView, 'result'>,
@@ -32,10 +35,12 @@ type StudentMatchingPageProps = {
 };
 
 export default function StudentMatchingPage({
+  initialRefreshPopupOpen = false,
   initialSelectedJob = null,
   initialView = 'result',
   onBack,
   onOfferAction,
+  onRecommendationRefresh,
   onTabChange,
   onViewChange,
 }: StudentMatchingPageProps) {
@@ -45,6 +50,9 @@ export default function StudentMatchingPage({
     initialSelectedJob,
   );
   const [workStartDate, setWorkStartDate] = useState('2027-03-14');
+  const [isRefreshPopupOpen, setIsRefreshPopupOpen] = useState(
+    initialRefreshPopupOpen,
+  );
   const recommendedJobs = STUDENT_RECOMMENDED_JOBS.slice(
     0,
     MAX_RECOMMENDED_JOBS,
@@ -125,6 +133,11 @@ export default function StudentMatchingPage({
     if (selectedJob) {
       onOfferAction?.(action, selectedJob);
     }
+  };
+
+  const handleRecommendationRefreshConfirm = () => {
+    setIsRefreshPopupOpen(false);
+    onRecommendationRefresh?.();
   };
 
   if (matchingView === 'detail' && selectedJob) {
@@ -227,6 +240,11 @@ export default function StudentMatchingPage({
           job={selectedJob}
           onAction={handleOfferAction}
           onBack={handleOfferBack}
+        />
+      ) : null}
+      {matchingView === 'result' && isRefreshPopupOpen ? (
+        <RecommendationRefreshModal
+          onConfirm={handleRecommendationRefreshConfirm}
         />
       ) : null}
     </main>
