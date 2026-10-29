@@ -1,7 +1,21 @@
+export type RecommendedJobDetailMetric = {
+  label: string;
+  value: string;
+};
+
+export type RecommendedJobDetail = {
+  comparisonTags: string[];
+  locationAndDistance: string;
+  matchRate: number;
+  metrics: RecommendedJobDetailMetric[];
+  tags: string[];
+};
+
 export type RecommendedJob = {
   countdownLabel: string;
   commuteAndWage: string;
   companyName: string;
+  detail: RecommendedJobDetail;
   id: string;
   isCountdownActive: boolean;
   matchDescription: string;

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import backIcon from '../../assets/icons/student/matching/back.svg';
+import { RecommendedJobDetail } from '../../components/student/matching/RecommendedJobDetail';
 import { RecommendedJobCard } from '../../components/student/matching/RecommendedJobCard';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import {
@@ -14,6 +15,8 @@ import type {
 } from '../../types/studentMatching';
 
 type StudentMatchingPageProps = {
+  initialSelectedJob?: RecommendedJob | null;
+  initialView?: StudentMatchingView;
   onBack?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onViewChange?: (
@@ -23,13 +26,17 @@ type StudentMatchingPageProps = {
 };
 
 export default function StudentMatchingPage({
+  initialSelectedJob = null,
+  initialView = 'result',
   onBack,
   onTabChange,
   onViewChange,
 }: StudentMatchingPageProps) {
   const [matchingView, setMatchingView] =
-    useState<StudentMatchingView>('result');
-  const [selectedJob, setSelectedJob] = useState<RecommendedJob | null>(null);
+    useState<StudentMatchingView>(initialView);
+  const [selectedJob, setSelectedJob] = useState<RecommendedJob | null>(
+    initialSelectedJob,
+  );
   const recommendedJobs = STUDENT_RECOMMENDED_JOBS.slice(
     0,
     MAX_RECOMMENDED_JOBS,
@@ -48,6 +55,24 @@ export default function StudentMatchingPage({
   const handleTabChange = (tab: StudentNavigationTab) => {
     onTabChange?.(tab);
   };
+
+  const handleDetailBack = () => {
+    setMatchingView('result');
+  };
+
+  const handleApply = (job: RecommendedJob) => {
+    onViewChange?.('startDate', job);
+  };
+
+  if (matchingView === 'detail' && selectedJob) {
+    return (
+      <RecommendedJobDetail
+        job={selectedJob}
+        onApply={handleApply}
+        onBack={handleDetailBack}
+      />
+    );
+  }
 
   return (
     <main
