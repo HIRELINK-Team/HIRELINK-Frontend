@@ -5,7 +5,9 @@ import myIcon from '../../../assets/icons/student/home/my.svg';
 import type { StudentNavigationTab } from '../../../types/studentHome';
 
 type StudentBottomNavigationProps = {
+  activeBackgroundClassName?: string;
   activeTab: StudentNavigationTab;
+  bottomOffsetClassName?: string;
   isFixed?: boolean;
   onTabChange?: (tab: StudentNavigationTab) => void;
 };
@@ -26,14 +28,16 @@ const NAVIGATION_ITEMS: Array<{
 ];
 
 export function StudentBottomNavigation({
+  activeBackgroundClassName = 'bg-[#E5E8EB]/20',
   activeTab,
+  bottomOffsetClassName = 'bottom-9',
   isFixed = false,
   onTabChange,
 }: StudentBottomNavigationProps) {
   return (
     <nav
       aria-label={'\uD559\uC0DD \uD558\uB2E8 \uB0B4\uBE44\uAC8C\uC774\uC158'}
-      className={`${isFixed ? 'fixed' : 'absolute'} bottom-9 left-1/2 z-20 flex h-[70px] w-[367px] max-w-[calc(100%-22px)] -translate-x-1/2 items-center justify-center gap-[25px] rounded-[51px] bg-white/30`}
+      className={`${isFixed ? 'fixed' : 'absolute'} ${bottomOffsetClassName} left-1/2 z-20 flex h-[70px] w-[367px] max-w-[calc(100%-22px)] -translate-x-1/2 items-center justify-center gap-[25px] rounded-[51px] bg-white/30`}
     >
       {NAVIGATION_ITEMS.map((item) => {
         const isActive = activeTab === item.tab;
@@ -49,7 +53,7 @@ export function StudentBottomNavigation({
             {isActive ? (
               <span
                 aria-hidden="true"
-                className="absolute h-[60px] w-[83px] rounded-[50px] bg-[#E5E8EB]/20"
+                className={`absolute h-[60px] w-[83px] rounded-[50px] ${activeBackgroundClassName}`}
               />
             ) : null}
             <img alt="" className="relative z-10 block" src={item.icon} />
