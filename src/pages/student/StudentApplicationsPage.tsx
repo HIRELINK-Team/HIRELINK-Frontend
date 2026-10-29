@@ -76,7 +76,6 @@ export default function StudentApplicationsPage({
     : getApplicationsForFilter(activeFilter);
   const isGeneralLayout = activeFilter === 'all' && !isEmptyScenario;
   const isReviewingLayout = activeFilter === 'reviewing' && !isEmptyScenario;
-  const isOfferLayout = activeFilter === 'offer' && !isEmptyScenario;
 
   const handleFilterChange = (filter: StudentApplicationsFilter) => {
     setActiveFilter(filter);
@@ -120,9 +119,7 @@ export default function StudentApplicationsPage({
           {applications.map((application) => (
             <StudentApplicationCard
               application={application}
-              isGeneralLayout={
-                isGeneralLayout || isReviewingLayout || isOfferLayout
-              }
+              isGeneralLayout={isGeneralLayout || isReviewingLayout}
               key={application.id}
               onAcceptOffer={onAcceptOffer}
               onDeclineOffer={onDeclineOffer}
