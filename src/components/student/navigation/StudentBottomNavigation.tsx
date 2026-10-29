@@ -6,6 +6,7 @@ import type { StudentNavigationTab } from '../../../types/studentHome';
 
 type StudentBottomNavigationProps = {
   activeTab: StudentNavigationTab;
+  isFixed?: boolean;
   onTabChange?: (tab: StudentNavigationTab) => void;
 };
 
@@ -26,12 +27,13 @@ const NAVIGATION_ITEMS: Array<{
 
 export function StudentBottomNavigation({
   activeTab,
+  isFixed = false,
   onTabChange,
 }: StudentBottomNavigationProps) {
   return (
     <nav
       aria-label={'\uD559\uC0DD \uD558\uB2E8 \uB0B4\uBE44\uAC8C\uC774\uC158'}
-      className="absolute bottom-9 left-1/2 flex h-[70px] w-[367px] max-w-[calc(100%-22px)] -translate-x-1/2 items-center justify-center gap-[25px] rounded-[51px] bg-white/30"
+      className={`${isFixed ? 'fixed' : 'absolute'} bottom-9 left-1/2 z-20 flex h-[70px] w-[367px] max-w-[calc(100%-22px)] -translate-x-1/2 items-center justify-center gap-[25px] rounded-[51px] bg-white/30`}
     >
       {NAVIGATION_ITEMS.map((item) => {
         const isActive = activeTab === item.tab;
