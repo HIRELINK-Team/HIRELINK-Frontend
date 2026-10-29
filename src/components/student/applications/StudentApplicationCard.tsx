@@ -1,10 +1,12 @@
 import type { StudentApplication } from '../../../types/studentApplication';
+import hiredStatusDotIcon from '../../../assets/icons/student/applications/hired-status-dot.svg';
 import offerStatusDotIcon from '../../../assets/icons/student/applications/offer-status-dot.svg';
 import activeTimerIcon from '../../../assets/icons/student/matching/timer-active.svg';
 
 type StudentApplicationCardProps = {
   application: StudentApplication;
   isGeneralLayout?: boolean;
+  isHiredLayout?: boolean;
   onDeclineOffer?: (application: StudentApplication) => void;
   onDetailClick?: (application: StudentApplication) => void;
   onAcceptOffer?: (application: StudentApplication) => void;
@@ -84,9 +86,51 @@ function OfferWaitingApplicationCard({
   );
 }
 
+type HiredApplicationCardProps = Pick<
+  StudentApplicationCardProps,
+  'application' | 'onDetailClick'
+>;
+
+function HiredApplicationCard({
+  application,
+  onDetailClick,
+}: HiredApplicationCardProps) {
+  return (
+    <article className="relative h-[164px] w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
+      <h2 className="absolute top-[21.3px] left-[23.3px] m-0 text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] whitespace-nowrap text-[#191F28]">
+        {application.job.companyName}
+      </h2>
+      <p className="absolute top-[58.3px] left-[23.3px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#8B95A1]">
+        {application.job.role}
+      </p>
+      <p className="absolute top-[88.3px] left-[23.3px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#8B95A1]">
+        {application.job.commuteAndWage}
+      </p>
+      <p className="absolute top-[118.3px] left-[23.3px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#8B95A1]">
+        {application.job.matchDescription}
+      </p>
+
+      <div className="absolute top-[26.3px] left-[254.3px] flex items-center gap-[7px] whitespace-nowrap">
+        <img alt="" className="block" src={hiredStatusDotIcon} />
+        <span className="text-[13px] leading-[1.5] font-medium tracking-[-0.02em] text-[#387DD6]">
+          채용 완료
+        </span>
+      </div>
+      <button
+        className="absolute top-[108.3px] left-[245.3px] flex h-[27px] w-[72.273px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13.636px] text-[13px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#191F28]"
+        type="button"
+        onClick={() => onDetailClick?.(application)}
+      >
+        상세보기
+      </button>
+    </article>
+  );
+}
+
 export function StudentApplicationCard({
   application,
   isGeneralLayout = false,
+  isHiredLayout = false,
   onAcceptOffer,
   onDeclineOffer,
   onDetailClick,
@@ -100,6 +144,15 @@ export function StudentApplicationCard({
         application={application}
         onAcceptOffer={onAcceptOffer}
         onDeclineOffer={onDeclineOffer}
+        onDetailClick={onDetailClick}
+      />
+    );
+  }
+
+  if (isHiredLayout && application.status === 'HIRED') {
+    return (
+      <HiredApplicationCard
+        application={application}
         onDetailClick={onDetailClick}
       />
     );
