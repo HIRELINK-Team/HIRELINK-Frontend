@@ -4,6 +4,7 @@ import backIcon from '../../assets/icons/student/matching/back.svg';
 import { RecommendedJobDetail } from '../../components/student/matching/RecommendedJobDetail';
 import { RecommendedJobCard } from '../../components/student/matching/RecommendedJobCard';
 import { ApplicationConfirmationStep } from '../../components/student/matching/ApplicationConfirmationStep';
+import { ApplicationCompleteStep } from '../../components/student/matching/ApplicationCompleteStep';
 import { WorkStartDateStep } from '../../components/student/matching/WorkStartDateStep';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import {
@@ -93,8 +94,23 @@ export default function StudentMatchingPage({
 
   const handleApplicationConfirmation = () => {
     if (selectedJob) {
+      setMatchingView('complete');
       onViewChange?.('complete', selectedJob);
     }
+  };
+
+  const handleCompleteBack = () => {
+    setMatchingView('confirm');
+  };
+
+  const handleCompleteDetail = () => {
+    if (selectedJob) {
+      onViewChange?.('detail', selectedJob);
+    }
+  };
+
+  const handleCompleteHome = () => {
+    onTabChange?.('home');
   };
 
   if (matchingView === 'detail' && selectedJob) {
@@ -131,6 +147,17 @@ export default function StudentMatchingPage({
         workStartDate={workStartDate}
         onBack={handleConfirmationBack}
         onConfirm={handleApplicationConfirmation}
+      />
+    );
+  }
+
+  if (matchingView === 'complete' && selectedJob) {
+    return (
+      <ApplicationCompleteStep
+        job={selectedJob}
+        onBack={handleCompleteBack}
+        onDetail={handleCompleteDetail}
+        onHome={handleCompleteHome}
       />
     );
   }
