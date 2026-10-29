@@ -5,8 +5,10 @@ import previousIcon from '../../../assets/icons/student/calendar-previous.svg';
 
 type ResidenceExpiryDatePickerProps = {
   initialDate: string;
+  onDateChange?: (date: string) => void;
   onClose: () => void;
   onConfirm: (date: string) => void;
+  title?: string;
 };
 
 const WEEKDAY_LABELS = [
@@ -40,8 +42,10 @@ function toIsoDate(date: Date) {
 
 export function ResidenceExpiryDatePicker({
   initialDate,
+  onDateChange,
   onClose,
   onConfirm,
+  title = '\uB9CC\uB8CC\uC77C \uC120\uD0DD',
 }: ResidenceExpiryDatePickerProps) {
   const [displayMonth, setDisplayMonth] = useState(() =>
     getInitialMonth(initialDate),
@@ -71,12 +75,10 @@ export function ResidenceExpiryDatePicker({
         onClick={onClose}
       />
       <section
-        aria-label={'\uB9CC\uB8CC\uC77C \uC120\uD0DD'}
+        aria-label={title}
         className="relative h-[494px] rounded-t-[20px] bg-[#F5F5F5] px-6 pt-[34px]"
       >
-        <h2 className="m-0 text-[20px] leading-[1.5] font-semibold">
-          {'\uB9CC\uB8CC\uC77C \uC120\uD0DD'}
-        </h2>
+        <h2 className="m-0 text-[20px] leading-[1.5] font-semibold">{title}</h2>
         <div className="relative mt-[13px] h-[26px]">
           <p className="m-0 text-[17px] leading-[1.5] font-medium">
             {displayMonth.getFullYear()}
@@ -152,7 +154,10 @@ export function ResidenceExpiryDatePicker({
                 }`}
                 key={dateValue}
                 type="button"
-                onClick={() => setSelectedDate(dateValue)}
+                onClick={() => {
+                  setSelectedDate(dateValue);
+                  onDateChange?.(dateValue);
+                }}
               >
                 {date.getDate()}
               </button>

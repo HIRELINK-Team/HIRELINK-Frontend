@@ -3,6 +3,7 @@ import { useState } from 'react';
 import backIcon from '../../assets/icons/student/matching/back.svg';
 import { RecommendedJobDetail } from '../../components/student/matching/RecommendedJobDetail';
 import { RecommendedJobCard } from '../../components/student/matching/RecommendedJobCard';
+import { WorkStartDateStep } from '../../components/student/matching/WorkStartDateStep';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import {
   MAX_RECOMMENDED_JOBS,
@@ -37,6 +38,7 @@ export default function StudentMatchingPage({
   const [selectedJob, setSelectedJob] = useState<RecommendedJob | null>(
     initialSelectedJob,
   );
+  const [workStartDate, setWorkStartDate] = useState('2027-03-14');
   const recommendedJobs = STUDENT_RECOMMENDED_JOBS.slice(
     0,
     MAX_RECOMMENDED_JOBS,
@@ -61,7 +63,26 @@ export default function StudentMatchingPage({
   };
 
   const handleApply = (job: RecommendedJob) => {
+    setMatchingView('startDate');
     onViewChange?.('startDate', job);
+  };
+
+  const handleStartDateBack = () => {
+    setMatchingView('detail');
+  };
+
+  const handleStartDatePickerOpen = () => {
+    setMatchingView('startDateSelection');
+  };
+
+  const handleStartDatePickerClose = () => {
+    setMatchingView('startDate');
+  };
+
+  const handleStartDateNext = () => {
+    if (selectedJob) {
+      onViewChange?.('confirm', selectedJob);
+    }
   };
 
   if (matchingView === 'detail' && selectedJob) {
@@ -70,6 +91,23 @@ export default function StudentMatchingPage({
         job={selectedJob}
         onApply={handleApply}
         onBack={handleDetailBack}
+      />
+    );
+  }
+
+  if (
+    (matchingView === 'startDate' || matchingView === 'startDateSelection') &&
+    selectedJob
+  ) {
+    return (
+      <WorkStartDateStep
+        isDatePickerOpen={matchingView === 'startDateSelection'}
+        selectedDate={workStartDate}
+        onBack={handleStartDateBack}
+        onDateChange={setWorkStartDate}
+        onDatePickerClose={handleStartDatePickerClose}
+        onDatePickerOpen={handleStartDatePickerOpen}
+        onNext={handleStartDateNext}
       />
     );
   }
