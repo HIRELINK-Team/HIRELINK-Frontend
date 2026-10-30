@@ -8,6 +8,7 @@ import {
 import type { StudentDocument } from '../../../types/studentDocument';
 
 type DocumentRegistrationListProps = {
+  basicDocuments?: readonly StudentDocument[];
   onDocumentClick?: (document: StudentDocument) => void;
 };
 
@@ -59,6 +60,7 @@ function DocumentRow({
 }
 
 export function DocumentRegistrationList({
+  basicDocuments = STUDENT_BASIC_DOCUMENTS,
   onDocumentClick,
 }: DocumentRegistrationListProps) {
   return (
@@ -86,7 +88,7 @@ export function DocumentRegistrationList({
         기본 서류
       </h2>
       <div className="mt-[17px] space-y-[10px]">
-        {STUDENT_BASIC_DOCUMENTS.map((document) => (
+        {basicDocuments.map((document) => (
           <DocumentRow
             document={document}
             key={document.id}

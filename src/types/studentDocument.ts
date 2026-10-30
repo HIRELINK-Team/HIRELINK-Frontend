@@ -17,3 +17,13 @@ export type StudentDocumentGuideItem = {
   icon: string;
   title: string;
 };
+
+export type StudentAlienRegistrationDetail = {
+  label: string;
+  value: string;
+};
+
+export type StudentAlienRegistrationGuideItem = {
+  icon: string;
+  title: string;
+};

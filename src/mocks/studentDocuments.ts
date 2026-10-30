@@ -2,7 +2,12 @@ import guideBadgeIcon from '../assets/images/student/documents/guide-badge.png';
 import guideEmploymentIcon from '../assets/images/student/documents/guide-employment.png';
 import guideLightningIcon from '../assets/images/student/documents/guide-lightning.png';
 import guideTargetIcon from '../assets/images/student/documents/guide-target.png';
+import alienIdentityIcon from '../assets/images/student/documents/alien-registration/identity.png';
+import alienResidenceExpiryIcon from '../assets/images/student/documents/alien-registration/residence-expiry.png';
+import alienVisaStatusIcon from '../assets/images/student/documents/alien-registration/visa-status.png';
 import type {
+  StudentAlienRegistrationDetail,
+  StudentAlienRegistrationGuideItem,
   StudentDocument,
   StudentDocumentGuideItem,
 } from '../types/studentDocument';
@@ -62,3 +67,19 @@ export const STUDENT_EMPLOYMENT_DOCUMENT: StudentDocument = {
   title: '시간제 취업 허가',
   status: 'required',
 };
+
+export const STUDENT_ALIEN_REGISTRATION_GUIDE_ITEMS: readonly StudentAlienRegistrationGuideItem[] =
+  [
+    { title: '본인확인', icon: alienIdentityIcon },
+    { title: '체류자격(D-2 등) 확인', icon: alienVisaStatusIcon },
+    { title: '체류기간 만료일 확인', icon: alienResidenceExpiryIcon },
+  ];
+
+export const STUDENT_ALIEN_REGISTRATION_DETAILS: readonly StudentAlienRegistrationDetail[] =
+  [
+    { label: '이름', value: 'KIM SOONGSIL' },
+    { label: '국적', value: '베트남' },
+    { label: '체류자격', value: 'D-2-2 (학사)' },
+    { label: '체류기간', value: '2025.03.01 - 2025.02.28' },
+    { label: '등록번호', value: '12345-7890123' },
+  ];
