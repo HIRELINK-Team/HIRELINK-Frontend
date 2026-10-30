@@ -19,6 +19,7 @@ import {
   STUDENT_MY_SECONDARY_MENUS,
 } from '../../mocks/studentMy';
 import type { StudentMyMenuId } from '../../types/studentMy';
+import StudentWorkConditionPage from './StudentWorkConditionPage';
 
 const VERIFIED_PRIMARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> =
   {
@@ -42,7 +43,11 @@ const VERIFIED_SECONDARY_MENU_ICONS: Record<
   terms: termsMenuIcon,
 };
 
-function VerifiedMyPage() {
+function VerifiedMyPage({
+  onWorkConditionClick,
+}: {
+  onWorkConditionClick: () => void;
+}) {
   return (
     <main
       className="relative mx-auto min-h-[844px] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pt-[62px] pb-[98px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
@@ -173,6 +178,7 @@ function VerifiedMyPage() {
             right: 24,
           }}
           type="button"
+          onClick={onWorkConditionClick}
         >
           근무 가능 조건 확인하기
         </button>
@@ -339,10 +345,17 @@ function BadgeIssuedPage({ onConfirm }: { onConfirm: () => void }) {
 }
 
 export default function StudentDocumentVerificationPreviewPage() {
-  const [view, setView] = useState<'badge' | 'my'>('badge');
-  return view === 'badge' ? (
-    <BadgeIssuedPage onConfirm={() => setView('my')} />
-  ) : (
-    <VerifiedMyPage />
+  const [view, setView] = useState<'badge' | 'my' | 'work-condition'>('badge');
+
+  if (view === 'badge') {
+    return <BadgeIssuedPage onConfirm={() => setView('my')} />;
+  }
+
+  if (view === 'work-condition') {
+    return <StudentWorkConditionPage onBack={() => setView('my')} />;
+  }
+
+  return (
+    <VerifiedMyPage onWorkConditionClick={() => setView('work-condition')} />
   );
 }
