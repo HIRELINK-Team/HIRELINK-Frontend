@@ -22,10 +22,33 @@ import type { StudentMyMenuId } from '../../types/studentMy';
 import StudentMatchingConditionManagementPage from './StudentMatchingConditionManagementPage';
 import StudentMatchingConditionIndustryPage from './StudentMatchingConditionIndustryPage';
 import StudentMatchingConditionLocationPage from './StudentMatchingConditionLocationPage';
+import StudentMatchingConditionWorkTimePage from './StudentMatchingConditionWorkTimePage';
 import StudentProfileManagementPage from './StudentProfileManagementPage';
 import StudentWorkConditionPage from './StudentWorkConditionPage';
 import type { IndustryId } from '../../types/industry';
+import type { WorkAvailability } from '../../types/workAvailability';
 import type { WorkLocation } from '../../types/workLocation';
+
+const INITIAL_WORK_AVAILABILITY: WorkAvailability = {
+  daytime: {
+    mon: [0, 1, 2, 3, 4, 5, 6, 7],
+    tue: [],
+    wed: [12, 13, 14, 15, 16, 17, 18, 19],
+    thu: [],
+    fri: [],
+    sat: [],
+    sun: [],
+  },
+  nighttime: {
+    mon: [],
+    tue: [],
+    wed: [],
+    thu: [],
+    fri: [],
+    sat: [],
+    sun: [],
+  },
+};
 
 const VERIFIED_PRIMARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> =
   {
@@ -367,7 +390,8 @@ export default function StudentDocumentVerificationPreviewPage() {
     previewView === 'profile-management' ||
     previewView === 'matching-condition-management' ||
     previewView === 'matching-condition-industry' ||
-    previewView === 'matching-condition-location'
+    previewView === 'matching-condition-location' ||
+    previewView === 'matching-condition-work-time'
       ? previewView
       : 'badge';
   const [view, setView] = useState<
@@ -377,6 +401,7 @@ export default function StudentDocumentVerificationPreviewPage() {
     | 'matching-condition-management'
     | 'matching-condition-industry'
     | 'matching-condition-location'
+    | 'matching-condition-work-time'
     | 'work-condition'
   >(initialView);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>([
@@ -389,6 +414,9 @@ export default function StudentDocumentVerificationPreviewPage() {
     address: '',
     radius: 500,
   });
+  const [workAvailability, setWorkAvailability] = useState<WorkAvailability>(
+    INITIAL_WORK_AVAILABILITY,
+  );
 
   const handleMatchingConditionClick = (conditionId: string) => {
     if (conditionId === 'industry') {
@@ -397,6 +425,10 @@ export default function StudentDocumentVerificationPreviewPage() {
 
     if (conditionId === 'location') {
       setView('matching-condition-location');
+    }
+
+    if (conditionId === 'work-time') {
+      setView('matching-condition-work-time');
     }
   };
 
@@ -448,6 +480,19 @@ export default function StudentDocumentVerificationPreviewPage() {
         onBack={() => setView('matching-condition-management')}
         onSave={(nextLocation) => {
           setWorkLocation(nextLocation);
+          setView('matching-condition-management');
+        }}
+      />
+    );
+  }
+
+  if (view === 'matching-condition-work-time') {
+    return (
+      <StudentMatchingConditionWorkTimePage
+        initialWorkAvailability={workAvailability}
+        onBack={() => setView('matching-condition-management')}
+        onSave={(nextWorkAvailability) => {
+          setWorkAvailability(nextWorkAvailability);
           setView('matching-condition-management');
         }}
       />
