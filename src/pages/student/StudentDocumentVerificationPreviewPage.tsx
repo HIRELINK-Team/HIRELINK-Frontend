@@ -19,6 +19,7 @@ import {
   STUDENT_MY_SECONDARY_MENUS,
 } from '../../mocks/studentMy';
 import type { StudentMyMenuId } from '../../types/studentMy';
+import StudentProfileManagementPage from './StudentProfileManagementPage';
 import StudentWorkConditionPage from './StudentWorkConditionPage';
 
 const VERIFIED_PRIMARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> =
@@ -44,8 +45,10 @@ const VERIFIED_SECONDARY_MENU_ICONS: Record<
 };
 
 function VerifiedMyPage({
+  onProfileManagementClick,
   onWorkConditionClick,
 }: {
+  onProfileManagementClick: () => void;
   onWorkConditionClick: () => void;
 }) {
   return (
@@ -190,6 +193,9 @@ function VerifiedMyPage({
             className="flex h-[79px] w-full items-center border-0 border-b border-[#E5E8EB] bg-transparent px-6 text-left"
             key={menu.id}
             type="button"
+            onClick={
+              menu.id === 'personal-info' ? onProfileManagementClick : undefined
+            }
           >
             <img
               alt=""
@@ -345,7 +351,14 @@ function BadgeIssuedPage({ onConfirm }: { onConfirm: () => void }) {
 }
 
 export default function StudentDocumentVerificationPreviewPage() {
-  const [view, setView] = useState<'badge' | 'my' | 'work-condition'>('badge');
+  const initialView =
+    new URLSearchParams(window.location.search).get('view') ===
+    'profile-management'
+      ? 'profile-management'
+      : 'badge';
+  const [view, setView] = useState<
+    'badge' | 'my' | 'profile-management' | 'work-condition'
+  >(initialView);
 
   if (view === 'badge') {
     return <BadgeIssuedPage onConfirm={() => setView('my')} />;
@@ -355,7 +368,14 @@ export default function StudentDocumentVerificationPreviewPage() {
     return <StudentWorkConditionPage onBack={() => setView('my')} />;
   }
 
+  if (view === 'profile-management') {
+    return <StudentProfileManagementPage onBack={() => setView('my')} />;
+  }
+
   return (
-    <VerifiedMyPage onWorkConditionClick={() => setView('work-condition')} />
+    <VerifiedMyPage
+      onProfileManagementClick={() => setView('profile-management')}
+      onWorkConditionClick={() => setView('work-condition')}
+    />
   );
 }
