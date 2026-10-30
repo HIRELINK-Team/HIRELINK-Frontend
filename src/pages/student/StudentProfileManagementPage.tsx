@@ -196,10 +196,63 @@ function DetailPage({
   );
 }
 
+function BasicInformationPage({
+  fields,
+  onBack,
+}: {
+  fields: readonly ProfileField[];
+  onBack: () => void;
+}) {
+  return (
+    <main className="mx-auto h-[844px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+      <BackButton onClick={onBack} />
+      <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
+        기본정보
+      </h1>
+      <section className="mt-[40px] space-y-[10.5px]">
+        {fields.map((field) => (
+          <div key={field.label}>
+            <p className="m-0 whitespace-nowrap text-[15px] leading-[1.5]">
+              {field.label}
+            </p>
+            <div className="mt-2 flex h-14 items-center rounded-[15px] bg-[#E5E8EB] px-[25px] text-[17px] leading-[1.5]">
+              <span className="whitespace-nowrap">{field.value}</span>
+              {field.isSelectable ? (
+                <span className="ml-auto mr-[3px] flex h-[7px] w-[13px] items-center justify-center">
+                  <img
+                    alt=""
+                    className="h-[13px] w-[7px] -rotate-90"
+                    src={dropdownChevronIcon}
+                  />
+                </span>
+              ) : null}
+            </div>
+          </div>
+        ))}
+      </section>
+      <button
+        className="mt-[85px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        type="button"
+      >
+        수정하기
+      </button>
+    </main>
+  );
+}
+
 export default function StudentProfileManagementPage({
   onBack,
 }: StudentProfileManagementPageProps) {
   const [view, setView] = useState<ProfileManagementView>('main');
+
+  if (view === 'basic') {
+    return (
+      <BasicInformationPage
+        fields={DETAIL_FIELDS.basic}
+        onBack={() => setView('main')}
+      />
+    );
+  }
 
   if (view !== 'main') {
     return (
