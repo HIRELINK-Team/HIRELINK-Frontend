@@ -12,6 +12,7 @@ import type {
   StudentDocumentGuideItem,
   StudentEnrollmentCertificateDetail,
   StudentTranscriptDetail,
+  StudentTopikDetail,
 } from '../types/studentDocument';
 
 export const STUDENT_DOCUMENT_GUIDE_ITEMS: readonly StudentDocumentGuideItem[] =
@@ -99,4 +100,11 @@ export const STUDENT_TRANSCRIPT_DETAILS: readonly StudentTranscriptDetail[] = [
   { label: '성적', value: 'A0' },
   { label: '이수학기', value: '2학기' },
   { label: '발급일', value: '2025.03.01' },
+];
+
+export const STUDENT_TOPIK_DETAILS: readonly StudentTopikDetail[] = [
+  { label: '등급', value: '4급' },
+  { label: '시험일', value: '2024.05.12' },
+  { label: '유효기간', value: '2026.05.11' },
+  { label: '발급기관', value: '국립국제교육원' },
 ];

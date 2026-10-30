@@ -33,6 +33,11 @@ export type StudentTranscriptDetail = {
   value: string;
 };
 
+export type StudentTopikDetail = {
+  label: string;
+  value: string;
+};
+
 export type StudentAlienRegistrationGuideItem = {
   icon: string;
   title: string;

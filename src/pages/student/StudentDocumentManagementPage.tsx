@@ -13,6 +13,9 @@ import { StudentBottomNavigation } from '../../components/student/navigation/Stu
 import { TranscriptCamera } from '../../components/student/documents/TranscriptCamera';
 import { TranscriptComplete } from '../../components/student/documents/TranscriptComplete';
 import { TranscriptInformation } from '../../components/student/documents/TranscriptInformation';
+import { TopikCamera } from '../../components/student/documents/TopikCamera';
+import { TopikComplete } from '../../components/student/documents/TopikComplete';
+import { TopikInformation } from '../../components/student/documents/TopikInformation';
 import { STUDENT_BASIC_DOCUMENTS } from '../../mocks/studentDocuments';
 import type { StudentNavigationTab } from '../../types/studentHome';
 import type { StudentDocument } from '../../types/studentDocument';
@@ -28,7 +31,10 @@ type DocumentManagementView =
   | 'enrollment-complete'
   | 'transcript-information'
   | 'transcript-camera'
-  | 'transcript-complete';
+  | 'transcript-complete'
+  | 'topik-information'
+  | 'topik-camera'
+  | 'topik-complete';
 
 type StudentDocumentManagementPageProps = {
   initialView?: DocumentManagementView;
@@ -49,6 +55,7 @@ export default function StudentDocumentManagementPage({
   const [isEnrollmentCertificateComplete, setIsEnrollmentCertificateComplete] =
     useState(false);
   const [isTranscriptComplete, setIsTranscriptComplete] = useState(true);
+  const [isTopikComplete, setIsTopikComplete] = useState(true);
 
   const handleGuideBack = () => {
     onExit?.();
@@ -71,6 +78,11 @@ export default function StudentDocumentManagementPage({
 
     if (document.id === 'transcript') {
       setView('transcript-information');
+      return;
+    }
+
+    if (document.id === 'topik-transcript') {
+      setView('topik-information');
       return;
     }
 
@@ -109,6 +121,16 @@ export default function StudentDocumentManagementPage({
           ? ('registered' as const)
           : ('required' as const),
         registeredAt: isTranscriptComplete ? '등록일 25.03.12' : undefined,
+      };
+    }
+
+    if (document.id === 'topik-transcript') {
+      return {
+        ...document,
+        status: isTopikComplete
+          ? ('registered' as const)
+          : ('required' as const),
+        registeredAt: isTopikComplete ? '등록일 25.03.12' : undefined,
       };
     }
 
@@ -208,6 +230,36 @@ export default function StudentDocumentManagementPage({
         onBack={() => setView('transcript-camera')}
         onConfirm={() => {
           setIsTranscriptComplete(true);
+          setView('registration');
+        }}
+      />
+    );
+  }
+
+  if (view === 'topik-information') {
+    return (
+      <TopikInformation
+        onBack={() => setView('registration')}
+        onRegister={() => setView('topik-camera')}
+      />
+    );
+  }
+
+  if (view === 'topik-camera') {
+    return (
+      <TopikCamera
+        onBack={() => setView('topik-information')}
+        onCapture={() => setView('topik-complete')}
+      />
+    );
+  }
+
+  if (view === 'topik-complete') {
+    return (
+      <TopikComplete
+        onBack={() => setView('topik-camera')}
+        onConfirm={() => {
+          setIsTopikComplete(true);
           setView('registration');
         }}
       />
