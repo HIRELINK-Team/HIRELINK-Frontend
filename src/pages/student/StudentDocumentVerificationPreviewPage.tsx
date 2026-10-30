@@ -19,6 +19,7 @@ import {
   STUDENT_MY_SECONDARY_MENUS,
 } from '../../mocks/studentMy';
 import type { StudentMyMenuId } from '../../types/studentMy';
+import StudentMatchingConditionManagementPage from './StudentMatchingConditionManagementPage';
 import StudentProfileManagementPage from './StudentProfileManagementPage';
 import StudentWorkConditionPage from './StudentWorkConditionPage';
 
@@ -45,9 +46,11 @@ const VERIFIED_SECONDARY_MENU_ICONS: Record<
 };
 
 function VerifiedMyPage({
+  onMatchingConditionClick,
   onProfileManagementClick,
   onWorkConditionClick,
 }: {
+  onMatchingConditionClick: () => void;
   onProfileManagementClick: () => void;
   onWorkConditionClick: () => void;
 }) {
@@ -194,7 +197,11 @@ function VerifiedMyPage({
             key={menu.id}
             type="button"
             onClick={
-              menu.id === 'personal-info' ? onProfileManagementClick : undefined
+              menu.id === 'personal-info'
+                ? onProfileManagementClick
+                : menu.id === 'matching-conditions'
+                  ? onMatchingConditionClick
+                  : undefined
             }
           >
             <img
@@ -351,13 +358,18 @@ function BadgeIssuedPage({ onConfirm }: { onConfirm: () => void }) {
 }
 
 export default function StudentDocumentVerificationPreviewPage() {
+  const previewView = new URLSearchParams(window.location.search).get('view');
   const initialView =
-    new URLSearchParams(window.location.search).get('view') ===
-    'profile-management'
-      ? 'profile-management'
+    previewView === 'profile-management' ||
+    previewView === 'matching-condition-management'
+      ? previewView
       : 'badge';
   const [view, setView] = useState<
-    'badge' | 'my' | 'profile-management' | 'work-condition'
+    | 'badge'
+    | 'my'
+    | 'profile-management'
+    | 'matching-condition-management'
+    | 'work-condition'
   >(initialView);
 
   if (view === 'badge') {
@@ -372,8 +384,15 @@ export default function StudentDocumentVerificationPreviewPage() {
     return <StudentProfileManagementPage onBack={() => setView('my')} />;
   }
 
+  if (view === 'matching-condition-management') {
+    return (
+      <StudentMatchingConditionManagementPage onBack={() => setView('my')} />
+    );
+  }
+
   return (
     <VerifiedMyPage
+      onMatchingConditionClick={() => setView('matching-condition-management')}
       onProfileManagementClick={() => setView('profile-management')}
       onWorkConditionClick={() => setView('work-condition')}
     />
