@@ -21,9 +21,11 @@ import {
 import type { StudentMyMenuId } from '../../types/studentMy';
 import StudentMatchingConditionManagementPage from './StudentMatchingConditionManagementPage';
 import StudentMatchingConditionIndustryPage from './StudentMatchingConditionIndustryPage';
+import StudentMatchingConditionLocationPage from './StudentMatchingConditionLocationPage';
 import StudentProfileManagementPage from './StudentProfileManagementPage';
 import StudentWorkConditionPage from './StudentWorkConditionPage';
 import type { IndustryId } from '../../types/industry';
+import type { WorkLocation } from '../../types/workLocation';
 
 const VERIFIED_PRIMARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> =
   {
@@ -364,7 +366,8 @@ export default function StudentDocumentVerificationPreviewPage() {
   const initialView =
     previewView === 'profile-management' ||
     previewView === 'matching-condition-management' ||
-    previewView === 'matching-condition-industry'
+    previewView === 'matching-condition-industry' ||
+    previewView === 'matching-condition-location'
       ? previewView
       : 'badge';
   const [view, setView] = useState<
@@ -373,6 +376,7 @@ export default function StudentDocumentVerificationPreviewPage() {
     | 'profile-management'
     | 'matching-condition-management'
     | 'matching-condition-industry'
+    | 'matching-condition-location'
     | 'work-condition'
   >(initialView);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>([
@@ -381,10 +385,18 @@ export default function StudentDocumentVerificationPreviewPage() {
     'other',
   ]);
   const [otherIndustry, setOtherIndustry] = useState('영화관');
+  const [workLocation, setWorkLocation] = useState<WorkLocation>({
+    address: '',
+    radius: 500,
+  });
 
   const handleMatchingConditionClick = (conditionId: string) => {
     if (conditionId === 'industry') {
       setView('matching-condition-industry');
+    }
+
+    if (conditionId === 'location') {
+      setView('matching-condition-location');
     }
   };
 
@@ -425,6 +437,19 @@ export default function StudentDocumentVerificationPreviewPage() {
         initialSelectedIndustries={selectedIndustries}
         onBack={() => setView('matching-condition-management')}
         onSave={handleIndustrySave}
+      />
+    );
+  }
+
+  if (view === 'matching-condition-location') {
+    return (
+      <StudentMatchingConditionLocationPage
+        initialLocation={workLocation}
+        onBack={() => setView('matching-condition-management')}
+        onSave={(nextLocation) => {
+          setWorkLocation(nextLocation);
+          setView('matching-condition-management');
+        }}
       />
     );
   }
