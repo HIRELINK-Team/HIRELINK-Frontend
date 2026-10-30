@@ -1,0 +1,19 @@
+export type StudentDocumentStatus = 'registered' | 'required';
+
+export type StudentDocument = {
+  id:
+    | 'alien-registration-card'
+    | 'enrollment-certificate'
+    | 'transcript'
+    | 'topik-transcript'
+    | 'part-time-work-permit';
+  registeredAt?: string;
+  status: StudentDocumentStatus;
+  title: string;
+};
+
+export type StudentDocumentGuideItem = {
+  description: string;
+  icon: string;
+  title: string;
+};
