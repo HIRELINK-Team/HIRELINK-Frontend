@@ -24,6 +24,7 @@ import StudentMatchingConditionIndustryPage from './StudentMatchingConditionIndu
 import StudentMatchingConditionLocationPage from './StudentMatchingConditionLocationPage';
 import StudentMatchingConditionStartDatePage from './StudentMatchingConditionStartDatePage';
 import StudentMatchingConditionWorkTimePage from './StudentMatchingConditionWorkTimePage';
+import StudentCustomerCenterPage from './StudentCustomerCenterPage';
 import StudentNotificationSettingsPage from './StudentNotificationSettingsPage';
 import StudentProfileManagementPage from './StudentProfileManagementPage';
 import StudentWorkConditionPage from './StudentWorkConditionPage';
@@ -79,11 +80,13 @@ const VERIFIED_SECONDARY_MENU_ICONS: Record<
 };
 
 function VerifiedMyPage({
+  onCustomerCenterClick,
   onMatchingConditionClick,
   onNotificationSettingsClick,
   onProfileManagementClick,
   onWorkConditionClick,
 }: {
+  onCustomerCenterClick: () => void;
   onMatchingConditionClick: () => void;
   onNotificationSettingsClick: () => void;
   onProfileManagementClick: () => void;
@@ -270,7 +273,9 @@ function VerifiedMyPage({
             onClick={
               menu.id === 'notifications'
                 ? onNotificationSettingsClick
-                : undefined
+                : menu.id === 'customer-center'
+                  ? onCustomerCenterClick
+                  : undefined
             }
           >
             <img
@@ -406,7 +411,8 @@ export default function StudentDocumentVerificationPreviewPage() {
     previewView === 'matching-condition-location' ||
     previewView === 'matching-condition-work-time' ||
     previewView === 'matching-condition-start-date' ||
-    previewView === 'notification-settings'
+    previewView === 'notification-settings' ||
+    previewView === 'customer-center'
       ? previewView
       : 'badge';
   const [view, setView] = useState<
@@ -418,6 +424,7 @@ export default function StudentDocumentVerificationPreviewPage() {
     | 'matching-condition-location'
     | 'matching-condition-start-date'
     | 'matching-condition-work-time'
+    | 'customer-center'
     | 'notification-settings'
     | 'work-condition'
   >(initialView);
@@ -559,8 +566,18 @@ export default function StudentDocumentVerificationPreviewPage() {
     );
   }
 
+  if (view === 'customer-center') {
+    return (
+      <StudentCustomerCenterPage
+        onBack={() => setView('my')}
+        onSupportItemClick={() => undefined}
+      />
+    );
+  }
+
   return (
     <VerifiedMyPage
+      onCustomerCenterClick={() => setView('customer-center')}
       onMatchingConditionClick={() => setView('matching-condition-management')}
       onNotificationSettingsClick={() => setView('notification-settings')}
       onProfileManagementClick={() => setView('profile-management')}
