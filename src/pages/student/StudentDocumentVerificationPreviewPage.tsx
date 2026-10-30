@@ -27,6 +27,7 @@ import StudentMatchingConditionWorkTimePage from './StudentMatchingConditionWork
 import StudentCustomerCenterPage from './StudentCustomerCenterPage';
 import StudentNotificationSettingsPage from './StudentNotificationSettingsPage';
 import StudentProfileManagementPage from './StudentProfileManagementPage';
+import StudentTermsPrivacyPage from './StudentTermsPrivacyPage';
 import StudentWorkConditionPage from './StudentWorkConditionPage';
 import type { IndustryId } from '../../types/industry';
 import type {
@@ -84,12 +85,14 @@ function VerifiedMyPage({
   onMatchingConditionClick,
   onNotificationSettingsClick,
   onProfileManagementClick,
+  onTermsPrivacyClick,
   onWorkConditionClick,
 }: {
   onCustomerCenterClick: () => void;
   onMatchingConditionClick: () => void;
   onNotificationSettingsClick: () => void;
   onProfileManagementClick: () => void;
+  onTermsPrivacyClick: () => void;
   onWorkConditionClick: () => void;
 }) {
   return (
@@ -275,7 +278,9 @@ function VerifiedMyPage({
                 ? onNotificationSettingsClick
                 : menu.id === 'customer-center'
                   ? onCustomerCenterClick
-                  : undefined
+                  : menu.id === 'terms'
+                    ? onTermsPrivacyClick
+                    : undefined
             }
           >
             <img
@@ -412,7 +417,8 @@ export default function StudentDocumentVerificationPreviewPage() {
     previewView === 'matching-condition-work-time' ||
     previewView === 'matching-condition-start-date' ||
     previewView === 'notification-settings' ||
-    previewView === 'customer-center'
+    previewView === 'customer-center' ||
+    previewView === 'terms-privacy'
       ? previewView
       : 'badge';
   const [view, setView] = useState<
@@ -426,6 +432,7 @@ export default function StudentDocumentVerificationPreviewPage() {
     | 'matching-condition-work-time'
     | 'customer-center'
     | 'notification-settings'
+    | 'terms-privacy'
     | 'work-condition'
   >(initialView);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>([
@@ -575,12 +582,22 @@ export default function StudentDocumentVerificationPreviewPage() {
     );
   }
 
+  if (view === 'terms-privacy') {
+    return (
+      <StudentTermsPrivacyPage
+        onBack={() => setView('my')}
+        onTermsItemClick={() => undefined}
+      />
+    );
+  }
+
   return (
     <VerifiedMyPage
       onCustomerCenterClick={() => setView('customer-center')}
       onMatchingConditionClick={() => setView('matching-condition-management')}
       onNotificationSettingsClick={() => setView('notification-settings')}
       onProfileManagementClick={() => setView('profile-management')}
+      onTermsPrivacyClick={() => setView('terms-privacy')}
       onWorkConditionClick={() => setView('work-condition')}
     />
   );
