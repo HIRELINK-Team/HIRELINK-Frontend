@@ -22,6 +22,7 @@ import type { StudentMyMenuId } from '../../types/studentMy';
 import StudentMatchingConditionManagementPage from './StudentMatchingConditionManagementPage';
 import StudentMatchingConditionIndustryPage from './StudentMatchingConditionIndustryPage';
 import StudentMatchingConditionLocationPage from './StudentMatchingConditionLocationPage';
+import StudentMatchingConditionStartDatePage from './StudentMatchingConditionStartDatePage';
 import StudentMatchingConditionWorkTimePage from './StudentMatchingConditionWorkTimePage';
 import StudentProfileManagementPage from './StudentProfileManagementPage';
 import StudentWorkConditionPage from './StudentWorkConditionPage';
@@ -391,7 +392,8 @@ export default function StudentDocumentVerificationPreviewPage() {
     previewView === 'matching-condition-management' ||
     previewView === 'matching-condition-industry' ||
     previewView === 'matching-condition-location' ||
-    previewView === 'matching-condition-work-time'
+    previewView === 'matching-condition-work-time' ||
+    previewView === 'matching-condition-start-date'
       ? previewView
       : 'badge';
   const [view, setView] = useState<
@@ -401,6 +403,7 @@ export default function StudentDocumentVerificationPreviewPage() {
     | 'matching-condition-management'
     | 'matching-condition-industry'
     | 'matching-condition-location'
+    | 'matching-condition-start-date'
     | 'matching-condition-work-time'
     | 'work-condition'
   >(initialView);
@@ -417,6 +420,7 @@ export default function StudentDocumentVerificationPreviewPage() {
   const [workAvailability, setWorkAvailability] = useState<WorkAvailability>(
     INITIAL_WORK_AVAILABILITY,
   );
+  const [workStartDate, setWorkStartDate] = useState('2027-03-14');
 
   const handleMatchingConditionClick = (conditionId: string) => {
     if (conditionId === 'industry') {
@@ -429,6 +433,10 @@ export default function StudentDocumentVerificationPreviewPage() {
 
     if (conditionId === 'work-time') {
       setView('matching-condition-work-time');
+    }
+
+    if (conditionId === 'start-date') {
+      setView('matching-condition-start-date');
     }
   };
 
@@ -493,6 +501,19 @@ export default function StudentDocumentVerificationPreviewPage() {
         onBack={() => setView('matching-condition-management')}
         onSave={(nextWorkAvailability) => {
           setWorkAvailability(nextWorkAvailability);
+          setView('matching-condition-management');
+        }}
+      />
+    );
+  }
+
+  if (view === 'matching-condition-start-date') {
+    return (
+      <StudentMatchingConditionStartDatePage
+        initialDate={workStartDate}
+        onBack={() => setView('matching-condition-management')}
+        onSave={(nextDate) => {
+          setWorkStartDate(nextDate);
           setView('matching-condition-management');
         }}
       />
