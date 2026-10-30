@@ -10,6 +10,7 @@ import type {
   StudentAlienRegistrationGuideItem,
   StudentDocument,
   StudentDocumentGuideItem,
+  StudentEnrollmentCertificateDetail,
 } from '../types/studentDocument';
 
 export const STUDENT_DOCUMENT_GUIDE_ITEMS: readonly StudentDocumentGuideItem[] =
@@ -82,4 +83,12 @@ export const STUDENT_ALIEN_REGISTRATION_DETAILS: readonly StudentAlienRegistrati
     { label: '체류자격', value: 'D-2-2 (학사)' },
     { label: '체류기간', value: '2025.03.01 - 2025.02.28' },
     { label: '등록번호', value: '12345-7890123' },
+  ];
+
+export const STUDENT_ENROLLMENT_CERTIFICATE_DETAILS: readonly StudentEnrollmentCertificateDetail[] =
+  [
+    { label: '학교', value: '숭실대학교' },
+    { label: '학위과정', value: '학사' },
+    { label: '학년', value: '2학년 (재학 중)' },
+    { label: '재학기간', value: '2025.03.01 ~' },
   ];

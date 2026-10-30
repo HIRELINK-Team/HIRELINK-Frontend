@@ -6,6 +6,9 @@ import { AlienRegistrationComplete } from '../../components/student/documents/Al
 import { AlienRegistrationInformation } from '../../components/student/documents/AlienRegistrationInformation';
 import { DocumentManagementGuide } from '../../components/student/documents/DocumentManagementGuide';
 import { DocumentRegistrationList } from '../../components/student/documents/DocumentRegistrationList';
+import { EnrollmentCertificateCamera } from '../../components/student/documents/EnrollmentCertificateCamera';
+import { EnrollmentCertificateComplete } from '../../components/student/documents/EnrollmentCertificateComplete';
+import { EnrollmentCertificateInformation } from '../../components/student/documents/EnrollmentCertificateInformation';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import { STUDENT_BASIC_DOCUMENTS } from '../../mocks/studentDocuments';
 import type { StudentNavigationTab } from '../../types/studentHome';
@@ -16,7 +19,10 @@ type DocumentManagementView =
   | 'registration'
   | 'alien-information'
   | 'alien-camera'
-  | 'alien-complete';
+  | 'alien-complete'
+  | 'enrollment-information'
+  | 'enrollment-camera'
+  | 'enrollment-complete';
 
 type StudentDocumentManagementPageProps = {
   initialView?: DocumentManagementView;
@@ -34,6 +40,8 @@ export default function StudentDocumentManagementPage({
   const [view, setView] = useState<DocumentManagementView>(initialView);
   const [isAlienRegistrationComplete, setIsAlienRegistrationComplete] =
     useState(true);
+  const [isEnrollmentCertificateComplete, setIsEnrollmentCertificateComplete] =
+    useState(false);
 
   const handleGuideBack = () => {
     onExit?.();
@@ -49,22 +57,41 @@ export default function StudentDocumentManagementPage({
       return;
     }
 
+    if (document.id === 'enrollment-certificate') {
+      setView('enrollment-information');
+      return;
+    }
+
     onDocumentClick?.(document);
   };
 
-  const basicDocuments = STUDENT_BASIC_DOCUMENTS.map((document) =>
-    document.id === 'alien-registration-card'
-      ? {
-          ...document,
-          status: isAlienRegistrationComplete
-            ? ('registered' as const)
-            : ('required' as const),
-          registeredAt: isAlienRegistrationComplete
-            ? '등록일 25.03.12'
-            : undefined,
-        }
-      : document,
-  );
+  const basicDocuments = STUDENT_BASIC_DOCUMENTS.map((document) => {
+    if (document.id === 'alien-registration-card') {
+      return {
+        ...document,
+        status: isAlienRegistrationComplete
+          ? ('registered' as const)
+          : ('required' as const),
+        registeredAt: isAlienRegistrationComplete
+          ? '등록일 25.03.12'
+          : undefined,
+      };
+    }
+
+    if (document.id === 'enrollment-certificate') {
+      return {
+        ...document,
+        status: isEnrollmentCertificateComplete
+          ? ('registered' as const)
+          : ('required' as const),
+        registeredAt: isEnrollmentCertificateComplete
+          ? '등록일 25.03.12'
+          : undefined,
+      };
+    }
+
+    return document;
+  });
 
   if (view === 'guide') {
     return (
@@ -99,6 +126,36 @@ export default function StudentDocumentManagementPage({
         onBack={() => setView('alien-camera')}
         onConfirm={() => {
           setIsAlienRegistrationComplete(true);
+          setView('registration');
+        }}
+      />
+    );
+  }
+
+  if (view === 'enrollment-information') {
+    return (
+      <EnrollmentCertificateInformation
+        onBack={() => setView('registration')}
+        onRegister={() => setView('enrollment-camera')}
+      />
+    );
+  }
+
+  if (view === 'enrollment-camera') {
+    return (
+      <EnrollmentCertificateCamera
+        onBack={() => setView('enrollment-information')}
+        onCapture={() => setView('enrollment-complete')}
+      />
+    );
+  }
+
+  if (view === 'enrollment-complete') {
+    return (
+      <EnrollmentCertificateComplete
+        onBack={() => setView('enrollment-camera')}
+        onConfirm={() => {
+          setIsEnrollmentCertificateComplete(true);
           setView('registration');
         }}
       />
