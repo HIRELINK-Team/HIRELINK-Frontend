@@ -24,9 +24,14 @@ import StudentMatchingConditionIndustryPage from './StudentMatchingConditionIndu
 import StudentMatchingConditionLocationPage from './StudentMatchingConditionLocationPage';
 import StudentMatchingConditionStartDatePage from './StudentMatchingConditionStartDatePage';
 import StudentMatchingConditionWorkTimePage from './StudentMatchingConditionWorkTimePage';
+import StudentNotificationSettingsPage from './StudentNotificationSettingsPage';
 import StudentProfileManagementPage from './StudentProfileManagementPage';
 import StudentWorkConditionPage from './StudentWorkConditionPage';
 import type { IndustryId } from '../../types/industry';
+import type {
+  StudentNotificationId,
+  StudentNotificationSettings,
+} from '../../types/studentNotification';
 import type { WorkAvailability } from '../../types/workAvailability';
 import type { WorkLocation } from '../../types/workLocation';
 
@@ -75,10 +80,12 @@ const VERIFIED_SECONDARY_MENU_ICONS: Record<
 
 function VerifiedMyPage({
   onMatchingConditionClick,
+  onNotificationSettingsClick,
   onProfileManagementClick,
   onWorkConditionClick,
 }: {
   onMatchingConditionClick: () => void;
+  onNotificationSettingsClick: () => void;
   onProfileManagementClick: () => void;
   onWorkConditionClick: () => void;
 }) {
@@ -260,6 +267,11 @@ function VerifiedMyPage({
             className="flex h-[35px] w-full items-center border-0 bg-transparent px-6 text-left"
             key={menu.id}
             type="button"
+            onClick={
+              menu.id === 'notifications'
+                ? onNotificationSettingsClick
+                : undefined
+            }
           >
             <img
               alt=""
@@ -393,7 +405,8 @@ export default function StudentDocumentVerificationPreviewPage() {
     previewView === 'matching-condition-industry' ||
     previewView === 'matching-condition-location' ||
     previewView === 'matching-condition-work-time' ||
-    previewView === 'matching-condition-start-date'
+    previewView === 'matching-condition-start-date' ||
+    previewView === 'notification-settings'
       ? previewView
       : 'badge';
   const [view, setView] = useState<
@@ -405,6 +418,7 @@ export default function StudentDocumentVerificationPreviewPage() {
     | 'matching-condition-location'
     | 'matching-condition-start-date'
     | 'matching-condition-work-time'
+    | 'notification-settings'
     | 'work-condition'
   >(initialView);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>([
@@ -421,6 +435,16 @@ export default function StudentDocumentVerificationPreviewPage() {
     INITIAL_WORK_AVAILABILITY,
   );
   const [workStartDate, setWorkStartDate] = useState('2027-03-14');
+  const [notificationSettings, setNotificationSettings] =
+    useState<StudentNotificationSettings>({
+      'application-result': true,
+      'document-expiry': true,
+      'document-status': true,
+      'employment-permit': true,
+      'matching-recommendation': true,
+      'saved-job': true,
+      'service-news': true,
+    });
 
   const handleMatchingConditionClick = (conditionId: string) => {
     if (conditionId === 'industry') {
@@ -520,9 +544,25 @@ export default function StudentDocumentVerificationPreviewPage() {
     );
   }
 
+  if (view === 'notification-settings') {
+    return (
+      <StudentNotificationSettingsPage
+        settings={notificationSettings}
+        onBack={() => setView('my')}
+        onSettingsChange={(id: StudentNotificationId) => {
+          setNotificationSettings((currentSettings) => ({
+            ...currentSettings,
+            [id]: !currentSettings[id],
+          }));
+        }}
+      />
+    );
+  }
+
   return (
     <VerifiedMyPage
       onMatchingConditionClick={() => setView('matching-condition-management')}
+      onNotificationSettingsClick={() => setView('notification-settings')}
       onProfileManagementClick={() => setView('profile-management')}
       onWorkConditionClick={() => setView('work-condition')}
     />
