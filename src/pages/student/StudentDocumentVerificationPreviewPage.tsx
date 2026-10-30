@@ -20,8 +20,10 @@ import {
 } from '../../mocks/studentMy';
 import type { StudentMyMenuId } from '../../types/studentMy';
 import StudentMatchingConditionManagementPage from './StudentMatchingConditionManagementPage';
+import StudentMatchingConditionIndustryPage from './StudentMatchingConditionIndustryPage';
 import StudentProfileManagementPage from './StudentProfileManagementPage';
 import StudentWorkConditionPage from './StudentWorkConditionPage';
+import type { IndustryId } from '../../types/industry';
 
 const VERIFIED_PRIMARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> =
   {
@@ -361,7 +363,8 @@ export default function StudentDocumentVerificationPreviewPage() {
   const previewView = new URLSearchParams(window.location.search).get('view');
   const initialView =
     previewView === 'profile-management' ||
-    previewView === 'matching-condition-management'
+    previewView === 'matching-condition-management' ||
+    previewView === 'matching-condition-industry'
       ? previewView
       : 'badge';
   const [view, setView] = useState<
@@ -369,8 +372,30 @@ export default function StudentDocumentVerificationPreviewPage() {
     | 'my'
     | 'profile-management'
     | 'matching-condition-management'
+    | 'matching-condition-industry'
     | 'work-condition'
   >(initialView);
+  const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>([
+    'foodCafe',
+    'dutyFree',
+    'other',
+  ]);
+  const [otherIndustry, setOtherIndustry] = useState('영화관');
+
+  const handleMatchingConditionClick = (conditionId: string) => {
+    if (conditionId === 'industry') {
+      setView('matching-condition-industry');
+    }
+  };
+
+  const handleIndustrySave = (
+    nextSelectedIndustries: IndustryId[],
+    nextOtherIndustry: string,
+  ) => {
+    setSelectedIndustries(nextSelectedIndustries);
+    setOtherIndustry(nextOtherIndustry);
+    setView('matching-condition-management');
+  };
 
   if (view === 'badge') {
     return <BadgeIssuedPage onConfirm={() => setView('my')} />;
@@ -386,7 +411,21 @@ export default function StudentDocumentVerificationPreviewPage() {
 
   if (view === 'matching-condition-management') {
     return (
-      <StudentMatchingConditionManagementPage onBack={() => setView('my')} />
+      <StudentMatchingConditionManagementPage
+        onBack={() => setView('my')}
+        onConditionClick={handleMatchingConditionClick}
+      />
+    );
+  }
+
+  if (view === 'matching-condition-industry') {
+    return (
+      <StudentMatchingConditionIndustryPage
+        initialOtherIndustry={otherIndustry}
+        initialSelectedIndustries={selectedIndustries}
+        onBack={() => setView('matching-condition-management')}
+        onSave={handleIndustrySave}
+      />
     );
   }
 
