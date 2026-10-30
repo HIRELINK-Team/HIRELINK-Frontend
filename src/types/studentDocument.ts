@@ -28,6 +28,11 @@ export type StudentEnrollmentCertificateDetail = {
   value: string;
 };
 
+export type StudentTranscriptDetail = {
+  label: string;
+  value: string;
+};
+
 export type StudentAlienRegistrationGuideItem = {
   icon: string;
   title: string;

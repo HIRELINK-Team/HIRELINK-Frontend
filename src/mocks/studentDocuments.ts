@@ -11,6 +11,7 @@ import type {
   StudentDocument,
   StudentDocumentGuideItem,
   StudentEnrollmentCertificateDetail,
+  StudentTranscriptDetail,
 } from '../types/studentDocument';
 
 export const STUDENT_DOCUMENT_GUIDE_ITEMS: readonly StudentDocumentGuideItem[] =
@@ -92,3 +93,10 @@ export const STUDENT_ENROLLMENT_CERTIFICATE_DETAILS: readonly StudentEnrollmentC
     { label: '학년', value: '2학년 (재학 중)' },
     { label: '재학기간', value: '2025.03.01 ~' },
   ];
+
+export const STUDENT_TRANSCRIPT_DETAILS: readonly StudentTranscriptDetail[] = [
+  { label: '직전학기', value: '4.21 / 4.5' },
+  { label: '성적', value: 'A0' },
+  { label: '이수학기', value: '2학기' },
+  { label: '발급일', value: '2025.03.01' },
+];

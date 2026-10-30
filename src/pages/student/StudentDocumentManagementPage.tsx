@@ -10,6 +10,9 @@ import { EnrollmentCertificateCamera } from '../../components/student/documents/
 import { EnrollmentCertificateComplete } from '../../components/student/documents/EnrollmentCertificateComplete';
 import { EnrollmentCertificateInformation } from '../../components/student/documents/EnrollmentCertificateInformation';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
+import { TranscriptCamera } from '../../components/student/documents/TranscriptCamera';
+import { TranscriptComplete } from '../../components/student/documents/TranscriptComplete';
+import { TranscriptInformation } from '../../components/student/documents/TranscriptInformation';
 import { STUDENT_BASIC_DOCUMENTS } from '../../mocks/studentDocuments';
 import type { StudentNavigationTab } from '../../types/studentHome';
 import type { StudentDocument } from '../../types/studentDocument';
@@ -22,7 +25,10 @@ type DocumentManagementView =
   | 'alien-complete'
   | 'enrollment-information'
   | 'enrollment-camera'
-  | 'enrollment-complete';
+  | 'enrollment-complete'
+  | 'transcript-information'
+  | 'transcript-camera'
+  | 'transcript-complete';
 
 type StudentDocumentManagementPageProps = {
   initialView?: DocumentManagementView;
@@ -42,6 +48,7 @@ export default function StudentDocumentManagementPage({
     useState(true);
   const [isEnrollmentCertificateComplete, setIsEnrollmentCertificateComplete] =
     useState(false);
+  const [isTranscriptComplete, setIsTranscriptComplete] = useState(true);
 
   const handleGuideBack = () => {
     onExit?.();
@@ -59,6 +66,11 @@ export default function StudentDocumentManagementPage({
 
     if (document.id === 'enrollment-certificate') {
       setView('enrollment-information');
+      return;
+    }
+
+    if (document.id === 'transcript') {
+      setView('transcript-information');
       return;
     }
 
@@ -87,6 +99,16 @@ export default function StudentDocumentManagementPage({
         registeredAt: isEnrollmentCertificateComplete
           ? '등록일 25.03.12'
           : undefined,
+      };
+    }
+
+    if (document.id === 'transcript') {
+      return {
+        ...document,
+        status: isTranscriptComplete
+          ? ('registered' as const)
+          : ('required' as const),
+        registeredAt: isTranscriptComplete ? '등록일 25.03.12' : undefined,
       };
     }
 
@@ -156,6 +178,36 @@ export default function StudentDocumentManagementPage({
         onBack={() => setView('enrollment-camera')}
         onConfirm={() => {
           setIsEnrollmentCertificateComplete(true);
+          setView('registration');
+        }}
+      />
+    );
+  }
+
+  if (view === 'transcript-information') {
+    return (
+      <TranscriptInformation
+        onBack={() => setView('registration')}
+        onRegister={() => setView('transcript-camera')}
+      />
+    );
+  }
+
+  if (view === 'transcript-camera') {
+    return (
+      <TranscriptCamera
+        onBack={() => setView('transcript-information')}
+        onCapture={() => setView('transcript-complete')}
+      />
+    );
+  }
+
+  if (view === 'transcript-complete') {
+    return (
+      <TranscriptComplete
+        onBack={() => setView('transcript-camera')}
+        onConfirm={() => {
+          setIsTranscriptComplete(true);
           setView('registration');
         }}
       />
