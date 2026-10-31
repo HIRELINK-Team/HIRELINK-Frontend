@@ -253,7 +253,7 @@ function JobForm({
                     type="button"
                     aria-pressed={values.salaryType === type}
                     onClick={() => handleFieldChange("salaryType", type)}
-                    className={`h-[22px] w-[43px] cursor-pointer rounded-md text-xs transition-colors ${
+                    className={`h-[22px] w-[43px] cursor-pointer rounded-md text-[9px] leading-none transition-colors ${
                       values.salaryType === type
                         ? "bg-[#00b894] text-white"
                         : "text-[#70737c]"
@@ -359,14 +359,34 @@ function JobForm({
 
         <div className="mt-1 flex justify-end">
           <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[#171719]">
-            <input
-              type="checkbox"
-              checked={values.isScheduleNegotiable}
-              onChange={(event) =>
-                handleFieldChange("isScheduleNegotiable", event.target.checked)
-              }
-              className="size-5 cursor-pointer accent-[#00b894]"
-            />
+            <span className="relative flex size-5 shrink-0 items-center justify-center">
+              <input
+                type="checkbox"
+                checked={values.isScheduleNegotiable}
+                onChange={(event) =>
+                  handleFieldChange(
+                    "isScheduleNegotiable",
+                    event.target.checked,
+                  )
+                }
+                className="peer absolute inset-0 z-10 size-full cursor-pointer opacity-0"
+              />
+              <span className="pointer-events-none absolute inset-0 rounded-[5px] border border-[#c7cbd1] bg-white transition-colors peer-checked:border-[#00b894] peer-checked:bg-[#00b894] peer-focus-visible:ring-2 peer-focus-visible:ring-[#00b894]/20" />
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 16 16"
+                className="pointer-events-none absolute hidden size-3.5 text-white peer-checked:block"
+                fill="none"
+              >
+                <path
+                  d="m3.25 8.25 3 3 6.5-6.5"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
             근무 시간 협의 가능
           </label>
         </div>

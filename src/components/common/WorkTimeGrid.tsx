@@ -46,6 +46,8 @@ const VIEW_CONFIG: Record<
   },
 };
 
+const SLOT_HEIGHT_PX = 18;
+
 function getSlotLabel(slot: number) {
   return formatMinutes(slot * 30)
     .replace("시 ", ":")
@@ -69,6 +71,7 @@ function WorkTimeGrid({
       ),
     [config.endMinutes, config.startMinutes],
   );
+  const gridHeight = visibleSlots.length * SLOT_HEIGHT_PX;
   const selectedSlots = useMemo(
     () =>
       DAY_OF_WEEK_VALUES.reduce<Record<DayOfWeek, Set<number>>>(
@@ -242,11 +245,11 @@ function WorkTimeGrid({
             </div>
           ))}
 
-          <div className="relative h-72">
+          <div className="relative" style={{ height: gridHeight }}>
             {config.markers.map((minute) => (
               <span
                 key={minute}
-                className="absolute left-0 -translate-y-1/2 text-xs leading-none text-[#70737c]"
+                className="absolute left-0 translate-y-1 text-xs leading-none text-[#70737c]"
                 style={{
                   top: `${((minute - config.startMinutes) / (config.endMinutes - config.startMinutes)) * 100}%`,
                 }}
@@ -259,7 +262,8 @@ function WorkTimeGrid({
           {DAY_OF_WEEK_VALUES.map((day) => (
             <div
               key={day}
-              className="flex h-72 touch-none flex-col overflow-hidden rounded-[10px] bg-[#dfe2e6]"
+              className="flex touch-none flex-col overflow-hidden rounded-[10px] bg-[#dfe2e6]"
+              style={{ height: gridHeight }}
               aria-label={`${DAY_LABELS[day]}요일 근무시간`}
             >
               {visibleSlots.map((slot) => {
@@ -280,7 +284,7 @@ function WorkTimeGrid({
                     }
                     onPointerEnter={() => handleSlotPointerMove(day, slot)}
                     onPointerMove={() => handleSlotPointerMove(day, slot)}
-                    className={`min-h-0 flex-1 border-b border-dashed border-white/90 last:border-b-0 ${
+                    className={`h-[18px] min-h-[18px] flex-none border-b border-dashed border-white/90 last:border-b-0 ${
                       previewRemoving
                         ? "bg-[#b8bdc4]"
                         : preview
