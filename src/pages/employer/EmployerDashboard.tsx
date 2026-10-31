@@ -119,7 +119,7 @@ function OutlineButton({
   return (
     <button
       type="button"
-      className={`flex h-8 w-24 cursor-pointer items-center justify-center rounded-lg border border-[rgba(112,115,124,0.22)] bg-white px-3 font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] ${compact ? "text-xs" : "text-sm"}`}
+      className={`flex h-8 w-24 cursor-pointer items-center justify-center whitespace-nowrap rounded-lg border border-[rgba(112,115,124,0.22)] bg-white px-3 font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] ${compact ? "text-xs" : "text-sm"}`}
     >
       {children}
     </button>
