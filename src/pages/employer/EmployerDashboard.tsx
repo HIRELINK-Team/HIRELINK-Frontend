@@ -1,0 +1,324 @@
+import { useState } from "react";
+import progressLine from "../../assets/employer/progress-line.svg";
+
+type DashboardView = "openJobs" | "reviewing" | "pending";
+
+type SummaryItem = {
+  id: DashboardView;
+  label: string;
+  count: number;
+  unit: "개" | "명";
+};
+
+type JobItem = {
+  id: number;
+  title: string;
+  deadline: string;
+  details: string;
+  applicants: string;
+};
+
+type ApplicantItem = {
+  id: number;
+  name: string;
+  nationality: string;
+  visa: string;
+  matchRate: string;
+  timeLeft: string;
+};
+
+const dashboardMockData: {
+  summary: SummaryItem[];
+  jobs: JobItem[];
+  applicants: ApplicantItem[];
+} = {
+  summary: [
+    { id: "openJobs", label: "모집 중 공고", count: 1, unit: "개" },
+    { id: "reviewing", label: "검토 중 지원자", count: 1, unit: "명" },
+    { id: "pending", label: "수락 대기", count: 1, unit: "명" },
+  ],
+  jobs: [
+    {
+      id: 1,
+      title: "서버",
+      deadline: "마감 D-22",
+      details: "13,000원 · 월수금 16-22",
+      applicants: "지원자(3/5)",
+    },
+    {
+      id: 2,
+      title: "서버",
+      deadline: "마감 D-22",
+      details: "13,000원 · 월수금 16-22",
+      applicants: "지원자(3/5)",
+    },
+  ],
+  applicants: [
+    {
+      id: 1,
+      name: "제이슨",
+      nationality: "베트남",
+      visa: "D2-2",
+      matchRate: "70%",
+      timeLeft: "12:12:12",
+    },
+  ],
+};
+
+const hiringSteps = [
+  { title: "공고 등록", description: "조건 작성" },
+  { title: "지원, 제안", description: "지원 받기" },
+  { title: "면접", description: "대면,전화" },
+  { title: "채용 전 확인", description: "체크리스트" },
+  { title: "허가 신청", description: "학교, 출입국" },
+  { title: "근무 시작", description: "신고 안내" },
+] as const;
+
+function SummaryCard({
+  item,
+  selected,
+  onSelect,
+}: {
+  item: SummaryItem;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onSelect}
+      className={`h-[120px] w-full cursor-pointer rounded-xl border px-[23px] py-[21px] text-left shadow-[0_1px_2px_-1px_rgba(23,23,23,0.1)] transition-colors ${
+        selected
+          ? "border-[#2e6c5a] bg-[#e8f7f3]"
+          : "border-[rgba(112,115,124,0.08)] bg-white hover:border-[rgba(46,108,90,0.35)] hover:bg-[#f8fcfb]"
+      }`}
+    >
+      <span className="block text-lg leading-normal font-medium text-[#70737c]">
+        {item.label}
+      </span>
+      <span className="mt-3 flex items-end gap-1 text-[#171719]">
+        <span className="text-4xl leading-normal font-semibold">
+          {item.count}
+        </span>
+        <span className="mb-[6px] text-base leading-normal font-normal text-[#37383c]">
+          {item.unit}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function OutlineButton({
+  children,
+  compact = false,
+}: {
+  children: string;
+  compact?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={`flex h-8 w-24 cursor-pointer items-center justify-center rounded-lg border border-[rgba(112,115,124,0.22)] bg-white px-3 font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] ${compact ? "text-xs" : "text-sm"}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function JobList() {
+  return (
+    <section aria-labelledby="dashboard-list-title">
+      <h2
+        id="dashboard-list-title"
+        className="text-lg leading-[21px] font-semibold text-black"
+      >
+        모집 중 공고
+      </h2>
+      <div className="mt-[13px] flex flex-col gap-1.5">
+        {dashboardMockData.jobs.map((job) => (
+          <article
+            key={job.id}
+            className="flex h-[104px] items-center justify-between gap-6 rounded-xl border border-[rgba(112,115,124,0.08)] bg-white px-6 shadow-[0_1px_2px_-1px_rgba(23,23,23,0.1)]"
+          >
+            <div className="flex min-w-0 items-center gap-[22px]">
+              <div
+                aria-hidden="true"
+                className="size-12 rounded-full bg-[#e1e2e4]"
+              />
+              <div className="min-w-0">
+                <div className="flex items-start gap-2">
+                  <h3 className="text-[22px] leading-[26px] font-semibold text-black">
+                    {job.title}
+                  </h3>
+                  <span className="flex h-[23px] items-center rounded-md bg-[#f4f4f5] px-1.5 text-[10px] font-semibold text-black">
+                    {job.deadline}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm leading-[17px] font-semibold text-[#8b8888]">
+                  {job.details}
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2.5 pr-5">
+              <OutlineButton compact>{job.applicants}</OutlineButton>
+              <OutlineButton compact>수정</OutlineButton>
+              <OutlineButton compact>모집 마감</OutlineButton>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ApplicantList({ view }: { view: Exclude<DashboardView, "openJobs"> }) {
+  const isReviewing = view === "reviewing";
+
+  return (
+    <section aria-labelledby="dashboard-list-title">
+      <h2
+        id="dashboard-list-title"
+        className="text-lg leading-[21px] font-semibold text-black"
+      >
+        {isReviewing ? "검토 중 지원자" : "수락 대기"}
+      </h2>
+      <div className="mt-[7px] grid h-8 grid-cols-[56px_repeat(5,minmax(64px,104px))_minmax(322px,1fr)] items-center rounded-lg bg-[#f7f7f8] px-2 text-center text-xs font-semibold text-[#171719] xl:grid-cols-[80px_repeat(5,104px)_1fr] xl:px-6">
+        <span aria-hidden="true" />
+        <span>이름</span>
+        <span>국적</span>
+        <span>비자</span>
+        <span>공고 일치율</span>
+        <span>남은 시간</span>
+        <span className="ml-[18px] flex w-24 justify-center">관리</span>
+      </div>
+      {dashboardMockData.applicants.map((applicant) => (
+        <article
+          key={applicant.id}
+          className="mt-[15px] grid h-24 grid-cols-[56px_repeat(5,minmax(64px,104px))_minmax(322px,1fr)] items-center rounded-xl border border-[rgba(112,115,124,0.08)] bg-white px-2 text-center shadow-[0_1px_2px_-1px_rgba(23,23,23,0.1)] xl:grid-cols-[80px_repeat(5,104px)_1fr] xl:px-6"
+        >
+          <div
+            aria-hidden="true"
+            className="size-12 rounded-full bg-[#e1e2e4]"
+          />
+          <strong className="text-xl font-semibold text-[#171719]">
+            {applicant.name}
+          </strong>
+          <span className="text-base font-medium text-[#70737c]">
+            {applicant.nationality}
+          </span>
+          <span className="text-base font-medium text-[#70737c]">
+            {applicant.visa}
+          </span>
+          <span className="text-xl font-medium text-[#d97706]">
+            {applicant.matchRate}
+          </span>
+          <span className="text-xl font-medium text-[#171719]">
+            {applicant.timeLeft}
+          </span>
+          <div className="ml-[18px] flex items-center gap-2">
+            <OutlineButton>상세</OutlineButton>
+            {isReviewing && (
+              <>
+                <OutlineButton>채용 거절</OutlineButton>
+                <button
+                  type="button"
+                  className="flex h-8 w-24 cursor-pointer items-center justify-center rounded-lg bg-[#00b894] px-3 text-xs font-medium text-white transition-colors hover:bg-[#00a886] active:bg-[#00997a]"
+                >
+                  채용 제안
+                </button>
+              </>
+            )}
+          </div>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function HiringProcess() {
+  return (
+    <section aria-labelledby="hiring-process-title">
+      <h2
+        id="hiring-process-title"
+        className="text-lg leading-[21px] font-semibold text-black"
+      >
+        외국인 유학생 채용, 이렇게 진행돼요
+      </h2>
+      <div className="relative mt-3 h-[119px] rounded-xl border border-[rgba(112,115,124,0.08)] bg-white shadow-[0_1px_2px_-1px_rgba(23,23,23,0.1)]">
+        <div className="absolute top-[37px] right-[6.5%] left-[6.4%] h-[2px] overflow-hidden">
+          <img
+            src={progressLine}
+            alt=""
+            width={845}
+            height={1}
+            className="block max-w-none"
+          />
+        </div>
+        <ol className="absolute top-[22px] right-[17px] left-0 flex items-start justify-between">
+          {hiringSteps.map((step, index) => (
+            <li
+              key={step.title}
+              className="flex w-[92px] flex-col items-center text-center"
+            >
+              <span className="relative z-[1] flex size-[31px] items-center justify-center rounded-full border border-[#e1e2e4] bg-white text-[15px] font-semibold text-[#70737c]">
+                {index + 1}
+              </span>
+              <strong className="mt-2 text-[15px] leading-[18px] font-semibold text-black">
+                {step.title}
+              </strong>
+              <span className="mt-0.5 text-[13px] leading-4 font-medium text-[#7e7e7e]">
+                {step.description}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+function EmployerDashboard() {
+  const [selectedView, setSelectedView] = useState<DashboardView>("openJobs");
+
+  return (
+    <div className="pb-10 pt-10">
+      <header>
+        <h1 className="text-4xl leading-[43px] font-semibold tracking-[-0.8px] text-black">
+          안녕하세요, 사장님!
+        </h1>
+        <p className="mt-1.5 text-xl leading-6 font-semibold text-black/60">
+          필요한 조건에 맞는 유학생을 빠르게 만나보세요.
+        </p>
+      </header>
+
+      <div
+        className="mt-[43px] grid grid-cols-3 gap-4"
+        aria-label="대시보드 요약"
+      >
+        {dashboardMockData.summary.map((item) => (
+          <SummaryCard
+            key={item.id}
+            item={item}
+            selected={selectedView === item.id}
+            onSelect={() => setSelectedView(item.id)}
+          />
+        ))}
+      </div>
+
+      <div className="mt-[22px]">
+        {selectedView === "openJobs" ? (
+          <JobList />
+        ) : (
+          <ApplicantList view={selectedView} />
+        )}
+      </div>
+
+      <div className={selectedView === "openJobs" ? "mt-7" : "mt-[41px]"}>
+        <HiringProcess />
+      </div>
+    </div>
+  );
+}
+
+export default EmployerDashboard;
