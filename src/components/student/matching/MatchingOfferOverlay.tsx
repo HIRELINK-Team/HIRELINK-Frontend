@@ -20,7 +20,7 @@ export function MatchingOfferOverlay({
   return (
     <section
       aria-label="채용 제안"
-      className="absolute inset-0 z-30 h-[844px] overflow-hidden bg-black/[0.66] backdrop-blur-[14.35px] text-[#F5F5F5]"
+      className="absolute inset-0 z-30 h-full overflow-hidden bg-black/[0.66] backdrop-blur-[14.35px] text-[#F5F5F5]"
     >
       <button
         aria-label="매칭 목록으로 돌아가기"
@@ -31,11 +31,11 @@ export function MatchingOfferOverlay({
         <img alt="" src={offerBackIcon} />
       </button>
 
-      <h1 className="absolute top-[112px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
+      <h1 className="absolute top-[92px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
         채용 제안이 도착했어요!
       </h1>
 
-      <article className="absolute top-[206px] left-1/2 h-[329px] w-[271px] -translate-x-1/2 overflow-hidden rounded-[30px] bg-gradient-to-t from-[#CEFFF6]/92 to-[#00D1A8]/92 text-[#004A3B]">
+      <article className="absolute top-[180px] left-1/2 h-[329px] w-[271px] -translate-x-1/2 overflow-hidden rounded-[30px] bg-gradient-to-t from-[#CEFFF6]/92 to-[#00D1A8]/92 text-[#004A3B]">
         <img
           alt=""
           className="absolute top-[57px] left-[63px] h-[145px] w-[145px] object-cover"
@@ -49,7 +49,7 @@ export function MatchingOfferOverlay({
         </p>
       </article>
 
-      <div className="absolute top-[564px] right-6 left-6 text-center">
+      <div className="absolute top-[535px] right-6 left-6 text-center">
         <p className="m-0 text-[20px] leading-[1.5] font-semibold">
           메가커피가 함께 일하고 싶대요.
         </p>
@@ -58,7 +58,7 @@ export function MatchingOfferOverlay({
         </p>
       </div>
 
-      <div className="absolute top-[693px] right-[26px] left-[26px] grid h-[64px] grid-cols-[1.675fr_1fr] gap-[9px]">
+      <div className="absolute top-[615px] right-[26px] left-[26px] grid h-[64px] grid-cols-[1.675fr_1fr] gap-[9px]">
         <button
           className="rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium"
           type="button"
