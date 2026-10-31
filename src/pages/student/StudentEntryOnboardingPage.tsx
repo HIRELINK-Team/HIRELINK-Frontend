@@ -6,17 +6,23 @@ import kakaoIcon from '../../assets/images/student/entry/kakao.png';
 import { EmployerEntryNotice } from '../../components/student/onboarding/EmployerEntryNotice';
 
 type StudentEntryOnboardingPageProps = {
+  onEmailLogin?: () => void;
   onStart?: () => void;
 };
 
 /** Renders pre-profile student entry choices. */
 export default function StudentEntryOnboardingPage({
+  onEmailLogin,
   onStart,
 }: StudentEntryOnboardingPageProps) {
   const [isEmployerNoticeOpen, setIsEmployerNoticeOpen] = useState(false);
 
   const handleStart = () => {
     onStart?.();
+  };
+
+  const handleEmailLogin = () => {
+    onEmailLogin?.();
   };
 
   const handleEmployerNoticeOpen = () => {
@@ -80,7 +86,7 @@ export default function StudentEntryOnboardingPage({
           <button
             className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium"
             type="button"
-            onClick={handleStart}
+            onClick={handleEmailLogin}
           >
             <span className="absolute top-[15.3px] left-[calc(50%-0.7px)] -translate-x-1/2 whitespace-nowrap">
               이메일 로그인·회원가입

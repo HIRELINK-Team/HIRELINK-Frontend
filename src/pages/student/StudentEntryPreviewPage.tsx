@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 
 import StudentEntryOnboardingPage from './StudentEntryOnboardingPage';
+import StudentEmailLoginPage from './StudentEmailLoginPage';
 import StudentOnboardingPage from './StudentOnboardingPage';
 import StudentSplashPage from './StudentSplashPage';
 
-type EntryPreviewStep = 'splash' | 'entry';
+type EntryPreviewStep = 'splash' | 'entry' | 'email-login';
 
 const SPLASH_DURATION_MS = 1200;
 
@@ -31,5 +32,21 @@ export default function StudentEntryPreviewPage() {
     return <StudentSplashPage />;
   }
 
-  return <StudentEntryOnboardingPage onStart={() => setHasStarted(true)} />;
+  if (step === 'email-login') {
+    return (
+      <StudentEmailLoginPage
+        onBack={() => setStep('entry')}
+        onLogin={() => setHasStarted(true)}
+        onSignup={() => undefined}
+        onSocialLogin={() => setHasStarted(true)}
+      />
+    );
+  }
+
+  return (
+    <StudentEntryOnboardingPage
+      onEmailLogin={() => setStep('email-login')}
+      onStart={() => setHasStarted(true)}
+    />
+  );
 }
