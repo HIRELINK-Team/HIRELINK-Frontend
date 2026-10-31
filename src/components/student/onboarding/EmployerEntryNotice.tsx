@@ -26,7 +26,7 @@ export function EmployerEntryNotice({ onClose }: EmployerEntryNoticeProps) {
         </p>
         <img
           alt=""
-          className="absolute top-[161px] left-1/2 h-[83px] w-[83px] -translate-x-1/2"
+          className="absolute top-[161px] left-[calc(50%-42px)] h-[83px] w-[83px]"
           src={employerDesktopIcon}
         />
         <button
