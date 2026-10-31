@@ -18,7 +18,7 @@ export function EmployerEntryNotice({ onClose }: EmployerEntryNoticeProps) {
           className="m-0 text-center text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]"
           id="employer-entry-notice-title"
         >
-          사장님 이신가요?
+          사장님이신가요?
         </h2>
         <p className="mt-[10px] mb-0 whitespace-pre-line text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
           앱은 외국인 유학생 전용으로 운영하고 있어요.{`\n`}

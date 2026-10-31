@@ -45,7 +45,7 @@ export default function StudentEntryOnboardingPage({
           type="button"
           onClick={handleEmployerNoticeOpen}
         >
-          사장님 이신가요?
+          사장님이신가요?
         </button>
 
         <div className="mt-[23px] space-y-[14px]">
