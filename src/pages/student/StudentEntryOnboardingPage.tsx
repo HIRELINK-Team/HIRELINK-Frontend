@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import entryIllustration from '../../assets/images/student/entry/entry-illustration.png';
 import googleIcon from '../../assets/images/student/entry/google.png';
@@ -6,30 +6,15 @@ import hirelinkLogoIcon from '../../assets/images/student/entry/hirelink-logo.sv
 import kakaoIcon from '../../assets/images/student/entry/kakao.png';
 import { EmployerEntryNotice } from '../../components/student/onboarding/EmployerEntryNotice';
 
-type EntryStep = 'splash' | 'entry';
-
 type StudentEntryOnboardingPageProps = {
   onStart?: () => void;
 };
 
-const SPLASH_DURATION_MS = 1200;
-
-/** Renders the student app's splash screen and pre-profile entry choices. */
+/** Renders pre-profile student entry choices. */
 export default function StudentEntryOnboardingPage({
   onStart,
 }: StudentEntryOnboardingPageProps) {
   const [isEmployerNoticeOpen, setIsEmployerNoticeOpen] = useState(false);
-  const [step, setStep] = useState<EntryStep>('splash');
-
-  useEffect(() => {
-    if (step !== 'splash') return undefined;
-
-    const timeoutId = window.setTimeout(() => {
-      setStep('entry');
-    }, SPLASH_DURATION_MS);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [step]);
 
   const handleStart = () => {
     onStart?.();
@@ -42,23 +27,6 @@ export default function StudentEntryOnboardingPage({
   const handleEmployerNoticeClose = () => {
     setIsEmployerNoticeOpen(false);
   };
-
-  if (step === 'splash') {
-    return (
-      <main className="mx-auto flex min-h-[100svh] w-full max-w-[430px] items-center justify-center bg-[#0FC9A2] px-6">
-        <div className="flex items-center gap-2 text-[#F5F5F5]">
-          <img
-            alt=""
-            className="h-[35.67px] w-[37.44px]"
-            src={hirelinkLogoIcon}
-          />
-          <span className="text-[34px] leading-none font-black italic tracking-[-0.04em]">
-            HIRELINK
-          </span>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="relative mx-auto flex min-h-[100svh] w-full max-w-[430px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
