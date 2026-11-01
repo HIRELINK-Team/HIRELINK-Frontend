@@ -86,7 +86,7 @@ export default function StudentApplicationsPage({
   };
 
   return (
-    <main className="relative mx-auto min-h-[844px] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pb-[140px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto min-h-[844px] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pb-[104px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
         aria-label="뒤로 가기"
         className="absolute top-[69px] left-[26px] flex h-4 w-2 items-center justify-center border-0 bg-transparent p-0"

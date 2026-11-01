@@ -41,7 +41,7 @@ export default function StudentHomePage({
   };
 
   return (
-    <main className="relative mx-auto min-h-[100svh] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pt-[68px] pb-[152px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto min-h-[100svh] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pt-[68px] pb-[54px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <h1 className="m-0 text-[26px] leading-[1.5] font-semibold">
         {'\uC548\uB155\uD558\uC138\uC694, '}
         {greetingName}
