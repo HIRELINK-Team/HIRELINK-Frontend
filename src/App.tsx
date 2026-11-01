@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import {
+  Navigate,
   Outlet,
   Route,
   Routes,
   useNavigate,
   useOutletContext,
+  useParams,
 } from 'react-router-dom';
 
 import StudentApplicationsPage from './pages/student/StudentApplicationsPage';
+import StudentHiringCompletePage from './pages/student/StudentHiringCompletePage';
 import StudentEmailLoginPage from './pages/student/StudentEmailLoginPage';
 import StudentEmailSignupPage from './pages/student/StudentEmailSignupPage';
 import StudentEntryOnboardingPage from './pages/student/StudentEntryOnboardingPage';
@@ -24,11 +27,13 @@ import StudentProfileManagementPage from './pages/student/StudentProfileManageme
 import StudentSplashPage from './pages/student/StudentSplashPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
+import { STUDENT_APPLICATIONS_MOCK } from './mocks/studentApplications';
 import StudentMatchingConditionIndustryPage from './pages/student/StudentMatchingConditionIndustryPage';
 import StudentMatchingConditionLocationPage from './pages/student/StudentMatchingConditionLocationPage';
 import StudentMatchingConditionStartDatePage from './pages/student/StudentMatchingConditionStartDatePage';
 import StudentMatchingConditionWorkTimePage from './pages/student/StudentMatchingConditionWorkTimePage';
 import type { StudentNavigationTab } from './types/studentHome';
+import type { StudentApplication } from './types/studentApplication';
 import type { StudentDocument } from './types/studentDocument';
 import type { IndustryId } from './types/industry';
 import type {
@@ -64,6 +69,12 @@ type StudentDocumentRouteContext = {
   completeDocument: (documentId: StudentDocumentFlowId) => void;
   registrationView: () => void;
   view: 'guide' | 'registration';
+};
+
+type StudentApplicationsRouteContext = {
+  applications: StudentApplication[];
+  acceptOffer: (applicationId: string) => void;
+  declineOffer: (applicationId: string) => void;
 };
 
 type StudentDocumentRouteConfig = {
@@ -212,13 +223,90 @@ function StudentMatchingRoute() {
   );
 }
 
+function StudentApplicationsLayout() {
+  const [applications, setApplications] = useState<StudentApplication[]>(
+    STUDENT_APPLICATIONS_MOCK,
+  );
+
+  const acceptOffer = (applicationId: string) => {
+    setApplications((currentApplications) =>
+      currentApplications.map((application) =>
+        application.id === applicationId
+          ? {
+              ...application,
+              expiresAt: undefined,
+              status: 'HIRED',
+              timerLabel: undefined,
+            }
+          : application,
+      ),
+    );
+  };
+
+  const declineOffer = (applicationId: string) => {
+    setApplications((currentApplications) =>
+      currentApplications.map((application) =>
+        application.id === applicationId
+          ? {
+              ...application,
+              expiresAt: undefined,
+              status: 'REJECTED',
+              timerLabel: undefined,
+            }
+          : application,
+      ),
+    );
+  };
+
+  return (
+    <Outlet
+      context={{
+        acceptOffer,
+        applications,
+        declineOffer,
+      }}
+    />
+  );
+}
+
 function StudentApplicationsRoute() {
   const navigate = useNavigate();
+  const { acceptOffer, applications, declineOffer } =
+    useOutletContext<StudentApplicationsRouteContext>();
 
   return (
     <StudentApplicationsPage
+      applications={applications}
       isBottomNavigationFixed
+      onAcceptOffer={(application) => acceptOffer(application.id)}
+      onDeclineOffer={(application) => declineOffer(application.id)}
+      onDetailClick={(application) => {
+        if (application.status === 'HIRED') {
+          navigate(`hiring-complete/${application.id}`);
+        }
+      }}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
+    />
+  );
+}
+
+function StudentHiringCompleteRoute() {
+  const navigate = useNavigate();
+  const { applicationId } = useParams();
+  const { applications } = useOutletContext<StudentApplicationsRouteContext>();
+  const application = applications.find(
+    (candidate) => candidate.id === applicationId,
+  );
+
+  if (!application || application.status !== 'HIRED') {
+    return <Navigate replace to="/student/applications" />;
+  }
+
+  return (
+    <StudentHiringCompletePage
+      job={application.job}
+      onBack={() => navigate('/student/applications')}
+      onViewApplications={() => navigate('/student/applications')}
     />
   );
 }
@@ -251,7 +339,8 @@ function StudentMyRoute() {
 
 function StudentDocumentsLayout() {
   const [view, setView] = useState<'guide' | 'registration'>(() =>
-    sessionStorage.getItem(STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY) === 'true'
+    sessionStorage.getItem(STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY) ===
+    'true'
       ? 'registration'
       : 'guide',
   );
@@ -563,8 +652,14 @@ function App() {
       <Route path="/student/matching" element={<StudentMatchingRoute />} />
       <Route
         path="/student/applications"
-        element={<StudentApplicationsRoute />}
-      />
+        element={<StudentApplicationsLayout />}
+      >
+        <Route index element={<StudentApplicationsRoute />} />
+        <Route
+          path="hiring-complete/:applicationId"
+          element={<StudentHiringCompleteRoute />}
+        />
+      </Route>
       <Route path="/student/my" element={<StudentMyRoute />} />
       <Route path="/student/my/documents" element={<StudentDocumentsLayout />}>
         <Route index element={<StudentDocumentsRoute />} />

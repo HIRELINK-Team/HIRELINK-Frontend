@@ -14,6 +14,7 @@ import type {
 import type { StudentNavigationTab } from '../../types/studentHome';
 
 type StudentApplicationsPageProps = {
+  applications?: readonly StudentApplication[];
   isBottomNavigationFixed?: boolean;
   initialScenario?: StudentApplicationsScenario;
   onAcceptOffer?: (application: StudentApplication) => void;
@@ -34,31 +35,33 @@ const SCENARIO_FILTER: Record<
   empty: 'all',
 };
 
-function getApplicationsForFilter(filter: StudentApplicationsFilter) {
+function getApplicationsForFilter(
+  applications: readonly StudentApplication[],
+  filter: StudentApplicationsFilter,
+) {
   if (filter === 'all') {
-    return STUDENT_APPLICATIONS_MOCK.filter((application) =>
+    return applications.filter((application) =>
       ['REVIEWING', 'HIRED'].includes(application.status),
     );
   }
 
   if (filter === 'reviewing') {
-    return STUDENT_APPLICATIONS_MOCK.filter(
+    return applications.filter(
       (application) => application.status === 'REVIEWING',
     );
   }
 
   if (filter === 'offer') {
-    return STUDENT_APPLICATIONS_MOCK.filter(
+    return applications.filter(
       (application) => application.status === 'OFFER_WAITING',
     );
   }
 
-  return STUDENT_APPLICATIONS_MOCK.filter(
-    (application) => application.status === 'HIRED',
-  );
+  return applications.filter((application) => application.status === 'HIRED');
 }
 
 export default function StudentApplicationsPage({
+  applications: applicationData = STUDENT_APPLICATIONS_MOCK,
   isBottomNavigationFixed = false,
   initialScenario = 'all',
   onAcceptOffer,
@@ -75,13 +78,19 @@ export default function StudentApplicationsPage({
   );
   const applications = isEmptyScenario
     ? []
-    : getApplicationsForFilter(activeFilter);
+    : getApplicationsForFilter(applicationData, activeFilter);
   const isGeneralLayout = activeFilter === 'all' && !isEmptyScenario;
   const isReviewingLayout = activeFilter === 'reviewing' && !isEmptyScenario;
   const isHiredLayout = activeFilter === 'hired' && !isEmptyScenario;
 
   const handleFilterChange = (filter: StudentApplicationsFilter) => {
     setActiveFilter(filter);
+    setIsEmptyScenario(false);
+  };
+
+  const handleAcceptOffer = (application: StudentApplication) => {
+    onAcceptOffer?.(application);
+    setActiveFilter('hired');
     setIsEmptyScenario(false);
   };
 
@@ -125,7 +134,7 @@ export default function StudentApplicationsPage({
               isGeneralLayout={isGeneralLayout || isReviewingLayout}
               isHiredLayout={isHiredLayout}
               key={application.id}
-              onAcceptOffer={onAcceptOffer}
+              onAcceptOffer={handleAcceptOffer}
               onDeclineOffer={onDeclineOffer}
               onDetailClick={onDetailClick}
             />
