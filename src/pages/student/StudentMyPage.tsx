@@ -25,6 +25,7 @@ type StudentMyPageProps = {
   onMenuClick?: (menuId: StudentMyMenuId) => void;
   onProfileEditClick?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
+  onWorkConditionClick?: () => void;
 };
 
 const PRIMARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> = {
@@ -52,6 +53,7 @@ export default function StudentMyPage({
   onMenuClick,
   onProfileEditClick,
   onTabChange,
+  onWorkConditionClick,
 }: StudentMyPageProps) {
   const handleMenuClick = (menu: StudentMyMenu) => {
     if (menu.id === 'documents') {
@@ -144,7 +146,7 @@ export default function StudentMyPage({
         <button
           className="absolute right-6 bottom-[19px] left-6 h-[54px] rounded-[10px] border-0 bg-[#00B894] p-0 text-[17px] leading-[1.5] font-medium text-[#F5F5F5]"
           type="button"
-          onClick={onMatchingClick}
+          onClick={onWorkConditionClick ?? onMatchingClick}
         >
           매칭하러 가기
         </button>

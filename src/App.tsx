@@ -1,16 +1,28 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 
 import StudentApplicationsPage from './pages/student/StudentApplicationsPage';
 import StudentEmailLoginPage from './pages/student/StudentEmailLoginPage';
 import StudentEmailSignupPage from './pages/student/StudentEmailSignupPage';
 import StudentEntryOnboardingPage from './pages/student/StudentEntryOnboardingPage';
+import StudentCustomerCenterPage from './pages/student/StudentCustomerCenterPage';
+import StudentDocumentManagementPage from './pages/student/StudentDocumentManagementPage';
 import StudentHomePage from './pages/student/StudentHomePage';
 import StudentMatchingPage from './pages/student/StudentMatchingPage';
+import StudentMatchingConditionManagementPage from './pages/student/StudentMatchingConditionManagementPage';
 import StudentMyPage from './pages/student/StudentMyPage';
+import StudentNotificationSettingsPage from './pages/student/StudentNotificationSettingsPage';
 import StudentOnboardingPage from './pages/student/StudentOnboardingPage';
+import StudentProfileManagementPage from './pages/student/StudentProfileManagementPage';
 import StudentSplashPage from './pages/student/StudentSplashPage';
+import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
+import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
 import type { StudentNavigationTab } from './types/studentHome';
+import type {
+  StudentNotificationId,
+  StudentNotificationSettings,
+} from './types/studentNotification';
+import type { StudentMyMenuId } from './types/studentMy';
 
 const SPLASH_DURATION_MS = 1200;
 
@@ -110,13 +122,100 @@ function StudentApplicationsRoute() {
 function StudentMyRoute() {
   const navigate = useNavigate();
 
+  const handleMenuClick = (menuId: StudentMyMenuId) => {
+    const menuRoutes: Record<StudentMyMenuId, string> = {
+      'customer-center': '/student/my/customer-center',
+      documents: '/student/my/documents',
+      'matching-conditions': '/student/my/matching-condition',
+      notifications: '/student/my/notifications',
+      'personal-info': '/student/my/profile',
+      terms: '/student/my/terms',
+    };
+
+    navigate(menuRoutes[menuId]);
+  };
+
   return (
     <StudentMyPage
       isBottomNavigationFixed
-      onMatchingClick={() => navigate('/student/matching')}
+      onMenuClick={handleMenuClick}
+      onProfileEditClick={() => navigate('/student/my/profile')}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
+      onWorkConditionClick={() => navigate('/student/my/work-condition')}
     />
   );
+}
+
+function StudentDocumentsRoute() {
+  const navigate = useNavigate();
+
+  return (
+    <StudentDocumentManagementPage onExit={() => navigate('/student/my')} />
+  );
+}
+
+function StudentWorkConditionRoute() {
+  const navigate = useNavigate();
+
+  return <StudentWorkConditionPage onBack={() => navigate('/student/my')} />;
+}
+
+function StudentProfileRoute() {
+  const navigate = useNavigate();
+
+  return (
+    <StudentProfileManagementPage onBack={() => navigate('/student/my')} />
+  );
+}
+
+function StudentMatchingConditionRoute() {
+  const navigate = useNavigate();
+
+  return (
+    <StudentMatchingConditionManagementPage
+      onBack={() => navigate('/student/my')}
+    />
+  );
+}
+
+function StudentNotificationsRoute() {
+  const navigate = useNavigate();
+  const [settings, setSettings] = useState<StudentNotificationSettings>({
+    'application-result': true,
+    'document-expiry': true,
+    'document-status': true,
+    'employment-permit': true,
+    'matching-recommendation': true,
+    'saved-job': true,
+    'service-news': true,
+  });
+
+  const handleSettingsChange = (id: StudentNotificationId) => {
+    setSettings((currentSettings) => ({
+      ...currentSettings,
+      [id]: !currentSettings[id],
+    }));
+  };
+
+  return (
+    <StudentNotificationSettingsPage
+      settings={settings}
+      onBack={() => navigate('/student/my')}
+      onSettingsChange={handleSettingsChange}
+    />
+  );
+}
+
+function StudentCustomerCenterRoute() {
+  const navigate = useNavigate();
+
+  return <StudentCustomerCenterPage onBack={() => navigate('/student/my')} />;
+}
+
+function StudentTermsRoute() {
+  const navigate = useNavigate();
+
+  return <StudentTermsPrivacyPage onBack={() => navigate('/student/my')} />;
 }
 
 function App() {
@@ -136,6 +235,25 @@ function App() {
         element={<StudentApplicationsRoute />}
       />
       <Route path="/student/my" element={<StudentMyRoute />} />
+      <Route path="/student/my/documents" element={<StudentDocumentsRoute />} />
+      <Route
+        path="/student/my/work-condition"
+        element={<StudentWorkConditionRoute />}
+      />
+      <Route path="/student/my/profile" element={<StudentProfileRoute />} />
+      <Route
+        path="/student/my/matching-condition"
+        element={<StudentMatchingConditionRoute />}
+      />
+      <Route
+        path="/student/my/notifications"
+        element={<StudentNotificationsRoute />}
+      />
+      <Route
+        path="/student/my/customer-center"
+        element={<StudentCustomerCenterRoute />}
+      />
+      <Route path="/student/my/terms" element={<StudentTermsRoute />} />
     </Routes>
   );
 }
