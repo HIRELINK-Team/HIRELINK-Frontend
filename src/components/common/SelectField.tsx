@@ -13,6 +13,7 @@ interface SelectFieldProps<T extends string> {
   onOpenChange: (isOpen: boolean) => void;
   onChange: (value: T) => void;
   ariaLabel: string;
+  variant?: "default" | "compact";
 }
 
 function SelectField<T extends string>({
@@ -23,6 +24,7 @@ function SelectField<T extends string>({
   onOpenChange,
   onChange,
   ariaLabel,
+  variant = "default",
 }: SelectFieldProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedOption = options.find((option) => option.value === value);
@@ -59,7 +61,9 @@ function SelectField<T extends string>({
             onOpenChange(true);
           }
         }}
-        className={`flex h-[58px] w-full cursor-pointer items-center justify-between rounded-[10px] border bg-white px-4 text-left text-base transition-colors ${
+        className={`flex w-full cursor-pointer items-center justify-between border bg-white px-4 text-left text-base transition-colors ${
+          variant === "compact" ? "h-12 rounded-xl" : "h-[58px] rounded-[10px]"
+        } ${
           isOpen
             ? "border-[#00b894] ring-2 ring-[#00b894]/10"
             : "border-[rgba(112,115,124,0.22)] hover:border-[#aeb4bc]"
@@ -88,7 +92,11 @@ function SelectField<T extends string>({
         <div
           role="listbox"
           aria-label={ariaLabel}
-          className="absolute top-[62px] right-0 left-0 z-30 overflow-hidden rounded-[10px] border border-[rgba(112,115,124,0.22)] bg-white p-2 shadow-[0_4px_12px_rgba(23,23,25,0.12)]"
+          className={`absolute right-0 left-0 z-30 overflow-hidden border border-[rgba(112,115,124,0.22)] bg-white shadow-[0_4px_12px_rgba(23,23,25,0.12)] ${
+            variant === "compact"
+              ? "top-[52px] rounded-xl p-1"
+              : "top-[62px] rounded-[10px] p-2"
+          }`}
         >
           {options.map((option) => (
             <button
@@ -100,7 +108,9 @@ function SelectField<T extends string>({
                 onChange(option.value);
                 onOpenChange(false);
               }}
-              className={`flex min-h-10 w-full cursor-pointer items-center rounded-lg px-3 text-left text-sm transition-colors ${
+              className={`flex w-full cursor-pointer items-center rounded-lg px-3 text-left transition-colors ${
+                variant === "compact" ? "h-11 text-base" : "min-h-10 text-sm"
+              } ${
                 option.value === value
                   ? "bg-[#e7f8f4] font-semibold text-[#007a63]"
                   : "text-[#44464b] hover:bg-[#f7f7f8]"

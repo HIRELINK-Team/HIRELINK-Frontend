@@ -8,6 +8,7 @@ import EmployerHiredStudentDetailPage from "./pages/employer/EmployerHiredStuden
 import EmployerHiredStudentsPage from "./pages/employer/EmployerHiredStudentsPage";
 import EmployerJobFormPage from "./pages/employer/EmployerJobFormPage";
 import EmployerJobsPage from "./pages/employer/EmployerJobsPage";
+import EmployerMyPage from "./pages/employer/EmployerMyPage";
 
 function App() {
   return (
@@ -44,7 +45,7 @@ function App() {
           path="hired/:applicationId"
           element={<EmployerHiredStudentDetailPage />}
         />
-        <Route path="mypage" />
+        <Route path="mypage" element={<EmployerMyPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/employer/dashboard" replace />} />
     </Routes>

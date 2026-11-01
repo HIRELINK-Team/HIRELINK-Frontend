@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import SelectField from "../../components/common/SelectField";
 import Toast from "../../components/common/Toast";
 import ApplicantActionModal, {
   type ApplicantAction,
@@ -63,6 +64,7 @@ function EmployerApplicantsPage() {
   const [selectedJobId, setSelectedJobId] = useState(initialJobId);
   const [selectedFilter, setSelectedFilter] =
     useState<ApplicantStatusFilter>("REVIEWING");
+  const [isJobSelectOpen, setIsJobSelectOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null,
   );
@@ -117,6 +119,7 @@ function EmployerApplicantsPage() {
   const handleJobChange = (nextJobId: string) => {
     setSelectedJobId(nextJobId);
     setSelectedFilter("REVIEWING");
+    setIsJobSelectOpen(false);
     navigate(`/employer/jobs/${nextJobId}/applicants`, { replace: true });
   };
 
@@ -169,32 +172,19 @@ function EmployerApplicantsPage() {
       </header>
 
       <div className="relative mt-7 w-[360px] max-w-full">
-        <select
-          aria-label="관리할 채용공고"
+        <SelectField
           value={selectedJobId}
-          onChange={(event) => handleJobChange(event.target.value)}
-          className="h-12 w-full cursor-pointer appearance-none rounded-xl border border-[rgba(112,115,124,0.32)] bg-white px-4 pr-11 text-base font-semibold text-[#171719] outline-none transition-colors hover:border-[#aeb4bc] focus:border-[#00b894] focus:ring-2 focus:ring-[#00b894]/10"
-        >
-          {APPLICANT_JOB_MOCKS.map((job) => (
-            <option key={job.id} value={job.id}>
-              {job.label}
-            </option>
-          ))}
-        </select>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 12 8"
-          className="pointer-events-none absolute top-1/2 right-4 h-2 w-3 -translate-y-1/2 text-[#171719]"
-          fill="none"
-        >
-          <path
-            d="m1 1 5 5 5-5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+          options={APPLICANT_JOB_MOCKS.map((job) => ({
+            value: job.id,
+            label: job.label,
+          }))}
+          placeholder="공고를 선택해 주세요"
+          ariaLabel="관리할 채용공고"
+          isOpen={isJobSelectOpen}
+          onOpenChange={setIsJobSelectOpen}
+          onChange={handleJobChange}
+          variant="compact"
+        />
       </div>
 
       <div className="mt-6 flex w-full items-end justify-between gap-6">
