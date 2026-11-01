@@ -850,14 +850,30 @@ function StudentNotificationsRoute() {
 
 function StudentCustomerCenterRoute() {
   const navigate = useNavigate();
+  const handleSupportItemClick = () => {
+    window.alert('상담 기능은 현재 준비 중입니다.');
+  };
 
-  return <StudentCustomerCenterPage onBack={() => navigate('/student/my')} />;
+  return (
+    <StudentCustomerCenterPage
+      onBack={() => navigate('/student/my')}
+      onSupportItemClick={handleSupportItemClick}
+    />
+  );
 }
 
 function StudentTermsRoute() {
   const navigate = useNavigate();
+  const handleTermsItemClick = () => {
+    window.alert('약관 상세 기능은 현재 준비 중입니다.');
+  };
 
-  return <StudentTermsPrivacyPage onBack={() => navigate('/student/my')} />;
+  return (
+    <StudentTermsPrivacyPage
+      onBack={() => navigate('/student/my')}
+      onTermsItemClick={handleTermsItemClick}
+    />
+  );
 }
 
 function App() {
