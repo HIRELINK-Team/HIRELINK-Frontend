@@ -132,35 +132,35 @@ function DateField({
         <div
           role="dialog"
           aria-label={`${ariaLabel} 달력`}
-          className="absolute top-[62px] left-0 z-40 w-[300px] rounded-[10px] border border-[rgba(112,115,124,0.22)] bg-white p-4 shadow-[0_4px_12px_rgba(23,23,25,0.14)]"
+          className="absolute top-[64px] right-0 left-0 z-40 w-full rounded-xl border border-[rgba(112,115,124,0.22)] bg-white p-6 shadow-[0_4px_14px_rgba(23,23,25,0.14)]"
         >
           <div className="flex items-center justify-between">
             <button
               type="button"
               aria-label="이전 달"
               onClick={() => handleMoveMonth(-1)}
-              className="flex size-8 cursor-pointer items-center justify-center rounded-lg text-xl text-[#171719] hover:bg-[#f2f3f5]"
+              className="flex size-9 cursor-pointer items-center justify-center rounded-lg text-2xl text-[#171719] hover:bg-[#f2f3f5]"
             >
               ‹
             </button>
-            <strong className="text-sm font-semibold text-[#171719]">
+            <strong className="text-lg font-semibold text-[#171719]">
               {visibleMonth.getFullYear()}년 {visibleMonth.getMonth() + 1}월
             </strong>
             <button
               type="button"
               aria-label="다음 달"
               onClick={() => handleMoveMonth(1)}
-              className="flex size-8 cursor-pointer items-center justify-center rounded-lg text-xl text-[#171719] hover:bg-[#f2f3f5]"
+              className="flex size-9 cursor-pointer items-center justify-center rounded-lg text-2xl text-[#171719] hover:bg-[#f2f3f5]"
             >
               ›
             </button>
           </div>
 
-          <div className="mt-3 grid grid-cols-7 gap-y-1 text-center">
+          <div className="mt-5 grid grid-cols-7 gap-y-2 text-center">
             {WEEKDAY_LABELS.map((day, index) => (
               <span
                 key={day}
-                className={`text-[11px] font-medium ${index === 0 ? "text-[#e11e1e]" : "text-[#70737c]"}`}
+                className={`text-[13px] font-medium ${index === 0 ? "text-[#e11e1e]" : "text-[#70737c]"}`}
               >
                 {day}
               </span>
@@ -188,7 +188,7 @@ function DateField({
                     onChange(isoDate);
                     onOpenChange(false);
                   }}
-                  className={`mx-auto flex size-8 cursor-pointer items-center justify-center rounded-full text-xs transition-colors ${
+                  className={`mx-auto flex size-10 cursor-pointer items-center justify-center rounded-full text-base transition-colors ${
                     isSelected
                       ? "bg-[#00b894] font-semibold text-white"
                       : isSunday

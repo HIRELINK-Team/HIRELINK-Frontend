@@ -2,6 +2,7 @@ import { useState } from "react";
 import DateField from "../common/DateField";
 import SelectField, { type SelectOption } from "../common/SelectField";
 import WorkTimeGrid from "../common/WorkTimeGrid";
+import { EMPLOYER_INDUSTRY_OPTIONS } from "../../data/employerProfileData";
 import type {
   IndustryCode,
   JobFormValues,
@@ -22,13 +23,8 @@ interface JobFormProps {
   onSubmit: (values: JobFormValues) => void;
 }
 
-const INDUSTRY_OPTIONS: SelectOption<IndustryCode>[] = [
-  { value: "FOOD_AND_CAFE", label: "음식점 · 카페" },
-  { value: "RETAIL", label: "판매 · 유통" },
-  { value: "OFFICE", label: "사무 · 행정" },
-  { value: "EDUCATION", label: "교육" },
-  { value: "MANUFACTURING", label: "생산 · 제조" },
-];
+const INDUSTRY_OPTIONS: SelectOption<IndustryCode>[] =
+  EMPLOYER_INDUSTRY_OPTIONS;
 
 const KOREAN_LEVEL_OPTIONS: SelectOption<KoreanLevelCode>[] = [
   { value: "BEGINNER", label: "초급 · 기초 대화" },

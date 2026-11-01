@@ -6,6 +6,7 @@ import {
   getEditJobFormValues,
   getPreviousJobFormValues,
 } from "../../data/employerJobFormData";
+import { useEmployerProfile } from "../../hooks/useEmployerProfile";
 
 interface PreviousJobRouteState {
   previousJob?: {
@@ -17,6 +18,7 @@ function EmployerJobFormPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { jobId } = useParams();
+  const { profile } = useEmployerProfile();
   const mode = jobId ? "EDIT" : "CREATE";
   const [feedback, setFeedback] = useState<string | null>(null);
   const initialValues = useMemo(() => {
@@ -26,11 +28,18 @@ function EmployerJobFormPage() {
 
     const previousJobId = (location.state as PreviousJobRouteState | null)
       ?.previousJob?.id;
-    return previousJobId
-      ? (getPreviousJobFormValues(previousJobId) ??
-          createDefaultJobFormValues())
-      : createDefaultJobFormValues();
-  }, [jobId, location.state]);
+    if (previousJobId) {
+      return (
+        getPreviousJobFormValues(previousJobId) ?? createDefaultJobFormValues()
+      );
+    }
+
+    return {
+      ...createDefaultJobFormValues(),
+      workplace: profile.business.name,
+      industry: profile.business.industry,
+    };
+  }, [jobId, location.state, profile.business.industry, profile.business.name]);
 
   const handleCancel = () => {
     navigate("/employer/jobs");

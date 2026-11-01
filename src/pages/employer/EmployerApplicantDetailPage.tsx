@@ -194,8 +194,10 @@ function EmployerApplicantDetailPage() {
               등록
             </span>
           </div>
-          <div className="mt-2 flex-1 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white p-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
-            <ApplicantDocumentList documents={applicant.documents} />
+          <div className="mt-2 flex flex-1 items-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white p-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+            <div className="w-full">
+              <ApplicantDocumentList documents={applicant.documents} spacious />
+            </div>
           </div>
         </section>
 
@@ -228,7 +230,7 @@ function EmployerApplicantDetailPage() {
                 return (
                   <li
                     key={item.id}
-                    className="grid min-h-[46px] grid-cols-[20px_74px_78px_24px_minmax(0,1fr)] items-center border-b border-[#f2f3f5] last:border-b-0"
+                    className="grid min-h-[46px] grid-cols-[20px_84px_78px_24px_minmax(0,1fr)] items-center border-b border-[#f2f3f5] last:border-b-0"
                   >
                     <img
                       src={isNegotiable ? matchNegotiableIcon : matchCheckIcon}

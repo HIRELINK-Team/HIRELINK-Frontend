@@ -4,11 +4,13 @@ import { isDocumentExpiryWarning } from "../../utils/documentExpiry";
 interface ApplicantDocumentListProps {
   documents: ApplicantDocumentMock[];
   compact?: boolean;
+  spacious?: boolean;
 }
 
 function ApplicantDocumentList({
   documents,
   compact = false,
+  spacious = false,
 }: ApplicantDocumentListProps) {
   return (
     <ul className={compact ? "space-y-[7px]" : "space-y-2"}>
@@ -20,7 +22,7 @@ function ApplicantDocumentList({
           <li
             key={document.id}
             className={`flex items-center justify-between rounded-xl border border-[rgba(112,115,124,0.16)] px-[18px] ${
-              compact ? "h-12" : "h-[53px]"
+              compact ? "h-12" : spacious ? "h-[57px]" : "h-[53px]"
             }`}
           >
             <div>

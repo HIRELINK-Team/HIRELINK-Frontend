@@ -1,9 +1,9 @@
 import type { WeeklySchedule } from "./workSchedule";
+import type { EmployerIndustryCode } from "./employerProfile";
 
 export type SalaryType = "HOURLY" | "MONTHLY";
 
-export type IndustryCode =
-  "" | "FOOD_AND_CAFE" | "RETAIL" | "OFFICE" | "EDUCATION" | "MANUFACTURING";
+export type IndustryCode = "" | EmployerIndustryCode;
 
 export type KoreanLevelCode =
   "" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "NO_PREFERENCE";

@@ -263,7 +263,7 @@ function EmployerHiredStudentDetailPage() {
         </div>
       ) : (
         <div className="mt-7 grid gap-4 lg:grid-cols-[minmax(0,1fr)_388px]">
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <section>
               <div className="flex items-center justify-between gap-4">
                 <h3 className="text-xl font-semibold text-[#171719]">
@@ -288,11 +288,11 @@ function EmployerHiredStudentDetailPage() {
               </div>
             </section>
 
-            <section>
+            <section className="flex flex-1 flex-col">
               <h3 className="text-xl font-semibold text-[#171719]">
                 공고와 비교
               </h3>
-              <div className="mt-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-5 py-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+              <div className="mt-2 flex flex-1 flex-col justify-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-5 py-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
                 <div className="h-5 overflow-hidden rounded-md bg-[#e5e8eb]">
                   <div
                     className="h-full rounded-md bg-[#52b596]"
