@@ -24,14 +24,18 @@ function SummaryCard({ label, value }: SummaryCardProps) {
 
 type StudentHomePageProps = {
   isBottomNavigationFixed?: boolean;
+  onEditMatchingCondition?: () => void;
   onMatchingClick?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
+  onViewApplications?: () => void;
 };
 
 export default function StudentHomePage({
   isBottomNavigationFixed = false,
+  onEditMatchingCondition,
   onMatchingClick,
   onTabChange,
+  onViewApplications,
 }: StudentHomePageProps) {
   const { applications, conditions, greetingName, recommendedJobCount } =
     STUDENT_HOME_MOCK;
@@ -84,6 +88,7 @@ export default function StudentHomePage({
           </h2>
           <button
             className="flex items-center gap-2 border-0 bg-transparent p-0 text-[13px] leading-[1.5] text-[#8B95A1]"
+            onClick={onViewApplications}
             type="button"
           >
             {'\uC804\uCCB4\uBCF4\uAE30'}
@@ -114,6 +119,7 @@ export default function StudentHomePage({
           </h2>
           <button
             className="flex items-center gap-2 border-0 bg-transparent p-0 text-[13px] leading-[1.5] text-[#8B95A1]"
+            onClick={onEditMatchingCondition}
             type="button"
           >
             {'\uC218\uC815\uD558\uAE30'}

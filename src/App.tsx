@@ -275,8 +275,10 @@ function StudentHomeRoute() {
   return (
     <StudentHomePage
       isBottomNavigationFixed
+      onEditMatchingCondition={() => navigate('/student/my/matching-condition')}
       onMatchingClick={() => navigate('/student/matching')}
       onTabChange={handleTabChange}
+      onViewApplications={() => navigate('/student/applications')}
     />
   );
 }
