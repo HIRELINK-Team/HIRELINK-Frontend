@@ -316,23 +316,25 @@ export default function StudentDocumentManagementPage({
   }
 
   return (
-    <main className="relative mx-auto min-h-[989px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[15px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
-      <button
-        aria-label="뒤로가기"
-        className="grid size-8 -ml-2 place-items-center border-0 bg-transparent p-0"
-        type="button"
-        onClick={handleRegistrationBack}
-      >
-        <img alt="" src={backIcon} />
-      </button>
-      <h1 className="m-0 mt-[19px] text-[26px] leading-[1.5] font-semibold">
-        서류 관리
-      </h1>
-      <div className="mt-[8px]">
-        <DocumentRegistrationList
-          basicDocuments={basicDocuments}
-          onDocumentClick={handleDocumentClick}
-        />
+    <main className="relative mx-auto h-[989px] w-full max-w-[430px] bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+      <div className="h-full overflow-y-auto px-6 pt-[61px] pb-[113px]">
+        <button
+          aria-label="뒤로가기"
+          className="grid size-8 -ml-2 place-items-center border-0 bg-transparent p-0"
+          type="button"
+          onClick={handleRegistrationBack}
+        >
+          <img alt="" src={backIcon} />
+        </button>
+        <h1 className="m-0 mt-[19px] text-[26px] leading-[1.5] font-semibold">
+          서류 관리
+        </h1>
+        <div className="mt-[8px]">
+          <DocumentRegistrationList
+            basicDocuments={basicDocuments}
+            onDocumentClick={handleDocumentClick}
+          />
+        </div>
       </div>
       <StudentBottomNavigation
         activeBackgroundClassName="bg-[#E5E8EB]/90"
