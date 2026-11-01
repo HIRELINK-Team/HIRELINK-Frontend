@@ -6,9 +6,16 @@ import priorityDragHandleIcon from '../../assets/icons/student/priority-drag-han
 type MatchingConditionId =
   'industry' | 'location' | 'work-time' | 'start-date' | 'priority';
 
+type MatchingConditionSummaryId = Exclude<MatchingConditionId, 'priority'>;
+
+type MatchingConditionSummaryValues = Partial<
+  Record<MatchingConditionSummaryId, string | string[]>
+>;
+
 type StudentMatchingConditionManagementPageProps = {
   onBack?: () => void;
   onConditionClick?: (conditionId: MatchingConditionId) => void;
+  summaryValues?: MatchingConditionSummaryValues;
 };
 
 const MATCHING_CONDITION_SUMMARIES = [
@@ -36,6 +43,7 @@ const MATCHING_PRIORITY_CARDS = [
 export default function StudentMatchingConditionManagementPage({
   onBack,
   onConditionClick,
+  summaryValues,
 }: StudentMatchingConditionManagementPageProps) {
   const handleConditionClick = (conditionId: MatchingConditionId) => {
     onConditionClick?.(conditionId);
@@ -73,34 +81,38 @@ export default function StudentMatchingConditionManagementPage({
       </p>
 
       <section className="-mx-6 mt-[24px] border-y border-[#E5E8EB]">
-        {MATCHING_CONDITION_SUMMARIES.map((condition) => (
-          <button
-            className={`flex w-full items-center border-0 border-b border-[#E5E8EB] bg-transparent px-6 text-left last:border-b-0 ${
-              Array.isArray(condition.value) ? 'h-[76px]' : 'h-11'
-            }`}
-            key={condition.id}
-            type="button"
-            onClick={() => handleConditionClick(condition.id)}
-          >
-            <span className="w-[102px] shrink-0 text-[13px] leading-[1.5] text-[#8B95A1]">
-              {condition.label}
-            </span>
-            <span className="min-w-0 flex-1 text-[13px] leading-[1.5] text-[#191F28]">
-              {Array.isArray(condition.value)
-                ? condition.value.map((value) => (
-                    <span className="block" key={value}>
-                      {value}
-                    </span>
-                  ))
-                : condition.value}
-            </span>
-            <img
-              alt=""
-              className="ml-3 h-[13.0958px] w-[5.99994px] shrink-0 -scale-x-100"
-              src={matchingConditionChevronIcon}
-            />
-          </button>
-        ))}
+        {MATCHING_CONDITION_SUMMARIES.map((condition) => {
+          const value = summaryValues?.[condition.id] ?? condition.value;
+
+          return (
+            <button
+              className={`flex w-full items-center border-0 border-b border-[#E5E8EB] bg-transparent px-6 text-left last:border-b-0 ${
+                Array.isArray(value) ? 'h-[76px]' : 'h-11'
+              }`}
+              key={condition.id}
+              type="button"
+              onClick={() => handleConditionClick(condition.id)}
+            >
+              <span className="w-[102px] shrink-0 text-[13px] leading-[1.5] text-[#8B95A1]">
+                {condition.label}
+              </span>
+              <span className="min-w-0 flex-1 text-[13px] leading-[1.5] text-[#191F28]">
+                {Array.isArray(value)
+                  ? value.map((summaryValue) => (
+                      <span className="block" key={summaryValue}>
+                        {summaryValue}
+                      </span>
+                    ))
+                  : value}
+              </span>
+              <img
+                alt=""
+                className="ml-3 h-[13.0958px] w-[5.99994px] shrink-0 -scale-x-100"
+                src={matchingConditionChevronIcon}
+              />
+            </button>
+          );
+        })}
       </section>
 
       <h2 className="m-0 mt-[21px] ml-[2px] text-[20px] leading-[1.4] font-semibold">

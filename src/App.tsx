@@ -124,6 +124,7 @@ type MatchingConditionRouteContext = {
   otherIndustry: string;
   selectedIndustries: IndustryId[];
   startDate: string;
+  updatedSummaryIds: Set<MatchingConditionSummaryId>;
   workAvailability: WorkAvailability;
   workLocation: WorkLocation;
   setIndustry: (industries: IndustryId[], otherIndustry: string) => void;
@@ -131,6 +132,9 @@ type MatchingConditionRouteContext = {
   setWorkAvailability: (workAvailability: WorkAvailability) => void;
   setWorkLocation: (workLocation: WorkLocation) => void;
 };
+
+type MatchingConditionSummaryId =
+  'industry' | 'location' | 'work-time' | 'start-date';
 
 const INITIAL_WORK_AVAILABILITY: WorkAvailability = {
   daytime: {
@@ -152,6 +156,55 @@ const INITIAL_WORK_AVAILABILITY: WorkAvailability = {
     sun: [],
   },
 };
+
+const INDUSTRY_SUMMARY_LABELS: Record<IndustryId, string> = {
+  dutyFree: '면세점',
+  foodCafe: '음식점·카페',
+  internship: '인턴십',
+  majorStudy: '전공·학업',
+  officeTourism: '사무·행사·관광',
+  other: '기타',
+  retail: '매장·판매',
+  translation: '통·번역',
+};
+
+function formatMatchingConditionIndustries(
+  industries: readonly IndustryId[],
+  otherIndustry: string,
+) {
+  return industries
+    .map((industry) =>
+      industry === 'other' && otherIndustry
+        ? otherIndustry
+        : INDUSTRY_SUMMARY_LABELS[industry],
+    )
+    .join(', ');
+}
+
+function formatMatchingConditionStartDate(date: string) {
+  return `${date.replaceAll('-', '.')}부터`;
+}
+
+function formatMatchingConditionWorkTime(workAvailability: WorkAvailability) {
+  const modeSummaries = [
+    { label: '일반', slots: workAvailability.daytime },
+    { label: '야간', slots: workAvailability.nighttime },
+  ]
+    .map(({ label, slots }) => ({
+      label,
+      selectedSlotCount: Object.values(slots).reduce(
+        (count, daySlots) => count + daySlots.length,
+        0,
+      ),
+    }))
+    .filter(({ selectedSlotCount }) => selectedSlotCount > 0)
+    .map(
+      ({ label, selectedSlotCount }) =>
+        `${label} ${selectedSlotCount}개 시간대 선택`,
+    );
+
+  return modeSummaries.length > 0 ? modeSummaries : ['선택한 근무시간 없음'];
+}
 
 function StudentSplashRoute() {
   const navigate = useNavigate();
@@ -281,6 +334,7 @@ function StudentMatchingRoute() {
   return (
     <StudentMatchingPage
       isBottomNavigationFixed
+      onBack={() => navigate('/student/home')}
       onOfferAction={(action, job) => {
         updateOfferState(action, job);
 
@@ -367,6 +421,7 @@ function StudentApplicationsRoute() {
       applications={applications}
       isBottomNavigationFixed
       onAcceptOffer={(application) => acceptOffer(application.id)}
+      onBack={() => navigate('/student/home')}
       onDeclineOffer={(application) => declineOffer(application.id)}
       onDetailClick={(application) => {
         if (application.status === 'HIRED') {
@@ -563,6 +618,15 @@ function StudentMatchingConditionLayout() {
     INITIAL_WORK_AVAILABILITY,
   );
   const [startDate, setStartDate] = useState('2027-03-14');
+  const [updatedSummaryIds, setUpdatedSummaryIds] = useState<
+    Set<MatchingConditionSummaryId>
+  >(new Set());
+
+  const markSummaryUpdated = (summaryId: MatchingConditionSummaryId) => {
+    setUpdatedSummaryIds((currentSummaryIds) =>
+      new Set(currentSummaryIds).add(summaryId),
+    );
+  };
 
   return (
     <Outlet
@@ -573,11 +637,22 @@ function StudentMatchingConditionLayout() {
           setIndustry: (industries, industry) => {
             setSelectedIndustries(industries);
             setOtherIndustry(industry);
+            markSummaryUpdated('industry');
           },
-          setStartDate,
-          setWorkAvailability,
-          setWorkLocation,
+          setStartDate: (date) => {
+            setStartDate(date);
+            markSummaryUpdated('start-date');
+          },
+          setWorkAvailability: (availability) => {
+            setWorkAvailability(availability);
+            markSummaryUpdated('work-time');
+          },
+          setWorkLocation: (location) => {
+            setWorkLocation(location);
+            markSummaryUpdated('location');
+          },
           startDate,
+          updatedSummaryIds,
           workAvailability,
           workLocation,
         } satisfies MatchingConditionRouteContext
@@ -588,6 +663,14 @@ function StudentMatchingConditionLayout() {
 
 function StudentMatchingConditionRoute() {
   const navigate = useNavigate();
+  const {
+    otherIndustry,
+    selectedIndustries,
+    startDate,
+    updatedSummaryIds,
+    workAvailability,
+    workLocation,
+  } = useOutletContext<MatchingConditionRouteContext>();
 
   return (
     <StudentMatchingConditionManagementPage
@@ -604,6 +687,20 @@ function StudentMatchingConditionRoute() {
         if (detailRoute) {
           navigate(detailRoute);
         }
+      }}
+      summaryValues={{
+        industry: updatedSummaryIds.has('industry')
+          ? formatMatchingConditionIndustries(selectedIndustries, otherIndustry)
+          : undefined,
+        location: updatedSummaryIds.has('location')
+          ? workLocation.address || '주소 미입력'
+          : undefined,
+        'start-date': updatedSummaryIds.has('start-date')
+          ? formatMatchingConditionStartDate(startDate)
+          : undefined,
+        'work-time': updatedSummaryIds.has('work-time')
+          ? formatMatchingConditionWorkTime(workAvailability)
+          : undefined,
       }}
     />
   );
