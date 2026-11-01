@@ -7,6 +7,7 @@ import {
   getPreviousJobFormValues,
 } from "../../data/employerJobFormData";
 import { useEmployerProfile } from "../../hooks/useEmployerProfile";
+import type { JobFormValues } from "../../types/jobForm";
 
 interface PreviousJobRouteState {
   previousJob?: {
@@ -22,20 +23,21 @@ function EmployerJobFormPage() {
   const mode = jobId ? "EDIT" : "CREATE";
   const [feedback, setFeedback] = useState<string | null>(null);
   const initialValues = useMemo(() => {
-    if (jobId) {
-      return getEditJobFormValues(jobId);
-    }
+    let values: JobFormValues;
 
-    const previousJobId = (location.state as PreviousJobRouteState | null)
-      ?.previousJob?.id;
-    if (previousJobId) {
-      return (
-        getPreviousJobFormValues(previousJobId) ?? createDefaultJobFormValues()
-      );
+    if (jobId) {
+      values = getEditJobFormValues(jobId);
+    } else {
+      const previousJobId = (location.state as PreviousJobRouteState | null)
+        ?.previousJob?.id;
+      values = previousJobId
+        ? (getPreviousJobFormValues(previousJobId) ??
+          createDefaultJobFormValues())
+        : createDefaultJobFormValues();
     }
 
     return {
-      ...createDefaultJobFormValues(),
+      ...values,
       workplace: profile.business.name,
       industry: profile.business.industry,
     };

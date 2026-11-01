@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import EmployerApplicantsProvider from "./components/employer/EmployerApplicantsProvider";
 import EmployerLayout from "./components/employer/EmployerLayout";
+import EmployerJobsProvider from "./components/employer/EmployerJobsProvider";
 import EmployerProfileProvider from "./components/employer/EmployerProfileProvider";
 import EmployerAccountSettingsPage from "./pages/employer/EmployerAccountSettingsPage";
 import EmployerDashboard from "./pages/employer/EmployerDashboard";
@@ -32,9 +33,11 @@ function App() {
         <Route
           path="/employer"
           element={
-            <EmployerApplicantsProvider>
-              <EmployerLayout />
-            </EmployerApplicantsProvider>
+            <EmployerJobsProvider>
+              <EmployerApplicantsProvider>
+                <EmployerLayout />
+              </EmployerApplicantsProvider>
+            </EmployerJobsProvider>
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />

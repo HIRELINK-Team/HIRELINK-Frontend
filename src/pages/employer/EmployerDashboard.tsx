@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import progressLine from "../../assets/employer/progress-line.svg";
 import ConfirmModal from "../../components/common/ConfirmModal";
+import { useEmployerJobs } from "../../hooks/useEmployerJobs";
+import type { EmployerJobMock } from "../../types/employerJob";
 
 type DashboardView = "openJobs" | "reviewing" | "pending";
 
@@ -10,14 +12,6 @@ type SummaryItem = {
   label: string;
   count: number;
   unit: "개" | "명";
-};
-
-type JobItem = {
-  id: string;
-  title: string;
-  deadline: string;
-  details: string;
-  applicants: string;
 };
 
 type ApplicantItem = {
@@ -31,29 +25,12 @@ type ApplicantItem = {
 
 const dashboardMockData: {
   summary: SummaryItem[];
-  jobs: JobItem[];
   applicants: ApplicantItem[];
 } = {
   summary: [
     { id: "openJobs", label: "모집 중 공고", count: 1, unit: "개" },
     { id: "reviewing", label: "검토 중 지원자", count: 1, unit: "명" },
     { id: "pending", label: "수락 대기", count: 1, unit: "명" },
-  ],
-  jobs: [
-    {
-      id: "server-open",
-      title: "서버",
-      deadline: "마감 D-22",
-      details: "13,000원 · 월수금 16-22",
-      applicants: "지원자(3/5)",
-    },
-    {
-      id: "barista-open",
-      title: "서버",
-      deadline: "마감 D-22",
-      details: "13,000원 · 월수금 16-22",
-      applicants: "지원자(3/5)",
-    },
   ],
   applicants: [
     {
@@ -132,13 +109,15 @@ function OutlineButton({
 }
 
 function JobList({
+  jobs,
   onViewApplicants,
   onEdit,
   onClose,
 }: {
-  onViewApplicants: (job: JobItem) => void;
-  onEdit: (job: JobItem) => void;
-  onClose: (job: JobItem) => void;
+  jobs: EmployerJobMock[];
+  onViewApplicants: (job: EmployerJobMock) => void;
+  onEdit: (job: EmployerJobMock) => void;
+  onClose: (job: EmployerJobMock) => void;
 }) {
   return (
     <section aria-labelledby="dashboard-list-title">
@@ -149,7 +128,7 @@ function JobList({
         모집 중 공고
       </h2>
       <div className="mt-[13px] flex flex-col gap-1.5">
-        {dashboardMockData.jobs.map((job) => (
+        {jobs.map((job) => (
           <article
             key={job.id}
             className="flex h-[104px] items-center justify-between gap-6 rounded-xl border border-[rgba(112,115,124,0.08)] bg-white px-6 shadow-[0_1px_2px_-1px_rgba(23,23,23,0.1)]"
@@ -165,17 +144,17 @@ function JobList({
                     {job.title}
                   </h3>
                   <span className="flex h-[23px] items-center rounded-md bg-[#f4f4f5] px-1.5 text-[10px] font-semibold text-black">
-                    {job.deadline}
+                    {job.deadlineLabel}
                   </span>
                 </div>
                 <p className="mt-1 text-sm leading-[17px] font-semibold text-[#8b8888]">
-                  {job.details}
+                  {job.wageAndSchedule}
                 </p>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2.5 pr-5">
               <OutlineButton compact onClick={() => onViewApplicants(job)}>
-                {job.applicants}
+                {`지원자(${job.applicantCount}/${job.applicantCapacity})`}
               </OutlineButton>
               <OutlineButton compact onClick={() => onEdit(job)}>
                 수정
@@ -299,8 +278,10 @@ function HiringProcess() {
 
 function EmployerDashboard() {
   const navigate = useNavigate();
+  const { jobs, closeJob } = useEmployerJobs();
+  const openJobs = jobs.filter((job) => job.status === "OPEN");
   const [selectedView, setSelectedView] = useState<DashboardView>("openJobs");
-  const [jobToClose, setJobToClose] = useState<JobItem | null>(null);
+  const [jobToClose, setJobToClose] = useState<EmployerJobMock | null>(null);
 
   return (
     <div className="pb-10 pt-10">
@@ -320,7 +301,11 @@ function EmployerDashboard() {
         {dashboardMockData.summary.map((item) => (
           <SummaryCard
             key={item.id}
-            item={item}
+            item={
+              item.id === "openJobs"
+                ? { ...item, count: openJobs.length }
+                : item
+            }
             selected={selectedView === item.id}
             onSelect={() => setSelectedView(item.id)}
           />
@@ -330,6 +315,7 @@ function EmployerDashboard() {
       <div className="mt-[22px]">
         {selectedView === "openJobs" ? (
           <JobList
+            jobs={openJobs}
             onViewApplicants={(job) =>
               navigate(`/employer/jobs/${job.id}/applicants`)
             }
@@ -351,10 +337,13 @@ function EmployerDashboard() {
           cancelLabel="취소"
           confirmLabel="모집 마감"
           onCancel={() => setJobToClose(null)}
-          onConfirm={() => setJobToClose(null)}
+          onConfirm={() => {
+            closeJob(jobToClose.id);
+            setJobToClose(null);
+          }}
         >
           <p className="mt-5 flex h-[35px] items-center overflow-hidden rounded-md bg-[#f2f3f5] px-2.5 text-[13px] font-semibold whitespace-nowrap text-[#171719]">
-            {jobToClose.title} · {jobToClose.details}
+            {jobToClose.title} · {jobToClose.wageAndSchedule}
           </p>
           <div className="mt-[14px] text-base text-[#70737c]">
             <p className="leading-6 font-semibold text-[#e11e1e]">

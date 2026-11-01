@@ -6,34 +6,8 @@ import JobStatusTabs, {
   type JobStatusFilter,
 } from "../../components/employer/JobStatusTabs";
 import PreviousJobModal from "../../components/employer/PreviousJobModal";
+import { useEmployerJobs } from "../../hooks/useEmployerJobs";
 import type { EmployerJobMock, PreviousJobMock } from "../../types/employerJob";
-
-const INITIAL_JOB_MOCKS: EmployerJobMock[] = [
-  {
-    id: "barista-open",
-    title: "바리스타",
-    wageAndSchedule: "13,000원 · 월수금 16-22",
-    status: "OPEN",
-    deadlineLabel: "마감 D-22",
-    applicantCount: 3,
-    applicantCapacity: 5,
-  },
-  {
-    id: "server-open",
-    title: "서버",
-    wageAndSchedule: "13,000원 · 월수금 16-22",
-    status: "OPEN",
-    deadlineLabel: "마감 D-22",
-    applicantCount: 5,
-    applicantCapacity: 5,
-  },
-  {
-    id: "barista-closed",
-    title: "바리스타",
-    wageAndSchedule: "13,000원 · 월수금 16-22",
-    status: "CLOSED",
-  },
-];
 
 const PREVIOUS_JOB_MOCKS: PreviousJobMock[] = [
   {
@@ -61,7 +35,7 @@ const PREVIOUS_JOB_MOCKS: PreviousJobMock[] = [
 
 function EmployerJobsPage() {
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState<EmployerJobMock[]>(INITIAL_JOB_MOCKS);
+  const { jobs, closeJob } = useEmployerJobs();
   const [selectedFilter, setSelectedFilter] = useState<JobStatusFilter>("ALL");
   const [isNewJobMenuOpen, setIsNewJobMenuOpen] = useState(false);
   const [jobToClose, setJobToClose] = useState<EmployerJobMock | null>(null);
@@ -105,11 +79,7 @@ function EmployerJobsPage() {
       return;
     }
 
-    setJobs((currentJobs) =>
-      currentJobs.map((job) =>
-        job.id === jobToClose.id ? { ...job, status: "CLOSED" } : job,
-      ),
-    );
+    closeJob(jobToClose.id);
     setClosedJobTitle(jobToClose.title);
     setJobToClose(null);
   };
