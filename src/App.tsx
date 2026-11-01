@@ -31,6 +31,7 @@ import StudentSplashPage from './pages/student/StudentSplashPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
 import { STUDENT_APPLICATIONS_MOCK } from './mocks/studentApplications';
+import { STUDENT_RECOMMENDED_JOBS } from './mocks/studentMatching';
 import StudentMatchingConditionIndustryPage from './pages/student/StudentMatchingConditionIndustryPage';
 import StudentMatchingConditionLocationPage from './pages/student/StudentMatchingConditionLocationPage';
 import StudentMatchingConditionStartDatePage from './pages/student/StudentMatchingConditionStartDatePage';
@@ -55,6 +56,8 @@ import type { WorkLocation } from './types/workLocation';
 const SPLASH_DURATION_MS = 1200;
 const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
   'hirelink.student.documents.guideAcknowledged';
+const STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY =
+  'hirelink.student.matching.offerHandled';
 
 const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
   applications: '/student/applications',
@@ -92,6 +95,7 @@ type StudentMatchingJobState = 'accepted' | 'applied' | 'declined';
 
 type StudentMatchingRouteContext = {
   acceptedJob: RecommendedJob | null;
+  mockOfferJob: RecommendedJob | null;
   recordViewChange: (
     view: Exclude<StudentMatchingView, 'result'>,
     job: RecommendedJob,
@@ -291,6 +295,12 @@ function StudentHomeRoute() {
 
 function StudentMatchingLayout() {
   const [acceptedJob, setAcceptedJob] = useState<RecommendedJob | null>(null);
+  const [mockOfferJob, setMockOfferJob] = useState<RecommendedJob | null>(() =>
+    sessionStorage.getItem(STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY) ===
+    'true'
+      ? null
+      : (STUDENT_RECOMMENDED_JOBS[0] ?? null),
+  );
   const [, setJobStates] = useState<Record<string, StudentMatchingJobState>>(
     {},
   );
@@ -316,6 +326,14 @@ function StudentMatchingLayout() {
       [job.id]: action === 'accept' ? 'accepted' : 'declined',
     }));
 
+    if (mockOfferJob?.id === job.id) {
+      sessionStorage.setItem(
+        STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY,
+        'true',
+      );
+      setMockOfferJob(null);
+    }
+
     if (action === 'accept') {
       setAcceptedJob(job);
     }
@@ -326,6 +344,7 @@ function StudentMatchingLayout() {
       context={
         {
           acceptedJob,
+          mockOfferJob,
           recordViewChange,
           updateOfferState,
         } satisfies StudentMatchingRouteContext
@@ -336,11 +355,13 @@ function StudentMatchingLayout() {
 
 function StudentMatchingRoute() {
   const navigate = useNavigate();
-  const { recordViewChange, updateOfferState } =
+  const { mockOfferJob, recordViewChange, updateOfferState } =
     useOutletContext<StudentMatchingRouteContext>();
 
   return (
     <StudentMatchingPage
+      initialSelectedJob={mockOfferJob}
+      initialView={mockOfferJob ? 'offer' : 'result'}
       isBottomNavigationFixed
       onBack={() => navigate('/student/home')}
       onOfferAction={(action, job) => {
