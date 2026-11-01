@@ -175,6 +175,16 @@ function StudentSignupRoute() {
   );
 }
 
+function StudentOnboardingRoute() {
+  const navigate = useNavigate();
+
+  return (
+    <StudentOnboardingPage
+      onComplete={() => navigate('/student/home', { replace: true })}
+    />
+  );
+}
+
 function StudentHomeRoute() {
   const navigate = useNavigate();
 
@@ -548,7 +558,7 @@ function App() {
       <Route path="/student/entry" element={<StudentEntryRoute />} />
       <Route path="/student/login" element={<StudentLoginRoute />} />
       <Route path="/student/signup" element={<StudentSignupRoute />} />
-      <Route path="/student/onboarding" element={<StudentOnboardingPage />} />
+      <Route path="/student/onboarding" element={<StudentOnboardingRoute />} />
       <Route path="/student/home" element={<StudentHomeRoute />} />
       <Route path="/student/matching" element={<StudentMatchingRoute />} />
       <Route

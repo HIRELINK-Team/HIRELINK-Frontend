@@ -62,6 +62,7 @@ type OnboardingView =
 
 type StudentOnboardingPageProps = {
   initialStep?: OnboardingView;
+  onComplete?: () => void;
 };
 
 type KoreanLevel = 'beginner' | 'intermediate' | 'advanced';
@@ -327,6 +328,7 @@ function isValidPhone(value: string) {
 
 export default function StudentOnboardingPage({
   initialStep = 'name',
+  onComplete,
 }: StudentOnboardingPageProps) {
   const [experienceDraft, setExperienceDraft] = useState<ExperienceDraft>(
     EMPTY_EXPERIENCE_DRAFT,
@@ -592,6 +594,7 @@ export default function StudentOnboardingPage({
 
   const handleMatchingPrioritySubmit = () => {
     setIsMatchingPrioritySubmitted(true);
+    onComplete?.();
   };
 
   const isExperienceDraftValid =
