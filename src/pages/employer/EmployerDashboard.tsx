@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import progressLine from "../../assets/employer/progress-line.svg";
+import ApplicantActionModal, {
+  type ApplicantAction,
+} from "../../components/employer/ApplicantActionModal";
 import ConfirmModal from "../../components/common/ConfirmModal";
+import CountdownTimer from "../../components/common/CountdownTimer";
+import { useEmployerApplicants } from "../../hooks/useEmployerApplicants";
 import { useEmployerJobs } from "../../hooks/useEmployerJobs";
+import type { EmployerApplicantMock } from "../../types/application";
 import type { EmployerJobMock } from "../../types/employerJob";
 
 type DashboardView = "openJobs" | "reviewing" | "pending";
@@ -14,33 +20,11 @@ type SummaryItem = {
   unit: "개" | "명";
 };
 
-type ApplicantItem = {
-  id: number;
-  name: string;
-  nationality: string;
-  visa: string;
-  matchRate: string;
-  timeLeft: string;
-};
-
-const dashboardMockData: {
-  summary: SummaryItem[];
-  applicants: ApplicantItem[];
-} = {
+const dashboardMockData: { summary: SummaryItem[] } = {
   summary: [
     { id: "openJobs", label: "모집 중 공고", count: 1, unit: "개" },
     { id: "reviewing", label: "검토 중 지원자", count: 1, unit: "명" },
     { id: "pending", label: "수락 대기", count: 1, unit: "명" },
-  ],
-  applicants: [
-    {
-      id: 1,
-      name: "제이슨",
-      nationality: "베트남",
-      visa: "D2-2",
-      matchRate: "70%",
-      timeLeft: "12:12:12",
-    },
   ],
 };
 
@@ -170,7 +154,17 @@ function JobList({
   );
 }
 
-function ApplicantList({ view }: { view: Exclude<DashboardView, "openJobs"> }) {
+function ApplicantList({
+  view,
+  applicants,
+  onViewDetail,
+  onAction,
+}: {
+  view: Exclude<DashboardView, "openJobs">;
+  applicants: EmployerApplicantMock[];
+  onViewDetail: (applicant: EmployerApplicantMock) => void;
+  onAction: (action: ApplicantAction, applicant: EmployerApplicantMock) => void;
+}) {
   const isReviewing = view === "reviewing";
 
   return (
@@ -190,7 +184,7 @@ function ApplicantList({ view }: { view: Exclude<DashboardView, "openJobs"> }) {
         <span>남은 시간</span>
         <span className="ml-[18px] flex w-24 justify-center">관리</span>
       </div>
-      {dashboardMockData.applicants.map((applicant) => (
+      {applicants.map((applicant) => (
         <article
           key={applicant.id}
           className="mt-[15px] grid h-24 grid-cols-[56px_repeat(5,minmax(64px,104px))_minmax(322px,1fr)] items-center rounded-xl border border-[rgba(112,115,124,0.08)] bg-white px-2 text-center shadow-[0_1px_2px_-1px_rgba(23,23,23,0.1)] xl:grid-cols-[80px_repeat(5,104px)_1fr] xl:px-6"
@@ -209,18 +203,27 @@ function ApplicantList({ view }: { view: Exclude<DashboardView, "openJobs"> }) {
             {applicant.visa}
           </span>
           <span className="text-xl font-medium text-[#d97706]">
-            {applicant.matchRate}
+            {applicant.matchRate}%
           </span>
-          <span className="text-xl font-medium text-[#171719]">
-            {applicant.timeLeft}
-          </span>
+          <div className="text-xl font-medium text-[#171719]">
+            {applicant.expiresAt ? (
+              <CountdownTimer expiresAt={applicant.expiresAt} />
+            ) : (
+              "-"
+            )}
+          </div>
           <div className="ml-[18px] flex items-center gap-2">
-            <OutlineButton>상세</OutlineButton>
+            <OutlineButton onClick={() => onViewDetail(applicant)}>
+              상세
+            </OutlineButton>
             {isReviewing && (
               <>
-                <OutlineButton>채용 거절</OutlineButton>
+                <OutlineButton onClick={() => onAction("REJECT", applicant)}>
+                  채용 거절
+                </OutlineButton>
                 <button
                   type="button"
+                  onClick={() => onAction("OFFER", applicant)}
                   className="flex h-8 w-24 cursor-pointer items-center justify-center rounded-lg bg-[#00b894] px-3 text-xs font-medium text-white transition-colors hover:bg-[#00a886] active:bg-[#00997a]"
                 >
                   채용 제안
@@ -279,9 +282,35 @@ function HiringProcess() {
 function EmployerDashboard() {
   const navigate = useNavigate();
   const { jobs, closeJob } = useEmployerJobs();
+  const { applicants, offerApplicant, rejectApplicant } =
+    useEmployerApplicants();
   const openJobs = jobs.filter((job) => job.status === "OPEN");
+  const reviewingApplicants = applicants.filter(
+    (applicant) => applicant.status === "REVIEWING",
+  );
+  const pendingApplicants = applicants.filter(
+    (applicant) => applicant.status === "OFFER_WAITING",
+  );
   const [selectedView, setSelectedView] = useState<DashboardView>("openJobs");
   const [jobToClose, setJobToClose] = useState<EmployerJobMock | null>(null);
+  const [applicantAction, setApplicantAction] = useState<{
+    action: ApplicantAction;
+    applicant: EmployerApplicantMock;
+  } | null>(null);
+
+  const handleApplicantActionConfirm = () => {
+    if (!applicantAction) {
+      return;
+    }
+
+    if (applicantAction.action === "OFFER") {
+      offerApplicant(applicantAction.applicant.id);
+    } else {
+      rejectApplicant(applicantAction.applicant.id);
+    }
+
+    setApplicantAction(null);
+  };
 
   return (
     <div className="pb-10 pt-10">
@@ -304,7 +333,9 @@ function EmployerDashboard() {
             item={
               item.id === "openJobs"
                 ? { ...item, count: openJobs.length }
-                : item
+                : item.id === "reviewing"
+                  ? { ...item, count: reviewingApplicants.length }
+                  : { ...item, count: pendingApplicants.length }
             }
             selected={selectedView === item.id}
             onSelect={() => setSelectedView(item.id)}
@@ -323,7 +354,20 @@ function EmployerDashboard() {
             onClose={setJobToClose}
           />
         ) : (
-          <ApplicantList view={selectedView} />
+          <ApplicantList
+            view={selectedView}
+            applicants={
+              selectedView === "reviewing"
+                ? reviewingApplicants
+                : pendingApplicants
+            }
+            onViewDetail={(applicant) =>
+              navigate(`/employer/applicants/${applicant.id}`)
+            }
+            onAction={(action, applicant) =>
+              setApplicantAction({ action, applicant })
+            }
+          />
         )}
       </div>
 
@@ -357,6 +401,15 @@ function EmployerDashboard() {
             </p>
           </div>
         </ConfirmModal>
+      )}
+
+      {applicantAction && (
+        <ApplicantActionModal
+          action={applicantAction.action}
+          applicant={applicantAction.applicant}
+          onCancel={() => setApplicantAction(null)}
+          onConfirm={handleApplicantActionConfirm}
+        />
       )}
     </div>
   );
