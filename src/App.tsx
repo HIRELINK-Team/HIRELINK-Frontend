@@ -636,6 +636,7 @@ function StudentProfileRoute() {
 
   return (
     <StudentProfileManagementPage
+      onApply={() => navigate('/student/my')}
       onBack={() => navigate('/student/my')}
       onViewChange={(view) => navigate(`/student/my/profile/${view}`)}
       profileValues={profileValues}

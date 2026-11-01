@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
 import dropdownChevronIcon from '../../assets/icons/student/profile/dropdown-chevron.svg';
+import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
 
 type ProfileManagementView =
   'main' | 'basic' | 'residence' | 'academic' | 'language';
@@ -25,6 +26,7 @@ type ProfileCard = {
 
 type StudentProfileManagementPageProps = {
   initialView?: ProfileManagementView;
+  onApply?: () => void;
   onBack?: () => void;
   onSave?: (view: ProfileDetailView, values: readonly string[]) => void;
   onViewChange?: (view: Exclude<ProfileManagementView, 'main'>) => void;
@@ -492,9 +494,37 @@ function LanguageInformationPage({
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
   );
+  const [openFieldIndex, setOpenFieldIndex] = useState<number | null>(null);
+  const [pendingValue, setPendingValue] = useState<string | null>(null);
+  const options =
+    openFieldIndex === null
+      ? undefined
+      : SELECTABLE_FIELD_VALUES.language[openFieldIndex];
+
+  const handleOpen = (index: number) => {
+    setOpenFieldIndex(index);
+    setPendingValue(values[index] ?? fields[index]?.value ?? null);
+  };
+
+  const handleClose = () => {
+    setOpenFieldIndex(null);
+    setPendingValue(null);
+  };
+
+  const handleConfirm = () => {
+    if (openFieldIndex !== null && pendingValue !== null) {
+      setValues((currentValues) =>
+        currentValues.map((value, valueIndex) =>
+          valueIndex === openFieldIndex ? pendingValue : value,
+        ),
+      );
+    }
+
+    handleClose();
+  };
 
   return (
-    <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         어학정보
@@ -507,15 +537,7 @@ function LanguageInformationPage({
             </p>
             <EditableProfileValue
               field={{ ...field, value: values[index] ?? field.value }}
-              onChange={() =>
-                setValues((currentValues) =>
-                  currentValues.map((value, valueIndex) =>
-                    valueIndex === index
-                      ? getNextProfileValue('language', index, value)
-                      : value,
-                  ),
-                )
-              }
+              onChange={() => handleOpen(index)}
             />
           </div>
         ))}
@@ -527,12 +549,23 @@ function LanguageInformationPage({
       >
         수정하기
       </button>
+      {openFieldIndex !== null && options && pendingValue !== null ? (
+        <OnboardingBottomSheet
+          title={fields[openFieldIndex]?.label ?? ''}
+          options={options.map((value) => ({ label: value, value }))}
+          selectedValue={pendingValue}
+          onSelect={setPendingValue}
+          onClose={handleClose}
+          onConfirm={handleConfirm}
+        />
+      ) : null}
     </main>
   );
 }
 
 export default function StudentProfileManagementPage({
   initialView = 'main',
+  onApply,
   onBack,
   onSave,
   onViewChange,
@@ -647,6 +680,7 @@ export default function StudentProfileManagementPage({
       <button
         className="relative left-[-2px] mt-[60px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
+        onClick={onApply}
       >
         수정 반영하기
       </button>
