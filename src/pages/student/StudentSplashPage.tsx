@@ -1,4 +1,5 @@
 import hirelinkLogoIcon from '../../assets/images/student/entry/hirelink-logo.svg';
+import hirelinkWordmark from '../../assets/images/student/entry/hirelink-wordmark.svg';
 
 /** Renders the student app splash screen before entry onboarding. */
 export default function StudentSplashPage() {
@@ -10,9 +11,11 @@ export default function StudentSplashPage() {
           className="absolute top-0 left-0 h-[35.666px] w-[37.442px]"
           src={hirelinkLogoIcon}
         />
-        <span className="absolute top-[3.93px] left-[45.82px] whitespace-nowrap text-[34.058px] leading-none font-black italic tracking-[-0.04em]">
-          HIRELINK
-        </span>
+        <img
+          alt="HIRELINK"
+          className="absolute top-[3.93px] left-[45.82px] h-8 w-[181px]"
+          src={hirelinkWordmark}
+        />
       </div>
     </main>
   );
