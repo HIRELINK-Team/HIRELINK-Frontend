@@ -40,6 +40,8 @@ import type { WorkAvailability } from './types/workAvailability';
 import type { WorkLocation } from './types/workLocation';
 
 const SPLASH_DURATION_MS = 1200;
+const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
+  'hirelink.student.documents.guideAcknowledged';
 
 const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
   applications: '/student/applications',
@@ -57,6 +59,7 @@ type StudentDocumentFlowId =
   | 'topik-transcript';
 
 type StudentDocumentRouteContext = {
+  confirmGuide: () => void;
   documentCompletion: Record<StudentDocumentFlowId, boolean>;
   completeDocument: (documentId: StudentDocumentFlowId) => void;
   registrationView: () => void;
@@ -237,7 +240,11 @@ function StudentMyRoute() {
 }
 
 function StudentDocumentsLayout() {
-  const [view, setView] = useState<'guide' | 'registration'>('guide');
+  const [view, setView] = useState<'guide' | 'registration'>(() =>
+    sessionStorage.getItem(STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY) === 'true'
+      ? 'registration'
+      : 'guide',
+  );
   const [documentCompletion, setDocumentCompletion] = useState<
     Record<StudentDocumentFlowId, boolean>
   >({
@@ -251,6 +258,13 @@ function StudentDocumentsLayout() {
     <Outlet
       context={
         {
+          confirmGuide: () => {
+            sessionStorage.setItem(
+              STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY,
+              'true',
+            );
+            setView('registration');
+          },
           completeDocument: (documentId) => {
             setDocumentCompletion((currentCompletion) => ({
               ...currentCompletion,
@@ -268,7 +282,7 @@ function StudentDocumentsLayout() {
 
 function StudentDocumentsRoute() {
   const navigate = useNavigate();
-  const { documentCompletion, registrationView, view } =
+  const { confirmGuide, documentCompletion, registrationView, view } =
     useOutletContext<StudentDocumentRouteContext>();
 
   const handleDocumentClick = (document: StudentDocument) => {
@@ -292,6 +306,7 @@ function StudentDocumentsRoute() {
       initialView={view}
       onDocumentClick={handleDocumentClick}
       onExit={() => navigate('/student/my')}
+      onGuideStart={confirmGuide}
     />
   );
 }

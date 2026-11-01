@@ -43,6 +43,7 @@ type StudentDocumentManagementPageProps = {
   onDocumentClick?: (document: StudentDocument) => void;
   onDocumentFlowExit?: () => void;
   onExit?: () => void;
+  onGuideStart?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
 };
 
@@ -53,6 +54,7 @@ export default function StudentDocumentManagementPage({
   onDocumentClick,
   onDocumentFlowExit,
   onExit,
+  onGuideStart,
   onTabChange,
 }: StudentDocumentManagementPageProps) {
   const [view, setView] = useState<StudentDocumentManagementView>(initialView);
@@ -65,6 +67,11 @@ export default function StudentDocumentManagementPage({
 
   const handleGuideBack = () => {
     onExit?.();
+  };
+
+  const handleGuideStart = () => {
+    onGuideStart?.();
+    setView('registration');
   };
 
   const handleRegistrationBack = () => {
@@ -195,7 +202,7 @@ export default function StudentDocumentManagementPage({
     return (
       <DocumentManagementGuide
         onBack={handleGuideBack}
-        onStart={() => setView('registration')}
+        onStart={handleGuideStart}
       />
     );
   }
