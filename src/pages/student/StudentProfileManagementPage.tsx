@@ -6,6 +6,11 @@ import dropdownChevronIcon from '../../assets/icons/student/profile/dropdown-che
 type ProfileManagementView =
   'main' | 'basic' | 'residence' | 'academic' | 'language';
 
+export type ProfileDetailView = Exclude<ProfileManagementView, 'main'>;
+export type StudentProfileValues = Partial<
+  Record<ProfileDetailView, readonly string[]>
+>;
+
 type ProfileField = {
   isSelectable?: boolean;
   label: string;
@@ -21,7 +26,9 @@ type ProfileCard = {
 type StudentProfileManagementPageProps = {
   initialView?: ProfileManagementView;
   onBack?: () => void;
+  onSave?: (view: ProfileDetailView, values: readonly string[]) => void;
   onViewChange?: (view: Exclude<ProfileManagementView, 'main'>) => void;
+  profileValues?: StudentProfileValues;
 };
 
 const PROFILE_CARDS: readonly ProfileCard[] = [
@@ -99,6 +106,127 @@ const DETAIL_TITLES: Record<Exclude<ProfileManagementView, 'main'>, string> = {
   academic: '학업정보',
   language: '어학정보',
 };
+
+const SELECTABLE_FIELD_VALUES: Record<
+  ProfileDetailView,
+  Partial<Record<number, readonly string[]>>
+> = {
+  academic: {
+    1: ['학사', '석사'],
+    2: ['재학 중', '휴학 중'],
+  },
+  basic: {
+    1: ['22세', '23세'],
+    2: ['베트남', '중국'],
+    3: ['서울 마포구', '서울 성동구'],
+    4: ['중급', '고급'],
+  },
+  language: {
+    0: ['4급', '5급'],
+    1: ['중', '상'],
+  },
+  residence: {
+    0: ['D-2', 'D-4'],
+    1: ['2027.02.28', '2027.08.31'],
+  },
+};
+
+const PROFILE_CARD_VALUE_MAPPINGS: Record<
+  ProfileDetailView,
+  readonly (number | undefined)[]
+> = {
+  academic: [0, 1, 2],
+  basic: [undefined, 1, 2, undefined, 3],
+  language: [0, 1, 2],
+  residence: [0, 1, 2],
+};
+
+function getDetailFields(
+  view: ProfileDetailView,
+  profileValues: StudentProfileValues,
+) {
+  return DETAIL_FIELDS[view].map((field, index) => ({
+    ...field,
+    value: profileValues[view]?.[index] ?? field.value,
+  }));
+}
+
+function getProfileCards(profileValues: StudentProfileValues) {
+  return PROFILE_CARDS.map((card) => {
+    const valueMappings = PROFILE_CARD_VALUE_MAPPINGS[card.view];
+
+    return {
+      ...card,
+      fields: card.fields.map((field, index) => {
+        const detailIndex = valueMappings[index];
+
+        return {
+          ...field,
+          value:
+            detailIndex === undefined
+              ? field.value
+              : (profileValues[card.view]?.[detailIndex] ?? field.value),
+        };
+      }),
+    };
+  });
+}
+
+function getNextProfileValue(
+  view: ProfileDetailView,
+  fieldIndex: number,
+  value: string,
+) {
+  const options = SELECTABLE_FIELD_VALUES[view][fieldIndex];
+
+  if (!options) {
+    return value;
+  }
+
+  const currentIndex = options.indexOf(value);
+
+  return options[(currentIndex + 1) % options.length];
+}
+
+function EditableProfileValue({
+  field,
+  onChange,
+}: {
+  field: ProfileField;
+  onChange: () => void;
+}) {
+  const className =
+    'mt-2 flex h-14 w-full items-center rounded-[15px] bg-[#E5E8EB] px-[25px] text-left text-[17px] leading-[1.5]';
+
+  const content = (
+    <>
+      <span className="whitespace-nowrap">{field.value}</span>
+      {field.isSelectable ? (
+        <span className="ml-auto mr-[3px] flex h-[7px] w-[13px] items-center justify-center">
+          <img
+            alt=""
+            className="h-[13px] w-[7px] -rotate-90"
+            src={dropdownChevronIcon}
+          />
+        </span>
+      ) : null}
+    </>
+  );
+
+  if (!field.isSelectable) {
+    return <div className={className}>{content}</div>;
+  }
+
+  return (
+    <button
+      className={`${className} border-0`}
+      type="button"
+      onClick={onChange}
+    >
+      {content}
+    </button>
+  );
+}
 
 function BackButton({ onClick }: { onClick: () => void }) {
   return (
@@ -202,10 +330,16 @@ function DetailPage({
 function BasicInformationPage({
   fields,
   onBack,
+  onSave,
 }: {
   fields: readonly ProfileField[];
   onBack: () => void;
+  onSave: (values: readonly string[]) => void;
 }) {
+  const [values, setValues] = useState(() =>
+    fields.map((field) => field.value),
+  );
+
   return (
     <main className="mx-auto h-[844px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
@@ -213,30 +347,30 @@ function BasicInformationPage({
         기본정보
       </h1>
       <section className="mt-[40px] space-y-[10.5px]">
-        {fields.map((field) => (
+        {fields.map((field, index) => (
           <div key={field.label}>
             <p className="m-0 whitespace-nowrap text-[15px] leading-[1.5]">
               {field.label}
             </p>
-            <div className="mt-2 flex h-14 items-center rounded-[15px] bg-[#E5E8EB] px-[25px] text-[17px] leading-[1.5]">
-              <span className="whitespace-nowrap">{field.value}</span>
-              {field.isSelectable ? (
-                <span className="ml-auto mr-[3px] flex h-[7px] w-[13px] items-center justify-center">
-                  <img
-                    alt=""
-                    className="h-[13px] w-[7px] -rotate-90"
-                    src={dropdownChevronIcon}
-                  />
-                </span>
-              ) : null}
-            </div>
+            <EditableProfileValue
+              field={{ ...field, value: values[index] ?? field.value }}
+              onChange={() =>
+                setValues((currentValues) =>
+                  currentValues.map((value, valueIndex) =>
+                    valueIndex === index
+                      ? getNextProfileValue('basic', index, value)
+                      : value,
+                  ),
+                )
+              }
+            />
           </div>
         ))}
       </section>
       <button
         className="mt-[85px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        onClick={onBack}
+        onClick={() => onSave(values)}
       >
         수정하기
       </button>
@@ -247,10 +381,16 @@ function BasicInformationPage({
 function ResidenceInformationPage({
   fields,
   onBack,
+  onSave,
 }: {
   fields: readonly ProfileField[];
   onBack: () => void;
+  onSave: (values: readonly string[]) => void;
 }) {
+  const [values, setValues] = useState(() =>
+    fields.map((field) => field.value),
+  );
+
   return (
     <main className="mx-auto h-[844px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
@@ -258,30 +398,30 @@ function ResidenceInformationPage({
         체류정보
       </h1>
       <section className="mt-[40px] space-y-[10.5px]">
-        {fields.map((field) => (
+        {fields.map((field, index) => (
           <div key={field.label}>
             <p className="m-0 whitespace-nowrap text-[15px] leading-[1.5]">
               {field.label}
             </p>
-            <div className="mt-2 flex h-14 items-center rounded-[15px] bg-[#E5E8EB] px-[25px] text-[17px] leading-[1.5]">
-              <span className="whitespace-nowrap">{field.value}</span>
-              {field.isSelectable ? (
-                <span className="ml-auto mr-[3px] flex h-[7px] w-[13px] items-center justify-center">
-                  <img
-                    alt=""
-                    className="h-[13px] w-[7px] -rotate-90"
-                    src={dropdownChevronIcon}
-                  />
-                </span>
-              ) : null}
-            </div>
+            <EditableProfileValue
+              field={{ ...field, value: values[index] ?? field.value }}
+              onChange={() =>
+                setValues((currentValues) =>
+                  currentValues.map((value, valueIndex) =>
+                    valueIndex === index
+                      ? getNextProfileValue('residence', index, value)
+                      : value,
+                  ),
+                )
+              }
+            />
           </div>
         ))}
       </section>
       <button
         className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        onClick={onBack}
+        onClick={() => onSave(values)}
       >
         수정하기
       </button>
@@ -292,10 +432,16 @@ function ResidenceInformationPage({
 function AcademicInformationPage({
   fields,
   onBack,
+  onSave,
 }: {
   fields: readonly ProfileField[];
   onBack: () => void;
+  onSave: (values: readonly string[]) => void;
 }) {
+  const [values, setValues] = useState(() =>
+    fields.map((field) => field.value),
+  );
+
   return (
     <main className="mx-auto h-[844px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
@@ -303,30 +449,30 @@ function AcademicInformationPage({
         학업정보
       </h1>
       <section className="mt-[40px] space-y-[10.5px]">
-        {fields.map((field) => (
+        {fields.map((field, index) => (
           <div key={field.label}>
             <p className="m-0 whitespace-nowrap text-[15px] leading-[1.5]">
               {field.label}
             </p>
-            <div className="mt-2 flex h-14 items-center rounded-[15px] bg-[#E5E8EB] px-[25px] text-[17px] leading-[1.5]">
-              <span className="whitespace-nowrap">{field.value}</span>
-              {field.isSelectable ? (
-                <span className="ml-auto mr-[3px] flex h-[7px] w-[13px] items-center justify-center">
-                  <img
-                    alt=""
-                    className="h-[13px] w-[7px] -rotate-90"
-                    src={dropdownChevronIcon}
-                  />
-                </span>
-              ) : null}
-            </div>
+            <EditableProfileValue
+              field={{ ...field, value: values[index] ?? field.value }}
+              onChange={() =>
+                setValues((currentValues) =>
+                  currentValues.map((value, valueIndex) =>
+                    valueIndex === index
+                      ? getNextProfileValue('academic', index, value)
+                      : value,
+                  ),
+                )
+              }
+            />
           </div>
         ))}
       </section>
       <button
         className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        onClick={onBack}
+        onClick={() => onSave(values)}
       >
         수정하기
       </button>
@@ -337,10 +483,16 @@ function AcademicInformationPage({
 function LanguageInformationPage({
   fields,
   onBack,
+  onSave,
 }: {
   fields: readonly ProfileField[];
   onBack: () => void;
+  onSave: (values: readonly string[]) => void;
 }) {
+  const [values, setValues] = useState(() =>
+    fields.map((field) => field.value),
+  );
+
   return (
     <main className="mx-auto h-[844px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
@@ -348,29 +500,30 @@ function LanguageInformationPage({
         어학정보
       </h1>
       <section className="mt-[40px] space-y-[10.5px]">
-        {fields.map((field) => (
+        {fields.map((field, index) => (
           <div key={field.label}>
             <p className="m-0 whitespace-nowrap text-[15px] leading-[1.5]">
               {field.label}
             </p>
-            <div className="mt-2 flex h-14 items-center rounded-[15px] bg-[#E5E8EB] px-[25px] text-[17px] leading-[1.5]">
-              <span className="whitespace-nowrap">{field.value}</span>
-              {field.isSelectable ? (
-                <span className="ml-auto mr-[3px] flex h-[7px] w-[13px] items-center justify-center">
-                  <img
-                    alt=""
-                    className="h-[13px] w-[7px] -rotate-90"
-                    src={dropdownChevronIcon}
-                  />
-                </span>
-              ) : null}
-            </div>
+            <EditableProfileValue
+              field={{ ...field, value: values[index] ?? field.value }}
+              onChange={() =>
+                setValues((currentValues) =>
+                  currentValues.map((value, valueIndex) =>
+                    valueIndex === index
+                      ? getNextProfileValue('language', index, value)
+                      : value,
+                  ),
+                )
+              }
+            />
           </div>
         ))}
       </section>
       <button
         className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
+        onClick={() => onSave(values)}
       >
         수정하기
       </button>
@@ -381,9 +534,30 @@ function LanguageInformationPage({
 export default function StudentProfileManagementPage({
   initialView = 'main',
   onBack,
+  onSave,
   onViewChange,
+  profileValues,
 }: StudentProfileManagementPageProps) {
   const [view, setView] = useState<ProfileManagementView>(initialView);
+  const [localProfileValues, setLocalProfileValues] =
+    useState<StudentProfileValues>({});
+  const resolvedProfileValues = profileValues ?? localProfileValues;
+
+  const handleSave = (
+    profileView: ProfileDetailView,
+    values: readonly string[],
+  ) => {
+    if (onSave) {
+      onSave(profileView, values);
+    } else {
+      setLocalProfileValues((currentValues) => ({
+        ...currentValues,
+        [profileView]: values,
+      }));
+    }
+
+    handleDetailBack();
+  };
 
   const handleDetailBack = () => {
     if (initialView !== 'main') {
@@ -408,8 +582,9 @@ export default function StudentProfileManagementPage({
   if (view === 'basic') {
     return (
       <BasicInformationPage
-        fields={DETAIL_FIELDS.basic}
+        fields={getDetailFields('basic', resolvedProfileValues)}
         onBack={handleDetailBack}
+        onSave={(values) => handleSave('basic', values)}
       />
     );
   }
@@ -417,8 +592,9 @@ export default function StudentProfileManagementPage({
   if (view === 'residence') {
     return (
       <ResidenceInformationPage
-        fields={DETAIL_FIELDS.residence}
+        fields={getDetailFields('residence', resolvedProfileValues)}
         onBack={handleDetailBack}
+        onSave={(values) => handleSave('residence', values)}
       />
     );
   }
@@ -426,8 +602,9 @@ export default function StudentProfileManagementPage({
   if (view === 'academic') {
     return (
       <AcademicInformationPage
-        fields={DETAIL_FIELDS.academic}
+        fields={getDetailFields('academic', resolvedProfileValues)}
         onBack={handleDetailBack}
+        onSave={(values) => handleSave('academic', values)}
       />
     );
   }
@@ -435,8 +612,9 @@ export default function StudentProfileManagementPage({
   if (view === 'language') {
     return (
       <LanguageInformationPage
-        fields={DETAIL_FIELDS.language}
+        fields={getDetailFields('language', resolvedProfileValues)}
         onBack={handleDetailBack}
+        onSave={(values) => handleSave('language', values)}
       />
     );
   }
@@ -458,7 +636,7 @@ export default function StudentProfileManagementPage({
         내 정보 관리
       </h1>
       <section className="mt-[27px] space-y-[10px]">
-        {PROFILE_CARDS.map((card) => (
+        {getProfileCards(resolvedProfileValues).map((card) => (
           <ProfileCard
             card={card}
             key={card.view}

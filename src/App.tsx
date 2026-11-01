@@ -23,7 +23,10 @@ import StudentMatchingConditionManagementPage from './pages/student/StudentMatch
 import StudentMyPage from './pages/student/StudentMyPage';
 import StudentNotificationSettingsPage from './pages/student/StudentNotificationSettingsPage';
 import StudentOnboardingPage from './pages/student/StudentOnboardingPage';
-import StudentProfileManagementPage from './pages/student/StudentProfileManagementPage';
+import StudentProfileManagementPage, {
+  type ProfileDetailView,
+  type StudentProfileValues,
+} from './pages/student/StudentProfileManagementPage';
 import StudentSplashPage from './pages/student/StudentSplashPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
@@ -60,8 +63,6 @@ const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
   my: '/student/my',
 };
 
-type ProfileDetailView = 'basic' | 'residence' | 'academic' | 'language';
-
 type StudentDocumentFlowId =
   | 'alien-registration-card'
   | 'enrollment-certificate'
@@ -80,6 +81,11 @@ type StudentApplicationsRouteContext = {
   applications: StudentApplication[];
   acceptOffer: (applicationId: string) => void;
   declineOffer: (applicationId: string) => void;
+};
+
+type StudentProfileRouteContext = {
+  profileValues: StudentProfileValues;
+  saveProfile: (view: ProfileDetailView, values: readonly string[]) => void;
 };
 
 type StudentMatchingJobState = 'accepted' | 'applied' | 'declined';
@@ -551,6 +557,7 @@ function StudentDocumentsRoute() {
       onDocumentClick={handleDocumentClick}
       onExit={() => navigate('/student/my')}
       onGuideStart={confirmGuide}
+      onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
     />
   );
 }
@@ -585,24 +592,52 @@ function StudentWorkConditionRoute() {
   return <StudentWorkConditionPage onBack={() => navigate('/student/my')} />;
 }
 
+function StudentProfileLayout() {
+  const [profileValues, setProfileValues] = useState<StudentProfileValues>({});
+
+  return (
+    <Outlet
+      context={
+        {
+          profileValues,
+          saveProfile: (view, values) => {
+            setProfileValues((currentValues) => ({
+              ...currentValues,
+              [view]: values,
+            }));
+          },
+        } satisfies StudentProfileRouteContext
+      }
+    />
+  );
+}
+
 function StudentProfileRoute() {
   const navigate = useNavigate();
+  const { profileValues } = useOutletContext<StudentProfileRouteContext>();
 
   return (
     <StudentProfileManagementPage
       onBack={() => navigate('/student/my')}
       onViewChange={(view) => navigate(`/student/my/profile/${view}`)}
+      profileValues={profileValues}
     />
   );
 }
 
 function StudentProfileDetailRoute({ view }: { view: ProfileDetailView }) {
   const navigate = useNavigate();
+  const { profileValues, saveProfile } =
+    useOutletContext<StudentProfileRouteContext>();
 
   return (
     <StudentProfileManagementPage
       initialView={view}
       onBack={() => navigate('/student/my/profile')}
+      onSave={(profileView, values) => {
+        saveProfile(profileView, values);
+      }}
+      profileValues={profileValues}
     />
   );
 }
@@ -893,23 +928,25 @@ function App() {
         path="/student/my/work-condition"
         element={<StudentWorkConditionRoute />}
       />
-      <Route path="/student/my/profile" element={<StudentProfileRoute />} />
-      <Route
-        path="/student/my/profile/basic"
-        element={<StudentProfileDetailRoute view="basic" />}
-      />
-      <Route
-        path="/student/my/profile/residence"
-        element={<StudentProfileDetailRoute view="residence" />}
-      />
-      <Route
-        path="/student/my/profile/academic"
-        element={<StudentProfileDetailRoute view="academic" />}
-      />
-      <Route
-        path="/student/my/profile/language"
-        element={<StudentProfileDetailRoute view="language" />}
-      />
+      <Route path="/student/my/profile" element={<StudentProfileLayout />}>
+        <Route index element={<StudentProfileRoute />} />
+        <Route
+          path="basic"
+          element={<StudentProfileDetailRoute view="basic" />}
+        />
+        <Route
+          path="residence"
+          element={<StudentProfileDetailRoute view="residence" />}
+        />
+        <Route
+          path="academic"
+          element={<StudentProfileDetailRoute view="academic" />}
+        />
+        <Route
+          path="language"
+          element={<StudentProfileDetailRoute view="language" />}
+        />
+      </Route>
       <Route
         path="/student/my/matching-condition"
         element={<StudentMatchingConditionLayout />}
