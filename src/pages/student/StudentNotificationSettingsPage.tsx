@@ -223,7 +223,7 @@ export default function StudentNotificationSettingsPage({
             {section.title}
           </h2>
           <div
-            className={`-mx-[7px] border-y border-[#E5E8EB] ${
+            className={`-ml-[7px] border-y border-[#E5E8EB] ${
               sectionIndex === 0 ? 'mt-6' : 'mt-[21px]'
             }`}
           >
@@ -249,7 +249,7 @@ export default function StudentNotificationSettingsPage({
                     {row.description}
                   </p>
                 </div>
-                <div className="absolute top-[26px] right-[31px]">
+                <div className="absolute top-[26px] right-[9px]">
                   <NotificationToggle
                     checked={settings[row.id]}
                     label={row.title}
