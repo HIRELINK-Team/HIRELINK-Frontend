@@ -1,4 +1,7 @@
 import backIcon from '../../assets/icons/student/documents/back.svg';
+import approvedStatusIcon from '../../assets/icons/student/my/work-condition-approved.png';
+import restrictedStatusIcon from '../../assets/icons/student/my/work-condition-restricted.png';
+import reviewStatusIcon from '../../assets/icons/student/my/work-condition-review.png';
 import workConditionSummaryImage from '../../assets/images/student/my/work-condition-summary.png';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 
@@ -7,18 +10,38 @@ type StudentWorkConditionPageProps = {
 };
 
 const ELIGIBLE_FIELDS = [
-  { label: '음식점·카페 보조', status: 'approved' },
-  { label: '통역·번역 보조', status: 'approved' },
-  { label: '매장·판매 보조', status: 'approved' },
-  { label: '제조업 (별도 심사 필요)', status: 'review' },
-  { label: '배달대행', status: 'restricted' },
+  {
+    icon: approvedStatusIcon,
+    label: '음식점·카페 보조',
+    status: 'approved',
+  },
+  {
+    icon: approvedStatusIcon,
+    label: '통역·번역 보조',
+    status: 'approved',
+  },
+  {
+    icon: approvedStatusIcon,
+    label: '매장·판매 보조',
+    status: 'approved',
+  },
+  {
+    icon: reviewStatusIcon,
+    label: '제조업 (별도 심사 필요)',
+    status: 'review',
+  },
+  {
+    icon: restrictedStatusIcon,
+    label: '배달대행',
+    status: 'restricted',
+  },
 ] as const;
 
 export default function StudentWorkConditionPage({
   onBack,
 }: StudentWorkConditionPageProps) {
   return (
-    <main className="relative mx-auto min-h-[844px] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pt-[61px] pb-[98px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto min-h-[914px] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pt-[61px] pb-[98px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
         aria-label="뒤로가기"
         className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
@@ -74,19 +97,15 @@ export default function StudentWorkConditionPage({
             >
               <span
                 aria-hidden="true"
-                className={`grid size-[16px] place-items-center rounded-full text-[11px] font-bold text-white ${
-                  field.status === 'approved'
-                    ? 'bg-[#20C997]'
-                    : field.status === 'review'
-                      ? 'bg-[#F4B740]'
-                      : 'bg-[#FF5A5F]'
-                }`}
+                className="relative size-[16px] shrink-0"
               >
-                {field.status === 'approved'
-                  ? '✓'
-                  : field.status === 'review'
-                    ? '!'
-                    : '×'}
+                <img
+                  alt=""
+                  className={`absolute top-1/2 left-1/2 max-w-none -translate-x-1/2 -translate-y-1/2 ${
+                    field.status === 'approved' ? 'size-[29px]' : 'size-[26px]'
+                  }`}
+                  src={field.icon}
+                />
               </span>
               {field.label}
             </li>
