@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Route, Routes, useNavigate } from 'react-router-dom';
+import {
+  Outlet,
+  Route,
+  Routes,
+  useNavigate,
+  useOutletContext,
+} from 'react-router-dom';
 
 import StudentApplicationsPage from './pages/student/StudentApplicationsPage';
 import StudentEmailLoginPage from './pages/student/StudentEmailLoginPage';
@@ -17,12 +23,19 @@ import StudentProfileManagementPage from './pages/student/StudentProfileManageme
 import StudentSplashPage from './pages/student/StudentSplashPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
+import StudentMatchingConditionIndustryPage from './pages/student/StudentMatchingConditionIndustryPage';
+import StudentMatchingConditionLocationPage from './pages/student/StudentMatchingConditionLocationPage';
+import StudentMatchingConditionStartDatePage from './pages/student/StudentMatchingConditionStartDatePage';
+import StudentMatchingConditionWorkTimePage from './pages/student/StudentMatchingConditionWorkTimePage';
 import type { StudentNavigationTab } from './types/studentHome';
+import type { IndustryId } from './types/industry';
 import type {
   StudentNotificationId,
   StudentNotificationSettings,
 } from './types/studentNotification';
 import type { StudentMyMenuId } from './types/studentMy';
+import type { WorkAvailability } from './types/workAvailability';
+import type { WorkLocation } from './types/workLocation';
 
 const SPLASH_DURATION_MS = 1200;
 
@@ -31,6 +44,41 @@ const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
   home: '/student/home',
   matching: '/student/matching',
   my: '/student/my',
+};
+
+type ProfileDetailView = 'basic' | 'residence' | 'academic' | 'language';
+
+type MatchingConditionRouteContext = {
+  otherIndustry: string;
+  selectedIndustries: IndustryId[];
+  startDate: string;
+  workAvailability: WorkAvailability;
+  workLocation: WorkLocation;
+  setIndustry: (industries: IndustryId[], otherIndustry: string) => void;
+  setStartDate: (date: string) => void;
+  setWorkAvailability: (workAvailability: WorkAvailability) => void;
+  setWorkLocation: (workLocation: WorkLocation) => void;
+};
+
+const INITIAL_WORK_AVAILABILITY: WorkAvailability = {
+  daytime: {
+    mon: [],
+    tue: [],
+    wed: [],
+    thu: [],
+    fri: [],
+    sat: [],
+    sun: [],
+  },
+  nighttime: {
+    mon: [],
+    tue: [],
+    wed: [],
+    thu: [],
+    fri: [],
+    sat: [],
+    sun: [],
+  },
 };
 
 function StudentSplashRoute() {
@@ -164,7 +212,57 @@ function StudentProfileRoute() {
   const navigate = useNavigate();
 
   return (
-    <StudentProfileManagementPage onBack={() => navigate('/student/my')} />
+    <StudentProfileManagementPage
+      onBack={() => navigate('/student/my')}
+      onViewChange={(view) => navigate(`/student/my/profile/${view}`)}
+    />
+  );
+}
+
+function StudentProfileDetailRoute({ view }: { view: ProfileDetailView }) {
+  const navigate = useNavigate();
+
+  return (
+    <StudentProfileManagementPage
+      initialView={view}
+      onBack={() => navigate('/student/my/profile')}
+    />
+  );
+}
+
+function StudentMatchingConditionLayout() {
+  const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>([
+    'foodCafe',
+  ]);
+  const [otherIndustry, setOtherIndustry] = useState('');
+  const [workLocation, setWorkLocation] = useState<WorkLocation>({
+    address: '',
+    radius: 500,
+  });
+  const [workAvailability, setWorkAvailability] = useState<WorkAvailability>(
+    INITIAL_WORK_AVAILABILITY,
+  );
+  const [startDate, setStartDate] = useState('2027-03-14');
+
+  return (
+    <Outlet
+      context={
+        {
+          otherIndustry,
+          selectedIndustries,
+          setIndustry: (industries, industry) => {
+            setSelectedIndustries(industries);
+            setOtherIndustry(industry);
+          },
+          setStartDate,
+          setWorkAvailability,
+          setWorkLocation,
+          startDate,
+          workAvailability,
+          workLocation,
+        } satisfies MatchingConditionRouteContext
+      }
+    />
   );
 }
 
@@ -174,6 +272,96 @@ function StudentMatchingConditionRoute() {
   return (
     <StudentMatchingConditionManagementPage
       onBack={() => navigate('/student/my')}
+      onConditionClick={(conditionId) => {
+        const detailRoutes: Record<string, string> = {
+          industry: 'industry',
+          location: 'location',
+          'start-date': 'start-date',
+          'work-time': 'work-time',
+        };
+        const detailRoute = detailRoutes[conditionId];
+
+        if (detailRoute) {
+          navigate(detailRoute);
+        }
+      }}
+    />
+  );
+}
+
+function StudentMatchingConditionIndustryRoute() {
+  const navigate = useNavigate();
+  const { otherIndustry, selectedIndustries, setIndustry } =
+    useOutletContext<MatchingConditionRouteContext>();
+
+  const handleExit = () => navigate('/student/my/matching-condition');
+
+  return (
+    <StudentMatchingConditionIndustryPage
+      initialOtherIndustry={otherIndustry}
+      initialSelectedIndustries={selectedIndustries}
+      onBack={handleExit}
+      onSave={(industries, industry) => {
+        setIndustry(industries, industry);
+        handleExit();
+      }}
+    />
+  );
+}
+
+function StudentMatchingConditionLocationRoute() {
+  const navigate = useNavigate();
+  const { setWorkLocation, workLocation } =
+    useOutletContext<MatchingConditionRouteContext>();
+
+  const handleExit = () => navigate('/student/my/matching-condition');
+
+  return (
+    <StudentMatchingConditionLocationPage
+      initialLocation={workLocation}
+      onBack={handleExit}
+      onSave={(location) => {
+        setWorkLocation(location);
+        handleExit();
+      }}
+    />
+  );
+}
+
+function StudentMatchingConditionWorkTimeRoute() {
+  const navigate = useNavigate();
+  const { setWorkAvailability, workAvailability } =
+    useOutletContext<MatchingConditionRouteContext>();
+
+  const handleExit = () => navigate('/student/my/matching-condition');
+
+  return (
+    <StudentMatchingConditionWorkTimePage
+      initialWorkAvailability={workAvailability}
+      onBack={handleExit}
+      onSave={(availability) => {
+        setWorkAvailability(availability);
+        handleExit();
+      }}
+    />
+  );
+}
+
+function StudentMatchingConditionStartDateRoute() {
+  const navigate = useNavigate();
+  const { setStartDate, startDate } =
+    useOutletContext<MatchingConditionRouteContext>();
+
+  const handleExit = () => navigate('/student/my/matching-condition');
+
+  return (
+    <StudentMatchingConditionStartDatePage
+      initialDate={startDate}
+      onBack={handleExit}
+      onSave={(date) => {
+        setStartDate(date);
+        handleExit();
+      }}
     />
   );
 }
@@ -242,9 +430,43 @@ function App() {
       />
       <Route path="/student/my/profile" element={<StudentProfileRoute />} />
       <Route
-        path="/student/my/matching-condition"
-        element={<StudentMatchingConditionRoute />}
+        path="/student/my/profile/basic"
+        element={<StudentProfileDetailRoute view="basic" />}
       />
+      <Route
+        path="/student/my/profile/residence"
+        element={<StudentProfileDetailRoute view="residence" />}
+      />
+      <Route
+        path="/student/my/profile/academic"
+        element={<StudentProfileDetailRoute view="academic" />}
+      />
+      <Route
+        path="/student/my/profile/language"
+        element={<StudentProfileDetailRoute view="language" />}
+      />
+      <Route
+        path="/student/my/matching-condition"
+        element={<StudentMatchingConditionLayout />}
+      >
+        <Route index element={<StudentMatchingConditionRoute />} />
+        <Route
+          path="industry"
+          element={<StudentMatchingConditionIndustryRoute />}
+        />
+        <Route
+          path="location"
+          element={<StudentMatchingConditionLocationRoute />}
+        />
+        <Route
+          path="work-time"
+          element={<StudentMatchingConditionWorkTimeRoute />}
+        />
+        <Route
+          path="start-date"
+          element={<StudentMatchingConditionStartDateRoute />}
+        />
+      </Route>
       <Route
         path="/student/my/notifications"
         element={<StudentNotificationsRoute />}

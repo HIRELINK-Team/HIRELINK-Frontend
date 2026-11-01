@@ -19,7 +19,9 @@ type ProfileCard = {
 };
 
 type StudentProfileManagementPageProps = {
+  initialView?: ProfileManagementView;
   onBack?: () => void;
+  onViewChange?: (view: Exclude<ProfileManagementView, 'main'>) => void;
 };
 
 const PROFILE_CARDS: readonly ProfileCard[] = [
@@ -189,6 +191,7 @@ function DetailPage({
       <button
         className="mt-auto mb-[37px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
+        onClick={onBack}
       >
         수정하기
       </button>
@@ -233,6 +236,7 @@ function BasicInformationPage({
       <button
         className="mt-[85px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
+        onClick={onBack}
       >
         수정하기
       </button>
@@ -277,6 +281,7 @@ function ResidenceInformationPage({
       <button
         className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
+        onClick={onBack}
       >
         수정하기
       </button>
@@ -321,6 +326,7 @@ function AcademicInformationPage({
       <button
         className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
+        onClick={onBack}
       >
         수정하기
       </button>
@@ -373,15 +379,37 @@ function LanguageInformationPage({
 }
 
 export default function StudentProfileManagementPage({
+  initialView = 'main',
   onBack,
+  onViewChange,
 }: StudentProfileManagementPageProps) {
-  const [view, setView] = useState<ProfileManagementView>('main');
+  const [view, setView] = useState<ProfileManagementView>(initialView);
+
+  const handleDetailBack = () => {
+    if (initialView !== 'main') {
+      onBack?.();
+      return;
+    }
+
+    setView('main');
+  };
+
+  const handleProfileCardClick = (
+    profileView: Exclude<ProfileManagementView, 'main'>,
+  ) => {
+    if (onViewChange) {
+      onViewChange(profileView);
+      return;
+    }
+
+    setView(profileView);
+  };
 
   if (view === 'basic') {
     return (
       <BasicInformationPage
         fields={DETAIL_FIELDS.basic}
-        onBack={() => setView('main')}
+        onBack={handleDetailBack}
       />
     );
   }
@@ -390,7 +418,7 @@ export default function StudentProfileManagementPage({
     return (
       <ResidenceInformationPage
         fields={DETAIL_FIELDS.residence}
-        onBack={() => setView('main')}
+        onBack={handleDetailBack}
       />
     );
   }
@@ -399,7 +427,7 @@ export default function StudentProfileManagementPage({
     return (
       <AcademicInformationPage
         fields={DETAIL_FIELDS.academic}
-        onBack={() => setView('main')}
+        onBack={handleDetailBack}
       />
     );
   }
@@ -408,7 +436,7 @@ export default function StudentProfileManagementPage({
     return (
       <LanguageInformationPage
         fields={DETAIL_FIELDS.language}
-        onBack={() => setView('main')}
+        onBack={handleDetailBack}
       />
     );
   }
@@ -418,7 +446,7 @@ export default function StudentProfileManagementPage({
       <DetailPage
         fields={DETAIL_FIELDS[view]}
         title={DETAIL_TITLES[view]}
-        onBack={() => setView('main')}
+        onBack={handleDetailBack}
       />
     );
   }
@@ -434,7 +462,7 @@ export default function StudentProfileManagementPage({
           <ProfileCard
             card={card}
             key={card.view}
-            onClick={() => setView(card.view)}
+            onClick={() => handleProfileCardClick(card.view)}
           />
         ))}
       </section>
