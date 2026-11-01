@@ -13,6 +13,7 @@ import StudentEmailSignupPage from './pages/student/StudentEmailSignupPage';
 import StudentEntryOnboardingPage from './pages/student/StudentEntryOnboardingPage';
 import StudentCustomerCenterPage from './pages/student/StudentCustomerCenterPage';
 import StudentDocumentManagementPage from './pages/student/StudentDocumentManagementPage';
+import type { StudentDocumentManagementView } from './pages/student/StudentDocumentManagementPage';
 import StudentHomePage from './pages/student/StudentHomePage';
 import StudentMatchingPage from './pages/student/StudentMatchingPage';
 import StudentMatchingConditionManagementPage from './pages/student/StudentMatchingConditionManagementPage';
@@ -28,6 +29,7 @@ import StudentMatchingConditionLocationPage from './pages/student/StudentMatchin
 import StudentMatchingConditionStartDatePage from './pages/student/StudentMatchingConditionStartDatePage';
 import StudentMatchingConditionWorkTimePage from './pages/student/StudentMatchingConditionWorkTimePage';
 import type { StudentNavigationTab } from './types/studentHome';
+import type { StudentDocument } from './types/studentDocument';
 import type { IndustryId } from './types/industry';
 import type {
   StudentNotificationId,
@@ -47,6 +49,46 @@ const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
 };
 
 type ProfileDetailView = 'basic' | 'residence' | 'academic' | 'language';
+
+type StudentDocumentFlowId =
+  | 'alien-registration-card'
+  | 'enrollment-certificate'
+  | 'transcript'
+  | 'topik-transcript';
+
+type StudentDocumentRouteContext = {
+  documentCompletion: Record<StudentDocumentFlowId, boolean>;
+  completeDocument: (documentId: StudentDocumentFlowId) => void;
+  registrationView: () => void;
+  view: 'guide' | 'registration';
+};
+
+type StudentDocumentRouteConfig = {
+  documentId: StudentDocumentFlowId;
+  initialView: StudentDocumentManagementView;
+};
+
+const STUDENT_DOCUMENT_ROUTE_CONFIG: Record<
+  StudentDocumentFlowId,
+  StudentDocumentRouteConfig
+> = {
+  'alien-registration-card': {
+    documentId: 'alien-registration-card',
+    initialView: 'alien-information',
+  },
+  'enrollment-certificate': {
+    documentId: 'enrollment-certificate',
+    initialView: 'enrollment-information',
+  },
+  'topik-transcript': {
+    documentId: 'topik-transcript',
+    initialView: 'topik-information',
+  },
+  transcript: {
+    documentId: 'transcript',
+    initialView: 'transcript-information',
+  },
+};
 
 type MatchingConditionRouteContext = {
   otherIndustry: string;
@@ -194,11 +236,87 @@ function StudentMyRoute() {
   );
 }
 
-function StudentDocumentsRoute() {
-  const navigate = useNavigate();
+function StudentDocumentsLayout() {
+  const [view, setView] = useState<'guide' | 'registration'>('guide');
+  const [documentCompletion, setDocumentCompletion] = useState<
+    Record<StudentDocumentFlowId, boolean>
+  >({
+    'alien-registration-card': true,
+    'enrollment-certificate': false,
+    'topik-transcript': true,
+    transcript: true,
+  });
 
   return (
-    <StudentDocumentManagementPage onExit={() => navigate('/student/my')} />
+    <Outlet
+      context={
+        {
+          completeDocument: (documentId) => {
+            setDocumentCompletion((currentCompletion) => ({
+              ...currentCompletion,
+              [documentId]: true,
+            }));
+          },
+          documentCompletion,
+          registrationView: () => setView('registration'),
+          view,
+        } satisfies StudentDocumentRouteContext
+      }
+    />
+  );
+}
+
+function StudentDocumentsRoute() {
+  const navigate = useNavigate();
+  const { documentCompletion, registrationView, view } =
+    useOutletContext<StudentDocumentRouteContext>();
+
+  const handleDocumentClick = (document: StudentDocument) => {
+    const documentRoutes: Partial<Record<StudentDocument['id'], string>> = {
+      'alien-registration-card': 'alien-registration',
+      'enrollment-certificate': 'enrollment',
+      'topik-transcript': 'topik',
+      transcript: 'transcript',
+    };
+    const documentRoute = documentRoutes[document.id];
+
+    if (documentRoute) {
+      registrationView();
+      navigate(documentRoute);
+    }
+  };
+
+  return (
+    <StudentDocumentManagementPage
+      documentCompletion={documentCompletion}
+      initialView={view}
+      onDocumentClick={handleDocumentClick}
+      onExit={() => navigate('/student/my')}
+    />
+  );
+}
+
+function StudentDocumentFlowRoute({
+  documentId,
+  initialView,
+}: StudentDocumentRouteConfig) {
+  const navigate = useNavigate();
+  const { completeDocument, documentCompletion, registrationView } =
+    useOutletContext<StudentDocumentRouteContext>();
+
+  const handleExit = () => navigate('/student/my/documents');
+
+  return (
+    <StudentDocumentManagementPage
+      documentCompletion={documentCompletion}
+      initialView={initialView}
+      onDocumentComplete={() => {
+        completeDocument(documentId);
+        registrationView();
+        handleExit();
+      }}
+      onDocumentFlowExit={handleExit}
+    />
   );
 }
 
@@ -423,7 +541,41 @@ function App() {
         element={<StudentApplicationsRoute />}
       />
       <Route path="/student/my" element={<StudentMyRoute />} />
-      <Route path="/student/my/documents" element={<StudentDocumentsRoute />} />
+      <Route path="/student/my/documents" element={<StudentDocumentsLayout />}>
+        <Route index element={<StudentDocumentsRoute />} />
+        <Route
+          path="alien-registration"
+          element={
+            <StudentDocumentFlowRoute
+              {...STUDENT_DOCUMENT_ROUTE_CONFIG['alien-registration-card']}
+            />
+          }
+        />
+        <Route
+          path="enrollment"
+          element={
+            <StudentDocumentFlowRoute
+              {...STUDENT_DOCUMENT_ROUTE_CONFIG['enrollment-certificate']}
+            />
+          }
+        />
+        <Route
+          path="transcript"
+          element={
+            <StudentDocumentFlowRoute
+              {...STUDENT_DOCUMENT_ROUTE_CONFIG.transcript}
+            />
+          }
+        />
+        <Route
+          path="topik"
+          element={
+            <StudentDocumentFlowRoute
+              {...STUDENT_DOCUMENT_ROUTE_CONFIG['topik-transcript']}
+            />
+          }
+        />
+      </Route>
       <Route
         path="/student/my/work-condition"
         element={<StudentWorkConditionRoute />}

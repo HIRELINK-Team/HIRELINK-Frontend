@@ -20,7 +20,7 @@ import { STUDENT_BASIC_DOCUMENTS } from '../../mocks/studentDocuments';
 import type { StudentNavigationTab } from '../../types/studentHome';
 import type { StudentDocument } from '../../types/studentDocument';
 
-type DocumentManagementView =
+export type StudentDocumentManagementView =
   | 'guide'
   | 'registration'
   | 'alien-information'
@@ -37,19 +37,25 @@ type DocumentManagementView =
   | 'topik-complete';
 
 type StudentDocumentManagementPageProps = {
-  initialView?: DocumentManagementView;
+  documentCompletion?: Partial<Record<StudentDocument['id'], boolean>>;
+  initialView?: StudentDocumentManagementView;
+  onDocumentComplete?: (documentId: StudentDocument['id']) => void;
   onDocumentClick?: (document: StudentDocument) => void;
+  onDocumentFlowExit?: () => void;
   onExit?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
 };
 
 export default function StudentDocumentManagementPage({
+  documentCompletion,
   initialView = 'guide',
+  onDocumentComplete,
   onDocumentClick,
+  onDocumentFlowExit,
   onExit,
   onTabChange,
 }: StudentDocumentManagementPageProps) {
-  const [view, setView] = useState<DocumentManagementView>(initialView);
+  const [view, setView] = useState<StudentDocumentManagementView>(initialView);
   const [isAlienRegistrationComplete, setIsAlienRegistrationComplete] =
     useState(true);
   const [isEnrollmentCertificateComplete, setIsEnrollmentCertificateComplete] =
@@ -65,7 +71,46 @@ export default function StudentDocumentManagementPage({
     setView('guide');
   };
 
+  const handleDocumentFlowExit = () => {
+    if (onDocumentFlowExit) {
+      onDocumentFlowExit();
+      return;
+    }
+
+    setView('registration');
+  };
+
+  const handleDocumentComplete = (documentId: StudentDocument['id']) => {
+    if (documentId === 'alien-registration-card') {
+      setIsAlienRegistrationComplete(true);
+    }
+
+    if (documentId === 'enrollment-certificate') {
+      setIsEnrollmentCertificateComplete(true);
+    }
+
+    if (documentId === 'transcript') {
+      setIsTranscriptComplete(true);
+    }
+
+    if (documentId === 'topik-transcript') {
+      setIsTopikComplete(true);
+    }
+
+    if (onDocumentComplete) {
+      onDocumentComplete(documentId);
+      return;
+    }
+
+    setView('registration');
+  };
+
   const handleDocumentClick = (document: StudentDocument) => {
+    if (onDocumentClick) {
+      onDocumentClick(document);
+      return;
+    }
+
     if (document.id === 'alien-registration-card') {
       setView('alien-information');
       return;
@@ -85,18 +130,27 @@ export default function StudentDocumentManagementPage({
       setView('topik-information');
       return;
     }
-
-    onDocumentClick?.(document);
   };
+
+  const isAlienRegistrationRegistered =
+    documentCompletion?.['alien-registration-card'] ??
+    isAlienRegistrationComplete;
+  const isEnrollmentCertificateRegistered =
+    documentCompletion?.['enrollment-certificate'] ??
+    isEnrollmentCertificateComplete;
+  const isTranscriptRegistered =
+    documentCompletion?.transcript ?? isTranscriptComplete;
+  const isTopikRegistered =
+    documentCompletion?.['topik-transcript'] ?? isTopikComplete;
 
   const basicDocuments = STUDENT_BASIC_DOCUMENTS.map((document) => {
     if (document.id === 'alien-registration-card') {
       return {
         ...document,
-        status: isAlienRegistrationComplete
+        status: isAlienRegistrationRegistered
           ? ('registered' as const)
           : ('required' as const),
-        registeredAt: isAlienRegistrationComplete
+        registeredAt: isAlienRegistrationRegistered
           ? '등록일 25.03.12'
           : undefined,
       };
@@ -105,10 +159,10 @@ export default function StudentDocumentManagementPage({
     if (document.id === 'enrollment-certificate') {
       return {
         ...document,
-        status: isEnrollmentCertificateComplete
+        status: isEnrollmentCertificateRegistered
           ? ('registered' as const)
           : ('required' as const),
-        registeredAt: isEnrollmentCertificateComplete
+        registeredAt: isEnrollmentCertificateRegistered
           ? '등록일 25.03.12'
           : undefined,
       };
@@ -117,20 +171,20 @@ export default function StudentDocumentManagementPage({
     if (document.id === 'transcript') {
       return {
         ...document,
-        status: isTranscriptComplete
+        status: isTranscriptRegistered
           ? ('registered' as const)
           : ('required' as const),
-        registeredAt: isTranscriptComplete ? '등록일 25.03.12' : undefined,
+        registeredAt: isTranscriptRegistered ? '등록일 25.03.12' : undefined,
       };
     }
 
     if (document.id === 'topik-transcript') {
       return {
         ...document,
-        status: isTopikComplete
+        status: isTopikRegistered
           ? ('registered' as const)
           : ('required' as const),
-        registeredAt: isTopikComplete ? '등록일 25.03.12' : undefined,
+        registeredAt: isTopikRegistered ? '등록일 25.03.12' : undefined,
       };
     }
 
@@ -149,7 +203,7 @@ export default function StudentDocumentManagementPage({
   if (view === 'alien-information') {
     return (
       <AlienRegistrationInformation
-        onBack={() => setView('registration')}
+        onBack={handleDocumentFlowExit}
         onRegister={() => setView('alien-camera')}
       />
     );
@@ -168,10 +222,7 @@ export default function StudentDocumentManagementPage({
     return (
       <AlienRegistrationComplete
         onBack={() => setView('alien-camera')}
-        onConfirm={() => {
-          setIsAlienRegistrationComplete(true);
-          setView('registration');
-        }}
+        onConfirm={() => handleDocumentComplete('alien-registration-card')}
       />
     );
   }
@@ -179,7 +230,7 @@ export default function StudentDocumentManagementPage({
   if (view === 'enrollment-information') {
     return (
       <EnrollmentCertificateInformation
-        onBack={() => setView('registration')}
+        onBack={handleDocumentFlowExit}
         onRegister={() => setView('enrollment-camera')}
       />
     );
@@ -198,10 +249,7 @@ export default function StudentDocumentManagementPage({
     return (
       <EnrollmentCertificateComplete
         onBack={() => setView('enrollment-camera')}
-        onConfirm={() => {
-          setIsEnrollmentCertificateComplete(true);
-          setView('registration');
-        }}
+        onConfirm={() => handleDocumentComplete('enrollment-certificate')}
       />
     );
   }
@@ -209,7 +257,7 @@ export default function StudentDocumentManagementPage({
   if (view === 'transcript-information') {
     return (
       <TranscriptInformation
-        onBack={() => setView('registration')}
+        onBack={handleDocumentFlowExit}
         onRegister={() => setView('transcript-camera')}
       />
     );
@@ -228,10 +276,7 @@ export default function StudentDocumentManagementPage({
     return (
       <TranscriptComplete
         onBack={() => setView('transcript-camera')}
-        onConfirm={() => {
-          setIsTranscriptComplete(true);
-          setView('registration');
-        }}
+        onConfirm={() => handleDocumentComplete('transcript')}
       />
     );
   }
@@ -239,7 +284,7 @@ export default function StudentDocumentManagementPage({
   if (view === 'topik-information') {
     return (
       <TopikInformation
-        onBack={() => setView('registration')}
+        onBack={handleDocumentFlowExit}
         onRegister={() => setView('topik-camera')}
       />
     );
@@ -258,10 +303,7 @@ export default function StudentDocumentManagementPage({
     return (
       <TopikComplete
         onBack={() => setView('topik-camera')}
-        onConfirm={() => {
-          setIsTopikComplete(true);
-          setView('registration');
-        }}
+        onConfirm={() => handleDocumentComplete('topik-transcript')}
       />
     );
   }
