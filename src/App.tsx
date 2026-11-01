@@ -4,6 +4,8 @@ import EmployerLayout from "./components/employer/EmployerLayout";
 import EmployerDashboard from "./pages/employer/EmployerDashboard";
 import EmployerApplicantDetailPage from "./pages/employer/EmployerApplicantDetailPage";
 import EmployerApplicantsPage from "./pages/employer/EmployerApplicantsPage";
+import EmployerHiredStudentDetailPage from "./pages/employer/EmployerHiredStudentDetailPage";
+import EmployerHiredStudentsPage from "./pages/employer/EmployerHiredStudentsPage";
 import EmployerJobFormPage from "./pages/employer/EmployerJobFormPage";
 import EmployerJobsPage from "./pages/employer/EmployerJobsPage";
 
@@ -37,7 +39,11 @@ function App() {
           path="applicants/:applicationId"
           element={<EmployerApplicantDetailPage />}
         />
-        <Route path="hired" />
+        <Route path="hired" element={<EmployerHiredStudentsPage />} />
+        <Route
+          path="hired/:applicationId"
+          element={<EmployerHiredStudentDetailPage />}
+        />
         <Route path="mypage" />
       </Route>
       <Route path="*" element={<Navigate to="/employer/dashboard" replace />} />

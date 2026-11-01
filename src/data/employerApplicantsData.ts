@@ -3,6 +3,7 @@ import type {
   ApplicantJobMock,
   ApplicantMatchItemMock,
   EmployerApplicantMock,
+  HiredStudentDetailsMock,
 } from "../types/application";
 
 const HOUR_IN_MS = 60 * 60 * 1000;
@@ -20,12 +21,14 @@ const DEFAULT_DOCUMENTS: ApplicantDocumentMock[] = [
     name: "외국인등록증",
     submittedAt: "2026.09.02",
     expiresAt: "2027.01.09",
+    isRegistered: true,
   },
   {
     id: "enrollment-certificate",
     name: "재학증명서",
     submittedAt: "2026.09.02",
     expiresAt: "2027.01.09",
+    isRegistered: true,
   },
   {
     id: "transcript-warning",
@@ -33,14 +36,53 @@ const DEFAULT_DOCUMENTS: ApplicantDocumentMock[] = [
     submittedAt: "2026.09.02",
     expiresAt: "2026.10.25",
     hasExpiryWarning: true,
+    isRegistered: true,
   },
   {
     id: "transcript-current",
     name: "성적증명서",
     submittedAt: "2026.09.02",
     expiresAt: "2027.01.09",
+    isRegistered: true,
   },
 ];
+
+const MISSING_DOCUMENTS: ApplicantDocumentMock[] = DEFAULT_DOCUMENTS.map(
+  (document, index) =>
+    index < 2
+      ? { ...document }
+      : {
+          ...document,
+          submittedAt: "",
+          expiresAt: "",
+          hasExpiryWarning: false,
+          isRegistered: false,
+        },
+);
+
+const DEFAULT_HIRED_DETAILS: HiredStudentDetailsMock = {
+  qualificationExpiresAt: "2027.12.12",
+  visaTypeLabel: "D-2(학사)",
+  preferredExperience: "카페 경력 8개월",
+  workAvailabilitySummary: "학기 중 주중 최대 25시간",
+  analysisStatus: "READY",
+  analysisStandards: [
+    { id: "semester", label: "학기 중", value: "주중 최대 25시간 기준" },
+    { id: "vacation", label: "방학 중", value: "별도 기준 적용 가능" },
+    { id: "holiday", label: "주말 공휴일", value: "별도 기준 적용 가능" },
+  ],
+  jobScheduleLabel: "월수금 18-22",
+  jobWeeklyHours: 18,
+  maxWeeklyHours: 25,
+  analysisSource: "하이코리아 안내",
+  analysisCheckedAt: "2026.10.01",
+  analysisDocuments: [
+    { id: "alien-registration-card", name: "외국인등록증", value: "D-2" },
+    { id: "enrollment-certificate", name: "재학증명서", value: "학부 2학년" },
+    { id: "transcript", name: "성적증명서", value: "3.33/4.5" },
+    { id: "topik", name: "TOPIK 성적 증명서", value: "3급" },
+  ],
+};
 
 const DEFAULT_MATCH_ITEMS: ApplicantMatchItemMock[] = [
   {
@@ -110,10 +152,12 @@ export const APPLICANT_JOB_MOCKS: ApplicantJobMock[] = [
   {
     id: "barista-open",
     label: "바리스타·월수금 16-22·시급 13,000원",
+    hiredSummary: "13,000원 · 월수금 16-22",
   },
   {
     id: "server-open",
     label: "서버·화목 11-20·시급 13,000원",
+    hiredSummary: "13,000원 · 화목 11-20",
   },
 ];
 
@@ -178,6 +222,25 @@ export const EMPLOYER_APPLICANT_MOCKS: EmployerApplicantMock[] = [
     status: "HIRED",
     hiredAt: "2026.12.12",
     phoneNumber: "010-1221-1212",
+    hiredDetails: { ...DEFAULT_HIRED_DETAILS },
+  }),
+  createApplicant({
+    id: "application-minji",
+    jobId: "barista-open",
+    name: "민지",
+    nationality: "베트남",
+    visa: "D-2-2",
+    matchRate: 84,
+    status: "HIRED",
+    hiredAt: "2026.12.14",
+    phoneNumber: "010-1234-5678",
+    documents: MISSING_DOCUMENTS.map((document) => ({ ...document })),
+    hiredDetails: {
+      ...DEFAULT_HIRED_DETAILS,
+      qualificationExpiresAt: "2026.11.12",
+      hasQualificationExpiryWarning: true,
+      analysisStatus: "MISSING_DOCUMENTS",
+    },
   }),
   createApplicant({
     id: "application-hidden-rejected",
@@ -268,5 +331,11 @@ export const EMPLOYER_APPLICANT_MOCKS: EmployerApplicantMock[] = [
     status: "HIRED",
     hiredAt: "2026.12.10",
     phoneNumber: "010-3412-8890",
+    hiredDetails: {
+      ...DEFAULT_HIRED_DETAILS,
+      preferredExperience: "홀 서빙 경력 6개월",
+      jobScheduleLabel: "화목 11-20",
+      jobWeeklyHours: 18,
+    },
   }),
 ];

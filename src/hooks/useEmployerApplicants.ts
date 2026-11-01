@@ -5,6 +5,7 @@ interface EmployerApplicantsContextValue {
   applicants: EmployerApplicantMock[];
   offerApplicant: (applicationId: string) => void;
   rejectApplicant: (applicationId: string) => void;
+  removeHiredApplicants: (applicationIds: string[]) => void;
 }
 
 const EmployerApplicantsContext =

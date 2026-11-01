@@ -7,6 +7,7 @@ import Toast from "../../components/common/Toast";
 import ApplicantActionModal, {
   type ApplicantAction,
 } from "../../components/employer/ApplicantActionModal";
+import ApplicantDocumentList from "../../components/employer/ApplicantDocumentList";
 import { APPLICANT_JOB_MOCKS } from "../../data/employerApplicantsData";
 import { useEmployerApplicants } from "../../hooks/useEmployerApplicants";
 
@@ -194,35 +195,7 @@ function EmployerApplicantDetailPage() {
             </span>
           </div>
           <div className="mt-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white p-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
-            <ul className="space-y-3">
-              {applicant.documents.map((document) => (
-                <li
-                  key={document.id}
-                  className="flex h-[53px] items-center justify-between rounded-xl border border-[rgba(112,115,124,0.16)] px-[22px]"
-                >
-                  <div>
-                    <p className="text-[15px] font-semibold text-[#171719]">
-                      {document.name}
-                    </p>
-                    <p className="mt-px text-xs font-medium text-[#70737c]">
-                      제출 {document.submittedAt}
-                    </p>
-                  </div>
-                  <div className="min-w-[82px]">
-                    <p className="text-[10px] text-[#70737c]">만료일</p>
-                    <p
-                      className={`mt-px text-[13px] font-semibold ${
-                        document.hasExpiryWarning
-                          ? "text-[#e05260]"
-                          : "text-[#171719]"
-                      }`}
-                    >
-                      {document.expiresAt}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <ApplicantDocumentList documents={applicant.documents} />
           </div>
         </section>
 

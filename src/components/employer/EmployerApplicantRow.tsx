@@ -1,4 +1,5 @@
 import CountdownTimer from "../common/CountdownTimer";
+import PhoneNumber from "./PhoneNumber";
 import type { EmployerApplicantMock } from "../../types/application";
 
 interface EmployerApplicantRowProps {
@@ -64,13 +65,10 @@ function EmployerApplicantRow({
         <span className="text-base font-normal text-[#70737c]">
           {applicant.hiredAt}
         </span>
-        <span className="flex items-center justify-center gap-1.5 text-lg font-medium whitespace-nowrap text-[#171719]">
-          {applicant.phoneNumber}
-          <span aria-hidden="true" className="relative size-[13px] shrink-0">
-            <span className="absolute top-0 left-[3px] size-2.5 border border-[#171719] bg-white" />
-            <span className="absolute top-[3px] left-0 size-2.5 border border-[#171719] bg-[#e1e2e4]" />
-          </span>
-        </span>
+        <PhoneNumber
+          value={applicant.phoneNumber ?? "-"}
+          className="justify-center text-lg font-medium text-[#171719]"
+        />
         <div className="flex justify-start pl-6">
           <ActionButton onClick={() => onViewDetails(applicant)}>
             상세

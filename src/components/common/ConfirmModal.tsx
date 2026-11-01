@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 interface ConfirmModalProps {
   title: string;
   children: ReactNode;
-  cancelLabel: string;
+  cancelLabel?: string;
   confirmLabel: string;
   onCancel: () => void;
   onConfirm: () => void;
@@ -32,14 +32,18 @@ function ConfirmModal({
           {title}
         </h2>
         {children}
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex h-12 cursor-pointer items-center justify-center rounded-xl border border-[rgba(112,115,124,0.32)] bg-white px-6 text-lg font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed]"
-          >
-            {cancelLabel}
-          </button>
+        <div
+          className={`mt-6 grid gap-3 ${cancelLabel ? "grid-cols-2" : "grid-cols-1"}`}
+        >
+          {cancelLabel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex h-12 cursor-pointer items-center justify-center rounded-xl border border-[rgba(112,115,124,0.32)] bg-white px-6 text-lg font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed]"
+            >
+              {cancelLabel}
+            </button>
+          )}
           <button
             type="button"
             onClick={onConfirm}

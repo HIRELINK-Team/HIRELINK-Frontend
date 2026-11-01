@@ -35,9 +35,25 @@ function EmployerApplicantsProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const removeHiredApplicants = useCallback((applicationIds: string[]) => {
+    const applicationIdSet = new Set(applicationIds);
+
+    setApplicants((currentApplicants) =>
+      currentApplicants.filter(
+        (applicant) =>
+          applicant.status !== "HIRED" || !applicationIdSet.has(applicant.id),
+      ),
+    );
+  }, []);
+
   const value = useMemo(
-    () => ({ applicants, offerApplicant, rejectApplicant }),
-    [applicants, offerApplicant, rejectApplicant],
+    () => ({
+      applicants,
+      offerApplicant,
+      rejectApplicant,
+      removeHiredApplicants,
+    }),
+    [applicants, offerApplicant, rejectApplicant, removeHiredApplicants],
   );
 
   return (
