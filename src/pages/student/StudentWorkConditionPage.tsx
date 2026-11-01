@@ -41,7 +41,7 @@ export default function StudentWorkConditionPage({
   onBack,
 }: StudentWorkConditionPageProps) {
   return (
-    <main className="relative mx-auto min-h-[914px] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pt-[61px] pb-[98px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[914px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] px-6 pt-[61px] pb-[98px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
         aria-label="뒤로가기"
         className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"

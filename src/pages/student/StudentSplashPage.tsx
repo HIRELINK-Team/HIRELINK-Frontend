@@ -4,7 +4,7 @@ import hirelinkWordmark from '../../assets/images/student/entry/hirelink-wordmar
 /** Renders the student app splash screen before entry onboarding. */
 export default function StudentSplashPage() {
   return (
-    <main className="relative mx-auto min-h-[100svh] w-full max-w-[430px] overflow-hidden bg-[#0FC9A2]">
+    <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#0FC9A2]">
       <div className="absolute top-[42.18%] left-1/2 h-[35.666px] w-[226px] -translate-x-[113px] text-[#F5F5F5]">
         <img
           alt=""

@@ -284,7 +284,6 @@ function StudentHomeRoute() {
 
   return (
     <StudentHomePage
-      isBottomNavigationFixed
       onEditMatchingCondition={() => navigate('/student/my/matching-condition')}
       onMatchingClick={() => navigate('/student/matching')}
       onTabChange={handleTabChange}
@@ -362,7 +361,6 @@ function StudentMatchingRoute() {
     <StudentMatchingPage
       initialSelectedJob={mockOfferJob}
       initialView={mockOfferJob ? 'offer' : 'result'}
-      isBottomNavigationFixed
       onBack={() => navigate('/student/home')}
       onOfferAction={(action, job) => {
         updateOfferState(action, job);
@@ -448,7 +446,6 @@ function StudentApplicationsRoute() {
   return (
     <StudentApplicationsPage
       applications={applications}
-      isBottomNavigationFixed
       onAcceptOffer={(application) => acceptOffer(application.id)}
       onBack={() => navigate('/student/home')}
       onDeclineOffer={(application) => declineOffer(application.id)}
@@ -732,6 +729,7 @@ function StudentMatchingConditionRoute() {
 
   return (
     <StudentMatchingConditionManagementPage
+      onApply={() => navigate('/student/my')}
       onBack={() => navigate('/student/my')}
       onConditionClick={(conditionId) => {
         const detailRoutes: Record<string, string> = {

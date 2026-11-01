@@ -97,11 +97,11 @@ function VerifiedMyPage({
 }) {
   return (
     <main
-      className="relative mx-auto min-h-[844px] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pt-[62px] pb-[98px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+      className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] px-6 pt-[62px] pb-[98px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
       style={{
         background: '#F5F5F5',
         marginInline: 'auto',
-        maxWidth: 430,
+        maxWidth: 390,
         minHeight: 844,
         overflow: 'hidden',
         padding: '62px 24px 98px',
@@ -311,14 +311,14 @@ function VerifiedMyPage({
 function BadgeIssuedPage({ onConfirm }: { onConfirm: () => void }) {
   return (
     <main
-      className="mx-auto flex w-full max-w-[430px] flex-col bg-[#F5F5F5] px-6 pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+      className="mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
       style={{
         background: '#F5F5F5',
         display: 'flex',
         flexDirection: 'column',
         marginInline: 'auto',
-        maxWidth: 430,
-        minHeight: 'max(100vh, 844px)',
+        maxWidth: 390,
+        minHeight: 844,
         padding: '61px 24px 0',
         width: '100%',
       }}

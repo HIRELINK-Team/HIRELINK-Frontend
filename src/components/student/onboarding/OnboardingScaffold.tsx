@@ -44,7 +44,7 @@ export function OnboardingScaffold({
   return (
     <main
       aria-labelledby="onboarding-question"
-      className="relative mx-auto flex min-h-[100svh] w-full max-w-[430px] flex-col bg-[#F5F5F5] px-6 pt-[65px] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+      className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[65px] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
     >
       <button
         aria-label="이전 단계로 이동"

@@ -139,7 +139,7 @@ export default function StudentTermsPrivacyPage({
   onTermsItemClick,
 }: StudentTermsPrivacyPageProps) {
   return (
-    <main className="mx-auto min-h-[1053px] w-full max-w-[430px] bg-[#F5F5F5] pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="mx-auto h-[1053px] w-full max-w-[390px] bg-[#F5F5F5] pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <div className="px-6">
         <button
           aria-label="뒤로가기"

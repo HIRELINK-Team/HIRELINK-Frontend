@@ -13,7 +13,7 @@ export function EnrollmentCertificateCamera({
   onCapture,
 }: EnrollmentCertificateCameraProps) {
   return (
-    <main className="relative mx-auto min-h-[844px] w-full max-w-[430px] overflow-hidden bg-[#3F3F3F] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#F5F5F5]">
+    <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#3F3F3F] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#F5F5F5]">
       <button
         aria-label="뒤로가기"
         className="absolute top-[61px] left-4 grid size-8 place-items-center border-0 bg-transparent p-0"

@@ -13,6 +13,7 @@ type MatchingConditionSummaryValues = Partial<
 >;
 
 type StudentMatchingConditionManagementPageProps = {
+  onApply?: () => void;
   onBack?: () => void;
   onConditionClick?: (conditionId: MatchingConditionId) => void;
   summaryValues?: MatchingConditionSummaryValues;
@@ -41,6 +42,7 @@ const MATCHING_PRIORITY_CARDS = [
 ] as const;
 
 export default function StudentMatchingConditionManagementPage({
+  onApply,
   onBack,
   onConditionClick,
   summaryValues,
@@ -50,7 +52,7 @@ export default function StudentMatchingConditionManagementPage({
   };
 
   return (
-    <main className="mx-auto min-h-[1074px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[34px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="mx-auto h-[1074px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[34px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
         aria-label="뒤로가기"
         className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
@@ -146,6 +148,7 @@ export default function StudentMatchingConditionManagementPage({
       <button
         className="mt-[29px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
+        onClick={onApply}
       >
         수정 반영하기
       </button>

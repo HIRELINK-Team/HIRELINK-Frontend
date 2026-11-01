@@ -27,7 +27,7 @@ export function ExperienceForm({
   const submitLabel = isEditing ? '수정하기' : '+ 추가하기';
 
   return (
-    <main className="relative mx-auto flex min-h-[100svh] w-full max-w-[430px] flex-col bg-[#F5F5F5] px-6 pt-[112px] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[112px] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
         aria-label="경력 목록으로 이동"
         className="absolute top-[65px] left-5 flex size-6 items-center justify-center border-0 bg-transparent p-0"

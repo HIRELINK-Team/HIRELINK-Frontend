@@ -200,10 +200,8 @@ export default function StudentMatchingPage({
 
   return (
     <main
-      className={`relative mx-auto w-full max-w-[430px] overflow-x-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28] ${
-        matchingView === 'offer'
-          ? 'h-[100dvh] overflow-hidden'
-          : 'min-h-[990px]'
+      className={`relative mx-auto w-full max-w-[390px] overflow-x-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28] ${
+        matchingView === 'offer' ? 'h-[844px] overflow-hidden' : 'h-[990px]'
       }`}
       data-matching-view={matchingView}
       data-selected-job-id={selectedJob?.id}

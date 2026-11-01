@@ -52,7 +52,7 @@ export default function StudentEmailSignupPage({
   };
 
   return (
-    <main className="relative mx-auto h-[100svh] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
         aria-label="뒤로가기"
         className="absolute top-[61px] left-[18px] z-10 size-8 border-0 bg-transparent p-0"
@@ -66,12 +66,7 @@ export default function StudentEmailSignupPage({
         />
       </button>
 
-      <div
-        className="absolute inset-0"
-        style={{
-          transform: 'translateY(max(-72px, calc(100svh - 844px)))',
-        }}
-      >
+      <div className="absolute inset-0">
         <div className="absolute top-[189px] left-[calc(50%-99px)] h-[31.137px] w-[32.688px]">
           <img
             alt=""

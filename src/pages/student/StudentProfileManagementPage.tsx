@@ -290,7 +290,7 @@ function DetailPage({
   title: string;
 }) {
   return (
-    <main className="mx-auto flex h-[100dvh] w-full max-w-[430px] flex-col bg-[#F5F5F5] px-6 pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         {title}
@@ -341,7 +341,7 @@ function BasicInformationPage({
   );
 
   return (
-    <main className="mx-auto h-[844px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         기본정보
@@ -392,7 +392,7 @@ function ResidenceInformationPage({
   );
 
   return (
-    <main className="mx-auto h-[844px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         체류정보
@@ -443,7 +443,7 @@ function AcademicInformationPage({
   );
 
   return (
-    <main className="mx-auto h-[844px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         학업정보
@@ -494,7 +494,7 @@ function LanguageInformationPage({
   );
 
   return (
-    <main className="mx-auto h-[844px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         어학정보
@@ -630,7 +630,7 @@ export default function StudentProfileManagementPage({
   }
 
   return (
-    <main className="mx-auto min-h-[954px] w-full max-w-[430px] bg-[#F5F5F5] px-6 pt-[61px] pb-[29px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="mx-auto h-[954px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[29px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack ?? (() => undefined)} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         내 정보 관리

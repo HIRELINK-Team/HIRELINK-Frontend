@@ -627,7 +627,7 @@ export default function StudentOnboardingPage({
 
   if (step === 'ageRestricted') {
     return (
-      <main className="mx-auto flex min-h-[100svh] w-full max-w-[430px] flex-col items-center bg-[#F5F5F5] px-6 pt-[262px] pb-[calc(37px+env(safe-area-inset-bottom))] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+      <main className="mx-auto flex h-[844px] w-full max-w-[390px] flex-col items-center bg-[#F5F5F5] px-6 pt-[262px] pb-[calc(37px+env(safe-area-inset-bottom))] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
         <img alt="" className="h-auto w-[106px]" src={ageRestrictionImage} />
         <h1 className="mt-[14px] mb-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold">
           아직은 서비스를{`\n`}이용할 수 없어요
@@ -827,7 +827,7 @@ export default function StudentOnboardingPage({
 
     if (isWorkLocationRadiusSelectionOpen) {
       return (
-        <main className="relative mx-auto flex min-h-[100svh] w-full max-w-[430px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+        <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
           <header className="flex h-[116px] items-end gap-7 bg-white px-6 pb-[18px]">
             <button
               aria-label="희망 근무 위치 입력으로 돌아가기"
