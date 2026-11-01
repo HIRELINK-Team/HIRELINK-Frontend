@@ -13,6 +13,7 @@ type OnboardingScaffoldProps = {
   onBack: () => void;
   onCtaClick: () => void;
   question: string;
+  questionClassName?: string;
   showProgress?: boolean;
   stageLabelLayout?: 'inline' | 'stacked';
   stageLabel: string;
@@ -30,6 +31,7 @@ export function OnboardingScaffold({
   onBack,
   onCtaClick,
   question,
+  questionClassName,
   showProgress = true,
   stageLabelLayout = 'inline',
   stageLabel,
@@ -88,7 +90,7 @@ export function OnboardingScaffold({
 
       <section className={contentClassName}>
         <h1
-          className="m-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold"
+          className={`m-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold ${questionClassName ?? ''}`}
           id="onboarding-question"
         >
           {question}

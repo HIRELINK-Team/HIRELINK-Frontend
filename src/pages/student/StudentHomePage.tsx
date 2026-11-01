@@ -77,7 +77,7 @@ export default function StudentHomePage({
         </button>
       </section>
 
-      <section className="mt-[15px]">
+      <section className="mt-[19px]">
         <div className="flex items-center justify-between">
           <h2 className="m-0 text-[20px] leading-[1.5] font-semibold text-black">
             {'\uB0B4 \uC9C0\uC6D0 \uD604\uD669'}

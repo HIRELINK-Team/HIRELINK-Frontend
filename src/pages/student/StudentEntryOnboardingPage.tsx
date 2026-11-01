@@ -54,7 +54,7 @@ export default function StudentEntryOnboardingPage({
           사장님이신가요?
         </button>
 
-        <div className="mt-[23px] space-y-[14px]">
+        <div className="mt-[18px] space-y-[14px]">
           <button
             className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium"
             type="button"

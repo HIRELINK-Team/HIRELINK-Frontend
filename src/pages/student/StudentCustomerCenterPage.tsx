@@ -59,7 +59,7 @@ export default function StudentCustomerCenterPage({
           고객센터
         </h1>
 
-        <section className="relative mt-[8px] h-[85px] overflow-hidden rounded-[20px] bg-[#E5E8EB] pl-[72px] pr-4">
+        <section className="relative mt-[14px] h-[85px] overflow-hidden rounded-[20px] bg-[#E5E8EB] pl-[72px] pr-4">
           <img
             alt=""
             className="absolute top-[15px] left-[23px] h-[55.475px] w-[55.475px] object-cover"

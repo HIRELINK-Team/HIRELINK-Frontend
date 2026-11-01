@@ -1291,6 +1291,7 @@ export default function StudentOnboardingPage({
       currentStage={1}
       isCtaDisabled={isCtaDisabled}
       question={questions[step]}
+      questionClassName={step === 'name' ? 'translate-y-[5.5px]' : undefined}
       onBack={handleBack}
       onCtaClick={handleNext}
       stageLabel="기본정보 입력"
