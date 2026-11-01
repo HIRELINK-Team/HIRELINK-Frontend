@@ -20,7 +20,7 @@ export default function StudentHiringCompletePage({
     <main className="relative mx-auto h-[100dvh] min-h-[697px] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
         aria-label="채용 제안으로 돌아가기"
-        className="absolute top-[69px] left-[26px] flex h-4 w-2 items-center justify-center border-0 bg-transparent p-0"
+        className="absolute top-[49px] left-[26px] flex h-4 w-2 items-center justify-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
       >
@@ -29,11 +29,11 @@ export default function StudentHiringCompletePage({
 
       <img
         alt="채용 완료 일러스트"
-        className="absolute top-[224px] left-1/2 h-[123px] w-[121px] -translate-x-1/2 object-contain"
+        className="absolute top-[194px] left-1/2 h-[123px] w-[121px] -translate-x-1/2 object-contain"
         src={hiringCompleteIllustration}
       />
 
-      <section className="absolute top-[370px] right-6 left-6 text-center">
+      <section className="absolute top-[340px] right-6 left-6 text-center">
         <h1 className="m-0 text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
           채용이 완료되었어요!
         </h1>
@@ -44,7 +44,7 @@ export default function StudentHiringCompletePage({
         </p>
       </section>
 
-      <article className="absolute top-[485px] right-6 left-6 h-[132px] rounded-[20px] border-[0.7px] border-[#B0B8C1]">
+      <article className="absolute top-[455px] right-6 left-6 h-[132px] rounded-[20px] border-[0.7px] border-[#B0B8C1]">
         <h2 className="absolute top-[20px] left-[23px] m-0 text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
           {job.companyName}
         </h2>
@@ -64,7 +64,7 @@ export default function StudentHiringCompletePage({
       </article>
 
       <button
-        className="absolute top-[640px] right-6 left-6 h-[57px] rounded-[15px] border border-[#191F28] bg-transparent text-[20px] leading-[1.5] font-medium tracking-[-0.02em] text-[#191F28]"
+        className="absolute top-[610px] right-6 left-6 h-[57px] rounded-[15px] border border-[#191F28] bg-transparent text-[20px] leading-[1.5] font-medium tracking-[-0.02em] text-[#191F28]"
         type="button"
         onClick={onViewApplications}
       >
