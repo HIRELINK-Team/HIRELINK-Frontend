@@ -65,7 +65,7 @@ export function DocumentRegistrationList({
 }: DocumentRegistrationListProps) {
   return (
     <section>
-      <div className="rounded-[20px] bg-[#E5E8EB] px-6 py-[22px]">
+      <div className="rounded-[20px] bg-[#E5E8EB] px-6 py-[19px]">
         <div className="flex items-center">
           <img
             alt=""
