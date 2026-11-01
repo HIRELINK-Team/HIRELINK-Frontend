@@ -138,7 +138,7 @@ export default function StudentEmailSignupPage({
 
           <button
             aria-disabled={!isSignupReady}
-            className="absolute top-[706px] right-[25px] left-[25px] h-16 rounded-[35px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+            className="absolute top-[718px] right-[25px] left-[25px] h-16 rounded-[35px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
             type="submit"
           >
             가입하기
