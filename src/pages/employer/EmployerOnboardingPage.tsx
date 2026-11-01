@@ -9,6 +9,7 @@ import {
   MOCK_PHONE_VERIFICATION_CODE,
   REFERRAL_SOURCE_OPTIONS,
 } from "../../data/employerOnboardingData";
+import { getMockEmployerAccount } from "../../data/employerAuthMock";
 import {
   EMPLOYER_ADDRESS_MOCKS,
   EMPLOYER_INDUSTRY_OPTIONS,
@@ -55,6 +56,43 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <span className="mb-1.5 block text-base leading-6 font-semibold tracking-[-0.16px] text-[#171719]">
       {children}
+    </span>
+  );
+}
+
+function AgreementCheckbox({
+  checked,
+  onChange,
+  ariaLabel,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  ariaLabel: string;
+}) {
+  return (
+    <span className="relative flex size-5 shrink-0 items-center justify-center">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        aria-label={ariaLabel}
+        className="peer absolute inset-0 z-10 size-full cursor-pointer opacity-0"
+      />
+      <span className="pointer-events-none absolute inset-0 rounded-[5px] border border-[#c7cbd1] bg-white transition-colors peer-checked:border-[#00b894] peer-checked:bg-[#00b894] peer-focus-visible:ring-2 peer-focus-visible:ring-[#00b894]/20" />
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 16 16"
+        className="pointer-events-none absolute hidden size-3.5 text-white peer-checked:block"
+        fill="none"
+      >
+        <path
+          d="m3.25 8.25 3 3 6.5-6.5"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </span>
   );
 }
@@ -253,10 +291,14 @@ function EmployerOnboardingPage() {
   const handleComplete = () => {
     if (!isStepTwoComplete) return;
 
+    const mockAccount = getMockEmployerAccount();
+    const managerName = form.manager.name.trim();
+
     updateProfile({
       ...profile,
-      name: form.manager.name.trim(),
+      name: managerName,
       phone: form.manager.phoneParts.join("-"),
+      email: mockAccount?.email ?? profile.email,
       business: {
         ...profile.business,
         name: form.business.name.trim(),
@@ -264,6 +306,7 @@ function EmployerOnboardingPage() {
         industry: form.business.industry as EmployerIndustryCode,
         address: form.business.address,
         detailAddress: form.business.detailAddress.trim(),
+        representativeName: managerName,
       },
     });
     navigate("/employer/dashboard");
@@ -489,11 +532,10 @@ function EmployerOnboardingPage() {
             <div className="mt-8">
               <FieldLabel>약관을 확인해주세요</FieldLabel>
               <label className="flex h-[58px] cursor-pointer items-center gap-2.5 rounded-[10px] border border-[rgba(112,115,124,0.16)] px-4 text-base font-medium text-[#171719]">
-                <input
-                  type="checkbox"
+                <AgreementCheckbox
                   checked={Object.values(form.agreements).every(Boolean)}
-                  onChange={(event) => {
-                    const checked = event.target.checked;
+                  ariaLabel="모든 약관 동의"
+                  onChange={(checked) => {
                     setForm((current) => ({
                       ...current,
                       agreements: {
@@ -503,7 +545,6 @@ function EmployerOnboardingPage() {
                       },
                     }));
                   }}
-                  className="size-5 accent-[#00b894]"
                 />
                 모든 약관에 동의합니다
               </label>
@@ -517,20 +558,19 @@ function EmployerOnboardingPage() {
                     key={field}
                     className="flex cursor-pointer items-center gap-2.5 py-1 text-sm font-medium text-[#70737c]"
                   >
-                    <input
-                      type="checkbox"
+                    <AgreementCheckbox
                       checked={
                         form.agreements[
                           field as keyof EmployerOnboardingForm["agreements"]
                         ]
                       }
-                      onChange={(event) =>
+                      ariaLabel={label}
+                      onChange={(checked) =>
                         handleAgreementChange(
                           field as keyof EmployerOnboardingForm["agreements"],
-                          event.target.checked,
+                          checked,
                         )
                       }
-                      className="size-5 accent-[#00b894]"
                     />
                     {label}
                   </label>

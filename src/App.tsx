@@ -10,17 +10,21 @@ import EmployerHiredStudentDetailPage from "./pages/employer/EmployerHiredStuden
 import EmployerHiredStudentsPage from "./pages/employer/EmployerHiredStudentsPage";
 import EmployerJobFormPage from "./pages/employer/EmployerJobFormPage";
 import EmployerJobsPage from "./pages/employer/EmployerJobsPage";
+import EmployerEmailLoginPage from "./pages/employer/EmployerEmailLoginPage";
 import EmployerLoginPage from "./pages/employer/EmployerLoginPage";
 import EmployerMyPage from "./pages/employer/EmployerMyPage";
 import EmployerNotificationsPage from "./pages/employer/EmployerNotificationsPage";
 import EmployerOnboardingPage from "./pages/employer/EmployerOnboardingPage";
 import EmployerSettingsPage from "./pages/employer/EmployerSettingsPage";
+import EmployerSignUpPage from "./pages/employer/EmployerSignUpPage";
 
 function App() {
   return (
     <EmployerProfileProvider>
       <Routes>
         <Route path="/" element={<EmployerLoginPage />} />
+        <Route path="/employer/login" element={<EmployerEmailLoginPage />} />
+        <Route path="/employer/signup" element={<EmployerSignUpPage />} />
         <Route
           path="/employer/onboarding"
           element={<EmployerOnboardingPage />}

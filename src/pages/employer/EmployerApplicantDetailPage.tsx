@@ -184,7 +184,7 @@ function EmployerApplicantDetailPage() {
       </section>
 
       <div className="mt-9 grid gap-6 xl:grid-cols-2">
-        <section>
+        <section className="flex flex-col">
           <div className="flex items-start justify-between">
             <h2 className="text-xl font-semibold text-[#171719]">
               증빙 서류 상태
@@ -194,12 +194,12 @@ function EmployerApplicantDetailPage() {
               등록
             </span>
           </div>
-          <div className="mt-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white p-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+          <div className="mt-2 flex-1 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white p-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
             <ApplicantDocumentList documents={applicant.documents} />
           </div>
         </section>
 
-        <section>
+        <section className="flex flex-col">
           <div className="flex items-start justify-between">
             <h2 className="text-xl font-semibold text-[#171719]">
               공고 일치율
@@ -208,7 +208,7 @@ function EmployerApplicantDetailPage() {
               {matchedCount}/{applicant.matchItems.length} 일치
             </span>
           </div>
-          <div className="mt-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-7 shadow-[0_2px_8px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+          <div className="mt-2 flex-1 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-7 shadow-[0_2px_8px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
             <div className="flex items-center gap-4">
               <div className="h-3 flex-1 overflow-hidden rounded-full bg-[#f2f3f5]">
                 <div

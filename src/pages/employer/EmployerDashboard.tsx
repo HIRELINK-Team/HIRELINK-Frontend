@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import progressLine from "../../assets/employer/progress-line.svg";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 type DashboardView = "openJobs" | "reviewing" | "pending";
 
@@ -11,7 +13,7 @@ type SummaryItem = {
 };
 
 type JobItem = {
-  id: number;
+  id: string;
   title: string;
   deadline: string;
   details: string;
@@ -39,14 +41,14 @@ const dashboardMockData: {
   ],
   jobs: [
     {
-      id: 1,
+      id: "server-open",
       title: "서버",
       deadline: "마감 D-22",
       details: "13,000원 · 월수금 16-22",
       applicants: "지원자(3/5)",
     },
     {
-      id: 2,
+      id: "barista-open",
       title: "서버",
       deadline: "마감 D-22",
       details: "13,000원 · 월수금 16-22",
@@ -112,13 +114,16 @@ function SummaryCard({
 function OutlineButton({
   children,
   compact = false,
+  onClick,
 }: {
   children: string;
   compact?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`flex h-8 w-24 cursor-pointer items-center justify-center whitespace-nowrap rounded-lg border border-[rgba(112,115,124,0.22)] bg-white px-3 font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] ${compact ? "text-xs" : "text-sm"}`}
     >
       {children}
@@ -126,7 +131,15 @@ function OutlineButton({
   );
 }
 
-function JobList() {
+function JobList({
+  onViewApplicants,
+  onEdit,
+  onClose,
+}: {
+  onViewApplicants: (job: JobItem) => void;
+  onEdit: (job: JobItem) => void;
+  onClose: (job: JobItem) => void;
+}) {
   return (
     <section aria-labelledby="dashboard-list-title">
       <h2
@@ -161,9 +174,15 @@ function JobList() {
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2.5 pr-5">
-              <OutlineButton compact>{job.applicants}</OutlineButton>
-              <OutlineButton compact>수정</OutlineButton>
-              <OutlineButton compact>모집 마감</OutlineButton>
+              <OutlineButton compact onClick={() => onViewApplicants(job)}>
+                {job.applicants}
+              </OutlineButton>
+              <OutlineButton compact onClick={() => onEdit(job)}>
+                수정
+              </OutlineButton>
+              <OutlineButton compact onClick={() => onClose(job)}>
+                모집 마감
+              </OutlineButton>
             </div>
           </article>
         ))}
@@ -279,7 +298,9 @@ function HiringProcess() {
 }
 
 function EmployerDashboard() {
+  const navigate = useNavigate();
   const [selectedView, setSelectedView] = useState<DashboardView>("openJobs");
+  const [jobToClose, setJobToClose] = useState<JobItem | null>(null);
 
   return (
     <div className="pb-10 pt-10">
@@ -308,7 +329,13 @@ function EmployerDashboard() {
 
       <div className="mt-[22px]">
         {selectedView === "openJobs" ? (
-          <JobList />
+          <JobList
+            onViewApplicants={(job) =>
+              navigate(`/employer/jobs/${job.id}/applicants`)
+            }
+            onEdit={(job) => navigate(`/employer/jobs/${job.id}/edit`)}
+            onClose={setJobToClose}
+          />
         ) : (
           <ApplicantList view={selectedView} />
         )}
@@ -317,6 +344,31 @@ function EmployerDashboard() {
       <div className={selectedView === "openJobs" ? "mt-7" : "mt-[41px]"}>
         <HiringProcess />
       </div>
+
+      {jobToClose && (
+        <ConfirmModal
+          title="모집을 마감할까요?"
+          cancelLabel="취소"
+          confirmLabel="모집 마감"
+          onCancel={() => setJobToClose(null)}
+          onConfirm={() => setJobToClose(null)}
+        >
+          <p className="mt-5 flex h-[35px] items-center overflow-hidden rounded-md bg-[#f2f3f5] px-2.5 text-[13px] font-semibold whitespace-nowrap text-[#171719]">
+            {jobToClose.title} · {jobToClose.details}
+          </p>
+          <div className="mt-[14px] text-base text-[#70737c]">
+            <p className="leading-6 font-semibold text-[#e11e1e]">
+              마감한 공고는 되돌릴 수 없어요
+            </p>
+            <p className="leading-[22px] font-normal">
+              새 지원자를 받지 않고, 추천 목록에서도 빠져요
+            </p>
+            <p className="leading-[22px] font-normal">
+              이미 지원한 유학생은 계속 관리할 수 있어요
+            </p>
+          </div>
+        </ConfirmModal>
+      )}
     </div>
   );
 }

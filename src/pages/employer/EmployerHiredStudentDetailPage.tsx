@@ -292,7 +292,7 @@ function EmployerHiredStudentDetailPage() {
               <h3 className="text-xl font-semibold text-[#171719]">
                 공고와 비교
               </h3>
-              <div className="mt-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-5 py-6 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+              <div className="mt-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-5 py-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
                 <div className="h-5 overflow-hidden rounded-md bg-[#e5e8eb]">
                   <div
                     className="h-full rounded-md bg-[#52b596]"

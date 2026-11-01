@@ -39,7 +39,7 @@ function EmployerLoginPage() {
         {LOGIN_OPTIONS.map((option) => (
           <Link
             key={option.label}
-            to="/employer/onboarding"
+            to="/employer/login"
             className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border text-base font-semibold shadow-[0_1px_1px_rgba(23,23,23,0.1)] transition-[filter] hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b894] ${option.className}`}
           >
             <img
