@@ -24,7 +24,7 @@ const INITIAL_JOB_MOCKS: EmployerJobMock[] = [
     wageAndSchedule: "13,000원 · 월수금 16-22",
     status: "OPEN",
     deadlineLabel: "마감 D-22",
-    applicantCount: 3,
+    applicantCount: 5,
     applicantCapacity: 5,
   },
   {

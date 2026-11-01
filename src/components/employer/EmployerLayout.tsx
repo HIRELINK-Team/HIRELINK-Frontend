@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import hirelinkLogo from "../../assets/hirelink-logo.svg";
 import applicantsActiveIcon from "../../assets/employer/applicants-active.svg";
 import applicantsIcon from "../../assets/employer/applicants.svg";
@@ -84,38 +84,54 @@ function Header() {
 }
 
 function Sidebar() {
+  const location = useLocation();
+  const isApplicantsRoute =
+    location.pathname.startsWith("/employer/applicants") ||
+    (/^\/employer\/jobs\/[^/]+\/applicants$/.test(location.pathname) ?? false);
+
   return (
     <aside className="fixed top-16 bottom-0 left-0 z-10 w-[230px] border-r border-[#e1e2e4] bg-white px-3 pt-10">
       <nav aria-label="사업주 메뉴">
         <ul className="flex flex-col gap-1">
-          {NAVIGATION_ITEMS.map((item) => (
-            <li key={item.to}>
-              <NavLink
-                to={item.to}
-                end={item.to === "/employer/dashboard"}
-                className={({ isActive }) =>
-                  `flex h-11 items-center gap-3 rounded-lg px-5 text-sm transition-colors ${
-                    isActive
-                      ? "bg-[#e8f7f3] font-semibold text-[#2e6c5a]"
-                      : "font-medium text-[#6d7683] hover:bg-[#f4f4f5] hover:text-[#4e5259] active:bg-[#eceef0]"
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <img
-                      src={isActive ? item.activeIcon : item.icon}
-                      alt=""
-                      width={24}
-                      height={24}
-                      className="block shrink-0"
-                    />
-                    <span>{item.label}</span>
-                  </>
-                )}
-              </NavLink>
-            </li>
-          ))}
+          {NAVIGATION_ITEMS.map((item) => {
+            const isApplicantsItem = item.to === "/employer/applicants";
+
+            return (
+              <li key={item.to}>
+                <NavLink
+                  to={item.to}
+                  end={item.to === "/employer/dashboard"}
+                  className={({ isActive }) => {
+                    const isCurrent =
+                      isActive || (isApplicantsItem && isApplicantsRoute);
+                    return `flex h-11 items-center gap-3 rounded-lg px-5 text-sm transition-colors ${
+                      isCurrent
+                        ? "bg-[#e8f7f3] font-semibold text-[#2e6c5a]"
+                        : "font-medium text-[#6d7683] hover:bg-[#f4f4f5] hover:text-[#4e5259] active:bg-[#eceef0]"
+                    }`;
+                  }}
+                >
+                  {({ isActive }) => {
+                    const isCurrent =
+                      isActive || (isApplicantsItem && isApplicantsRoute);
+
+                    return (
+                      <>
+                        <img
+                          src={isCurrent ? item.activeIcon : item.icon}
+                          alt=""
+                          width={24}
+                          height={24}
+                          className="block shrink-0"
+                        />
+                        <span>{item.label}</span>
+                      </>
+                    );
+                  }}
+                </NavLink>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </aside>

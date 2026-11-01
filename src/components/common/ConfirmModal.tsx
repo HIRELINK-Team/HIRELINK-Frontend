@@ -24,7 +24,7 @@ function ConfirmModal({
       aria-modal="true"
       aria-labelledby="confirm-modal-title"
     >
-      <div className="min-h-[297px] w-full max-w-[480px] rounded-2xl bg-white px-8 pt-8 pb-8 shadow-[0_8px_24px_rgba(0,0,0,0.16)]">
+      <div className="w-full max-w-[480px] rounded-2xl bg-white px-8 py-8 shadow-[0_8px_24px_rgba(0,0,0,0.16)]">
         <h2
           id="confirm-modal-title"
           className="text-[22px] leading-normal font-semibold text-[#171719]"

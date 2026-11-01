@@ -27,6 +27,10 @@ body,
   margin: 0;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;
