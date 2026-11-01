@@ -14,6 +14,7 @@ import type {
 import type { StudentNavigationTab } from '../../types/studentHome';
 
 type StudentApplicationsPageProps = {
+  isBottomNavigationFixed?: boolean;
   initialScenario?: StudentApplicationsScenario;
   onAcceptOffer?: (application: StudentApplication) => void;
   onBack?: () => void;
@@ -58,6 +59,7 @@ function getApplicationsForFilter(filter: StudentApplicationsFilter) {
 }
 
 export default function StudentApplicationsPage({
+  isBottomNavigationFixed = false,
   initialScenario = 'all',
   onAcceptOffer,
   onBack,
@@ -134,6 +136,7 @@ export default function StudentApplicationsPage({
       <StudentBottomNavigation
         activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="applications"
+        isFixed={isBottomNavigationFixed}
         onTabChange={onTabChange}
       />
     </main>

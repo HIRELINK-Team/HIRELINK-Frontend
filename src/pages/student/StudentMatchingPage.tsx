@@ -193,7 +193,7 @@ export default function StudentMatchingPage({
 
   return (
     <main
-      className={`relative mx-auto w-full max-w-[430px] bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28] ${
+      className={`relative mx-auto w-full max-w-[430px] overflow-x-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28] ${
         matchingView === 'offer'
           ? 'h-[100dvh] overflow-hidden'
           : 'min-h-[990px]'
@@ -237,7 +237,7 @@ export default function StudentMatchingPage({
         activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="matching"
         bottomOffsetClassName="bottom-[31px]"
-        isFixed={isBottomNavigationFixed}
+        isFixed={isBottomNavigationFixed && matchingView === 'offer'}
         onTabChange={handleTabChange}
       />
       {matchingView === 'offer' && selectedJob ? (

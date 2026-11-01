@@ -41,7 +41,7 @@ export function StudentBottomNavigation({
   return (
     <nav
       aria-label={'\uD559\uC0DD \uD558\uB2E8 \uB0B4\uBE44\uAC8C\uC774\uC158'}
-      className={`${isFixed ? 'fixed' : 'absolute'} ${bottomOffsetClassName} left-1/2 z-20 flex h-[70px] w-[367px] max-w-[calc(100%-22px)] -translate-x-1/2 items-center justify-center gap-[25px] rounded-[51px] bg-white/30`}
+      className={`${isFixed ? 'fixed' : 'absolute'} ${bottomOffsetClassName} left-[11px] z-20 flex h-[70px] w-[367px] items-center justify-center gap-[25px] rounded-[51px] bg-white/30`}
     >
       {NAVIGATION_ITEMS.map((item) => {
         const isActive = activeTab === item.tab;

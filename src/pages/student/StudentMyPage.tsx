@@ -64,7 +64,7 @@ export default function StudentMyPage({
   };
 
   return (
-    <main className="relative mx-auto min-h-[940px] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pt-[62px] pb-[114px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto min-h-[940px] w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pt-[62px] pb-[85px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <header>
         <div className="flex items-start justify-between">
           <h1 className="m-0 text-[26px] leading-[1.5] font-semibold">마이</h1>
@@ -210,6 +210,7 @@ export default function StudentMyPage({
       <StudentBottomNavigation
         activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="my"
+        bottomOffsetClassName="bottom-[22px]"
         isFixed={isBottomNavigationFixed}
         onTabChange={onTabChange}
       />

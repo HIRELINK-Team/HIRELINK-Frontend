@@ -204,6 +204,7 @@ function StudentApplicationsRoute() {
 
   return (
     <StudentApplicationsPage
+      isBottomNavigationFixed
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
     />
   );
@@ -227,7 +228,6 @@ function StudentMyRoute() {
 
   return (
     <StudentMyPage
-      isBottomNavigationFixed
       onMenuClick={handleMenuClick}
       onProfileEditClick={() => navigate('/student/my/profile')}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
