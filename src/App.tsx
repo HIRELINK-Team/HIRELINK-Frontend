@@ -37,6 +37,11 @@ import type { StudentApplication } from './types/studentApplication';
 import type { StudentDocument } from './types/studentDocument';
 import type { IndustryId } from './types/industry';
 import type {
+  RecommendedJob,
+  StudentMatchingView,
+  StudentOfferAction,
+} from './types/studentMatching';
+import type {
   StudentNotificationId,
   StudentNotificationSettings,
 } from './types/studentNotification';
@@ -75,6 +80,17 @@ type StudentApplicationsRouteContext = {
   applications: StudentApplication[];
   acceptOffer: (applicationId: string) => void;
   declineOffer: (applicationId: string) => void;
+};
+
+type StudentMatchingJobState = 'accepted' | 'applied' | 'declined';
+
+type StudentMatchingRouteContext = {
+  acceptedJob: RecommendedJob | null;
+  recordViewChange: (
+    view: Exclude<StudentMatchingView, 'result'>,
+    job: RecommendedJob,
+  ) => void;
+  updateOfferState: (action: StudentOfferAction, job: RecommendedJob) => void;
 };
 
 type StudentDocumentRouteConfig = {
@@ -212,13 +228,85 @@ function StudentHomeRoute() {
   );
 }
 
+function StudentMatchingLayout() {
+  const [acceptedJob, setAcceptedJob] = useState<RecommendedJob | null>(null);
+  const [, setJobStates] = useState<Record<string, StudentMatchingJobState>>(
+    {},
+  );
+
+  const recordViewChange = (
+    view: Exclude<StudentMatchingView, 'result'>,
+    job: RecommendedJob,
+  ) => {
+    if (view === 'complete') {
+      setJobStates((currentStates) => ({
+        ...currentStates,
+        [job.id]: 'applied',
+      }));
+    }
+  };
+
+  const updateOfferState = (
+    action: StudentOfferAction,
+    job: RecommendedJob,
+  ) => {
+    setJobStates((currentStates) => ({
+      ...currentStates,
+      [job.id]: action === 'accept' ? 'accepted' : 'declined',
+    }));
+
+    if (action === 'accept') {
+      setAcceptedJob(job);
+    }
+  };
+
+  return (
+    <Outlet
+      context={
+        {
+          acceptedJob,
+          recordViewChange,
+          updateOfferState,
+        } satisfies StudentMatchingRouteContext
+      }
+    />
+  );
+}
+
 function StudentMatchingRoute() {
   const navigate = useNavigate();
+  const { recordViewChange, updateOfferState } =
+    useOutletContext<StudentMatchingRouteContext>();
 
   return (
     <StudentMatchingPage
       isBottomNavigationFixed
+      onOfferAction={(action, job) => {
+        updateOfferState(action, job);
+
+        if (action === 'accept') {
+          navigate('hiring-complete');
+        }
+      }}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
+      onViewChange={recordViewChange}
+    />
+  );
+}
+
+function StudentMatchingHiringCompleteRoute() {
+  const navigate = useNavigate();
+  const { acceptedJob } = useOutletContext<StudentMatchingRouteContext>();
+
+  if (!acceptedJob) {
+    return <Navigate replace to="/student/matching" />;
+  }
+
+  return (
+    <StudentHiringCompletePage
+      job={acceptedJob}
+      onBack={() => navigate('/student/matching')}
+      onViewApplications={() => navigate('/student/applications')}
     />
   );
 }
@@ -649,7 +737,13 @@ function App() {
       <Route path="/student/signup" element={<StudentSignupRoute />} />
       <Route path="/student/onboarding" element={<StudentOnboardingRoute />} />
       <Route path="/student/home" element={<StudentHomeRoute />} />
-      <Route path="/student/matching" element={<StudentMatchingRoute />} />
+      <Route path="/student/matching" element={<StudentMatchingLayout />}>
+        <Route index element={<StudentMatchingRoute />} />
+        <Route
+          path="hiring-complete"
+          element={<StudentMatchingHiringCompleteRoute />}
+        />
+      </Route>
       <Route
         path="/student/applications"
         element={<StudentApplicationsLayout />}

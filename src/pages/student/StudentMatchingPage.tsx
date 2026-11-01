@@ -51,6 +51,9 @@ export default function StudentMatchingPage({
   const [selectedJob, setSelectedJob] = useState<RecommendedJob | null>(
     initialSelectedJob,
   );
+  const [detailBackView, setDetailBackView] = useState<'complete' | 'result'>(
+    'result',
+  );
   const [workStartDate, setWorkStartDate] = useState('2027-03-14');
   const [isRefreshPopupOpen, setIsRefreshPopupOpen] = useState(
     initialRefreshPopupOpen,
@@ -66,6 +69,7 @@ export default function StudentMatchingPage({
 
   const handleDetailClick = (job: RecommendedJob) => {
     setSelectedJob(job);
+    setDetailBackView('result');
     setMatchingView('detail');
     onViewChange?.('detail', job);
   };
@@ -75,7 +79,7 @@ export default function StudentMatchingPage({
   };
 
   const handleDetailBack = () => {
-    setMatchingView('result');
+    setMatchingView(detailBackView);
   };
 
   const handleApply = (job: RecommendedJob) => {
@@ -119,6 +123,8 @@ export default function StudentMatchingPage({
 
   const handleCompleteDetail = () => {
     if (selectedJob) {
+      setDetailBackView('complete');
+      setMatchingView('detail');
       onViewChange?.('detail', selectedJob);
     }
   };
@@ -134,6 +140,7 @@ export default function StudentMatchingPage({
   const handleOfferAction = (action: StudentOfferAction) => {
     if (selectedJob) {
       onOfferAction?.(action, selectedJob);
+      setMatchingView('result');
     }
   };
 
