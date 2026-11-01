@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 import applicationsIcon from '../../../assets/icons/student/home/applications.svg';
 import homeIcon from '../../../assets/icons/student/home/home.svg';
 import matchingIcon from '../../../assets/icons/student/home/matching.svg';
@@ -27,6 +29,13 @@ const NAVIGATION_ITEMS: Array<{
   { tab: 'my', label: '\uB9C8\uC774', icon: myIcon },
 ];
 
+const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
+  applications: '/student/applications',
+  home: '/student/home',
+  matching: '/student/matching',
+  my: '/student/my',
+};
+
 export function StudentBottomNavigation({
   activeBackgroundClassName = 'bg-[#E5E8EB]/20',
   activeTab,
@@ -34,6 +43,17 @@ export function StudentBottomNavigation({
   isFixed = false,
   onTabChange,
 }: StudentBottomNavigationProps) {
+  const navigate = useNavigate();
+
+  const handleTabClick = (tab: StudentNavigationTab) => {
+    if (onTabChange) {
+      onTabChange(tab);
+      return;
+    }
+
+    navigate(STUDENT_TAB_ROUTES[tab]);
+  };
+
   return (
     <nav
       aria-label={'\uD559\uC0DD \uD558\uB2E8 \uB0B4\uBE44\uAC8C\uC774\uC158'}
@@ -48,7 +68,7 @@ export function StudentBottomNavigation({
             className="relative flex h-[52px] w-[50px] flex-col items-center justify-center gap-[5px] border-0 bg-transparent p-0 text-[#00251E]"
             key={item.tab}
             type="button"
-            onClick={() => onTabChange?.(item.tab)}
+            onClick={() => handleTabClick(item.tab)}
           >
             {isActive ? (
               <span

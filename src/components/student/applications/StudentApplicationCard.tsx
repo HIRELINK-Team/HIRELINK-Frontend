@@ -30,7 +30,7 @@ function OfferWaitingApplicationCard({
   onDetailClick,
 }: OfferWaitingApplicationCardProps) {
   return (
-    <article className="relative h-[223px] w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
+    <article className="relative mx-auto h-[223px] w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
       <h2 className="absolute top-[21.3px] left-[23.3px] m-0 text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] whitespace-nowrap text-[#191F28]">
         {application.job.companyName}
       </h2>
@@ -96,7 +96,7 @@ function HiredApplicationCard({
   onDetailClick,
 }: HiredApplicationCardProps) {
   return (
-    <article className="relative h-[164px] w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
+    <article className="relative mx-auto h-[164px] w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
       <h2 className="absolute top-[21.3px] left-[23.3px] m-0 text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] whitespace-nowrap text-[#191F28]">
         {application.job.companyName}
       </h2>

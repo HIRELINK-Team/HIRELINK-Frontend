@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 import matchingIllustration from '../../assets/images/student/home/matching-illustration.png';
 import chevronRightIcon from '../../assets/icons/student/home/chevron-right.svg';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
@@ -23,12 +25,19 @@ function SummaryCard({ label, value }: SummaryCardProps) {
 }
 
 export default function StudentHomePage() {
+  const navigate = useNavigate();
   const { applications, conditions, greetingName, recommendedJobCount } =
     STUDENT_HOME_MOCK;
 
   const handleTabChange = (tab: StudentNavigationTab) => {
-    // Matching, applications, and My pages will connect through the student router later.
-    void tab;
+    const routes: Record<StudentNavigationTab, string> = {
+      applications: '/student/applications',
+      home: '/student/home',
+      matching: '/student/matching',
+      my: '/student/my',
+    };
+
+    navigate(routes[tab]);
   };
 
   return (
@@ -62,6 +71,7 @@ export default function StudentHomePage() {
         <button
           className="absolute right-6 bottom-5 left-6 h-[54px] rounded-[42px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5]"
           type="button"
+          onClick={() => navigate('/student/matching')}
         >
           {'\uB9E4\uCE6D\uD558\uB7EC \uAC00\uAE30'}
         </button>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import backIcon from '../../assets/icons/student/matching/back.svg';
 import { RecommendedJobDetail } from '../../components/student/matching/RecommendedJobDetail';
@@ -44,6 +45,7 @@ export default function StudentMatchingPage({
   onTabChange,
   onViewChange,
 }: StudentMatchingPageProps) {
+  const navigate = useNavigate();
   const [matchingView, setMatchingView] =
     useState<StudentMatchingView>(initialView);
   const [selectedJob, setSelectedJob] = useState<RecommendedJob | null>(
@@ -69,7 +71,19 @@ export default function StudentMatchingPage({
   };
 
   const handleTabChange = (tab: StudentNavigationTab) => {
-    onTabChange?.(tab);
+    if (onTabChange) {
+      onTabChange(tab);
+      return;
+    }
+
+    const routes: Record<StudentNavigationTab, string> = {
+      applications: '/student/applications',
+      home: '/student/home',
+      matching: '/student/matching',
+      my: '/student/my',
+    };
+
+    navigate(routes[tab]);
   };
 
   const handleDetailBack = () => {
