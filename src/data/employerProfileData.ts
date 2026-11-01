@@ -9,6 +9,7 @@ export const EMPLOYER_PROFILE_MOCK: EmployerProfile = {
   name: "김모모",
   phone: "010-1111-1111",
   email: "hirelink@soongsil.ac.kr",
+  position: "사장",
   business: {
     name: "모모카페",
     industry: "FOOD_AND_CAFE",

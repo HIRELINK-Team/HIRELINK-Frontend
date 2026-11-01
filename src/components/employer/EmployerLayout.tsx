@@ -64,20 +64,24 @@ function Header() {
       </NavLink>
 
       <div className="flex items-center gap-2">
-        <button
-          type="button"
+        <NavLink
+          to="/employer/notifications"
           aria-label="알림"
-          className="flex size-10 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed]"
+          className={({ isActive }) =>
+            `flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] ${isActive ? "bg-[#f2f3f5]" : ""}`
+          }
         >
           <img src={bellIcon} alt="" width={24} height={24} />
-        </button>
-        <button
-          type="button"
+        </NavLink>
+        <NavLink
+          to="/employer/settings"
           aria-label="설정"
-          className="flex size-10 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed]"
+          className={({ isActive }) =>
+            `flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] ${isActive ? "bg-[#f2f3f5]" : ""}`
+          }
         >
           <img src={settingsIcon} alt="" width={24} height={24} />
-        </button>
+        </NavLink>
       </div>
     </header>
   );

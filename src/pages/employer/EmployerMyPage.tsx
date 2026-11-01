@@ -5,8 +5,8 @@ import EmployerAddressSearchModal from "../../components/employer/EmployerAddres
 import {
   EMPLOYER_ADDRESS_MOCKS,
   EMPLOYER_INDUSTRY_OPTIONS,
-  EMPLOYER_PROFILE_MOCK,
 } from "../../data/employerProfileData";
+import { useEmployerProfile } from "../../hooks/useEmployerProfile";
 import type { EmployerProfile } from "../../types/employerProfile";
 
 type ProfileErrorKey =
@@ -83,10 +83,8 @@ function InfoCard({
 }
 
 function EmployerMyPage() {
-  const [profile, setProfile] = useState(() =>
-    cloneProfile(EMPLOYER_PROFILE_MOCK),
-  );
-  const [draft, setDraft] = useState(() => cloneProfile(EMPLOYER_PROFILE_MOCK));
+  const { profile, updateProfile } = useEmployerProfile();
+  const [draft, setDraft] = useState(() => cloneProfile(profile));
   const [isEditing, setIsEditing] = useState(false);
   const [isIndustryOpen, setIsIndustryOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -167,7 +165,7 @@ function EmployerMyPage() {
     setIsIndustryOpen(false);
     if (!validate()) return;
 
-    setProfile(cloneProfile(draft));
+    updateProfile(draft);
     setIsEditing(false);
     setToastMessage("수정이 적용되었어요");
   };

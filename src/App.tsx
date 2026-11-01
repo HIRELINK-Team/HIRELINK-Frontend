@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import EmployerApplicantsProvider from "./components/employer/EmployerApplicantsProvider";
 import EmployerLayout from "./components/employer/EmployerLayout";
+import EmployerProfileProvider from "./components/employer/EmployerProfileProvider";
+import EmployerAccountSettingsPage from "./pages/employer/EmployerAccountSettingsPage";
 import EmployerDashboard from "./pages/employer/EmployerDashboard";
 import EmployerApplicantDetailPage from "./pages/employer/EmployerApplicantDetailPage";
 import EmployerApplicantsPage from "./pages/employer/EmployerApplicantsPage";
@@ -9,6 +11,8 @@ import EmployerHiredStudentsPage from "./pages/employer/EmployerHiredStudentsPag
 import EmployerJobFormPage from "./pages/employer/EmployerJobFormPage";
 import EmployerJobsPage from "./pages/employer/EmployerJobsPage";
 import EmployerMyPage from "./pages/employer/EmployerMyPage";
+import EmployerNotificationsPage from "./pages/employer/EmployerNotificationsPage";
+import EmployerSettingsPage from "./pages/employer/EmployerSettingsPage";
 
 function App() {
   return (
@@ -16,9 +20,11 @@ function App() {
       <Route
         path="/employer"
         element={
-          <EmployerApplicantsProvider>
-            <EmployerLayout />
-          </EmployerApplicantsProvider>
+          <EmployerProfileProvider>
+            <EmployerApplicantsProvider>
+              <EmployerLayout />
+            </EmployerApplicantsProvider>
+          </EmployerProfileProvider>
         }
       >
         <Route index element={<Navigate to="dashboard" replace />} />
@@ -46,6 +52,12 @@ function App() {
           element={<EmployerHiredStudentDetailPage />}
         />
         <Route path="mypage" element={<EmployerMyPage />} />
+        <Route path="settings" element={<EmployerSettingsPage />} />
+        <Route
+          path="settings/account"
+          element={<EmployerAccountSettingsPage />}
+        />
+        <Route path="notifications" element={<EmployerNotificationsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/employer/dashboard" replace />} />
     </Routes>

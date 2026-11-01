@@ -22,6 +22,7 @@ export interface EmployerProfile {
   name: string;
   phone: string;
   email: string;
+  position: string;
   business: EmployerBusinessProfile;
 }
 
