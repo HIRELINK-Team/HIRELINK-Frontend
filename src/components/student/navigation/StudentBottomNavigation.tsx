@@ -1,5 +1,3 @@
-import { useNavigate } from 'react-router-dom';
-
 import applicationsIcon from '../../../assets/icons/student/home/applications.svg';
 import homeIcon from '../../../assets/icons/student/home/home.svg';
 import matchingIcon from '../../../assets/icons/student/home/matching.svg';
@@ -29,13 +27,6 @@ const NAVIGATION_ITEMS: Array<{
   { tab: 'my', label: '\uB9C8\uC774', icon: myIcon },
 ];
 
-const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
-  applications: '/student/applications',
-  home: '/student/home',
-  matching: '/student/matching',
-  my: '/student/my',
-};
-
 export function StudentBottomNavigation({
   activeBackgroundClassName = 'bg-[#E5E8EB]/20',
   activeTab,
@@ -43,15 +34,8 @@ export function StudentBottomNavigation({
   isFixed = false,
   onTabChange,
 }: StudentBottomNavigationProps) {
-  const navigate = useNavigate();
-
   const handleTabClick = (tab: StudentNavigationTab) => {
-    if (onTabChange) {
-      onTabChange(tab);
-      return;
-    }
-
-    navigate(STUDENT_TAB_ROUTES[tab]);
+    onTabChange?.(tab);
   };
 
   return (

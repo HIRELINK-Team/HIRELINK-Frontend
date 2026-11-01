@@ -19,6 +19,7 @@ import type { StudentNavigationTab } from '../../types/studentHome';
 import type { StudentMyMenu, StudentMyMenuId } from '../../types/studentMy';
 
 type StudentMyPageProps = {
+  isBottomNavigationFixed?: boolean;
   onDocumentManagementClick?: () => void;
   onMatchingClick?: () => void;
   onMenuClick?: (menuId: StudentMyMenuId) => void;
@@ -45,6 +46,7 @@ const SECONDARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> = {
 };
 
 export default function StudentMyPage({
+  isBottomNavigationFixed = false,
   onDocumentManagementClick,
   onMatchingClick,
   onMenuClick,
@@ -206,6 +208,7 @@ export default function StudentMyPage({
       <StudentBottomNavigation
         activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="my"
+        isFixed={isBottomNavigationFixed}
         onTabChange={onTabChange}
       />
     </main>

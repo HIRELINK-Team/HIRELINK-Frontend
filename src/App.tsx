@@ -10,8 +10,16 @@ import StudentMatchingPage from './pages/student/StudentMatchingPage';
 import StudentMyPage from './pages/student/StudentMyPage';
 import StudentOnboardingPage from './pages/student/StudentOnboardingPage';
 import StudentSplashPage from './pages/student/StudentSplashPage';
+import type { StudentNavigationTab } from './types/studentHome';
 
 const SPLASH_DURATION_MS = 1200;
+
+const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
+  applications: '/student/applications',
+  home: '/student/home',
+  matching: '/student/matching',
+  my: '/student/my',
+};
 
 function StudentSplashRoute() {
   const navigate = useNavigate();
@@ -62,6 +70,55 @@ function StudentSignupRoute() {
   );
 }
 
+function StudentHomeRoute() {
+  const navigate = useNavigate();
+
+  const handleTabChange = (tab: StudentNavigationTab) => {
+    navigate(STUDENT_TAB_ROUTES[tab]);
+  };
+
+  return (
+    <StudentHomePage
+      isBottomNavigationFixed
+      onMatchingClick={() => navigate('/student/matching')}
+      onTabChange={handleTabChange}
+    />
+  );
+}
+
+function StudentMatchingRoute() {
+  const navigate = useNavigate();
+
+  return (
+    <StudentMatchingPage
+      isBottomNavigationFixed
+      onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
+    />
+  );
+}
+
+function StudentApplicationsRoute() {
+  const navigate = useNavigate();
+
+  return (
+    <StudentApplicationsPage
+      onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
+    />
+  );
+}
+
+function StudentMyRoute() {
+  const navigate = useNavigate();
+
+  return (
+    <StudentMyPage
+      isBottomNavigationFixed
+      onMatchingClick={() => navigate('/student/matching')}
+      onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
+    />
+  );
+}
+
 function App() {
   return (
     <Routes>
@@ -72,13 +129,13 @@ function App() {
       <Route path="/student/login" element={<StudentLoginRoute />} />
       <Route path="/student/signup" element={<StudentSignupRoute />} />
       <Route path="/student/onboarding" element={<StudentOnboardingPage />} />
-      <Route path="/student/home" element={<StudentHomePage />} />
-      <Route path="/student/matching" element={<StudentMatchingPage />} />
+      <Route path="/student/home" element={<StudentHomeRoute />} />
+      <Route path="/student/matching" element={<StudentMatchingRoute />} />
       <Route
         path="/student/applications"
-        element={<StudentApplicationsPage />}
+        element={<StudentApplicationsRoute />}
       />
-      <Route path="/student/my" element={<StudentMyPage />} />
+      <Route path="/student/my" element={<StudentMyRoute />} />
     </Routes>
   );
 }

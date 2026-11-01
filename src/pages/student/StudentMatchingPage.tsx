@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import backIcon from '../../assets/icons/student/matching/back.svg';
 import { RecommendedJobDetail } from '../../components/student/matching/RecommendedJobDetail';
@@ -22,6 +21,7 @@ import type {
 } from '../../types/studentMatching';
 
 type StudentMatchingPageProps = {
+  isBottomNavigationFixed?: boolean;
   initialRefreshPopupOpen?: boolean;
   initialSelectedJob?: RecommendedJob | null;
   initialView?: StudentMatchingView;
@@ -36,6 +36,7 @@ type StudentMatchingPageProps = {
 };
 
 export default function StudentMatchingPage({
+  isBottomNavigationFixed = false,
   initialRefreshPopupOpen = false,
   initialSelectedJob = null,
   initialView = 'result',
@@ -45,7 +46,6 @@ export default function StudentMatchingPage({
   onTabChange,
   onViewChange,
 }: StudentMatchingPageProps) {
-  const navigate = useNavigate();
   const [matchingView, setMatchingView] =
     useState<StudentMatchingView>(initialView);
   const [selectedJob, setSelectedJob] = useState<RecommendedJob | null>(
@@ -71,19 +71,7 @@ export default function StudentMatchingPage({
   };
 
   const handleTabChange = (tab: StudentNavigationTab) => {
-    if (onTabChange) {
-      onTabChange(tab);
-      return;
-    }
-
-    const routes: Record<StudentNavigationTab, string> = {
-      applications: '/student/applications',
-      home: '/student/home',
-      matching: '/student/matching',
-      my: '/student/my',
-    };
-
-    navigate(routes[tab]);
+    onTabChange?.(tab);
   };
 
   const handleDetailBack = () => {
@@ -249,6 +237,7 @@ export default function StudentMatchingPage({
         activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="matching"
         bottomOffsetClassName="bottom-[31px]"
+        isFixed={isBottomNavigationFixed}
         onTabChange={handleTabChange}
       />
       {matchingView === 'offer' && selectedJob ? (
