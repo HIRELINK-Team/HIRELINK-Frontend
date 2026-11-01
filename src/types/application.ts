@@ -13,7 +13,6 @@ export interface ApplicantDocumentMock {
   name: string;
   submittedAt: string;
   expiresAt: string;
-  hasExpiryWarning?: boolean;
   isRegistered?: boolean;
 }
 

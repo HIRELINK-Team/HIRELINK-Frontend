@@ -15,6 +15,17 @@ function getFutureIso(hours: number, minutes = 0) {
   ).toISOString();
 }
 
+function getFutureDateLabel(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+
+  return [date.getFullYear(), date.getMonth() + 1, date.getDate()]
+    .map((value, index) =>
+      index === 0 ? String(value) : String(value).padStart(2, "0"),
+    )
+    .join(".");
+}
+
 const DEFAULT_DOCUMENTS: ApplicantDocumentMock[] = [
   {
     id: "alien-registration-card",
@@ -34,8 +45,7 @@ const DEFAULT_DOCUMENTS: ApplicantDocumentMock[] = [
     id: "transcript-warning",
     name: "성적증명서",
     submittedAt: "2026.09.02",
-    expiresAt: "2026.10.25",
-    hasExpiryWarning: true,
+    expiresAt: getFutureDateLabel(12),
     isRegistered: true,
   },
   {
@@ -55,7 +65,6 @@ const MISSING_DOCUMENTS: ApplicantDocumentMock[] = DEFAULT_DOCUMENTS.map(
           ...document,
           submittedAt: "",
           expiresAt: "",
-          hasExpiryWarning: false,
           isRegistered: false,
         },
 );

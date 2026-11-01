@@ -29,8 +29,8 @@ function EmployerHiredStudentRow({
           : "border-[rgba(112,115,124,0.16)]"
       } ${
         isSelectionMode
-          ? "grid-cols-[20px_48px_minmax(180px,1fr)_220px_auto]"
-          : "grid-cols-[48px_minmax(180px,1fr)_220px_auto]"
+          ? "grid-cols-[20px_48px_minmax(160px,1fr)_160px_220px_104px]"
+          : "grid-cols-[48px_minmax(160px,1fr)_160px_220px_104px]"
       }`}
     >
       {isSelectionMode && (
@@ -77,11 +77,13 @@ function EmployerHiredStudentRow({
         />
       </div>
 
-      <div className="flex items-center justify-end gap-6">
-        {hasExpiryWarning && (
-          <span className="shrink-0 text-xs font-medium text-[#c13c2d]">
+      <div className="contents">
+        {hasExpiryWarning ? (
+          <span className="shrink-0 justify-self-end pr-2 text-xs font-medium text-[#c13c2d]">
             ⓘ 만료 임박
           </span>
+        ) : (
+          <span aria-hidden="true" />
         )}
         <button
           type="button"

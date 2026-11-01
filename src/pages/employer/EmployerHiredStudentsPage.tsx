@@ -81,7 +81,7 @@ function EmployerHiredStudentsPage() {
     setDeleteTarget(null);
     setSelectedApplicationIds(new Set());
     setIsSelectionMode(false);
-    setToastMessage(`채용 유학생 ${applicationIds.length}명을 삭제했어요.`);
+    setToastMessage(`${applicationIds.length}명을 삭제했어요.`);
   };
 
   return (
@@ -168,7 +168,7 @@ function EmployerHiredStudentsPage() {
                 disabled={hiredStudents.length === 0}
                 className="h-8 w-24 cursor-pointer rounded-lg border border-[rgba(112,115,124,0.32)] bg-white text-sm font-medium text-[#171719] hover:bg-[#f4f4f5] disabled:cursor-not-allowed disabled:text-[#aeb4bc]"
               >
-                전체 삭제
+                모두 삭제
               </button>
             </>
           )}

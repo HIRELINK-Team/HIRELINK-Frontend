@@ -89,21 +89,34 @@ function Sidebar() {
     location.pathname.startsWith("/employer/applicants") ||
     (/^\/employer\/jobs\/[^/]+\/applicants$/.test(location.pathname) ?? false);
 
+  const isNavigationItemActive = (itemPath: string) => {
+    if (itemPath === "/employer/applicants") return isApplicantsRoute;
+
+    if (itemPath === "/employer/jobs") {
+      return (
+        location.pathname.startsWith("/employer/jobs") && !isApplicantsRoute
+      );
+    }
+
+    return (
+      location.pathname === itemPath ||
+      location.pathname.startsWith(`${itemPath}/`)
+    );
+  };
+
   return (
     <aside className="fixed top-16 bottom-0 left-0 z-10 w-[230px] border-r border-[#e1e2e4] bg-white px-3 pt-10">
       <nav aria-label="사업주 메뉴">
         <ul className="flex flex-col gap-1">
           {NAVIGATION_ITEMS.map((item) => {
-            const isApplicantsItem = item.to === "/employer/applicants";
+            const isCurrent = isNavigationItemActive(item.to);
 
             return (
               <li key={item.to}>
                 <NavLink
                   to={item.to}
                   end={item.to === "/employer/dashboard"}
-                  className={({ isActive }) => {
-                    const isCurrent =
-                      isActive || (isApplicantsItem && isApplicantsRoute);
+                  className={() => {
                     return `flex h-11 items-center gap-3 rounded-lg px-5 text-sm transition-colors ${
                       isCurrent
                         ? "bg-[#e8f7f3] font-semibold text-[#2e6c5a]"
@@ -111,23 +124,18 @@ function Sidebar() {
                     }`;
                   }}
                 >
-                  {({ isActive }) => {
-                    const isCurrent =
-                      isActive || (isApplicantsItem && isApplicantsRoute);
-
-                    return (
-                      <>
-                        <img
-                          src={isCurrent ? item.activeIcon : item.icon}
-                          alt=""
-                          width={24}
-                          height={24}
-                          className="block shrink-0"
-                        />
-                        <span>{item.label}</span>
-                      </>
-                    );
-                  }}
+                  {() => (
+                    <>
+                      <img
+                        src={isCurrent ? item.activeIcon : item.icon}
+                        alt=""
+                        width={24}
+                        height={24}
+                        className="block shrink-0"
+                      />
+                      <span>{item.label}</span>
+                    </>
+                  )}
                 </NavLink>
               </li>
             );

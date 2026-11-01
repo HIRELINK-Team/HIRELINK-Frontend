@@ -5,8 +5,41 @@ import ApplicantDocumentList from "../../components/employer/ApplicantDocumentLi
 import PhoneNumber from "../../components/employer/PhoneNumber";
 import { APPLICANT_JOB_MOCKS } from "../../data/employerApplicantsData";
 import { useEmployerApplicants } from "../../hooks/useEmployerApplicants";
+import { getExpiryWarningDocuments } from "../../utils/documentExpiry";
 
 type HiredStudentDetailTab = "QUALIFICATION" | "ANALYSIS";
+
+interface EligibilityAnalysisLockIconProps {
+  isUnlocked: boolean;
+}
+
+function EligibilityAnalysisLockIcon({
+  isUnlocked,
+}: EligibilityAnalysisLockIconProps) {
+  return isUnlocked ? (
+    <svg aria-hidden="true" viewBox="0 0 18 18" className="size-[18px]">
+      <path
+        d="M12.5 8V6.25a3.75 3.75 0 0 0-6.42-2.65L4.75 4.92M4 8h10v7H4z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ) : (
+    <svg aria-hidden="true" viewBox="0 0 18 18" className="size-[18px]">
+      <path
+        d="M5.25 8V6.25a3.75 3.75 0 0 1 7.5 0V8M4 8h10v7H4z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 function EmployerHiredStudentDetailPage() {
   const navigate = useNavigate();
@@ -46,7 +79,8 @@ function EmployerHiredStudentDetailPage() {
     (job) => job.id === applicant.jobId,
   );
   const details = applicant.hiredDetails;
-  const isAnalysisAvailable = details.analysisStatus === "READY";
+  const canViewEligibilityAnalysis = details.analysisStatus === "READY";
+  const expiryWarningDocuments = getExpiryWarningDocuments(applicant.documents);
   const registeredDocumentCount = applicant.documents.filter(
     (document) => document.isRegistered !== false,
   ).length;
@@ -56,7 +90,7 @@ function EmployerHiredStudentDetailPage() {
   );
 
   const handleAnalysisTabClick = () => {
-    if (!isAnalysisAvailable) {
+    if (!canViewEligibilityAnalysis) {
       setIsMissingDocumentsModalOpen(true);
       return;
     }
@@ -134,18 +168,9 @@ function EmployerHiredStudentDetailPage() {
           }`}
         >
           근로자격 확인 분석
-          {!isAnalysisAvailable && (
-            <svg aria-hidden="true" viewBox="0 0 18 18" className="size-[18px]">
-              <path
-                d="M5.25 8V6.25a3.75 3.75 0 0 1 7.5 0V8M4 8h10v7H4z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          )}
+          <EligibilityAnalysisLockIcon
+            isUnlocked={canViewEligibilityAnalysis}
+          />
         </button>
       </div>
 
@@ -153,7 +178,7 @@ function EmployerHiredStudentDetailPage() {
         <div className="mt-7 grid gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
           <section>
             <h3 className="text-xl font-semibold text-[#171719]">자격 정보</h3>
-            <div className="mt-2 min-h-[271px] rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-6 py-5 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+            <div className="mt-2 h-[271px] rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-6 py-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
               <dl className="divide-y divide-[#e1e2e4]">
                 {[
                   ["자격 만료일", details.qualificationExpiresAt],
@@ -163,22 +188,22 @@ function EmployerHiredStudentDetailPage() {
                 ].map(([label, value]) => (
                   <div
                     key={label}
-                    className="grid min-h-[38px] grid-cols-[76px_minmax(0,1fr)] items-center gap-4"
+                    className="grid min-h-[42px] grid-cols-[92px_minmax(0,1fr)] items-center gap-2"
                   >
-                    <dt className="text-sm font-medium text-[#70737c]">
+                    <dt className="whitespace-nowrap text-sm font-medium text-[#70737c]">
                       {label}
                     </dt>
-                    <dd className="text-lg font-medium text-[#171719]">
+                    <dd className="text-base font-medium whitespace-nowrap text-[#171719]">
                       {value}
                     </dd>
                   </div>
                 ))}
-                <div className="grid min-h-[60px] grid-cols-[76px_minmax(0,1fr)] items-start gap-4 pt-2">
-                  <dt className="pt-1 text-sm font-medium text-[#70737c]">
+                <div className="grid min-h-[71px] grid-cols-[92px_minmax(0,1fr)] items-start gap-2 pt-3">
+                  <dt className="pt-1 whitespace-nowrap text-sm font-medium text-[#70737c]">
                     근무 가능 시간
                   </dt>
                   <dd>
-                    <p className="text-lg font-medium text-[#171719]">
+                    <p className="text-base font-medium whitespace-nowrap text-[#171719]">
                       {details.workAvailabilitySummary}
                     </p>
                     <button
@@ -204,8 +229,35 @@ function EmployerHiredStudentDetailPage() {
                 등록
               </span>
             </div>
-            <div className="mt-2 min-h-[271px] rounded-xl border border-[rgba(112,115,124,0.16)] bg-white p-5 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
-              <ApplicantDocumentList documents={applicant.documents} />
+            <div className="mt-2 h-[271px] rounded-xl border border-[rgba(112,115,124,0.16)] bg-white p-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+              {expiryWarningDocuments.length > 0 && (
+                <div
+                  className="flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-[#c13c2d]"
+                  role="status"
+                >
+                  <span aria-hidden="true" className="text-base leading-none">
+                    ⓘ
+                  </span>
+                  <div className="space-y-1">
+                    {expiryWarningDocuments.map(
+                      ({ document, remainingDays }) => (
+                        <p key={document.id}>
+                          {document.name} 만료가 {remainingDays}일 남았어요.
+                          재발급이 필요해요.
+                        </p>
+                      ),
+                    )}
+                  </div>
+                </div>
+              )}
+              <div
+                className={expiryWarningDocuments.length > 0 ? "mt-1.5" : ""}
+              >
+                <ApplicantDocumentList
+                  documents={applicant.documents}
+                  compact={expiryWarningDocuments.length > 0}
+                />
+              </div>
             </div>
           </section>
         </div>

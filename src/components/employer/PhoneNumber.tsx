@@ -5,7 +5,9 @@ interface PhoneNumberProps {
 
 function PhoneNumber({ value, className = "" }: PhoneNumberProps) {
   const handleCopy = () => {
-    void navigator.clipboard?.writeText(value);
+    if (!navigator.clipboard) return;
+
+    void navigator.clipboard.writeText(value).catch(() => undefined);
   };
 
   return (
@@ -17,7 +19,7 @@ function PhoneNumber({ value, className = "" }: PhoneNumberProps) {
         type="button"
         onClick={handleCopy}
         aria-label={`${value} 복사`}
-        className="relative size-[16px] shrink-0 cursor-pointer"
+        className="relative size-[16px] shrink-0 cursor-pointer transition-opacity hover:opacity-70"
       >
         <span className="absolute top-0 left-0 size-3 border border-[#70737c] bg-white" />
         <span className="absolute top-1 left-1 size-3 border border-[#70737c] bg-[#e1e2e4]" />

@@ -21,7 +21,7 @@ function EmployerJobCard({
       <div className="flex min-w-0 items-center gap-[22px]">
         <div
           aria-hidden="true"
-          className={`size-12 shrink-0 ${isOpen ? "rounded-full bg-[#e1e2e4]" : "rounded-xl bg-[#f2f3f5]"}`}
+          className="size-12 shrink-0 rounded-full bg-[#e1e2e4]"
         />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
