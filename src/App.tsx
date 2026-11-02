@@ -539,6 +539,7 @@ function StudentMyRoute() {
 
   return (
     <StudentMyPage
+      isBottomNavigationFixed
       onMenuClick={handleMenuClick}
       onProfileEditClick={() => navigate('/student/my/profile')}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
