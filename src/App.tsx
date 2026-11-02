@@ -662,7 +662,18 @@ function StudentDocumentFlowRoute({
 function StudentWorkConditionRoute() {
   const navigate = useNavigate();
 
-  return <StudentWorkConditionPage onBack={() => navigate('/student/my')} />;
+  return (
+    <StudentWorkConditionPage
+      onBack={() => navigate('/student/my')}
+      onEditBasicInfo={() => navigate('/student/my/profile')}
+      onEditEligibleFields={() =>
+        navigate('/student/my/matching-condition/industry')
+      }
+      onEditWorkTime={() =>
+        navigate('/student/my/matching-condition/work-time')
+      }
+    />
+  );
 }
 
 function StudentProfileLayout() {

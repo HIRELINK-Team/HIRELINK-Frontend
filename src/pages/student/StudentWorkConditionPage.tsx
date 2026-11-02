@@ -7,6 +7,9 @@ import { StudentBottomNavigation } from '../../components/student/navigation/Stu
 
 type StudentWorkConditionPageProps = {
   onBack?: () => void;
+  onEditBasicInfo?: () => void;
+  onEditWorkTime?: () => void;
+  onEditEligibleFields?: () => void;
 };
 
 const ELIGIBLE_FIELDS = [
@@ -39,6 +42,9 @@ const ELIGIBLE_FIELDS = [
 
 export default function StudentWorkConditionPage({
   onBack,
+  onEditBasicInfo,
+  onEditWorkTime,
+  onEditEligibleFields,
 }: StudentWorkConditionPageProps) {
   return (
     <main className="relative mx-auto h-[914px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] px-6 pt-[61px] pb-[98px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
@@ -71,14 +77,14 @@ export default function StudentWorkConditionPage({
       </p>
 
       <section className="mt-[28px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px]">
-        <CardHeader title="기본 정보" />
+        <CardHeader title="기본 정보" onEdit={onEditBasicInfo} />
         <InfoRow label="체류자격" value="D-2-2 (학사)" />
         <InfoRow label="학적상태" value="재학 중" />
         <InfoRow label="한국어 능력" value="TOPIK 4급 (기준 충족)" />
       </section>
 
       <section className="mt-[10px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-[17px]">
-        <CardHeader title="근무시간 기준 (예상)" />
+        <CardHeader title="근무시간 기준 (예상)" onEdit={onEditWorkTime} />
         <InfoRow label="학기 중" value="주중 최대 25시간 기준" />
         <InfoRow label="방학 중" value="별도 기준 적용 가능" />
         <InfoRow label="주말·공휴일" value="별도 기준 적용 가능" />
@@ -88,7 +94,7 @@ export default function StudentWorkConditionPage({
       </section>
 
       <section className="mt-[10px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-5">
-        <CardHeader title="지원 가능 분야" />
+        <CardHeader title="지원 가능 분야" onEdit={onEditEligibleFields} />
         <ul className="m-0 mt-[12px] space-y-[7px] p-0">
           {ELIGIBLE_FIELDS.map((field) => (
             <li
@@ -122,13 +128,14 @@ export default function StudentWorkConditionPage({
   );
 }
 
-function CardHeader({ title }: { title: string }) {
+function CardHeader({ title, onEdit }: { title: string; onEdit?: () => void }) {
   return (
     <div className="flex items-center justify-between">
       <h2 className="m-0 text-[15px] leading-[1.5] font-bold">{title}</h2>
       <button
         className="h-[27px] rounded-[30px] border border-[#B0B8C1] px-[13px] text-[13px] leading-[1.5] text-[#4E5968]"
         type="button"
+        onClick={onEdit}
       >
         수정하기
       </button>
