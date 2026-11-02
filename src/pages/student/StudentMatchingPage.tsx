@@ -83,6 +83,7 @@ export default function StudentMatchingPage({
   };
 
   const handleApply = (job: RecommendedJob) => {
+    setSelectedJob(job);
     setMatchingView('startDate');
     onViewChange?.('startDate', job);
   };
@@ -233,6 +234,7 @@ export default function StudentMatchingPage({
           <RecommendedJobCard
             job={job}
             key={job.id}
+            onApply={handleApply}
             onDetailClick={handleDetailClick}
           />
         ))}

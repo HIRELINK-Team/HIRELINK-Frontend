@@ -4,13 +4,19 @@ import timerInactiveIcon from '../../../assets/icons/student/matching/timer-inac
 
 type RecommendedJobCardProps = {
   job: RecommendedJob;
+  onApply?: (job: RecommendedJob) => void;
   onDetailClick?: (job: RecommendedJob) => void;
 };
 
 export function RecommendedJobCard({
   job,
+  onApply,
   onDetailClick,
 }: RecommendedJobCardProps) {
+  const handleApply = () => {
+    onApply?.(job);
+  };
+
   const handleDetailClick = () => {
     onDetailClick?.(job);
   };
@@ -57,9 +63,13 @@ export function RecommendedJobCard({
         상세보기
       </button>
       {job.showsApplyButton ? (
-        <span className="absolute top-[162px] right-[23px] left-[23px] flex h-[51px] items-center justify-center rounded-[15px] bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5]">
+        <button
+          className="absolute top-[162px] right-[23px] left-[23px] flex h-[51px] items-center justify-center rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5]"
+          type="button"
+          onClick={handleApply}
+        >
           지원하기
-        </span>
+        </button>
       ) : null}
     </article>
   );
