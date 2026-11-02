@@ -54,7 +54,7 @@ export function MatchingOfferOverlay({
           메가커피가 함께 일하고 싶대요.
         </p>
         <p className="mt-[7px] mb-0 text-[13px] leading-[1.5]">
-          수락하면 다른 활성 지원은 자동으로 종료돼요.
+          수락 후에도 다른 지원은 그대로 유지돼요.
         </p>
       </div>
 
