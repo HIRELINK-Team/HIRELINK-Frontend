@@ -58,6 +58,7 @@ const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
   'hirelink.student.documents.guideAcknowledged';
 const STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY =
   'hirelink.student.matching.offerHandled';
+const STUDENT_PROFILE_SESSION_STORAGE_KEY = 'hirelink.student.profile.values';
 
 const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
   applications: '/student/applications',
@@ -90,6 +91,60 @@ type StudentProfileRouteContext = {
   profileValues: StudentProfileValues;
   saveProfile: (view: ProfileDetailView, values: readonly string[]) => void;
 };
+
+const PROFILE_DETAIL_VIEWS: readonly ProfileDetailView[] = [
+  'basic',
+  'residence',
+  'academic',
+  'language',
+];
+
+function isProfileDetailView(value: string): value is ProfileDetailView {
+  return PROFILE_DETAIL_VIEWS.includes(value as ProfileDetailView);
+}
+
+function getStoredStudentProfileValues(): StudentProfileValues {
+  if (typeof window === 'undefined') {
+    return {};
+  }
+
+  try {
+    const storedValues = window.sessionStorage.getItem(
+      STUDENT_PROFILE_SESSION_STORAGE_KEY,
+    );
+
+    if (!storedValues) {
+      return {};
+    }
+
+    const parsedValues: unknown = JSON.parse(storedValues);
+
+    if (
+      typeof parsedValues !== 'object' ||
+      parsedValues === null ||
+      Array.isArray(parsedValues)
+    ) {
+      return {};
+    }
+
+    return Object.entries(parsedValues).reduce<StudentProfileValues>(
+      (profileValues, [view, values]) => {
+        if (
+          isProfileDetailView(view) &&
+          Array.isArray(values) &&
+          values.every((value): value is string => typeof value === 'string')
+        ) {
+          profileValues[view] = values;
+        }
+
+        return profileValues;
+      },
+      {},
+    );
+  } catch {
+    return {};
+  }
+}
 
 type StudentMatchingJobState = 'accepted' | 'applied' | 'declined';
 
@@ -611,7 +666,20 @@ function StudentWorkConditionRoute() {
 }
 
 function StudentProfileLayout() {
-  const [profileValues, setProfileValues] = useState<StudentProfileValues>({});
+  const [profileValues, setProfileValues] = useState<StudentProfileValues>(
+    getStoredStudentProfileValues,
+  );
+
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem(
+        STUDENT_PROFILE_SESSION_STORAGE_KEY,
+        JSON.stringify(profileValues),
+      );
+    } catch {
+      // Mock persistence must not prevent profile editing when storage is unavailable.
+    }
+  }, [profileValues]);
 
   return (
     <Outlet

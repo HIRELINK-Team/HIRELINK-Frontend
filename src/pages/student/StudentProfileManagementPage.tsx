@@ -3,6 +3,15 @@ import { useState } from 'react';
 import backIcon from '../../assets/icons/student/documents/back.svg';
 import dropdownChevronIcon from '../../assets/icons/student/profile/dropdown-chevron.svg';
 import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
+import { ResidenceExpiryDatePicker } from '../../components/student/onboarding/ResidenceExpiryDatePicker';
+import {
+  ACADEMIC_STATUS_OPTIONS,
+  COUNTRY_OPTIONS,
+  KOREAN_LEVELS,
+  RESIDENCE_QUALIFICATION_OPTIONS,
+  TOPIK_LEVEL_OPTIONS,
+} from '../../constants/studentOnboardingOptions';
+import type { ResidenceQualification } from '../../types/residence';
 
 type ProfileManagementView =
   'main' | 'basic' | 'residence' | 'academic' | 'language';
@@ -86,7 +95,7 @@ const DETAIL_FIELDS: Record<
     { label: '한국어 수준', value: '중급', isSelectable: true },
   ],
   residence: [
-    { label: '체류자격', value: 'D-D-2', isSelectable: true },
+    { label: '체류자격', value: 'D-2-2 (학사)', isSelectable: true },
     { label: '체류기간 만료일', value: '2027.02.28', isSelectable: true },
     { label: '외국인 등록 여부', value: '등록 완료' },
   ],
@@ -107,30 +116,6 @@ const DETAIL_TITLES: Record<Exclude<ProfileManagementView, 'main'>, string> = {
   residence: '체류정보',
   academic: '학업정보',
   language: '어학정보',
-};
-
-const SELECTABLE_FIELD_VALUES: Record<
-  ProfileDetailView,
-  Partial<Record<number, readonly string[]>>
-> = {
-  academic: {
-    1: ['학사', '석사'],
-    2: ['재학 중', '휴학 중'],
-  },
-  basic: {
-    1: ['22세', '23세'],
-    2: ['베트남', '중국'],
-    3: ['서울 마포구', '서울 성동구'],
-    4: ['중급', '고급'],
-  },
-  language: {
-    0: ['4급', '5급'],
-    1: ['중', '상'],
-  },
-  residence: {
-    0: ['D-2', 'D-4'],
-    1: ['2027.02.28', '2027.08.31'],
-  },
 };
 
 const PROFILE_CARD_VALUE_MAPPINGS: Record<
@@ -174,20 +159,56 @@ function getProfileCards(profileValues: StudentProfileValues) {
   });
 }
 
-function getNextProfileValue(
-  view: ProfileDetailView,
-  fieldIndex: number,
-  value: string,
-) {
-  const options = SELECTABLE_FIELD_VALUES[view][fieldIndex];
+type ProfileSelectOption = {
+  label: string;
+};
 
-  if (!options) {
-    return value;
-  }
+function ProfileOptionSheet({
+  onClose,
+  onConfirm,
+  onSelect,
+  options,
+  selectedValue,
+  title,
+}: {
+  onClose: () => void;
+  onConfirm: () => void;
+  onSelect: (value: string) => void;
+  options: readonly ProfileSelectOption[];
+  selectedValue: string;
+  title: string;
+}) {
+  return (
+    <OnboardingBottomSheet
+      title={title}
+      options={options.map((option) => ({
+        label: option.label,
+        value: option.label,
+      }))}
+      selectedValue={selectedValue}
+      onSelect={onSelect}
+      onClose={onClose}
+      onConfirm={onConfirm}
+    />
+  );
+}
 
-  const currentIndex = options.indexOf(value);
+function formatProfileExpiryDate(date: string) {
+  return date.replaceAll('-', '.');
+}
 
-  return options[(currentIndex + 1) % options.length];
+function toProfileExpiryDate(date: string) {
+  return date.replaceAll('.', '-');
+}
+
+function getResidenceQualification(
+  qualificationLabel: string | undefined,
+): ResidenceQualification {
+  return (
+    RESIDENCE_QUALIFICATION_OPTIONS.find(
+      (option) => option.label === qualificationLabel,
+    )?.value ?? 'D2_2'
+  );
 }
 
 function EditableProfileValue({
@@ -341,9 +362,34 @@ function BasicInformationPage({
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
   );
+  const [openFieldIndex, setOpenFieldIndex] = useState<number | null>(null);
+  const [pendingValue, setPendingValue] = useState('');
+  const options =
+    openFieldIndex === 2
+      ? COUNTRY_OPTIONS.map((label) => ({ label }))
+      : openFieldIndex === 4
+        ? KOREAN_LEVELS.map(({ label }) => ({ label }))
+        : undefined;
+
+  const handleOpen = (index: 2 | 4) => {
+    setOpenFieldIndex(index);
+    setPendingValue(values[index] ?? fields[index]?.value ?? '');
+  };
+
+  const handleConfirm = () => {
+    if (openFieldIndex !== null) {
+      setValues((currentValues) =>
+        currentValues.map((value, index) =>
+          index === openFieldIndex ? pendingValue : value,
+        ),
+      );
+    }
+
+    setOpenFieldIndex(null);
+  };
 
   return (
-    <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         기본정보
@@ -355,16 +401,14 @@ function BasicInformationPage({
               {field.label}
             </p>
             <EditableProfileValue
-              field={{ ...field, value: values[index] ?? field.value }}
-              onChange={() =>
-                setValues((currentValues) =>
-                  currentValues.map((value, valueIndex) =>
-                    valueIndex === index
-                      ? getNextProfileValue('basic', index, value)
-                      : value,
-                  ),
-                )
-              }
+              field={{
+                ...field,
+                isSelectable: index === 2 || index === 4,
+                value: values[index] ?? field.value,
+              }}
+              onChange={() => {
+                if (index === 2 || index === 4) handleOpen(index);
+              }}
             />
           </div>
         ))}
@@ -376,6 +420,16 @@ function BasicInformationPage({
       >
         수정하기
       </button>
+      {openFieldIndex !== null && options ? (
+        <ProfileOptionSheet
+          title={fields[openFieldIndex]?.label ?? ''}
+          options={options}
+          selectedValue={pendingValue}
+          onSelect={setPendingValue}
+          onClose={() => setOpenFieldIndex(null)}
+          onConfirm={handleConfirm}
+        />
+      ) : null}
     </main>
   );
 }
@@ -392,9 +446,15 @@ function ResidenceInformationPage({
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
   );
+  const [isQualificationSheetOpen, setIsQualificationSheetOpen] =
+    useState(false);
+  const [isExpiryPickerOpen, setIsExpiryPickerOpen] = useState(false);
+  const [qualificationDraft, setQualificationDraft] = useState(
+    values[0] ?? fields[0]?.value ?? '',
+  );
 
   return (
-    <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         체류정보
@@ -406,16 +466,19 @@ function ResidenceInformationPage({
               {field.label}
             </p>
             <EditableProfileValue
-              field={{ ...field, value: values[index] ?? field.value }}
-              onChange={() =>
-                setValues((currentValues) =>
-                  currentValues.map((value, valueIndex) =>
-                    valueIndex === index
-                      ? getNextProfileValue('residence', index, value)
-                      : value,
-                  ),
-                )
-              }
+              field={{
+                ...field,
+                isSelectable: index === 0 || index === 1,
+                value: values[index] ?? field.value,
+              }}
+              onChange={() => {
+                if (index === 0) {
+                  setQualificationDraft(values[0] ?? field.value);
+                  setIsQualificationSheetOpen(true);
+                }
+
+                if (index === 1) setIsExpiryPickerOpen(true);
+              }}
             />
           </div>
         ))}
@@ -427,6 +490,37 @@ function ResidenceInformationPage({
       >
         수정하기
       </button>
+      {isQualificationSheetOpen ? (
+        <ProfileOptionSheet
+          title={fields[0]?.label ?? ''}
+          options={RESIDENCE_QUALIFICATION_OPTIONS}
+          selectedValue={qualificationDraft}
+          onSelect={setQualificationDraft}
+          onClose={() => setIsQualificationSheetOpen(false)}
+          onConfirm={() => {
+            setValues((currentValues) =>
+              currentValues.map((value, index) =>
+                index === 0 ? qualificationDraft : value,
+              ),
+            );
+            setIsQualificationSheetOpen(false);
+          }}
+        />
+      ) : null}
+      {isExpiryPickerOpen ? (
+        <ResidenceExpiryDatePicker
+          initialDate={toProfileExpiryDate(values[1] ?? '')}
+          onClose={() => setIsExpiryPickerOpen(false)}
+          onConfirm={(date) => {
+            setValues((currentValues) =>
+              currentValues.map((value, index) =>
+                index === 1 ? formatProfileExpiryDate(date) : value,
+              ),
+            );
+            setIsExpiryPickerOpen(false);
+          }}
+        />
+      ) : null}
     </main>
   );
 }
@@ -435,17 +529,25 @@ function AcademicInformationPage({
   fields,
   onBack,
   onSave,
+  residenceQualification,
 }: {
   fields: readonly ProfileField[];
   onBack: () => void;
   onSave: (values: readonly string[]) => void;
+  residenceQualification: ResidenceQualification;
 }) {
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
   );
+  const [isAcademicStatusSheetOpen, setIsAcademicStatusSheetOpen] =
+    useState(false);
+  const [academicStatusDraft, setAcademicStatusDraft] = useState(
+    values[2] ?? fields[2]?.value ?? '',
+  );
+  const academicStatusOptions = ACADEMIC_STATUS_OPTIONS[residenceQualification];
 
   return (
-    <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         학업정보
@@ -457,16 +559,17 @@ function AcademicInformationPage({
               {field.label}
             </p>
             <EditableProfileValue
-              field={{ ...field, value: values[index] ?? field.value }}
-              onChange={() =>
-                setValues((currentValues) =>
-                  currentValues.map((value, valueIndex) =>
-                    valueIndex === index
-                      ? getNextProfileValue('academic', index, value)
-                      : value,
-                  ),
-                )
-              }
+              field={{
+                ...field,
+                isSelectable: index === 2,
+                value: values[index] ?? field.value,
+              }}
+              onChange={() => {
+                if (index === 2) {
+                  setAcademicStatusDraft(values[index] ?? field.value);
+                  setIsAcademicStatusSheetOpen(true);
+                }
+              }}
             />
           </div>
         ))}
@@ -478,6 +581,23 @@ function AcademicInformationPage({
       >
         수정하기
       </button>
+      {isAcademicStatusSheetOpen ? (
+        <ProfileOptionSheet
+          title={fields[2]?.label ?? ''}
+          options={academicStatusOptions}
+          selectedValue={academicStatusDraft}
+          onSelect={setAcademicStatusDraft}
+          onClose={() => setIsAcademicStatusSheetOpen(false)}
+          onConfirm={() => {
+            setValues((currentValues) =>
+              currentValues.map((value, index) =>
+                index === 2 ? academicStatusDraft : value,
+              ),
+            );
+            setIsAcademicStatusSheetOpen(false);
+          }}
+        />
+      ) : null}
     </main>
   );
 }
@@ -497,9 +617,11 @@ function LanguageInformationPage({
   const [openFieldIndex, setOpenFieldIndex] = useState<number | null>(null);
   const [pendingValue, setPendingValue] = useState<string | null>(null);
   const options =
-    openFieldIndex === null
-      ? undefined
-      : SELECTABLE_FIELD_VALUES.language[openFieldIndex];
+    openFieldIndex === 0
+      ? TOPIK_LEVEL_OPTIONS.map(({ label }) => ({ label }))
+      : openFieldIndex === 1
+        ? KOREAN_LEVELS.map(({ label }) => ({ label }))
+        : undefined;
 
   const handleOpen = (index: number) => {
     setOpenFieldIndex(index);
@@ -550,9 +672,9 @@ function LanguageInformationPage({
         수정하기
       </button>
       {openFieldIndex !== null && options && pendingValue !== null ? (
-        <OnboardingBottomSheet
+        <ProfileOptionSheet
           title={fields[openFieldIndex]?.label ?? ''}
-          options={options.map((value) => ({ label: value, value }))}
+          options={options}
           selectedValue={pendingValue}
           onSelect={setPendingValue}
           onClose={handleClose}
@@ -638,6 +760,10 @@ export default function StudentProfileManagementPage({
         fields={getDetailFields('academic', resolvedProfileValues)}
         onBack={handleDetailBack}
         onSave={(values) => handleSave('academic', values)}
+        residenceQualification={getResidenceQualification(
+          resolvedProfileValues.residence?.[0] ??
+            DETAIL_FIELDS.residence[0]?.value,
+        )}
       />
     );
   }
