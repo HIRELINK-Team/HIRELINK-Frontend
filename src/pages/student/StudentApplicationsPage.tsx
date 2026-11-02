@@ -95,59 +95,62 @@ export default function StudentApplicationsPage({
   };
 
   return (
-    <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] px-6 pb-[104px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
-      <button
-        aria-label="뒤로 가기"
-        className="absolute top-[69px] left-[26px] flex h-4 w-2 items-center justify-center border-0 bg-transparent p-0"
-        type="button"
-        onClick={onBack}
-      >
-        <img alt="" className="block" src={backIcon} />
-      </button>
+    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+      <div className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-6">
+        <button
+          aria-label="뒤로 가기"
+          className="absolute top-[69px] left-[26px] flex h-4 w-2 items-center justify-center border-0 bg-transparent p-0"
+          type="button"
+          onClick={onBack}
+        >
+          <img alt="" className="block" src={backIcon} />
+        </button>
 
-      <h1 className="m-0 pt-[112px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
-        지원 내역
-      </h1>
-      <div className="mt-[15px] ml-0.5">
-        <ApplicationFilterTabs
-          activeFilter={activeFilter}
-          onChange={handleFilterChange}
+        <h1 className="m-0 pt-[112px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
+          지원 내역
+        </h1>
+        <div className="mt-[15px] ml-0.5">
+          <ApplicationFilterTabs
+            activeFilter={activeFilter}
+            onChange={handleFilterChange}
+          />
+        </div>
+
+        {isEmptyScenario ? (
+          <StudentApplicationsEmptyState />
+        ) : (
+          <section
+            className={`mt-[27px] ${
+              isGeneralLayout
+                ? 'space-y-[11px] [&>article:last-child]:-mt-px'
+                : isReviewingLayout
+                  ? 'space-y-[11px]'
+                  : 'space-y-[12px]'
+            }`}
+            aria-label="지원한 공고 목록"
+          >
+            {applications.map((application) => (
+              <StudentApplicationCard
+                application={application}
+                isGeneralLayout={isGeneralLayout || isReviewingLayout}
+                isHiredLayout={isHiredLayout}
+                key={application.id}
+                onAcceptOffer={handleAcceptOffer}
+                onDeclineOffer={onDeclineOffer}
+                onDetailClick={onDetailClick}
+              />
+            ))}
+          </section>
+        )}
+      </div>
+      <div className="relative h-[106px] shrink-0">
+        <StudentBottomNavigation
+          activeBackgroundClassName="bg-[#E5E8EB]/90"
+          activeTab="applications"
+          isFixed={isBottomNavigationFixed}
+          onTabChange={onTabChange}
         />
       </div>
-
-      {isEmptyScenario ? (
-        <StudentApplicationsEmptyState />
-      ) : (
-        <section
-          className={`mt-[27px] ${
-            isGeneralLayout
-              ? 'space-y-[11px] [&>article:last-child]:-mt-px'
-              : isReviewingLayout
-                ? 'space-y-[11px]'
-                : 'space-y-[12px]'
-          }`}
-          aria-label="지원한 공고 목록"
-        >
-          {applications.map((application) => (
-            <StudentApplicationCard
-              application={application}
-              isGeneralLayout={isGeneralLayout || isReviewingLayout}
-              isHiredLayout={isHiredLayout}
-              key={application.id}
-              onAcceptOffer={handleAcceptOffer}
-              onDeclineOffer={onDeclineOffer}
-              onDetailClick={onDetailClick}
-            />
-          ))}
-        </section>
-      )}
-
-      <StudentBottomNavigation
-        activeBackgroundClassName="bg-[#E5E8EB]/90"
-        activeTab="applications"
-        isFixed={isBottomNavigationFixed}
-        onTabChange={onTabChange}
-      />
     </main>
   );
 }
