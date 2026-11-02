@@ -21,7 +21,7 @@ type StudentMatchingConditionManagementPageProps = {
 
 const MATCHING_CONDITION_SUMMARIES = [
   { id: 'industry', label: '희망 직종', value: '음식점·카페' },
-  { id: 'location', label: '희망 근무지역', value: '음식점·카페' },
+  { id: 'location', label: '희망 근무지역', value: '주소 미입력' },
   {
     id: 'work-time',
     label: '희망 근무시간',
