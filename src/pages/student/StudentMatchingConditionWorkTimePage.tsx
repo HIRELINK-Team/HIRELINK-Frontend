@@ -93,7 +93,7 @@ export default function StudentMatchingConditionWorkTimePage({
       />
 
       <button
-        className="mt-[103px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className="mt-[154.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
         onClick={handleSave}
       >
