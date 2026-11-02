@@ -30,6 +30,7 @@ import StudentProfileManagementPage, {
 import StudentSplashPage from './pages/student/StudentSplashPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
+import { formatWorkAvailabilityRanges } from './utils/formatWorkAvailability';
 import { STUDENT_APPLICATIONS_MOCK } from './mocks/studentApplications';
 import { STUDENT_RECOMMENDED_JOBS } from './mocks/studentMatching';
 import StudentMatchingConditionIndustryPage from './pages/student/StudentMatchingConditionIndustryPage';
@@ -251,24 +252,9 @@ function formatMatchingConditionStartDate(date: string) {
 }
 
 function formatMatchingConditionWorkTime(workAvailability: WorkAvailability) {
-  const modeSummaries = [
-    { label: '일반', slots: workAvailability.daytime },
-    { label: '야간', slots: workAvailability.nighttime },
-  ]
-    .map(({ label, slots }) => ({
-      label,
-      selectedSlotCount: Object.values(slots).reduce(
-        (count, daySlots) => count + daySlots.length,
-        0,
-      ),
-    }))
-    .filter(({ selectedSlotCount }) => selectedSlotCount > 0)
-    .map(
-      ({ label, selectedSlotCount }) =>
-        `${label} ${selectedSlotCount}개 시간대 선택`,
-    );
+  const rangeLabels = formatWorkAvailabilityRanges(workAvailability);
 
-  return modeSummaries.length > 0 ? modeSummaries : ['선택한 근무시간 없음'];
+  return rangeLabels.length > 0 ? rangeLabels : ['선택한 근무시간 없음'];
 }
 
 function StudentSplashRoute() {
