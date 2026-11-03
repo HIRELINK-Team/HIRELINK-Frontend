@@ -330,6 +330,7 @@ function StudentOnboardingRoute() {
 
   return (
     <StudentOnboardingPage
+      onBack={() => navigate('/student/entry')}
       onComplete={() => navigate('/student/home', { replace: true })}
     />
   );

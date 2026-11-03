@@ -70,6 +70,7 @@ type OnboardingView =
 
 type StudentOnboardingPageProps = {
   initialStep?: OnboardingView;
+  onBack?: () => void;
   onComplete?: () => void;
 };
 
@@ -237,6 +238,7 @@ function isValidPhone(value: string) {
 
 export default function StudentOnboardingPage({
   initialStep = 'name',
+  onBack,
   onComplete,
 }: StudentOnboardingPageProps) {
   const [experienceDraft, setExperienceDraft] = useState<ExperienceDraft>(
@@ -1124,7 +1126,10 @@ export default function StudentOnboardingPage({
   }
 
   const handleBack = () => {
-    if (currentIndex === 0) return;
+    if (currentIndex === 0) {
+      onBack?.();
+      return;
+    }
 
     setPhoneError('');
     setVerificationError('');
