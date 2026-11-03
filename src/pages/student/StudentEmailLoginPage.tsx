@@ -52,7 +52,7 @@ export default function StudentEmailLoginPage({
         />
       </button>
 
-      <div className="absolute inset-0 translate-y-[min(0px,calc(100dvh-844px))]">
+      <div className="absolute inset-0 translate-y-[min(0px,calc(100dvh-776px))]">
         <div className="absolute top-[189px] left-[calc(50%-99px)] h-[31.137px] w-[32.688px]">
           <img
             alt=""
