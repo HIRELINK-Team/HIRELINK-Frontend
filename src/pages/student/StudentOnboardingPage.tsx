@@ -538,7 +538,7 @@ export default function StudentOnboardingPage({
 
   if (step === 'ageRestricted') {
     return (
-      <main className="mx-auto flex h-[844px] w-full max-w-[390px] flex-col items-center bg-[#F5F5F5] px-6 pt-[262px] pb-[calc(37px+env(safe-area-inset-bottom))] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+      <main className="mx-auto flex h-[min(844px,100dvh)] w-full max-w-[390px] flex-col items-center bg-[#F5F5F5] px-6 pt-[262px] pb-[calc(37px+env(safe-area-inset-bottom))] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
         <img alt="" className="h-auto w-[106px]" src={ageRestrictionImage} />
         <h1 className="mt-[14px] mb-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold">
           아직은 서비스를{`\n`}이용할 수 없어요
