@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import entryIllustration from '../../assets/images/student/entry/entry-illustration.png';
 import googleIcon from '../../assets/images/student/entry/google.png';
+import hirelinkWordmark from '../../assets/images/student/entry/hirelink-wordmark.svg';
 import kakaoIcon from '../../assets/images/student/entry/kakao.png';
 import { EmployerEntryNotice } from '../../components/student/onboarding/EmployerEntryNotice';
 
@@ -37,15 +38,17 @@ export default function StudentEntryOnboardingPage({
     <main className="relative mx-auto flex h-[min(844px,100dvh)] w-[390px] max-w-none flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <img
         alt=""
-        className="absolute inset-0 h-full w-full object-cover object-bottom"
+        className="absolute top-[min(0px,calc(100dvh-820px))] left-0 h-[844px] w-[390px] max-w-none object-cover object-bottom"
         src={entryIllustration}
       />
 
-      <span className="absolute top-[171px] left-[calc(50%-106px)] z-10 whitespace-nowrap text-[39.76px] leading-none font-black italic tracking-[-0.04em] text-[#F5F5F5]">
-        HIRELINK
-      </span>
+      <img
+        alt="HIRELINK"
+        className="absolute top-[clamp(40px,calc(100dvh-649px),171px)] left-1/2 z-10 h-[28px] w-[212px] -translate-x-1/2"
+        src={hirelinkWordmark}
+      />
 
-      <section className="relative z-10 mt-auto h-[298px] rounded-t-[30px] bg-[#F5F5F5] px-6 pt-6 pb-[calc(23px+env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(0,0,0,0.05)]">
+      <section className="relative z-10 mt-auto h-[274px] rounded-t-[30px] bg-[#F5F5F5] px-6 pt-[18px] pb-[calc(11px+env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(0,0,0,0.05)]">
         <button
           className="mx-auto block border-0 bg-transparent p-0 text-[15px] leading-normal underline"
           type="button"
