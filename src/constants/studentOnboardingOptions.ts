@@ -13,7 +13,9 @@ export const COUNTRY_OPTIONS = [
   '우즈베키스탄',
   '일본',
   '기타',
-];
+] as const;
+
+export type CountryOption = (typeof COUNTRY_OPTIONS)[number];
 
 export const KOREAN_LEVELS: Array<{
   description: string;

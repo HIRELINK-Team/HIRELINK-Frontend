@@ -7,7 +7,7 @@ import locationIcon from '../../assets/icons/student/location.svg';
 import searchIcon from '../../assets/icons/student/search.svg';
 import clearIcon from '../../assets/icons/student/clear.svg';
 import ageRestrictionImage from '../../assets/images/student/age-restriction.png';
-import vietnamFlagImage from '../../assets/images/student/vietnam-flag.png';
+import { COUNTRY_ICON_BY_NAME } from '../../constants/studentCountryIcons';
 import {
   ACADEMIC_STATUS_OPTIONS,
   COUNTRY_OPTIONS,
@@ -28,7 +28,10 @@ import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
 import type { Experience, ExperienceDraft } from '../../types/experience';
 import type { IndustryId, IndustryOption } from '../../types/industry';
 import type { MatchingPriority } from '../../types/matchingPriority';
-import type { KoreanLevel } from '../../constants/studentOnboardingOptions';
+import type {
+  CountryOption,
+  KoreanLevel,
+} from '../../constants/studentOnboardingOptions';
 import type {
   AcademicStatus,
   ResidenceInfo,
@@ -80,7 +83,7 @@ type BasicInfo = {
   koreanLevel: KoreanLevel;
   location: string;
   name: string;
-  nationality: string;
+  nationality: CountryOption;
   phone: string;
   verificationCode: string;
 };
@@ -1285,17 +1288,17 @@ export default function StudentOnboardingPage({
           <span className="block text-[17px] leading-[1.5] text-[#191F28]">
             국적
           </span>
-          {info.nationality === '베트남' ? (
-            <img
-              alt=""
-              className="pointer-events-none absolute top-[41px] left-0 h-[23px] w-[23px] object-cover"
-              src={vietnamFlagImage}
-            />
-          ) : null}
+          <img
+            alt=""
+            className="pointer-events-none absolute top-[41px] left-0 h-[23px] w-[23px] object-contain"
+            src={COUNTRY_ICON_BY_NAME[info.nationality]}
+          />
           <select
             className="h-[57px] w-full appearance-auto border-0 border-b border-[#B0B8C1] bg-transparent py-0 pr-0 pl-[37px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28] outline-none"
             value={info.nationality}
-            onChange={(event) => updateInfo('nationality', event.target.value)}
+            onChange={(event) =>
+              updateInfo('nationality', event.target.value as CountryOption)
+            }
           >
             {COUNTRY_OPTIONS.map((country) => (
               <option key={country}>{country}</option>
