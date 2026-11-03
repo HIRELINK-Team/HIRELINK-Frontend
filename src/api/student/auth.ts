@@ -21,3 +21,13 @@ export async function refreshAccessToken(): Promise<void> {
     },
   });
 }
+
+export async function logoutStudent(): Promise<void> {
+  const { headerName, token } = await getAuthCsrfToken();
+
+  await apiClient.post('/api/auth/logout', undefined, {
+    headers: {
+      [headerName]: token,
+    },
+  });
+}
