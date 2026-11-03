@@ -7,3 +7,8 @@ export interface ApiErrorResponse {
   code: string;
   message: string;
 }
+
+export interface CsrfTokenResponse {
+  headerName: string;
+  token: string;
+}
