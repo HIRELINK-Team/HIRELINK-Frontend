@@ -7,6 +7,7 @@ import locationIcon from '../../assets/icons/student/location.svg';
 import searchIcon from '../../assets/icons/student/search.svg';
 import clearIcon from '../../assets/icons/student/clear.svg';
 import ageRestrictionImage from '../../assets/images/student/age-restriction.png';
+import vietnamFlagImage from '../../assets/images/student/vietnam-flag.png';
 import {
   ACADEMIC_STATUS_OPTIONS,
   COUNTRY_OPTIONS,
@@ -1280,10 +1281,17 @@ export default function StudentOnboardingPage({
       ) : null}
 
       {step === 'nationality' ? (
-        <label className="mt-[27px] block">
+        <label className="relative mt-[27px] block">
           <span className="block text-[17px] leading-[1.5] text-[#191F28]">
             국적
           </span>
+          {info.nationality === '베트남' ? (
+            <img
+              alt=""
+              className="pointer-events-none absolute top-[41px] left-0 h-[23px] w-[23px] object-cover"
+              src={vietnamFlagImage}
+            />
+          ) : null}
           <select
             className="h-[57px] w-full appearance-auto border-0 border-b border-[#B0B8C1] bg-transparent py-0 pr-0 pl-[37px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28] outline-none"
             value={info.nationality}
