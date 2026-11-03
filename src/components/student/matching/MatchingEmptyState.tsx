@@ -13,7 +13,7 @@ export function MatchingEmptyState({ onConfirm }: MatchingEmptyStateProps) {
   return (
     <section
       aria-labelledby="matching-empty-title"
-      className="relative h-[844px] bg-[#F5F5F5]"
+      className="relative h-full bg-[#F5F5F5]"
     >
       <div className="absolute top-[262px] left-1/2 h-[127px] w-[106px] -translate-x-1/2">
         <img
