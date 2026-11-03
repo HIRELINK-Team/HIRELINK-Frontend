@@ -1,15 +1,17 @@
+import axios from 'axios';
 import { useState } from 'react';
 
 import backIcon from '../../assets/icons/student/entry-email-back.svg';
 import googleIcon from '../../assets/images/student/entry/google.png';
 import hirelinkLogoIcon from '../../assets/images/student/entry/hirelink-logo-mint.svg';
 import kakaoIcon from '../../assets/images/student/entry/kakao.png';
+import type { ApiErrorResponse, EmailLoginRequest } from '../../types/auth';
 
 type SocialProvider = 'google' | 'kakao';
 
 type StudentEmailLoginPageProps = {
   onBack: () => void;
-  onLogin: () => void;
+  onLogin: (request: EmailLoginRequest) => Promise<void> | void;
   onSignup: () => void;
   onSocialLogin: (provider: SocialProvider) => void;
 };
@@ -23,18 +25,40 @@ export default function StudentEmailLoginPage({
 }: StudentEmailLoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onLogin();
+
+    if (isLoading) return;
+
+    setErrorMessage(null);
+    setIsLoading(true);
+
+    try {
+      await onLogin({ email, password });
+    } catch (error: unknown) {
+      const responseMessage = axios.isAxiosError<ApiErrorResponse>(error)
+        ? error.response?.data.message
+        : undefined;
+
+      setErrorMessage(
+        responseMessage ?? '로그인에 실패했어요. 잠시 후 다시 시도해주세요.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
+    setErrorMessage(null);
   };
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(event.target.value);
+    setErrorMessage(null);
   };
 
   return (
@@ -89,10 +113,19 @@ export default function StudentEmailLoginPage({
           </label>
           <button
             className="absolute top-[457px] right-[25px] left-[25px] h-16 rounded-[35px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+            disabled={isLoading}
             type="submit"
           >
-            로그인
+            {isLoading ? '로그인 중...' : '로그인'}
           </button>
+          {errorMessage && (
+            <p
+              className="absolute top-[527px] right-[25px] left-[25px] m-0 text-center text-[13px] leading-5 text-[#E05260]"
+              role="alert"
+            >
+              {errorMessage}
+            </p>
+          )}
         </form>
 
         <div

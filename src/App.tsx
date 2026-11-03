@@ -9,6 +9,7 @@ import {
   useParams,
 } from 'react-router-dom';
 
+import { loginStudent } from './api/student';
 import EmployerApplicantsProvider from './components/employer/EmployerApplicantsProvider';
 import EmployerLayout from './components/employer/EmployerLayout';
 import EmployerJobsProvider from './components/employer/EmployerJobsProvider';
@@ -307,7 +308,10 @@ function StudentLoginRoute() {
   return (
     <StudentEmailLoginPage
       onBack={() => navigate('/student/entry')}
-      onLogin={() => navigate('/student/onboarding')}
+      onLogin={async (request) => {
+        await loginStudent(request);
+        navigate('/student/onboarding');
+      }}
       onSignup={() => navigate('/student/signup')}
       onSocialLogin={() => navigate('/student/onboarding')}
     />
