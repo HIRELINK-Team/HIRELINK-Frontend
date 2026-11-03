@@ -237,6 +237,15 @@ function EmployerOnboardingPage() {
     }));
   };
 
+  const updateBusinessFields = (
+    fields: Partial<EmployerOnboardingForm["business"]>,
+  ) => {
+    setForm((current) => ({
+      ...current,
+      business: { ...current.business, ...fields },
+    }));
+  };
+
   const handlePhonePartChange = (index: number, value: string) => {
     const nextParts = [...form.manager.phoneParts] as [string, string, string];
     const maxLength = index === 0 ? 3 : 4;
@@ -261,8 +270,34 @@ function EmployerOnboardingPage() {
     ];
     const maxLength = [3, 2, 5][index];
     nextParts[index] = value.replace(/\D/g, "").slice(0, maxLength);
-    updateBusiness("registrationNumberParts", nextParts);
+    updateBusinessFields({ registrationNumberParts: nextParts });
     setIsRegistrationChecked(false);
+  };
+
+  const applyBusinessAutofill = ({
+    registrationNumber,
+    address,
+  }: {
+    registrationNumber?: string;
+    address?: string;
+  }) => {
+    const fields: Partial<EmployerOnboardingForm["business"]> = {};
+
+    if (registrationNumber !== undefined) {
+      const digits = registrationNumber.replace(/\D/g, "");
+      fields.registrationNumberParts = [
+        digits.slice(0, 3),
+        digits.slice(3, 5),
+        digits.slice(5, 10),
+      ];
+      setIsRegistrationChecked(false);
+    }
+
+    if (address !== undefined) {
+      fields.address = address;
+    }
+
+    updateBusinessFields(fields);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -422,28 +457,6 @@ function EmployerOnboardingPage() {
             </label>
 
             <div className="mt-6">
-              <FieldLabel>사업자 등록 번호</FieldLabel>
-              <div className="grid grid-cols-[minmax(0,1fr)_96px] gap-2">
-                <SplitNumberInput
-                  parts={form.business.registrationNumberParts}
-                  lengths={[3, 2, 5]}
-                  label="사업자 등록 번호"
-                  onChange={handleRegistrationNumberChange}
-                />
-                <button
-                  type="button"
-                  disabled={
-                    !isRegistrationNumberComplete || isRegistrationChecked
-                  }
-                  onClick={() => setIsRegistrationChecked(true)}
-                  className="h-[58px] cursor-pointer rounded-xl bg-[#00b894] text-base font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
-                >
-                  {isRegistrationChecked ? "조회 완료" : "조회"}
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-6">
               <FieldLabel>사업자등록증</FieldLabel>
               <p className="mb-2 text-[13px] text-[#70737c]">
                 5MB 이하의 PDF, JPG, PNG 파일만 올릴 수 있어요
@@ -472,29 +485,25 @@ function EmployerOnboardingPage() {
             </div>
 
             <div className="mt-6">
-              <FormSelect<EmployerIndustryCode>
-                label="업종"
-                value={form.business.industry}
-                options={EMPLOYER_INDUSTRY_OPTIONS}
-                placeholder="업종을 선택해주세요"
-                name="industry"
-                openSelect={openSelect}
-                onOpenSelect={setOpenSelect}
-                onChange={(value) => updateBusiness("industry", value)}
-              />
-            </div>
-
-            <div className="mt-6">
-              <FormSelect<EmployeeCountCode>
-                label="직원 수"
-                value={form.business.employeeCount}
-                options={EMPLOYEE_COUNT_OPTIONS}
-                placeholder="직원 수 범위를 선택해주세요"
-                name="employeeCount"
-                openSelect={openSelect}
-                onOpenSelect={setOpenSelect}
-                onChange={(value) => updateBusiness("employeeCount", value)}
-              />
+              <FieldLabel>사업자 등록 번호</FieldLabel>
+              <div className="grid grid-cols-[minmax(0,1fr)_96px] gap-2">
+                <SplitNumberInput
+                  parts={form.business.registrationNumberParts}
+                  lengths={[3, 2, 5]}
+                  label="사업자 등록 번호"
+                  onChange={handleRegistrationNumberChange}
+                />
+                <button
+                  type="button"
+                  disabled={
+                    !isRegistrationNumberComplete || isRegistrationChecked
+                  }
+                  onClick={() => setIsRegistrationChecked(true)}
+                  className="h-[58px] cursor-pointer rounded-xl bg-[#00b894] text-base font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
+                >
+                  {isRegistrationChecked ? "조회 완료" : "조회"}
+                </button>
+              </div>
             </div>
 
             <div className="mt-6">
@@ -526,6 +535,32 @@ function EmployerOnboardingPage() {
                 placeholder="상세 주소를 입력해주세요"
                 aria-label="상세 주소"
                 className={`${inputClassName} mt-2`}
+              />
+            </div>
+
+            <div className="mt-6">
+              <FormSelect<EmployerIndustryCode>
+                label="업종"
+                value={form.business.industry}
+                options={EMPLOYER_INDUSTRY_OPTIONS}
+                placeholder="업종을 선택해주세요"
+                name="industry"
+                openSelect={openSelect}
+                onOpenSelect={setOpenSelect}
+                onChange={(value) => updateBusiness("industry", value)}
+              />
+            </div>
+
+            <div className="mt-6">
+              <FormSelect<EmployeeCountCode>
+                label="직원 수"
+                value={form.business.employeeCount}
+                options={EMPLOYEE_COUNT_OPTIONS}
+                placeholder="직원 수 범위를 선택해주세요"
+                name="employeeCount"
+                openSelect={openSelect}
+                onOpenSelect={setOpenSelect}
+                onChange={(value) => updateBusiness("employeeCount", value)}
               />
             </div>
 
@@ -608,7 +643,7 @@ function EmployerOnboardingPage() {
           addresses={EMPLOYER_ADDRESS_MOCKS}
           onClose={() => setIsAddressModalOpen(false)}
           onSelect={(address) => {
-            updateBusiness("address", address.roadAddress);
+            applyBusinessAutofill({ address: address.roadAddress });
             setIsAddressModalOpen(false);
           }}
         />
