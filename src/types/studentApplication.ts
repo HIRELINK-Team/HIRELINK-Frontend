@@ -26,6 +26,20 @@ export type StudentApplicationsResponse = {
   applications: StudentApplication[];
 };
 
+export type CreateStudentApplicationRequest = {
+  jobPostingId: number;
+  desiredStartDate: string;
+};
+
+export type CreateStudentApplicationResponse = {
+  applicationId: number;
+  jobPostingId: number;
+  desiredStartDate: string;
+  status: 'WAITING_RESPONSE';
+  appliedAt: string;
+  employerResponseDeadline: string;
+};
+
 export type StudentApplicationStatus =
   | 'REVIEWING'
   | 'OFFER_WAITING'

@@ -1,6 +1,8 @@
 import { apiClient } from '../client';
 
 import type {
+  CreateStudentApplicationRequest,
+  CreateStudentApplicationResponse,
   StudentApplicationApiStatus,
   StudentApplicationsResponse,
 } from '../../types/studentApplication';
@@ -13,12 +15,12 @@ function applicationPath(applicationId: string | number) {
   return `/api/applications/${encodeURIComponent(String(applicationId))}`;
 }
 
-export async function createStudentApplication<TResponse = unknown>(
-  requestBody: unknown,
-): Promise<TResponse> {
+export async function createStudentApplication(
+  requestBody: CreateStudentApplicationRequest,
+): Promise<CreateStudentApplicationResponse> {
   // The server limits reviewing applicants to five and prevents reapplication.
   // A successful application starts the employer's 24-hour response window.
-  const { data } = await apiClient.post<TResponse>(
+  const { data } = await apiClient.post<CreateStudentApplicationResponse>(
     '/api/applications',
     requestBody,
   );

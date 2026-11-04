@@ -5,6 +5,7 @@ import profileImage from '../../../assets/images/student/matching/application-pr
 import type { RecommendedJob } from '../../../types/studentMatching';
 
 type ApplicationConfirmationStepProps = {
+  isSubmitting?: boolean;
   job: RecommendedJob;
   workStartDate: string;
   onBack: () => void;
@@ -41,6 +42,7 @@ function InformationCard({ description, image, title }: InformationCardProps) {
 
 /** Final local review step before sending a student application. */
 export function ApplicationConfirmationStep({
+  isSubmitting = false,
   job,
   workStartDate,
   onBack,
@@ -109,7 +111,9 @@ export function ApplicationConfirmationStep({
       </div>
 
       <button
+        aria-busy={isSubmitting}
         className="absolute right-6 bottom-[37px] left-6 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
+        disabled={isSubmitting}
         type="button"
         onClick={onConfirm}
       >

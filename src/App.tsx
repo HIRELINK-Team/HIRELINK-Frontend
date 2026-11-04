@@ -12,6 +12,7 @@ import {
 import { setAccessToken } from './api/accessToken';
 import {
   acceptStudentEmploymentOffer,
+  createStudentApplication,
   getStudentMatchingPreferences,
   getMyStudentApplications,
   getEmploymentMatch,
@@ -495,6 +496,23 @@ function StudentMatchingRoute() {
       initialSelectedJob={mockOfferJob}
       initialView={mockOfferJob ? 'offer' : 'result'}
       isRecommendationsLoading={isRecommendationsLoading}
+      onApplicationSubmit={async (job, desiredStartDate) => {
+        if (job.jobPostingId === undefined) {
+          window.alert('지원할 공고 정보를 확인할 수 없어요.');
+          return false;
+        }
+
+        try {
+          await createStudentApplication({
+            desiredStartDate,
+            jobPostingId: job.jobPostingId,
+          });
+          return true;
+        } catch {
+          window.alert('지원에 실패했어요. 잠시 후 다시 시도해주세요.');
+          return false;
+        }
+      }}
       onBack={() => navigate('/student/home')}
       onOfferAction={(action, job) => {
         updateOfferState(action, job);

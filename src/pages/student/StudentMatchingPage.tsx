@@ -29,6 +29,10 @@ type StudentMatchingPageProps = {
   isRecommendationsLoading?: boolean;
   onBack?: () => void;
   onOfferAction?: (action: StudentOfferAction, job: RecommendedJob) => void;
+  onApplicationSubmit?: (
+    job: RecommendedJob,
+    desiredStartDate: string,
+  ) => Promise<boolean>;
   onRecommendationRefresh?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onViewChange?: (
@@ -45,6 +49,7 @@ export default function StudentMatchingPage({
   initialView = 'result',
   isRecommendationsLoading = false,
   onBack,
+  onApplicationSubmit,
   onOfferAction,
   onRecommendationRefresh,
   onTabChange,
@@ -63,6 +68,7 @@ export default function StudentMatchingPage({
   const [isRefreshPopupOpen, setIsRefreshPopupOpen] = useState(
     initialRefreshPopupOpen,
   );
+  const [isApplicationSubmitting, setIsApplicationSubmitting] = useState(false);
   const recommendedJobs = recommendations.slice(0, MAX_RECOMMENDED_JOBS);
 
   const handleBack = () => {
@@ -113,10 +119,22 @@ export default function StudentMatchingPage({
     setMatchingView('startDate');
   };
 
-  const handleApplicationConfirmation = () => {
-    if (selectedJob) {
-      setMatchingView('complete');
-      onViewChange?.('complete', selectedJob);
+  const handleApplicationConfirmation = async () => {
+    if (!selectedJob || isApplicationSubmitting) return;
+
+    setIsApplicationSubmitting(true);
+
+    try {
+      const didSubmit = onApplicationSubmit
+        ? await onApplicationSubmit(selectedJob, workStartDate)
+        : true;
+
+      if (didSubmit) {
+        setMatchingView('complete');
+        onViewChange?.('complete', selectedJob);
+      }
+    } finally {
+      setIsApplicationSubmitting(false);
     }
   };
 
@@ -182,6 +200,7 @@ export default function StudentMatchingPage({
   if (matchingView === 'confirm' && selectedJob) {
     return (
       <ApplicationConfirmationStep
+        isSubmitting={isApplicationSubmitting}
         job={selectedJob}
         workStartDate={workStartDate}
         onBack={handleConfirmationBack}
