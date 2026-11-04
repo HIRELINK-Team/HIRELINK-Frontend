@@ -3,6 +3,7 @@ import hiringCompleteIllustration from '../../assets/images/student/matching/app
 import type { RecommendedJob } from '../../types/studentMatching';
 
 type StudentHiringCompletePageProps = {
+  contactName?: string | null;
   contactPhone?: string | null;
   isMatchDetailLoading?: boolean;
   job: RecommendedJob;
@@ -13,6 +14,7 @@ type StudentHiringCompletePageProps = {
 
 /** The completion state shown immediately after a student accepts an offer. */
 export default function StudentHiringCompletePage({
+  contactName = '채용 연락처',
   contactPhone = '010-1234-5678',
   isMatchDetailLoading = false,
   job,
@@ -55,9 +57,11 @@ export default function StudentHiringCompletePage({
         <h2 className="absolute top-[20px] left-[23px] m-0 text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
           {job.companyName}
         </h2>
-        <p className="absolute top-[57px] left-[23px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
-          채용 연락처
-        </p>
+        {contactName ? (
+          <p className="absolute top-[57px] left-[23px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
+            {contactName}
+          </p>
+        ) : null}
         {contactPhone ? (
           <span className="absolute top-[87px] left-[23px] text-[15px] leading-[1.5] font-medium tracking-[-0.02em] text-[#009376] underline underline-offset-2">
             T. {contactPhone}

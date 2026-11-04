@@ -1,24 +1,30 @@
 import { apiClient } from '../client';
 
+import type {
+  StudentEmploymentMatchesResponse,
+  StudentEmploymentMatchResponse,
+} from '../../types/studentMatch';
+
 type MatchListParams = {
   jobPostingId?: string | number;
 };
 
-export async function getMyEmploymentMatches<TResponse = unknown>(
+export async function getMyEmploymentMatches(
   params: MatchListParams = {},
-): Promise<TResponse> {
-  const { data } = await apiClient.get<TResponse>('/api/matches/me', {
-    params,
-  });
+): Promise<StudentEmploymentMatchesResponse> {
+  const { data } = await apiClient.get<StudentEmploymentMatchesResponse>(
+    '/api/matches/me',
+    { params },
+  );
 
   return data;
 }
 
-export async function getEmploymentMatch<TResponse = unknown>(
+export async function getEmploymentMatch(
   matchId: string | number,
-): Promise<TResponse> {
+): Promise<StudentEmploymentMatchResponse> {
   // Only a party to the employment match may view its detail and contact data.
-  const { data } = await apiClient.get<TResponse>(
+  const { data } = await apiClient.get<StudentEmploymentMatchResponse>(
     `/api/matches/${encodeURIComponent(String(matchId))}`,
   );
 

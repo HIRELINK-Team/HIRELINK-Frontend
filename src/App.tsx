@@ -87,6 +87,7 @@ import type {
   StudentNotificationSettings,
 } from './types/studentNotification';
 import type { StudentMyMenuId } from './types/studentMy';
+import type { StudentEmploymentMatchContact } from './types/studentMatch';
 import type { WorkAvailability } from './types/workAvailability';
 import type { WorkLocation } from './types/workLocation';
 
@@ -549,6 +550,7 @@ function StudentMatchingHiringCompleteRoute() {
 
   return (
     <StudentHiringCompletePage
+      contactName={null}
       contactPhone={null}
       job={acceptedJob}
       onBack={() => navigate('/student/matching')}
@@ -686,6 +688,10 @@ function StudentHiringCompleteRoute() {
     (candidate) => candidate.id === applicationId,
   );
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
+  const [loadedMatchContact, setLoadedMatchContact] = useState<{
+    contact: StudentEmploymentMatchContact;
+    matchId: number;
+  } | null>(null);
   const isMatchDetailLoading =
     application?.matchId !== null &&
     application?.matchId !== undefined &&
@@ -699,6 +705,11 @@ function StudentHiringCompleteRoute() {
     let isActive = true;
 
     void getEmploymentMatch(matchId)
+      .then((match) => {
+        if (isActive) {
+          setLoadedMatchContact({ contact: match.contact, matchId });
+        }
+      })
       .catch(() => {
         // Keep the confirmed application data when match detail cannot load.
       })
@@ -717,9 +728,16 @@ function StudentHiringCompleteRoute() {
     return <Navigate replace to="/student/applications" />;
   }
 
+  const matchContact =
+    loadedMatchContact !== null &&
+    loadedMatchContact.matchId === application.matchId
+      ? loadedMatchContact.contact
+      : null;
+
   return (
     <StudentHiringCompletePage
-      contactPhone={null}
+      contactName={matchContact?.name ?? null}
+      contactPhone={matchContact?.phoneNumber ?? null}
       isMatchDetailLoading={isMatchDetailLoading}
       job={application.job}
       onBack={() => navigate('/student/applications')}
