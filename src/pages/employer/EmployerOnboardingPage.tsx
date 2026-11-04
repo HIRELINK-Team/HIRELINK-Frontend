@@ -1,14 +1,18 @@
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SelectField from '../../components/common/SelectField';
 import EmployerAddressSearchModal from '../../components/employer/EmployerAddressSearchModal';
 import hirelinkLogo from '../../assets/hirelink-logo.svg';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
 import {
+  createWorkplace,
   extractBusinessRegistration,
   verifyBusinessRegistration,
 } from '../../api/workplaces';
 import {
+  BETA_DEFAULT_WORKPLACE_COORDINATES,
   EMPLOYEE_COUNT_OPTIONS,
+  EMPLOYEE_COUNT_RANGE_BY_CODE,
   MAX_REGISTRATION_FILE_SIZE,
   MOCK_PHONE_VERIFICATION_CODE,
   REFERRAL_SOURCE_OPTIONS,
@@ -17,6 +21,7 @@ import {
   EMPLOYER_ADDRESS_MOCKS,
   EMPLOYER_INDUSTRY_OPTIONS,
 } from '../../data/employerProfileData';
+import { useEmployerProfile } from '../../hooks/useEmployerProfile';
 import type { SelectOption } from '../../components/common/SelectField';
 import type {
   EmployerOnboardingForm,
@@ -25,6 +30,7 @@ import type {
   ReferralSourceCode,
 } from '../../types/employerOnboarding';
 import type { EmployerIndustryCode } from '../../types/employerProfile';
+import type { CreateWorkplaceRequest } from '../../types/workplace';
 
 type OpenSelect = 'referral' | 'industry' | 'employeeCount' | null;
 
@@ -94,6 +100,25 @@ function getVerificationErrorMessage(error: unknown) {
     return '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
 
   return apiError?.message ?? '사업자등록번호를 조회하지 못했어요.';
+}
+
+function getWorkplaceCreationErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+
+  if (status === 400)
+    return apiError?.message ?? '사업장 정보를 다시 확인해 주세요.';
+  if (status === 401) return '로그인 정보를 확인하지 못했습니다.';
+  if (status === 403) return '사업주 계정만 사업장을 등록할 수 있어요.';
+  if (status === 404) return '선택한 업종 정보를 찾지 못했어요.';
+  if (status === 409) return '이미 등록된 사업자등록번호예요.';
+  if (status === 415) return '사업장 등록 요청 형식이 올바르지 않아요.';
+  if (status === 502)
+    return '국세청 조회 서비스에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.';
+  if (status && status >= 500)
+    return '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+
+  return apiError?.message ?? '사업장을 등록하지 못했어요.';
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -233,15 +258,19 @@ function getInitialOnboardingStep(): OnboardingStep {
 }
 
 function EmployerOnboardingPage() {
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { profile, updateProfile } = useEmployerProfile();
   const [step, setStep] = useState<OnboardingStep>(getInitialOnboardingStep);
   const [form, setForm] = useState<EmployerOnboardingForm>(INITIAL_FORM);
   const [openSelect, setOpenSelect] = useState<OpenSelect>(null);
   const [isVerificationRequested, setIsVerificationRequested] = useState(false);
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [isRegistrationChecked, setIsRegistrationChecked] = useState(false);
+  const [isOcrComplete, setIsOcrComplete] = useState(false);
   const [isOcrLoading, setIsOcrLoading] = useState(false);
   const [isRegistrationChecking, setIsRegistrationChecking] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const [ocrMessage, setOcrMessage] = useState<string | null>(null);
@@ -271,6 +300,7 @@ function EmployerOnboardingPage() {
     isRegistrationNumberComplete &&
     isRegistrationChecked &&
     form.business.registrationFile &&
+    isOcrComplete &&
     form.business.industry &&
     form.business.employeeCount &&
     form.business.address.trim(),
@@ -392,6 +422,7 @@ function EmployerOnboardingPage() {
 
     setFileError(null);
     setOcrMessage(null);
+    setIsOcrComplete(false);
     setIsRegistrationChecked(false);
     setRegistrationMessage(null);
     setRegistrationError(null);
@@ -405,6 +436,7 @@ function EmployerOnboardingPage() {
         registrationNumber: response.businessRegistrationNumber,
         address: response.workplaceAddress ?? '',
       });
+      setIsOcrComplete(true);
       setOcrMessage(
         response.workplaceAddress
           ? '사업자등록번호와 주소를 불러왔어요. 내용을 확인해 주세요.'
@@ -457,11 +489,66 @@ function EmployerOnboardingPage() {
     }));
   };
 
-  const handleComplete = () => {
-    if (!isStepTwoComplete || isOcrLoading || isRegistrationChecking) return;
-    setSubmitError(
-      '사업장 등록에 필요한 업종 ID와 주소 좌표 정보가 아직 연결되지 않았어요.',
+  const handleComplete = async () => {
+    if (
+      !isStepTwoComplete ||
+      isOcrLoading ||
+      isRegistrationChecking ||
+      isSubmitting
+    ) {
+      return;
+    }
+
+    const selectedBusinessType = EMPLOYER_INDUSTRY_OPTIONS.find(
+      (option) => option.value === form.business.industry,
     );
+
+    if (!selectedBusinessType || !form.business.employeeCount) {
+      setSubmitError('업종과 직원 수를 다시 선택해 주세요.');
+      return;
+    }
+
+    const workplaceAddress = [
+      form.business.address.trim(),
+      form.business.detailAddress.trim(),
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    const request: CreateWorkplaceRequest = {
+      workplaceName: form.business.name.trim(),
+      businessRegistrationNumber:
+        form.business.registrationNumberParts.join('-'),
+      businessTypeId: selectedBusinessType.id,
+      employeeCountRange:
+        EMPLOYEE_COUNT_RANGE_BY_CODE[form.business.employeeCount],
+      workplaceAddress,
+      ...BETA_DEFAULT_WORKPLACE_COORDINATES,
+    };
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const response = await createWorkplace(request);
+
+      updateProfile({
+        ...profile,
+        business: {
+          ...profile.business,
+          name: response.workplaceName,
+          industry: response.businessTypeName,
+          address: response.workplaceAddress,
+          detailAddress: '',
+          registrationNumber: response.businessRegistrationNumber,
+        },
+      });
+      navigate('/employer/dashboard', { replace: true });
+    } catch (error: unknown) {
+      setSubmitError(getWorkplaceCreationErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -780,12 +867,15 @@ function EmployerOnboardingPage() {
               <button
                 type="button"
                 disabled={
-                  !isStepTwoComplete || isOcrLoading || isRegistrationChecking
+                  !isStepTwoComplete ||
+                  isOcrLoading ||
+                  isRegistrationChecking ||
+                  isSubmitting
                 }
                 onClick={handleComplete}
                 className="h-[58px] w-40 cursor-pointer rounded-xl bg-[#00b894] text-lg font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
               >
-                완료
+                {isSubmitting ? '등록 중' : '완료'}
               </button>
             </div>
           </section>

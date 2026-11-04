@@ -1,12 +1,6 @@
-export type EmployerIndustryCode =
-  | 'FOOD_AND_CAFE'
-  | 'RETAIL'
-  | 'INTERPRETATION'
-  | 'OFFICE_AND_TOURISM'
-  | 'DUTY_FREE'
-  | 'ACADEMIC'
-  | 'INTERNSHIP'
-  | 'OTHER';
+import type { BusinessTypeName } from './workplace';
+
+export type EmployerIndustryCode = BusinessTypeName;
 
 export interface EmployerBusinessProfile {
   name: string;
