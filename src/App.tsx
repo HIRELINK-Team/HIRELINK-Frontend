@@ -13,10 +13,12 @@ import { setAccessToken } from './api/accessToken';
 import {
   getStudentMatchingPreferences,
   getStudentProfile,
+  getStudentRecommendations,
   loginStudent,
 } from './api/student';
 import { mapStudentMatchingPreferencesToUiState } from './adapters/studentMatchingPreferences';
 import { mapStudentProfileResponseToValues } from './adapters/studentProfile';
+import { mapStudentRecommendationToRecommendedJob } from './adapters/studentRecommendations';
 import EmployerApplicantsProvider from './components/employer/EmployerApplicantsProvider';
 import EmployerLayout from './components/employer/EmployerLayout';
 import EmployerJobsProvider from './components/employer/EmployerJobsProvider';
@@ -180,7 +182,9 @@ type StudentMatchingJobState = 'accepted' | 'applied' | 'declined';
 
 type StudentMatchingRouteContext = {
   acceptedJob: RecommendedJob | null;
+  isRecommendationsLoading: boolean;
   mockOfferJob: RecommendedJob | null;
+  recommendations: RecommendedJob[];
   recordViewChange: (
     view: Exclude<StudentMatchingView, 'result'>,
     job: RecommendedJob,
@@ -376,6 +380,9 @@ function StudentHomeRoute() {
 
 function StudentMatchingLayout() {
   const [acceptedJob, setAcceptedJob] = useState<RecommendedJob | null>(null);
+  const [recommendations, setRecommendations] = useState<RecommendedJob[]>([]);
+  const [isRecommendationsLoading, setIsRecommendationsLoading] =
+    useState(true);
   const [mockOfferJob, setMockOfferJob] = useState<RecommendedJob | null>(() =>
     sessionStorage.getItem(STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY) ===
     'true'
@@ -385,6 +392,38 @@ function StudentMatchingLayout() {
   const [, setJobStates] = useState<Record<string, StudentMatchingJobState>>(
     {},
   );
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadRecommendations = async () => {
+      try {
+        const response = await getStudentRecommendations();
+
+        if (isActive) {
+          setRecommendations(
+            response.recommendations.map(
+              mapStudentRecommendationToRecommendedJob,
+            ),
+          );
+        }
+      } catch {
+        if (isActive) {
+          setRecommendations([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsRecommendationsLoading(false);
+        }
+      }
+    };
+
+    void loadRecommendations();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const recordViewChange = (
     view: Exclude<StudentMatchingView, 'result'>,
@@ -425,7 +464,9 @@ function StudentMatchingLayout() {
       context={
         {
           acceptedJob,
+          isRecommendationsLoading,
           mockOfferJob,
+          recommendations,
           recordViewChange,
           updateOfferState,
         } satisfies StudentMatchingRouteContext
@@ -436,13 +477,19 @@ function StudentMatchingLayout() {
 
 function StudentMatchingRoute() {
   const navigate = useNavigate();
-  const { mockOfferJob, recordViewChange, updateOfferState } =
-    useOutletContext<StudentMatchingRouteContext>();
+  const {
+    isRecommendationsLoading,
+    mockOfferJob,
+    recommendations,
+    recordViewChange,
+    updateOfferState,
+  } = useOutletContext<StudentMatchingRouteContext>();
 
   return (
     <StudentMatchingPage
       initialSelectedJob={mockOfferJob}
       initialView={mockOfferJob ? 'offer' : 'result'}
+      isRecommendationsLoading={isRecommendationsLoading}
       onBack={() => navigate('/student/home')}
       onOfferAction={(action, job) => {
         updateOfferState(action, job);
@@ -453,6 +500,7 @@ function StudentMatchingRoute() {
       }}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
       onViewChange={recordViewChange}
+      recommendations={recommendations}
     />
   );
 }

@@ -18,8 +18,11 @@ export type RecommendedJob = {
   detail: RecommendedJobDetail;
   id: string;
   isCountdownActive: boolean;
+  jobPostingId?: number;
   matchDescription: string;
   matchRate: number;
+  rank?: number;
+  recommendationId?: number;
   role: string;
   showsApplyButton: boolean;
 };

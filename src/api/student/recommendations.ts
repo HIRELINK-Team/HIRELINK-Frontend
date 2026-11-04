@@ -1,5 +1,7 @@
 import { apiClient } from '../client';
 
+import type { StudentRecommendationsResponse } from '../../types/studentRecommendation';
+
 export async function createStudentRecommendations<
   TResponse = unknown,
 >(): Promise<TResponse> {
@@ -9,10 +11,10 @@ export async function createStudentRecommendations<
   return data;
 }
 
-export async function getStudentRecommendations<
-  TResponse = unknown,
->(): Promise<TResponse> {
-  const { data } = await apiClient.get<TResponse>('/api/recommendations');
+export async function getStudentRecommendations(): Promise<StudentRecommendationsResponse> {
+  const { data } = await apiClient.get<StudentRecommendationsResponse>(
+    '/api/recommendations',
+  );
 
   return data;
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import backIcon from '../../assets/icons/student/matching/back.svg';
+import { MatchingEmptyState } from '../../components/student/matching/MatchingEmptyState';
 import { RecommendedJobDetail } from '../../components/student/matching/RecommendedJobDetail';
 import { RecommendedJobCard } from '../../components/student/matching/RecommendedJobCard';
 import { ApplicationConfirmationStep } from '../../components/student/matching/ApplicationConfirmationStep';
@@ -25,6 +26,7 @@ type StudentMatchingPageProps = {
   initialRefreshPopupOpen?: boolean;
   initialSelectedJob?: RecommendedJob | null;
   initialView?: StudentMatchingView;
+  isRecommendationsLoading?: boolean;
   onBack?: () => void;
   onOfferAction?: (action: StudentOfferAction, job: RecommendedJob) => void;
   onRecommendationRefresh?: () => void;
@@ -33,6 +35,7 @@ type StudentMatchingPageProps = {
     view: Exclude<StudentMatchingView, 'result'>,
     job: RecommendedJob,
   ) => void;
+  recommendations?: readonly RecommendedJob[];
 };
 
 export default function StudentMatchingPage({
@@ -40,11 +43,13 @@ export default function StudentMatchingPage({
   initialRefreshPopupOpen = false,
   initialSelectedJob = null,
   initialView = 'result',
+  isRecommendationsLoading = false,
   onBack,
   onOfferAction,
   onRecommendationRefresh,
   onTabChange,
   onViewChange,
+  recommendations = STUDENT_RECOMMENDED_JOBS,
 }: StudentMatchingPageProps) {
   const [matchingView, setMatchingView] =
     useState<StudentMatchingView>(initialView);
@@ -58,10 +63,7 @@ export default function StudentMatchingPage({
   const [isRefreshPopupOpen, setIsRefreshPopupOpen] = useState(
     initialRefreshPopupOpen,
   );
-  const recommendedJobs = STUDENT_RECOMMENDED_JOBS.slice(
-    0,
-    MAX_RECOMMENDED_JOBS,
-  );
+  const recommendedJobs = recommendations.slice(0, MAX_RECOMMENDED_JOBS);
 
   const handleBack = () => {
     onBack?.();
@@ -196,6 +198,26 @@ export default function StudentMatchingPage({
         onDetail={handleCompleteDetail}
         onHome={handleCompleteHome}
       />
+    );
+  }
+
+  if (
+    matchingView === 'result' &&
+    !isRecommendationsLoading &&
+    recommendedJobs.length === 0
+  ) {
+    return (
+      <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em]">
+        <button
+          aria-label="이전 화면으로 이동"
+          className="absolute top-[67px] left-6 z-10 flex h-[19px] w-[11px] items-center justify-center border-0 bg-transparent p-0"
+          type="button"
+          onClick={handleBack}
+        >
+          <img alt="" className="block" src={backIcon} />
+        </button>
+        <MatchingEmptyState onConfirm={handleBack} />
+      </main>
     );
   }
 
