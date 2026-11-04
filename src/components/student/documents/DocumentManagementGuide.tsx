@@ -24,10 +24,10 @@ export function DocumentManagementGuide({
 
       <img
         alt=""
-        className="mx-auto mt-[4px] h-[97px] w-[85px] object-contain"
+        className="mx-auto mt-0 h-[82px] w-[72px] object-contain"
         src={guideIllustration}
       />
-      <h1 className="m-0 mt-[13px] text-center text-[20px] leading-[1.5] font-semibold">
+      <h1 className="m-0 mt-[9px] text-center text-[20px] leading-[1.5] font-semibold">
         서류를 등록하고
         <br />
         HIRELINK 인증을 받아보세요!
@@ -38,15 +38,15 @@ export function DocumentManagementGuide({
         빠른 채용 기회를 얻을 수 있어요.
       </p>
 
-      <section aria-label="서류 등록 안내" className="mt-[33px] space-y-[13px]">
+      <section aria-label="서류 등록 안내" className="mt-[24px] space-y-[10px]">
         {STUDENT_DOCUMENT_GUIDE_ITEMS.map((item) => (
           <article
-            className="flex h-[83px] items-center rounded-[20px] bg-[#E5E8EB] px-[25px]"
+            className="flex h-[75px] items-center rounded-[20px] bg-[#E5E8EB] px-[25px]"
             key={item.title}
           >
             <img
               alt=""
-              className="h-[47px] w-[48px] shrink-0 object-contain"
+              className="h-[42px] w-[43px] shrink-0 object-contain"
               src={item.icon}
             />
             <div className="ml-[17px] min-w-0">

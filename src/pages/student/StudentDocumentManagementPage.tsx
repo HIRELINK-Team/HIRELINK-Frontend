@@ -4,6 +4,7 @@ import backIcon from '../../assets/icons/student/documents/back.svg';
 import { AlienRegistrationCamera } from '../../components/student/documents/AlienRegistrationCamera';
 import { AlienRegistrationComplete } from '../../components/student/documents/AlienRegistrationComplete';
 import { AlienRegistrationInformation } from '../../components/student/documents/AlienRegistrationInformation';
+import { DocumentBadgeIssued } from '../../components/student/documents/DocumentBadgeIssued';
 import { DocumentManagementGuide } from '../../components/student/documents/DocumentManagementGuide';
 import { DocumentRegistrationList } from '../../components/student/documents/DocumentRegistrationList';
 import { EnrollmentCertificateCamera } from '../../components/student/documents/EnrollmentCertificateCamera';
@@ -34,7 +35,8 @@ export type StudentDocumentManagementView =
   | 'transcript-complete'
   | 'topik-information'
   | 'topik-camera'
-  | 'topik-complete';
+  | 'topik-complete'
+  | 'badge-issued';
 
 type StudentDocumentManagementPageProps = {
   documentCompletion?: Partial<Record<StudentDocument['id'], boolean>>;
@@ -44,6 +46,7 @@ type StudentDocumentManagementPageProps = {
   onDocumentFlowExit?: () => void;
   onExit?: () => void;
   onGuideStart?: () => void;
+  onBadgeConfirm?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
 };
 
@@ -55,6 +58,7 @@ export default function StudentDocumentManagementPage({
   onDocumentFlowExit,
   onExit,
   onGuideStart,
+  onBadgeConfirm,
   onTabChange,
 }: StudentDocumentManagementPageProps) {
   const [view, setView] = useState<StudentDocumentManagementView>(initialView);
@@ -104,12 +108,22 @@ export default function StudentDocumentManagementPage({
       setIsTopikComplete(true);
     }
 
-    if (onDocumentComplete) {
-      onDocumentComplete(documentId);
+    onDocumentComplete?.(documentId);
+
+    const nextCompletion = {
+      'alien-registration-card': isAlienRegistrationRegistered,
+      'enrollment-certificate': isEnrollmentCertificateRegistered,
+      transcript: isTranscriptRegistered,
+      'topik-transcript': isTopikRegistered,
+      [documentId]: true,
+    };
+
+    if (Object.values(nextCompletion).every(Boolean)) {
+      setView('badge-issued');
       return;
     }
 
-    setView('registration');
+    handleDocumentFlowExit();
   };
 
   const handleDocumentClick = (document: StudentDocument) => {
@@ -149,6 +163,14 @@ export default function StudentDocumentManagementPage({
     documentCompletion?.transcript ?? isTranscriptComplete;
   const isTopikRegistered =
     documentCompletion?.['topik-transcript'] ?? isTopikComplete;
+
+  if (view === 'badge-issued') {
+    return (
+      <DocumentBadgeIssued
+        onConfirm={onBadgeConfirm ?? (() => setView('registration'))}
+      />
+    );
+  }
 
   const basicDocuments = STUDENT_BASIC_DOCUMENTS.map((document) => {
     if (document.id === 'alien-registration-card') {
@@ -316,8 +338,8 @@ export default function StudentDocumentManagementPage({
   }
 
   return (
-    <main className="relative mx-auto h-[989px] w-full max-w-[390px] bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
-      <div className="h-full overflow-y-auto px-6 pt-[61px] pb-[113px]">
+    <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+      <div className="h-full overflow-y-auto px-6 pt-[61px] pb-[113px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
           aria-label="뒤로가기"
           className="grid size-8 -ml-2 place-items-center border-0 bg-transparent p-0"

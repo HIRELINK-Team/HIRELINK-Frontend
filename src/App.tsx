@@ -1013,10 +1013,10 @@ function StudentDocumentsLayout() {
   const [documentCompletion, setDocumentCompletion] = useState<
     Record<StudentDocumentFlowId, boolean>
   >({
-    'alien-registration-card': true,
+    'alien-registration-card': false,
     'enrollment-certificate': false,
-    'topik-transcript': true,
-    transcript: true,
+    'topik-transcript': false,
+    transcript: false,
   });
 
   return (
@@ -1093,8 +1093,10 @@ function StudentDocumentFlowRoute({
       initialView={initialView}
       onDocumentComplete={() => {
         completeDocument(documentId);
+      }}
+      onBadgeConfirm={() => {
         registrationView();
-        handleExit();
+        navigate('/student/my');
       }}
       onDocumentFlowExit={handleExit}
     />

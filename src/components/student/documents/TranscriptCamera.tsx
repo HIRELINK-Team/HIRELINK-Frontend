@@ -55,12 +55,17 @@ export function TranscriptCamera({ onBack, onCapture }: TranscriptCameraProps) {
         </div>
       </section>
       <div className="absolute top-[694px] right-6 left-6 flex gap-[7px]">
-        <button
-          className="h-[57px] flex-1 rounded-[15px] border-0 bg-white/15 p-0 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
-          type="button"
-        >
+        <label className="flex h-[57px] flex-1 cursor-pointer items-center justify-center rounded-[15px] bg-white/15 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]">
           파일업로드
-        </button>
+          <input
+            accept="application/pdf,image/*"
+            className="sr-only"
+            type="file"
+            onChange={(event) => {
+              if (event.currentTarget.files?.length) onCapture();
+            }}
+          />
+        </label>
         <button
           className="h-[58px] flex-[1.024] rounded-[15px] border-0 bg-[#F5F5F5] p-0 text-[20px] leading-[1.5] text-[#191F28]"
           type="button"
