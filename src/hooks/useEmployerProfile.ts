@@ -1,8 +1,12 @@
-import { createContext, useContext } from "react";
-import type { EmployerProfile } from "../types/employerProfile";
+import { createContext, useContext } from 'react';
+import type {
+  EmployerProfile,
+  EmployerProfileResponse,
+} from '../types/employerProfile';
 
 interface EmployerProfileContextValue {
   profile: EmployerProfile;
+  loadProfile: () => Promise<EmployerProfileResponse>;
   updateProfile: (profile: EmployerProfile) => void;
 }
 
@@ -14,7 +18,7 @@ function useEmployerProfile() {
 
   if (!context) {
     throw new Error(
-      "useEmployerProfile must be used within EmployerProfileProvider",
+      'useEmployerProfile must be used within EmployerProfileProvider',
     );
   }
 

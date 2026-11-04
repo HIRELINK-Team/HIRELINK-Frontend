@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
-import Toast from "../../components/common/Toast";
-import { EMPLOYER_INDUSTRY_OPTIONS } from "../../data/employerProfileData";
-import { useEmployerProfile } from "../../hooks/useEmployerProfile";
-import type { EmployerProfile } from "../../types/employerProfile";
+import { useEffect, useState } from 'react';
+import Toast from '../../components/common/Toast';
+import { EMPLOYER_INDUSTRY_OPTIONS } from '../../data/employerProfileData';
+import { useEmployerProfile } from '../../hooks/useEmployerProfile';
+import type { EmployerProfile } from '../../types/employerProfile';
 
-type AccountErrorKey = "name" | "phone" | "position";
+type AccountErrorKey = 'name' | 'phone' | 'position';
 type AccountErrors = Partial<Record<AccountErrorKey, string>>;
 
 const inputClassName =
-  "h-[58px] w-full rounded-[10px] border border-[rgba(112,115,124,0.22)] bg-white px-4 text-base text-[#171719] outline-none transition-colors hover:border-[#aeb4bc] focus:border-[#00b894] focus:ring-2 focus:ring-[#00b894]/10 aria-invalid:border-[#e11e1e]";
+  'h-[58px] w-full rounded-[10px] border border-[rgba(112,115,124,0.22)] bg-white px-4 text-base text-[#171719] outline-none transition-colors hover:border-[#aeb4bc] focus:border-[#00b894] focus:ring-2 focus:ring-[#00b894]/10 aria-invalid:border-[#e11e1e]';
 const disabledInputClassName = `${inputClassName} cursor-not-allowed bg-[#f7f7f8] !text-[#8b95a1] disabled:!text-[#8b95a1] hover:border-[rgba(112,115,124,0.22)]`;
 
 function cloneProfile(profile: EmployerProfile): EmployerProfile {
@@ -16,8 +16,8 @@ function cloneProfile(profile: EmployerProfile): EmployerProfile {
 }
 
 function splitPhone(phone: string) {
-  const parts = phone.split("-");
-  return [parts[0] ?? "", parts[1] ?? "", parts[2] ?? ""];
+  const parts = phone.split('-');
+  return [parts[0] ?? '', parts[1] ?? '', parts[2] ?? ''];
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -53,7 +53,7 @@ function EmployerAccountSettingsPage() {
   const industryLabel =
     EMPLOYER_INDUSTRY_OPTIONS.find(
       (option) => option.value === profile.business.industry,
-    )?.label ?? "";
+    )?.label ?? '';
 
   const handleStartEditing = () => {
     setDraft(cloneProfile(profile));
@@ -67,31 +67,31 @@ function EmployerAccountSettingsPage() {
     setIsEditing(false);
   };
 
-  const updateField = (field: "name" | "phone" | "position", value: string) => {
+  const updateField = (field: 'name' | 'phone' | 'position', value: string) => {
     setDraft((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
   };
 
   const updatePhonePart = (index: number, value: string) => {
     const parts = splitPhone(draft.phone);
-    parts[index] = value.replace(/\D/g, "").slice(0, index === 0 ? 3 : 4);
-    updateField("phone", parts.join("-"));
+    parts[index] = value.replace(/\D/g, '').slice(0, index === 0 ? 3 : 4);
+    updateField('phone', parts.join('-'));
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors: AccountErrors = {};
-    if (!draft.name.trim()) nextErrors.name = "이름을 입력해 주세요.";
+    if (!draft.name.trim()) nextErrors.name = '이름을 입력해 주세요.';
     if (splitPhone(draft.phone).some((part) => !part)) {
-      nextErrors.phone = "전화번호를 입력해 주세요.";
+      nextErrors.phone = '전화번호를 입력해 주세요.';
     }
-    if (!draft.position.trim()) nextErrors.position = "직책을 입력해 주세요.";
+    if (!draft.position?.trim()) nextErrors.position = '직책을 입력해 주세요.';
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
     updateProfile(draft);
     setIsEditing(false);
-    setToastMessage("수정이 적용되었어요");
+    setToastMessage('수정이 적용되었어요');
   };
 
   return (
@@ -129,7 +129,7 @@ function EmployerAccountSettingsPage() {
                   <input
                     value={draft.name}
                     onChange={(event) =>
-                      updateField("name", event.target.value)
+                      updateField('name', event.target.value)
                     }
                     className={inputClassName}
                     aria-invalid={Boolean(errors.name)}
@@ -176,9 +176,9 @@ function EmployerAccountSettingsPage() {
                 <label>
                   <FieldLabel>직책</FieldLabel>
                   <input
-                    value={draft.position}
+                    value={draft.position ?? ''}
                     onChange={(event) =>
-                      updateField("position", event.target.value)
+                      updateField('position', event.target.value)
                     }
                     className={inputClassName}
                     aria-invalid={Boolean(errors.position)}
@@ -224,10 +224,10 @@ function EmployerAccountSettingsPage() {
             </h2>
             <dl className="mt-3 grid grid-cols-[160px_minmax(0,1fr)] gap-y-4 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-6 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.10),0_1px_2px_rgba(23,23,25,0.06)]">
               {[
-                ["이름", profile.name],
-                ["전화번호", profile.phone],
-                ["이메일", profile.email],
-                ["직책", profile.position],
+                ['이름', profile.name],
+                ['전화번호', profile.phone],
+                ['이메일', profile.email],
+                ['직책', profile.position ?? '미등록'],
               ].map(([label, value]) => (
                 <div key={label} className="contents">
                   <dt className="text-base font-medium text-[#70737c]">
