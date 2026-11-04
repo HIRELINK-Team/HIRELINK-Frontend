@@ -1,13 +1,9 @@
 export type StudentKoreanLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 export type StudentTopikLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
-export type StudentProfileCareer = {
-  careerId: number;
-  careerName: string;
-  startMonth: string;
-  endMonth: string;
-  description: string;
-};
+import type { StudentCareerResponse } from './experience';
+
+export type StudentProfileCareer = StudentCareerResponse;
 
 export type StudentProfileResponse = {
   studentId: number;

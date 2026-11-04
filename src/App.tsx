@@ -381,6 +381,7 @@ function StudentOnboardingRoute() {
 
   return (
     <StudentOnboardingPage
+      enableCareerApi
       onBack={() => navigate('/student/entry')}
       onComplete={() => navigate('/student/home', { replace: true })}
     />

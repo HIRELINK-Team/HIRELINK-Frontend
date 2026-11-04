@@ -7,6 +7,17 @@ import locationIcon from '../../assets/icons/student/location.svg';
 import searchIcon from '../../assets/icons/student/search.svg';
 import clearIcon from '../../assets/icons/student/clear.svg';
 import ageRestrictionImage from '../../assets/images/student/age-restriction.png';
+import {
+  createStudentCareer,
+  getStudentProfile,
+  updateStudentCareer,
+} from '../../api/student';
+import {
+  isExperienceDraftValid,
+  mapExperienceDraftToCreateRequest,
+  mapExperienceDraftToUpdateRequest,
+  mapStudentCareerToExperience,
+} from '../../adapters/studentExperience';
 import { COUNTRY_ICON_BY_NAME } from '../../constants/studentCountryIcons';
 import {
   ACADEMIC_STATUS_OPTIONS,
@@ -25,7 +36,11 @@ import { OnboardingScaffold } from '../../components/student/onboarding/Onboardi
 import { ResidenceExpiryDatePicker } from '../../components/student/onboarding/ResidenceExpiryDatePicker';
 import { SelectionCard } from '../../components/student/onboarding/SelectionCard';
 import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
-import type { Experience, ExperienceDraft } from '../../types/experience';
+import type {
+  Experience,
+  ExperienceDraft,
+  StudentCareerResponse,
+} from '../../types/experience';
 import type { IndustryId, IndustryOption } from '../../types/industry';
 import type { MatchingPriority } from '../../types/matchingPriority';
 import type {
@@ -73,6 +88,7 @@ type OnboardingView =
   | 'matchingPriority';
 
 type StudentOnboardingPageProps = {
+  enableCareerApi?: boolean;
   initialStep?: OnboardingView;
   onBack?: () => void;
   onComplete?: () => void;
@@ -241,6 +257,7 @@ function isValidPhone(value: string) {
 }
 
 export default function StudentOnboardingPage({
+  enableCareerApi = false,
   initialStep = 'name',
   onBack,
   onComplete,
@@ -251,8 +268,13 @@ export default function StudentOnboardingPage({
   const [experienceEditingId, setExperienceEditingId] = useState<string | null>(
     null,
   );
-  const [experiences, setExperiences] =
-    useState<Experience[]>(INITIAL_EXPERIENCES);
+  const [experiences, setExperiences] = useState<Experience[]>(() =>
+    enableCareerApi ? [] : INITIAL_EXPERIENCES,
+  );
+  const [studentCareers, setStudentCareers] = useState<StudentCareerResponse[]>(
+    [],
+  );
+  const [isCareerSaving, setIsCareerSaving] = useState(false);
   const [info, setInfo] = useState<BasicInfo>(INITIAL_INFO);
   const [isIndustrySelectionSubmitted, setIsIndustrySelectionSubmitted] =
     useState(false);
@@ -289,6 +311,27 @@ export default function StudentOnboardingPage({
   const [isTopikLevelSubmitted, setIsTopikLevelSubmitted] = useState(false);
   const [isResidenceExpirySubmitted, setIsResidenceExpirySubmitted] =
     useState(false);
+
+  useEffect(() => {
+    if (!enableCareerApi) return;
+
+    let isActive = true;
+
+    void getStudentProfile()
+      .then((profile) => {
+        if (!isActive) return;
+
+        setStudentCareers(profile.careers);
+        setExperiences(profile.careers.map(mapStudentCareerToExperience));
+      })
+      .catch(() => {
+        // Keep the empty career list when the profile is unavailable.
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [enableCareerApi]);
   const [isMatchingPrioritySubmitted, setIsMatchingPrioritySubmitted] =
     useState(false);
   const [residenceInfo, setResidenceInfo] = useState<ResidenceInfo>(
@@ -512,15 +555,79 @@ export default function StudentOnboardingPage({
     onComplete?.();
   };
 
-  const isExperienceDraftValid =
-    experienceDraft.workplace.trim().length > 0 &&
-    /^\d{4}\.\d{2}$/.test(experienceDraft.startMonth) &&
-    /^\d{4}\.\d{2}$/.test(experienceDraft.endMonth) &&
-    experienceDraft.startMonth <= experienceDraft.endMonth &&
-    experienceDraft.duties.trim().length > 0;
+  const isCurrentExperienceDraftValid = isExperienceDraftValid(experienceDraft);
 
-  const handleExperienceSave = () => {
-    if (!isExperienceDraftValid) return;
+  const handleExperienceSave = async () => {
+    if (!isCurrentExperienceDraftValid || isCareerSaving) return;
+
+    if (enableCareerApi) {
+      setIsCareerSaving(true);
+
+      try {
+        if (experienceEditingId) {
+          const originalCareer = studentCareers.find(
+            (career) => String(career.careerId) === experienceEditingId,
+          );
+
+          if (!originalCareer) return;
+
+          const mappingResult = mapExperienceDraftToUpdateRequest(
+            experienceDraft,
+            originalCareer,
+          );
+
+          if (mappingResult.status === 'invalid') return;
+          if (mappingResult.status === 'unchanged') {
+            setStep('experienceList');
+            return;
+          }
+
+          const updatedCareer = await updateStudentCareer(
+            originalCareer.careerId,
+            mappingResult.requestBody,
+          );
+
+          setStudentCareers((currentCareers) =>
+            currentCareers.map((career) =>
+              career.careerId === updatedCareer.careerId
+                ? updatedCareer
+                : career,
+            ),
+          );
+          setExperiences((currentExperiences) =>
+            currentExperiences.map((experience) =>
+              experience.id === String(updatedCareer.careerId)
+                ? mapStudentCareerToExperience(updatedCareer)
+                : experience,
+            ),
+          );
+        } else {
+          const requestBody =
+            mapExperienceDraftToCreateRequest(experienceDraft);
+
+          if (!requestBody) return;
+
+          const createdCareer = await createStudentCareer(requestBody);
+
+          setStudentCareers((currentCareers) => [
+            ...currentCareers,
+            createdCareer,
+          ]);
+          setExperiences((currentExperiences) => [
+            ...currentExperiences,
+            mapStudentCareerToExperience(createdCareer),
+          ]);
+        }
+
+        setStep('experienceList');
+      } catch {
+        // Keep the form and the last saved career list when the request fails.
+      } finally {
+        setIsCareerSaving(false);
+      }
+
+      return;
+    }
 
     if (experienceEditingId) {
       setExperiences((currentExperiences) =>
@@ -570,10 +677,10 @@ export default function StudentOnboardingPage({
       <ExperienceForm
         draft={experienceDraft}
         isEditing={Boolean(experienceEditingId)}
-        isSubmitDisabled={!isExperienceDraftValid}
+        isSubmitDisabled={!isCurrentExperienceDraftValid || isCareerSaving}
         onBack={() => setStep('experienceList')}
         onChange={updateExperienceDraft}
-        onSubmit={handleExperienceSave}
+        onSubmit={() => void handleExperienceSave()}
       />
     );
   }
