@@ -71,7 +71,7 @@ export default function StudentMatchingConditionManagementPage({
   return (
     <main
       aria-busy={isLoading}
-      className="mx-auto h-[1074px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[34px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+      className="mx-auto min-h-[1074px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[34px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
     >
       <button
         aria-label="뒤로가기"
@@ -105,31 +105,56 @@ export default function StudentMatchingConditionManagementPage({
       <section className="-mx-6 mt-[24px] border-y border-[#E5E8EB]">
         {MATCHING_CONDITION_SUMMARIES.map((condition) => {
           const value = summaryValues?.[condition.id] ?? condition.value;
+          const isWorkTimeSummary =
+            condition.id === 'work-time' && Array.isArray(value);
 
           return (
             <button
               className={`flex w-full items-center border-0 border-b border-[#E5E8EB] bg-transparent px-6 text-left last:border-b-0 ${
-                Array.isArray(value) ? 'h-[76px]' : 'h-11'
+                isWorkTimeSummary
+                  ? 'min-h-[76px] items-start py-3'
+                  : Array.isArray(value)
+                    ? 'h-[76px]'
+                    : 'h-11'
               }`}
               key={condition.id}
               type="button"
               onClick={() => handleConditionClick(condition.id)}
             >
-              <span className="w-[102px] shrink-0 text-[13px] leading-[1.5] text-[#8B95A1]">
+              <span
+                className={`w-[102px] shrink-0 text-[13px] leading-[1.5] text-[#8B95A1] ${
+                  isWorkTimeSummary ? 'pt-1' : ''
+                }`}
+              >
                 {condition.label}
               </span>
-              <span className="min-w-0 flex-1 text-[13px] leading-[1.5] text-[#191F28]">
-                {Array.isArray(value)
-                  ? value.map((summaryValue) => (
-                      <span className="block" key={summaryValue}>
-                        {summaryValue}
-                      </span>
-                    ))
-                  : value}
-              </span>
+              {isWorkTimeSummary ? (
+                <span className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+                  {value.map((summaryValue, index) => (
+                    <span
+                      className="rounded-full bg-[#E9EDF2] px-2 py-1 text-[12px] leading-[1.3] text-[#4E5968]"
+                      key={`${summaryValue}-${index}`}
+                    >
+                      {summaryValue}
+                    </span>
+                  ))}
+                </span>
+              ) : (
+                <span className="min-w-0 flex-1 text-[13px] leading-[1.5] text-[#191F28]">
+                  {Array.isArray(value)
+                    ? value.map((summaryValue) => (
+                        <span className="block" key={summaryValue}>
+                          {summaryValue}
+                        </span>
+                      ))
+                    : value}
+                </span>
+              )}
               <img
                 alt=""
-                className="ml-3 h-[13.0958px] w-[5.99994px] shrink-0 -scale-x-100"
+                className={`ml-3 h-[13.0958px] w-[5.99994px] shrink-0 -scale-x-100 ${
+                  isWorkTimeSummary ? 'mt-1.5' : ''
+                }`}
                 src={matchingConditionChevronIcon}
               />
             </button>
