@@ -4,12 +4,13 @@ import {
   Outlet,
   Route,
   Routes,
+  useLocation,
   useNavigate,
   useOutletContext,
   useParams,
 } from 'react-router-dom';
 
-import { setAccessToken } from './api/accessToken';
+import { getAccessToken, setAccessToken } from './api/accessToken';
 import {
   acceptStudentEmploymentOffer,
   createStudentApplication,
@@ -20,6 +21,7 @@ import {
   getStudentProfile,
   getStudentRecommendations,
   loginStudent,
+  refreshAccessToken,
   rejectStudentEmploymentOffer,
   signupStudent,
   updateStudentProfile,
@@ -110,6 +112,12 @@ const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
 const STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY =
   'hirelink.student.matching.offerHandled';
 const STUDENT_PROFILE_SESSION_STORAGE_KEY = 'hirelink.student.profile.values';
+const PUBLIC_STUDENT_ROUTES = new Set([
+  '/student',
+  '/student/entry',
+  '/student/login',
+  '/student/signup',
+]);
 
 const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
   applications: '/student/applications',
@@ -322,6 +330,41 @@ function formatMatchingConditionWorkTime(workAvailability: WorkAvailability) {
   const rangeLabels = formatWorkAvailabilityRanges(workAvailability);
 
   return rangeLabels.length > 0 ? rangeLabels : ['선택한 근무시간 없음'];
+}
+
+function StudentSessionBootstrap() {
+  const { pathname } = useLocation();
+  const [isSessionReady, setIsSessionReady] = useState(
+    () => getAccessToken() !== null,
+  );
+
+  useEffect(() => {
+    let isActive = true;
+
+    if (getAccessToken()) {
+      return () => {
+        isActive = false;
+      };
+    }
+
+    void refreshAccessToken()
+      .catch(() => undefined)
+      .finally(() => {
+        if (isActive) {
+          setIsSessionReady(true);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  if (!isSessionReady && !PUBLIC_STUDENT_ROUTES.has(pathname)) {
+    return null;
+  }
+
+  return <Outlet />;
 }
 
 function StudentSplashRoute() {
@@ -1421,125 +1464,127 @@ function App() {
           <Route path="notifications" element={<EmployerNotificationsPage />} />
         </Route>
 
-        <Route path="/student" element={<StudentSplashRoute />} />
-        <Route path="/student/entry" element={<StudentEntryRoute />} />
-        <Route path="/student/login" element={<StudentLoginRoute />} />
-        <Route path="/student/signup" element={<StudentSignupRoute />} />
-        <Route
-          path="/student/onboarding"
-          element={<StudentOnboardingRoute />}
-        />
-        <Route path="/student/home" element={<StudentHomeRoute />} />
-        <Route path="/student/matching" element={<StudentMatchingLayout />}>
-          <Route index element={<StudentMatchingRoute />} />
+        <Route element={<StudentSessionBootstrap />}>
+          <Route path="/student" element={<StudentSplashRoute />} />
+          <Route path="/student/entry" element={<StudentEntryRoute />} />
+          <Route path="/student/login" element={<StudentLoginRoute />} />
+          <Route path="/student/signup" element={<StudentSignupRoute />} />
           <Route
-            path="hiring-complete"
-            element={<StudentMatchingHiringCompleteRoute />}
+            path="/student/onboarding"
+            element={<StudentOnboardingRoute />}
           />
+          <Route path="/student/home" element={<StudentHomeRoute />} />
+          <Route path="/student/matching" element={<StudentMatchingLayout />}>
+            <Route index element={<StudentMatchingRoute />} />
+            <Route
+              path="hiring-complete"
+              element={<StudentMatchingHiringCompleteRoute />}
+            />
+          </Route>
+          <Route
+            path="/student/applications"
+            element={<StudentApplicationsLayout />}
+          >
+            <Route index element={<StudentApplicationsRoute />} />
+            <Route
+              path="hiring-complete/:applicationId"
+              element={<StudentHiringCompleteRoute />}
+            />
+          </Route>
+          <Route path="/student/my" element={<StudentMyRoute />} />
+          <Route
+            path="/student/my/documents"
+            element={<StudentDocumentsLayout />}
+          >
+            <Route index element={<StudentDocumentsRoute />} />
+            <Route
+              path="alien-registration"
+              element={
+                <StudentDocumentFlowRoute
+                  {...STUDENT_DOCUMENT_ROUTE_CONFIG['alien-registration-card']}
+                />
+              }
+            />
+            <Route
+              path="enrollment"
+              element={
+                <StudentDocumentFlowRoute
+                  {...STUDENT_DOCUMENT_ROUTE_CONFIG['enrollment-certificate']}
+                />
+              }
+            />
+            <Route
+              path="transcript"
+              element={
+                <StudentDocumentFlowRoute
+                  {...STUDENT_DOCUMENT_ROUTE_CONFIG.transcript}
+                />
+              }
+            />
+            <Route
+              path="topik"
+              element={
+                <StudentDocumentFlowRoute
+                  {...STUDENT_DOCUMENT_ROUTE_CONFIG['topik-transcript']}
+                />
+              }
+            />
+          </Route>
+          <Route
+            path="/student/my/work-condition"
+            element={<StudentWorkConditionRoute />}
+          />
+          <Route path="/student/my/profile" element={<StudentProfileLayout />}>
+            <Route index element={<StudentProfileRoute />} />
+            <Route
+              path="basic"
+              element={<StudentProfileDetailRoute view="basic" />}
+            />
+            <Route
+              path="residence"
+              element={<StudentProfileDetailRoute view="residence" />}
+            />
+            <Route
+              path="academic"
+              element={<StudentProfileDetailRoute view="academic" />}
+            />
+            <Route
+              path="language"
+              element={<StudentProfileDetailRoute view="language" />}
+            />
+          </Route>
+          <Route
+            path="/student/my/matching-condition"
+            element={<StudentMatchingConditionLayout />}
+          >
+            <Route index element={<StudentMatchingConditionRoute />} />
+            <Route
+              path="industry"
+              element={<StudentMatchingConditionIndustryRoute />}
+            />
+            <Route
+              path="location"
+              element={<StudentMatchingConditionLocationRoute />}
+            />
+            <Route
+              path="work-time"
+              element={<StudentMatchingConditionWorkTimeRoute />}
+            />
+            <Route
+              path="start-date"
+              element={<StudentMatchingConditionStartDateRoute />}
+            />
+          </Route>
+          <Route
+            path="/student/my/notifications"
+            element={<StudentNotificationsRoute />}
+          />
+          <Route
+            path="/student/my/customer-center"
+            element={<StudentCustomerCenterRoute />}
+          />
+          <Route path="/student/my/terms" element={<StudentTermsRoute />} />
         </Route>
-        <Route
-          path="/student/applications"
-          element={<StudentApplicationsLayout />}
-        >
-          <Route index element={<StudentApplicationsRoute />} />
-          <Route
-            path="hiring-complete/:applicationId"
-            element={<StudentHiringCompleteRoute />}
-          />
-        </Route>
-        <Route path="/student/my" element={<StudentMyRoute />} />
-        <Route
-          path="/student/my/documents"
-          element={<StudentDocumentsLayout />}
-        >
-          <Route index element={<StudentDocumentsRoute />} />
-          <Route
-            path="alien-registration"
-            element={
-              <StudentDocumentFlowRoute
-                {...STUDENT_DOCUMENT_ROUTE_CONFIG['alien-registration-card']}
-              />
-            }
-          />
-          <Route
-            path="enrollment"
-            element={
-              <StudentDocumentFlowRoute
-                {...STUDENT_DOCUMENT_ROUTE_CONFIG['enrollment-certificate']}
-              />
-            }
-          />
-          <Route
-            path="transcript"
-            element={
-              <StudentDocumentFlowRoute
-                {...STUDENT_DOCUMENT_ROUTE_CONFIG.transcript}
-              />
-            }
-          />
-          <Route
-            path="topik"
-            element={
-              <StudentDocumentFlowRoute
-                {...STUDENT_DOCUMENT_ROUTE_CONFIG['topik-transcript']}
-              />
-            }
-          />
-        </Route>
-        <Route
-          path="/student/my/work-condition"
-          element={<StudentWorkConditionRoute />}
-        />
-        <Route path="/student/my/profile" element={<StudentProfileLayout />}>
-          <Route index element={<StudentProfileRoute />} />
-          <Route
-            path="basic"
-            element={<StudentProfileDetailRoute view="basic" />}
-          />
-          <Route
-            path="residence"
-            element={<StudentProfileDetailRoute view="residence" />}
-          />
-          <Route
-            path="academic"
-            element={<StudentProfileDetailRoute view="academic" />}
-          />
-          <Route
-            path="language"
-            element={<StudentProfileDetailRoute view="language" />}
-          />
-        </Route>
-        <Route
-          path="/student/my/matching-condition"
-          element={<StudentMatchingConditionLayout />}
-        >
-          <Route index element={<StudentMatchingConditionRoute />} />
-          <Route
-            path="industry"
-            element={<StudentMatchingConditionIndustryRoute />}
-          />
-          <Route
-            path="location"
-            element={<StudentMatchingConditionLocationRoute />}
-          />
-          <Route
-            path="work-time"
-            element={<StudentMatchingConditionWorkTimeRoute />}
-          />
-          <Route
-            path="start-date"
-            element={<StudentMatchingConditionStartDateRoute />}
-          />
-        </Route>
-        <Route
-          path="/student/my/notifications"
-          element={<StudentNotificationsRoute />}
-        />
-        <Route
-          path="/student/my/customer-center"
-          element={<StudentCustomerCenterRoute />}
-        />
-        <Route path="/student/my/terms" element={<StudentTermsRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </EmployerProfileProvider>

@@ -1,10 +1,9 @@
-import axios from 'axios';
-
 import type {
   CsrfTokenResponse,
   EmailLoginRequest,
   EmailSignupRequest,
   LoginResponse,
+  LogoutResponse,
   PhoneVerificationConfirmRequest,
   PhoneVerificationConfirmResponse,
   PhoneVerificationRequest,
@@ -14,7 +13,10 @@ import type {
 } from '../../types/auth';
 
 import { clearAccessToken, setAccessToken } from '../accessToken';
-import { apiClient } from '../client';
+import { apiClient, registerAccessTokenRefreshHandler } from '../client';
+
+let refreshAccessTokenPromise: Promise<RefreshAccessTokenResponse> | null =
+  null;
 
 export async function loginStudent(
   requestBody: EmailLoginRequest,
@@ -48,7 +50,7 @@ export async function getAuthCsrfToken(): Promise<CsrfTokenResponse> {
   return data;
 }
 
-export async function refreshAccessToken(): Promise<RefreshAccessTokenResponse> {
+async function performAccessTokenRefresh(): Promise<RefreshAccessTokenResponse> {
   try {
     const { headerName, token } = await getAuthCsrfToken();
     const { data } = await apiClient.post<RefreshAccessTokenResponse>(
@@ -66,25 +68,43 @@ export async function refreshAccessToken(): Promise<RefreshAccessTokenResponse> 
 
     return data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
-      clearAccessToken();
-    }
-
+    clearAccessToken();
     throw error;
   }
 }
 
-export async function logoutStudent(): Promise<void> {
+export function refreshAccessToken(): Promise<RefreshAccessTokenResponse> {
+  if (!refreshAccessTokenPromise) {
+    refreshAccessTokenPromise = performAccessTokenRefresh().finally(() => {
+      refreshAccessTokenPromise = null;
+    });
+  }
+
+  return refreshAccessTokenPromise;
+}
+
+registerAccessTokenRefreshHandler(async () => {
+  const { accessToken } = await refreshAccessToken();
+  return accessToken;
+});
+
+export async function logoutStudent(): Promise<LogoutResponse> {
   const { headerName, token } = await getAuthCsrfToken();
 
-  await apiClient.post('/api/auth/logout', undefined, {
-    headers: {
-      [headerName]: token,
+  const { data } = await apiClient.post<LogoutResponse>(
+    '/api/auth/logout',
+    undefined,
+    {
+      headers: {
+        [headerName]: token,
+      },
+      withCredentials: true,
     },
-    withCredentials: true,
-  });
+  );
 
   clearAccessToken();
+
+  return data;
 }
 
 export async function requestPhoneVerification(

@@ -38,6 +38,10 @@ export interface CsrfTokenResponse {
   token: string;
 }
 
+export interface LogoutResponse {
+  message: string;
+}
+
 export interface PhoneVerificationRequest {
   phoneNumber: string;
 }
