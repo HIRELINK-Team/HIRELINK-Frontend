@@ -59,65 +59,65 @@ export default function StudentCustomerCenterPage({
           고객센터
         </h1>
 
-        <section className="relative mt-2 h-[62px] overflow-hidden rounded-[18px] bg-[#E5E8EB] pl-[62px] pr-4">
+        <section className="relative mt-2 h-[74px] overflow-hidden rounded-[20px] bg-[#E5E8EB] pl-[68px] pr-4">
           <img
             alt=""
-            className="absolute top-[8px] left-4 size-[46px] object-cover"
+            className="absolute top-3 left-5 size-[50px] object-cover"
             src={supportNoticeImage}
           />
           <div className="flex h-full flex-col justify-center gap-1">
-            <p className="m-0 text-[14px] leading-[1.4] font-bold">
+            <p className="m-0 text-[15px] leading-[1.5] font-bold">
               궁금한 점이 있으신가요?
             </p>
-            <p className="m-0 text-[11px] leading-[1.4] text-[#8B95A1]">
+            <p className="m-0 text-[12px] leading-[1.5] text-[#8B95A1]">
               언제든지 문의주세요. 빠르게 도와드려요!
             </p>
           </div>
         </section>
 
-        <h2 className="m-0 mt-2.5 text-[18px] leading-[1.4] font-semibold">
+        <h2 className="m-0 mt-3 text-[20px] leading-[1.5] font-semibold">
           문의 관련 서비스
         </h2>
 
-        <section className="mt-1.5 flex flex-col gap-1.5">
+        <section className="mt-1.5 flex flex-col gap-2">
           {CUSTOMER_CENTER_ITEMS.map((item) => (
             <button
-              className="relative h-[62px] w-full rounded-[18px] border-[0.7px] border-[#B0B8C1] bg-transparent px-5 text-left"
+              className="relative h-[72px] w-full rounded-[20px] border-[0.7px] border-[#B0B8C1] bg-transparent px-5 text-left"
               key={item.id}
               type="button"
               onClick={() => onSupportItemClick?.(item.id)}
             >
-              <span className="block text-[15px] leading-[1.4] font-bold">
+              <span className="block text-[16px] leading-[1.5] font-bold">
                 {item.title}
               </span>
-              <span className="block pr-5 text-[11px] leading-[1.4] text-[#8B95A1]">
+              <span className="block pr-5 text-[13px] leading-[1.5] text-[#8B95A1]">
                 {item.description}
               </span>
               <img
                 alt=""
-                className="absolute top-[24px] right-5 h-[14px] w-[7px] rotate-180"
+                className="absolute top-[29px] right-5 h-[14px] w-[7px] rotate-180"
                 src={chevronIcon}
               />
             </button>
           ))}
         </section>
 
-        <section className="relative mt-3 h-[72px] overflow-hidden rounded-[18px] bg-[#E5E8EB] px-5 pt-3">
+        <section className="relative mt-4 h-[82px] overflow-hidden rounded-[20px] bg-[#E5E8EB] px-5 pt-3.5">
           <img
             alt=""
             className="absolute top-4 left-5 h-[19px] w-[25px] object-cover"
             src={emergencyIcon}
           />
-          <p className="m-0 ml-[31px] text-[13px] leading-[1.4] font-bold">
+          <p className="m-0 ml-[31px] text-[14px] leading-[1.5] font-bold">
             긴급 문의가 필요하신가요?
           </p>
-          <p className="m-0 mt-0.5 text-[10px] leading-[1.4] text-[#8B95A1]">
+          <p className="m-0 mt-0.5 text-[11px] leading-[1.5] text-[#8B95A1]">
             계정 접근 문제, 개인정보 관련 긴급 문의는help@hirelink.kr 메일을
             보내주세요. (제목에 [긴급]을 포함해주세요.)
           </p>
         </section>
 
-        <section className="mt-1.5 h-[66px] rounded-[18px] bg-[#E5E8EB] px-5 py-2.5">
+        <section className="mt-1.5 h-[76px] rounded-[20px] bg-[#E5E8EB] px-5 py-3">
           <p className="m-0 text-[14px] leading-[1.5] font-bold">운영시간</p>
           <p className="m-0 mt-0.5 text-[11px] leading-[1.5] text-[#8B95A1]">
             평일 09:00 - 18:00 (점심시간 12:00 - 13:00)
