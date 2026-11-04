@@ -162,6 +162,7 @@ type StudentApplicationsRouteContext = {
 
 type StudentProfileRouteContext = {
   isProfileLoading: boolean;
+  isProfileUnavailable: boolean;
   profileValues: StudentProfileValues;
   saveProfile: (
     view: ProfileDetailView,
@@ -1120,19 +1121,29 @@ function StudentProfileLayout() {
     useState<StudentProfileResponse | null>(null);
   const [profileValues, setProfileValues] = useState<StudentProfileValues>({});
   const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [isProfileUnavailable, setIsProfileUnavailable] = useState(false);
 
   useEffect(() => {
     let isActive = true;
 
     void getStudentProfile()
       .then((profile) => {
+        if (!isStudentProfileResponse(profile)) {
+          throw new Error('Invalid student profile response.');
+        }
+
         if (isActive) {
           setStudentProfile(profile);
           setProfileValues(mapStudentProfileResponseToValues(profile));
+          setIsProfileUnavailable(false);
         }
       })
       .catch(() => {
-        // Keep the existing session/mock fallback for 401, 404, and network errors.
+        if (isActive) {
+          setStudentProfile(null);
+          setProfileValues({});
+          setIsProfileUnavailable(true);
+        }
       })
       .finally(() => {
         if (isActive) {
@@ -1150,6 +1161,7 @@ function StudentProfileLayout() {
       context={
         {
           isProfileLoading,
+          isProfileUnavailable,
           profileValues,
           saveProfile: async (view, values) => {
             if (!studentProfile) return false;
@@ -1188,7 +1200,7 @@ function StudentProfileLayout() {
 
 function StudentProfileRoute() {
   const navigate = useNavigate();
-  const { isProfileLoading, profileValues } =
+  const { isProfileLoading, isProfileUnavailable, profileValues } =
     useOutletContext<StudentProfileRouteContext>();
 
   return (
@@ -1198,13 +1210,14 @@ function StudentProfileRoute() {
       onViewChange={(view) => navigate(`/student/my/profile/${view}`)}
       profileValues={profileValues}
       isLoading={isProfileLoading}
+      isProfileUnavailable={isProfileUnavailable}
     />
   );
 }
 
 function StudentProfileDetailRoute({ view }: { view: ProfileDetailView }) {
   const navigate = useNavigate();
-  const { profileValues, saveProfile } =
+  const { isProfileLoading, isProfileUnavailable, profileValues, saveProfile } =
     useOutletContext<StudentProfileRouteContext>();
 
   return (
@@ -1213,6 +1226,8 @@ function StudentProfileDetailRoute({ view }: { view: ProfileDetailView }) {
       onBack={() => navigate('/student/my/profile')}
       onSave={saveProfile}
       profileValues={profileValues}
+      isLoading={isProfileLoading}
+      isProfileUnavailable={isProfileUnavailable}
     />
   );
 }

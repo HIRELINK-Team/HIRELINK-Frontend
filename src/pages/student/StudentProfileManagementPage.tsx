@@ -49,6 +49,7 @@ const PROFILE_DETAIL_SAVE_BUTTON_CLASS =
 type StudentProfileManagementPageProps = {
   initialView?: ProfileManagementView;
   isLoading?: boolean;
+  isProfileUnavailable?: boolean;
   onApply?: () => void;
   onBack?: () => void;
   onSave?: (
@@ -738,6 +739,7 @@ function LanguageInformationPage({
 export default function StudentProfileManagementPage({
   initialView = 'main',
   isLoading = false,
+  isProfileUnavailable = false,
   onApply,
   onBack,
   onSave,
@@ -749,6 +751,22 @@ export default function StudentProfileManagementPage({
     useState<StudentProfileValues>({});
   const [isSaving, setIsSaving] = useState(false);
   const resolvedProfileValues = profileValues ?? localProfileValues;
+
+  if (isLoading || isProfileUnavailable) {
+    return (
+      <main
+        aria-busy={isLoading}
+        className="mx-auto flex h-[100dvh] max-h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+      >
+        <BackButton onClick={onBack ?? (() => undefined)} />
+        <p className="mt-10 text-[17px] leading-[1.5] text-[#6B7684]">
+          {isLoading
+            ? '프로필 정보를 불러오는 중이에요.'
+            : '프로필 정보를 불러오지 못했어요.'}
+        </p>
+      </main>
+    );
+  }
 
   const handleSave = async (
     profileView: ProfileDetailView,
