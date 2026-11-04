@@ -9,6 +9,7 @@ import {
   useParams,
 } from 'react-router-dom';
 
+import { setAccessToken } from './api/accessToken';
 import { loginStudent } from './api/student';
 import EmployerApplicantsProvider from './components/employer/EmployerApplicantsProvider';
 import EmployerLayout from './components/employer/EmployerLayout';
@@ -309,7 +310,8 @@ function StudentLoginRoute() {
     <StudentEmailLoginPage
       onBack={() => navigate('/student/entry')}
       onLogin={async (request) => {
-        await loginStudent(request);
+        const { accessToken } = await loginStudent(request);
+        setAccessToken(accessToken);
         navigate('/student/onboarding');
       }}
       onSignup={() => navigate('/student/signup')}

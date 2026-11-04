@@ -1,13 +1,26 @@
+import axios from 'axios';
+
 import type {
   CsrfTokenResponse,
   EmailLoginRequest,
   EmailSignupRequest,
+  LoginResponse,
+  RefreshAccessTokenResponse,
 } from '../../types/auth';
 
+import { clearAccessToken, setAccessToken } from '../accessToken';
 import { apiClient } from '../client';
 
-export async function loginStudent(requestBody: EmailLoginRequest) {
-  await apiClient.post('/api/auth/login', requestBody);
+export async function loginStudent(
+  requestBody: EmailLoginRequest,
+): Promise<LoginResponse> {
+  const { data } = await apiClient.post<LoginResponse>(
+    '/api/auth/login',
+    requestBody,
+    { withCredentials: true },
+  );
+
+  return data;
 }
 
 export async function signupStudent<TResponse = unknown>(
@@ -22,19 +35,37 @@ export async function signupStudent<TResponse = unknown>(
 }
 
 export async function getAuthCsrfToken(): Promise<CsrfTokenResponse> {
-  const { data } = await apiClient.get<CsrfTokenResponse>('/api/auth/csrf');
+  const { data } = await apiClient.get<CsrfTokenResponse>('/api/auth/csrf', {
+    withCredentials: true,
+  });
 
   return data;
 }
 
-export async function refreshAccessToken(): Promise<void> {
-  const { headerName, token } = await getAuthCsrfToken();
+export async function refreshAccessToken(): Promise<RefreshAccessTokenResponse> {
+  try {
+    const { headerName, token } = await getAuthCsrfToken();
+    const { data } = await apiClient.post<RefreshAccessTokenResponse>(
+      '/api/auth/refresh',
+      undefined,
+      {
+        headers: {
+          [headerName]: token,
+        },
+        withCredentials: true,
+      },
+    );
 
-  await apiClient.post('/api/auth/refresh', undefined, {
-    headers: {
-      [headerName]: token,
-    },
-  });
+    setAccessToken(data.accessToken);
+
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      clearAccessToken();
+    }
+
+    throw error;
+  }
 }
 
 export async function logoutStudent(): Promise<void> {
@@ -44,5 +75,8 @@ export async function logoutStudent(): Promise<void> {
     headers: {
       [headerName]: token,
     },
+    withCredentials: true,
   });
+
+  clearAccessToken();
 }
