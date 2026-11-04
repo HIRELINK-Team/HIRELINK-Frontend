@@ -14,6 +14,7 @@ import {
   acceptStudentEmploymentOffer,
   getStudentMatchingPreferences,
   getMyStudentApplications,
+  getEmploymentMatch,
   getStudentProfile,
   getStudentRecommendations,
   loginStudent,
@@ -519,6 +520,7 @@ function StudentMatchingHiringCompleteRoute() {
 
   return (
     <StudentHiringCompletePage
+      contactPhone={null}
       job={acceptedJob}
       onBack={() => navigate('/student/matching')}
       onViewApplications={() => navigate('/student/applications')}
@@ -654,6 +656,33 @@ function StudentHiringCompleteRoute() {
   const application = applications.find(
     (candidate) => candidate.id === applicationId,
   );
+  const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
+  const isMatchDetailLoading =
+    application?.matchId !== null &&
+    application?.matchId !== undefined &&
+    loadedMatchId !== application.matchId;
+
+  useEffect(() => {
+    const matchId = application?.matchId;
+
+    if (matchId === null || matchId === undefined) return;
+
+    let isActive = true;
+
+    void getEmploymentMatch(matchId)
+      .catch(() => {
+        // Keep the confirmed application data when match detail cannot load.
+      })
+      .finally(() => {
+        if (isActive) {
+          setLoadedMatchId(matchId);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [application?.matchId]);
 
   if (!application || application.status !== 'HIRED') {
     return <Navigate replace to="/student/applications" />;
@@ -661,6 +690,8 @@ function StudentHiringCompleteRoute() {
 
   return (
     <StudentHiringCompletePage
+      contactPhone={null}
+      isMatchDetailLoading={isMatchDetailLoading}
       job={application.job}
       onBack={() => navigate('/student/applications')}
       onViewApplications={() => navigate('/student/applications')}

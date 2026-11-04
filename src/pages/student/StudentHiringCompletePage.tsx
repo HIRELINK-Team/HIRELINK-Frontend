@@ -3,6 +3,8 @@ import hiringCompleteIllustration from '../../assets/images/student/matching/app
 import type { RecommendedJob } from '../../types/studentMatching';
 
 type StudentHiringCompletePageProps = {
+  contactPhone?: string | null;
+  isMatchDetailLoading?: boolean;
   job: RecommendedJob;
   onBack?: () => void;
   onDetailClick?: (job: RecommendedJob) => void;
@@ -11,13 +13,18 @@ type StudentHiringCompletePageProps = {
 
 /** The completion state shown immediately after a student accepts an offer. */
 export default function StudentHiringCompletePage({
+  contactPhone = '010-1234-5678',
+  isMatchDetailLoading = false,
   job,
   onBack,
   onDetailClick,
   onViewApplications,
 }: StudentHiringCompletePageProps) {
   return (
-    <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main
+      aria-busy={isMatchDetailLoading}
+      className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+    >
       <button
         aria-label="채용 제안으로 돌아가기"
         className="absolute top-[49px] left-[26px] flex h-4 w-2 items-center justify-center border-0 bg-transparent p-0"
@@ -51,9 +58,11 @@ export default function StudentHiringCompletePage({
         <p className="absolute top-[57px] left-[23px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
           채용 연락처
         </p>
-        <span className="absolute top-[87px] left-[23px] text-[15px] leading-[1.5] font-medium tracking-[-0.02em] text-[#009376] underline underline-offset-2">
-          T. 010-1234-5678
-        </span>
+        {contactPhone ? (
+          <span className="absolute top-[87px] left-[23px] text-[15px] leading-[1.5] font-medium tracking-[-0.02em] text-[#009376] underline underline-offset-2">
+            T. {contactPhone}
+          </span>
+        ) : null}
         <button
           className="absolute top-[21px] right-[23px] flex h-[27px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13.636px] text-[13px] leading-[1.5] tracking-[-0.02em] text-[#191F28]"
           type="button"
