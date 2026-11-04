@@ -19,7 +19,7 @@ export function ApplicationFilterTabs({
   return (
     <div
       aria-label="지원 내역 상태 필터"
-      className="flex gap-[5px]"
+      className="flex w-full gap-[5px]"
       role="tablist"
     >
       {FILTERS.map((filter) => {
@@ -28,7 +28,7 @@ export function ApplicationFilterTabs({
         return (
           <button
             aria-selected={isActive}
-            className={`h-[34px] shrink-0 rounded-[50px] border-0 px-5 text-[13px] leading-[1.5] tracking-[-0.02em] ${
+            className={`h-[34px] shrink-0 rounded-[50px] border-0 px-3 text-[13px] leading-[1.5] tracking-[-0.02em] ${
               isActive
                 ? 'bg-[#00B894] font-bold text-[#F5F5F5]'
                 : 'bg-[#E5E8EB] font-normal text-[#191F28]'
