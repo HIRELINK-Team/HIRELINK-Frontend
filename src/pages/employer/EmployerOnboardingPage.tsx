@@ -1,46 +1,48 @@
-import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import SelectField from "../../components/common/SelectField";
-import EmployerAddressSearchModal from "../../components/employer/EmployerAddressSearchModal";
-import hirelinkLogo from "../../assets/hirelink-logo.svg";
+import { useRef, useState } from 'react';
+import SelectField from '../../components/common/SelectField';
+import EmployerAddressSearchModal from '../../components/employer/EmployerAddressSearchModal';
+import hirelinkLogo from '../../assets/hirelink-logo.svg';
+import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
+import {
+  extractBusinessRegistration,
+  verifyBusinessRegistration,
+} from '../../api/workplaces';
 import {
   EMPLOYEE_COUNT_OPTIONS,
   MAX_REGISTRATION_FILE_SIZE,
   MOCK_PHONE_VERIFICATION_CODE,
   REFERRAL_SOURCE_OPTIONS,
-} from "../../data/employerOnboardingData";
-import { getMockEmployerAccount } from "../../data/employerAuthMock";
+} from '../../data/employerOnboardingData';
 import {
   EMPLOYER_ADDRESS_MOCKS,
   EMPLOYER_INDUSTRY_OPTIONS,
-} from "../../data/employerProfileData";
-import { useEmployerProfile } from "../../hooks/useEmployerProfile";
-import type { SelectOption } from "../../components/common/SelectField";
+} from '../../data/employerProfileData';
+import type { SelectOption } from '../../components/common/SelectField';
 import type {
   EmployerOnboardingForm,
   EmployeeCountCode,
   OnboardingStep,
   ReferralSourceCode,
-} from "../../types/employerOnboarding";
-import type { EmployerIndustryCode } from "../../types/employerProfile";
+} from '../../types/employerOnboarding';
+import type { EmployerIndustryCode } from '../../types/employerProfile';
 
-type OpenSelect = "referral" | "industry" | "employeeCount" | null;
+type OpenSelect = 'referral' | 'industry' | 'employeeCount' | null;
 
 const INITIAL_FORM: EmployerOnboardingForm = {
   manager: {
-    name: "",
-    phoneParts: ["", "", ""],
-    verificationCode: "",
-    referralSource: "",
+    name: '',
+    phoneParts: ['', '', ''],
+    verificationCode: '',
+    referralSource: '',
   },
   business: {
-    name: "",
-    registrationNumberParts: ["", "", ""],
+    name: '',
+    registrationNumberParts: ['', '', ''],
     registrationFile: null,
-    industry: "",
-    employeeCount: "",
-    address: "",
-    detailAddress: "",
+    industry: '',
+    employeeCount: '',
+    address: '',
+    detailAddress: '',
   },
   agreements: {
     terms: false,
@@ -50,7 +52,49 @@ const INITIAL_FORM: EmployerOnboardingForm = {
 };
 
 const inputClassName =
-  "h-[58px] w-full rounded-[10px] border border-[rgba(112,115,124,0.22)] bg-white px-4 text-base text-[#171719] outline-none transition-colors placeholder:text-[#8b95a1] hover:border-[#aeb4bc] focus:border-[#00b894] focus:ring-2 focus:ring-[#00b894]/10";
+  'h-[58px] w-full rounded-[10px] border border-[rgba(112,115,124,0.22)] bg-white px-4 text-base text-[#171719] outline-none transition-colors placeholder:text-[#8b95a1] hover:border-[#aeb4bc] focus:border-[#00b894] focus:ring-2 focus:ring-[#00b894]/10';
+
+const ALLOWED_REGISTRATION_FILE_TYPES = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+]);
+const ALLOWED_REGISTRATION_FILE_EXTENSION = /\.(pdf|jpe?g|png)$/i;
+
+function getOcrErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+
+  if (status === 400) return apiError?.message ?? '파일을 다시 확인해 주세요.';
+  if (status === 401) return '로그인 정보를 확인하지 못했습니다.';
+  if (status === 403) return '사업주 계정만 사업자등록증을 확인할 수 있어요.';
+  if (status === 413) return '5MB 이하의 파일을 선택해 주세요.';
+  if (status === 415) return 'PDF, JPG, PNG 파일만 선택할 수 있어요.';
+  if (status === 422)
+    return apiError?.message ?? '사업자등록번호를 인식하지 못했어요.';
+  if (status === 502)
+    return 'OCR 서비스에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.';
+  if (status && status >= 500)
+    return '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+
+  return apiError?.message ?? '사업자등록증을 확인하지 못했어요.';
+}
+
+function getVerificationErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+
+  if (status === 400)
+    return apiError?.message ?? '사업자등록번호를 다시 확인해 주세요.';
+  if (status === 401) return '로그인 정보를 확인하지 못했습니다.';
+  if (status === 403) return '사업주 계정만 사업자번호를 조회할 수 있어요.';
+  if (status === 502)
+    return '국세청 조회 서비스에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.';
+  if (status && status >= 500)
+    return '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+
+  return apiError?.message ?? '사업자등록번호를 조회하지 못했어요.';
+}
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -101,12 +145,12 @@ function StepProgress({ step }: { step: OnboardingStep }) {
   return (
     <div className="mt-4">
       <p className="text-sm font-medium text-[#70737c]">
-        {step}/2 {step === 1 ? "담당자 정보" : "사업장 정보"}
+        {step}/2 {step === 1 ? '담당자 정보' : '사업장 정보'}
       </p>
       <div className="mt-2 flex gap-2.5">
         <span className="h-[7px] flex-1 rounded-[3px] bg-[#00b894]" />
         <span
-          className={`h-[7px] flex-1 rounded-[3px] ${step === 2 ? "bg-[#00b894]" : "bg-[#e1e2e4]"}`}
+          className={`h-[7px] flex-1 rounded-[3px] ${step === 2 ? 'bg-[#00b894]' : 'bg-[#e1e2e4]'}`}
         />
       </div>
     </div>
@@ -157,7 +201,7 @@ function FormSelect<T extends string>({
   onChange,
 }: {
   label: string;
-  value: T | "";
+  value: T | '';
   options: SelectOption<T>[];
   placeholder: string;
   name: Exclude<OpenSelect, null>;
@@ -181,18 +225,33 @@ function FormSelect<T extends string>({
   );
 }
 
+function getInitialOnboardingStep(): OnboardingStep {
+  if (!import.meta.env.DEV) return 1;
+
+  const requestedStep = new URLSearchParams(window.location.search).get('step');
+  return requestedStep === '2' ? 2 : 1;
+}
+
 function EmployerOnboardingPage() {
-  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { profile, updateProfile } = useEmployerProfile();
-  const [step, setStep] = useState<OnboardingStep>(1);
+  const [step, setStep] = useState<OnboardingStep>(getInitialOnboardingStep);
   const [form, setForm] = useState<EmployerOnboardingForm>(INITIAL_FORM);
   const [openSelect, setOpenSelect] = useState<OpenSelect>(null);
   const [isVerificationRequested, setIsVerificationRequested] = useState(false);
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [isRegistrationChecked, setIsRegistrationChecked] = useState(false);
+  const [isOcrLoading, setIsOcrLoading] = useState(false);
+  const [isRegistrationChecking, setIsRegistrationChecking] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [ocrMessage, setOcrMessage] = useState<string | null>(null);
+  const [registrationMessage, setRegistrationMessage] = useState<string | null>(
+    null,
+  );
+  const [registrationError, setRegistrationError] = useState<string | null>(
+    null,
+  );
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const isPhoneComplete = form.manager.phoneParts.every(
     (part, index) => part.length === (index === 0 ? 3 : 4),
@@ -217,9 +276,9 @@ function EmployerOnboardingPage() {
     form.business.address.trim(),
   );
 
-  const updateManager = <K extends keyof EmployerOnboardingForm["manager"]>(
+  const updateManager = <K extends keyof EmployerOnboardingForm['manager']>(
     field: K,
-    value: EmployerOnboardingForm["manager"][K],
+    value: EmployerOnboardingForm['manager'][K],
   ) => {
     setForm((current) => ({
       ...current,
@@ -227,18 +286,19 @@ function EmployerOnboardingPage() {
     }));
   };
 
-  const updateBusiness = <K extends keyof EmployerOnboardingForm["business"]>(
+  const updateBusiness = <K extends keyof EmployerOnboardingForm['business']>(
     field: K,
-    value: EmployerOnboardingForm["business"][K],
+    value: EmployerOnboardingForm['business'][K],
   ) => {
     setForm((current) => ({
       ...current,
       business: { ...current.business, [field]: value },
     }));
+    setSubmitError(null);
   };
 
   const updateBusinessFields = (
-    fields: Partial<EmployerOnboardingForm["business"]>,
+    fields: Partial<EmployerOnboardingForm['business']>,
   ) => {
     setForm((current) => ({
       ...current,
@@ -249,16 +309,16 @@ function EmployerOnboardingPage() {
   const handlePhonePartChange = (index: number, value: string) => {
     const nextParts = [...form.manager.phoneParts] as [string, string, string];
     const maxLength = index === 0 ? 3 : 4;
-    nextParts[index] = value.replace(/\D/g, "").slice(0, maxLength);
-    updateManager("phoneParts", nextParts);
+    nextParts[index] = value.replace(/\D/g, '').slice(0, maxLength);
+    updateManager('phoneParts', nextParts);
     setIsVerificationRequested(false);
     setIsPhoneVerified(false);
-    updateManager("verificationCode", "");
+    updateManager('verificationCode', '');
   };
 
   const handleVerificationCodeChange = (value: string) => {
-    const nextCode = value.replace(/\D/g, "").slice(0, 6);
-    updateManager("verificationCode", nextCode);
+    const nextCode = value.replace(/\D/g, '').slice(0, 6);
+    updateManager('verificationCode', nextCode);
     setIsPhoneVerified(nextCode === MOCK_PHONE_VERIFICATION_CODE);
   };
 
@@ -269,9 +329,12 @@ function EmployerOnboardingPage() {
       string,
     ];
     const maxLength = [3, 2, 5][index];
-    nextParts[index] = value.replace(/\D/g, "").slice(0, maxLength);
+    nextParts[index] = value.replace(/\D/g, '').slice(0, maxLength);
     updateBusinessFields({ registrationNumberParts: nextParts });
     setIsRegistrationChecked(false);
+    setRegistrationMessage(null);
+    setRegistrationError(null);
+    setSubmitError(null);
   };
 
   const applyBusinessAutofill = ({
@@ -281,16 +344,18 @@ function EmployerOnboardingPage() {
     registrationNumber?: string;
     address?: string;
   }) => {
-    const fields: Partial<EmployerOnboardingForm["business"]> = {};
+    const fields: Partial<EmployerOnboardingForm['business']> = {};
 
     if (registrationNumber !== undefined) {
-      const digits = registrationNumber.replace(/\D/g, "");
+      const digits = registrationNumber.replace(/\D/g, '');
       fields.registrationNumberParts = [
         digits.slice(0, 3),
         digits.slice(3, 5),
         digits.slice(5, 10),
       ];
       setIsRegistrationChecked(false);
+      setRegistrationMessage(null);
+      setRegistrationError(null);
     }
 
     if (address !== undefined) {
@@ -298,23 +363,92 @@ function EmployerOnboardingPage() {
     }
 
     updateBusinessFields(fields);
+    setSubmitError(null);
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0] ?? null;
     if (!file) return;
+
+    event.target.value = '';
+
+    const isSupportedType =
+      ALLOWED_REGISTRATION_FILE_TYPES.has(file.type) ||
+      ALLOWED_REGISTRATION_FILE_EXTENSION.test(file.name);
+
+    if (!isSupportedType) {
+      setFileError('PDF, JPG, PNG 파일만 선택할 수 있어요.');
+      setOcrMessage(null);
+      return;
+    }
+
     if (file.size > MAX_REGISTRATION_FILE_SIZE) {
-      setFileError("5MB 이하의 파일을 선택해 주세요.");
-      event.target.value = "";
+      setFileError('5MB 이하의 파일을 선택해 주세요.');
+      setOcrMessage(null);
       return;
     }
 
     setFileError(null);
-    updateBusiness("registrationFile", file);
+    setOcrMessage(null);
+    setIsRegistrationChecked(false);
+    setRegistrationMessage(null);
+    setRegistrationError(null);
+    setSubmitError(null);
+    updateBusiness('registrationFile', file);
+
+    setIsOcrLoading(true);
+    try {
+      const response = await extractBusinessRegistration(file);
+      applyBusinessAutofill({
+        registrationNumber: response.businessRegistrationNumber,
+        address: response.workplaceAddress ?? '',
+      });
+      setOcrMessage(
+        response.workplaceAddress
+          ? '사업자등록번호와 주소를 불러왔어요. 내용을 확인해 주세요.'
+          : '사업자등록번호를 불러왔어요. 주소를 직접 확인해 주세요.',
+      );
+    } catch (error: unknown) {
+      setFileError(getOcrErrorMessage(error));
+    } finally {
+      setIsOcrLoading(false);
+    }
+  };
+
+  const handleRegistrationCheck = async () => {
+    if (!isRegistrationNumberComplete || isRegistrationChecking) return;
+
+    setIsRegistrationChecking(true);
+    setIsRegistrationChecked(false);
+    setRegistrationMessage(null);
+    setRegistrationError(null);
+    setSubmitError(null);
+
+    try {
+      const response = await verifyBusinessRegistration({
+        businessRegistrationNumber:
+          form.business.registrationNumberParts.join('-'),
+      });
+
+      if (response.valid) {
+        setIsRegistrationChecked(true);
+        setRegistrationMessage(response.message);
+      } else {
+        setRegistrationError(
+          response.message || '유효하지 않은 사업자등록번호예요.',
+        );
+      }
+    } catch (error: unknown) {
+      setRegistrationError(getVerificationErrorMessage(error));
+    } finally {
+      setIsRegistrationChecking(false);
+    }
   };
 
   const handleAgreementChange = (
-    field: keyof EmployerOnboardingForm["agreements"],
+    field: keyof EmployerOnboardingForm['agreements'],
     checked: boolean,
   ) => {
     setForm((current) => ({
@@ -324,27 +458,10 @@ function EmployerOnboardingPage() {
   };
 
   const handleComplete = () => {
-    if (!isStepTwoComplete) return;
-
-    const mockAccount = getMockEmployerAccount();
-    const managerName = form.manager.name.trim();
-
-    updateProfile({
-      ...profile,
-      name: managerName,
-      phone: form.manager.phoneParts.join("-"),
-      email: mockAccount?.email ?? profile.email,
-      business: {
-        ...profile.business,
-        name: form.business.name.trim(),
-        registrationNumber: form.business.registrationNumberParts.join("-"),
-        industry: form.business.industry as EmployerIndustryCode,
-        address: form.business.address,
-        detailAddress: form.business.detailAddress.trim(),
-        representativeName: managerName,
-      },
-    });
-    navigate("/employer/dashboard");
+    if (!isStepTwoComplete || isOcrLoading || isRegistrationChecking) return;
+    setSubmitError(
+      '사업장 등록에 필요한 업종 ID와 주소 좌표 정보가 아직 연결되지 않았어요.',
+    );
   };
 
   return (
@@ -366,7 +483,7 @@ function EmployerOnboardingPage() {
               <input
                 type="text"
                 value={form.manager.name}
-                onChange={(event) => updateManager("name", event.target.value)}
+                onChange={(event) => updateManager('name', event.target.value)}
                 placeholder="이름을 입력해주세요"
                 className={inputClassName}
               />
@@ -387,7 +504,7 @@ function EmployerOnboardingPage() {
                   onClick={() => setIsVerificationRequested(true)}
                   className="h-[58px] cursor-pointer rounded-xl bg-[#00b894] text-base font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
                 >
-                  {isPhoneVerified ? "완료" : "인증"}
+                  {isPhoneVerified ? '완료' : '인증'}
                 </button>
               </div>
             </div>
@@ -406,10 +523,10 @@ function EmployerOnboardingPage() {
                   className={inputClassName}
                 />
                 <p
-                  className={`mt-1.5 text-xs font-medium ${isPhoneVerified ? "text-[#007a63]" : "text-[#70737c]"}`}
+                  className={`mt-1.5 text-xs font-medium ${isPhoneVerified ? 'text-[#007a63]' : 'text-[#70737c]'}`}
                 >
                   {isPhoneVerified
-                    ? "인증이 완료되었어요."
+                    ? '인증이 완료되었어요.'
                     : `테스트 인증번호: ${MOCK_PHONE_VERIFICATION_CODE}`}
                 </p>
               </label>
@@ -424,7 +541,7 @@ function EmployerOnboardingPage() {
                 name="referral"
                 openSelect={openSelect}
                 onOpenSelect={setOpenSelect}
-                onChange={(value) => updateManager("referralSource", value)}
+                onChange={(value) => updateManager('referralSource', value)}
               />
             </div>
 
@@ -435,7 +552,7 @@ function EmployerOnboardingPage() {
                 onClick={() => {
                   setOpenSelect(null);
                   setStep(2);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="h-[58px] w-40 cursor-pointer rounded-xl bg-[#00b894] text-lg font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
               >
@@ -450,7 +567,7 @@ function EmployerOnboardingPage() {
               <input
                 type="text"
                 value={form.business.name}
-                onChange={(event) => updateBusiness("name", event.target.value)}
+                onChange={(event) => updateBusiness('name', event.target.value)}
                 placeholder="사업장명을 입력해주세요"
                 className={inputClassName}
               />
@@ -470,16 +587,24 @@ function EmployerOnboardingPage() {
               />
               <button
                 type="button"
+                disabled={isOcrLoading}
                 onClick={() => fileInputRef.current?.click()}
-                className="flex h-[58px] w-full cursor-pointer items-center justify-center rounded-[10px] border border-dashed border-[rgba(112,115,124,0.32)] bg-white px-4 text-base font-medium text-[#171719] transition-colors hover:bg-[#f7f7f8]"
+                className="flex h-[58px] w-full cursor-pointer items-center justify-center rounded-[10px] border border-dashed border-[rgba(112,115,124,0.32)] bg-white px-4 text-base font-medium text-[#171719] transition-colors hover:bg-[#f7f7f8] disabled:cursor-not-allowed disabled:bg-[#f7f7f8] disabled:text-[#8b95a1]"
               >
                 <span className="max-w-full truncate">
-                  {form.business.registrationFile?.name ?? "업로드하기"}
+                  {isOcrLoading
+                    ? 'OCR 확인 중'
+                    : (form.business.registrationFile?.name ?? '업로드하기')}
                 </span>
               </button>
               {fileError && (
                 <p role="alert" className="mt-1.5 text-xs text-[#e11e1e]">
                   {fileError}
+                </p>
+              )}
+              {ocrMessage && (
+                <p role="status" className="mt-1.5 text-xs text-[#008f73]">
+                  {ocrMessage}
                 </p>
               )}
             </div>
@@ -496,24 +621,42 @@ function EmployerOnboardingPage() {
                 <button
                   type="button"
                   disabled={
-                    !isRegistrationNumberComplete || isRegistrationChecked
+                    !isRegistrationNumberComplete ||
+                    isRegistrationChecked ||
+                    isRegistrationChecking
                   }
-                  onClick={() => setIsRegistrationChecked(true)}
+                  onClick={handleRegistrationCheck}
                   className="h-[58px] cursor-pointer rounded-xl bg-[#00b894] text-base font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
                 >
-                  {isRegistrationChecked ? "조회 완료" : "조회"}
+                  {isRegistrationChecking
+                    ? '조회 중'
+                    : isRegistrationChecked
+                      ? '조회 완료'
+                      : '조회'}
                 </button>
               </div>
+              {registrationMessage && (
+                <p role="status" className="mt-1.5 text-xs text-[#008f73]">
+                  {registrationMessage}
+                </p>
+              )}
+              {registrationError && (
+                <p role="alert" className="mt-1.5 text-xs text-[#e11e1e]">
+                  {registrationError}
+                </p>
+              )}
             </div>
 
             <div className="mt-6">
               <FieldLabel>사업장 주소</FieldLabel>
               <div className="grid grid-cols-[minmax(0,1fr)_96px] gap-2">
                 <input
-                  readOnly
                   value={form.business.address}
+                  onChange={(event) =>
+                    applyBusinessAutofill({ address: event.target.value })
+                  }
                   placeholder="오른쪽 버튼을 눌러 주소를 검색해주세요"
-                  className={`${inputClassName} cursor-default`}
+                  className={inputClassName}
                 />
                 <button
                   type="button"
@@ -530,7 +673,7 @@ function EmployerOnboardingPage() {
                 type="text"
                 value={form.business.detailAddress}
                 onChange={(event) =>
-                  updateBusiness("detailAddress", event.target.value)
+                  updateBusiness('detailAddress', event.target.value)
                 }
                 placeholder="상세 주소를 입력해주세요"
                 aria-label="상세 주소"
@@ -547,7 +690,7 @@ function EmployerOnboardingPage() {
                 name="industry"
                 openSelect={openSelect}
                 onOpenSelect={setOpenSelect}
-                onChange={(value) => updateBusiness("industry", value)}
+                onChange={(value) => updateBusiness('industry', value)}
               />
             </div>
 
@@ -560,7 +703,7 @@ function EmployerOnboardingPage() {
                 name="employeeCount"
                 openSelect={openSelect}
                 onOpenSelect={setOpenSelect}
-                onChange={(value) => updateBusiness("employeeCount", value)}
+                onChange={(value) => updateBusiness('employeeCount', value)}
               />
             </div>
 
@@ -585,9 +728,9 @@ function EmployerOnboardingPage() {
               </label>
               <div className="mt-1 rounded-[10px] border border-[#e1e2e4] px-4 py-4">
                 {[
-                  ["terms", "이용약관에 동의합니다 (선택)"],
-                  ["privacy", "개인정보처리방침에 동의합니다 (선택)"],
-                  ["marketing", "광고성 정보 수신에 동의합니다 (선택)"],
+                  ['terms', '이용약관에 동의합니다 (선택)'],
+                  ['privacy', '개인정보처리방침에 동의합니다 (선택)'],
+                  ['marketing', '광고성 정보 수신에 동의합니다 (선택)'],
                 ].map(([field, label]) => (
                   <label
                     key={field}
@@ -596,13 +739,13 @@ function EmployerOnboardingPage() {
                     <AgreementCheckbox
                       checked={
                         form.agreements[
-                          field as keyof EmployerOnboardingForm["agreements"]
+                          field as keyof EmployerOnboardingForm['agreements']
                         ]
                       }
                       ariaLabel={label}
                       onChange={(checked) =>
                         handleAgreementChange(
-                          field as keyof EmployerOnboardingForm["agreements"],
+                          field as keyof EmployerOnboardingForm['agreements'],
                           checked,
                         )
                       }
@@ -613,13 +756,22 @@ function EmployerOnboardingPage() {
               </div>
             </div>
 
+            {submitError && (
+              <p
+                role="alert"
+                className="mt-6 text-right text-sm text-[#e11e1e]"
+              >
+                {submitError}
+              </p>
+            )}
+
             <div className="mt-10 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setOpenSelect(null);
                   setStep(1);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="h-[58px] w-40 cursor-pointer rounded-xl border border-[rgba(112,115,124,0.32)] bg-white text-lg font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5]"
               >
@@ -627,7 +779,9 @@ function EmployerOnboardingPage() {
               </button>
               <button
                 type="button"
-                disabled={!isStepTwoComplete}
+                disabled={
+                  !isStepTwoComplete || isOcrLoading || isRegistrationChecking
+                }
                 onClick={handleComplete}
                 className="h-[58px] w-40 cursor-pointer rounded-xl bg-[#00b894] text-lg font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
               >
