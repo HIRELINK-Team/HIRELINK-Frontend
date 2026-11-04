@@ -104,6 +104,16 @@ function getHourLabel(hour: number) {
   return normalizedHour === 0 ? '0' : String(normalizedHour);
 }
 
+function formatTimeLabel(hour: number) {
+  const normalizedHour = ((hour % 24) + 24) % 24;
+  const wholeHour = Math.floor(normalizedHour);
+  const minutes = Math.round((normalizedHour - wholeHour) * 60);
+
+  return minutes === 0
+    ? `${wholeHour}시`
+    : `${wholeHour}시 ${minutes}분`;
+}
+
 function getRangeLabel(range: TimeRange, mode: WorkTimeMode) {
   const config = TIME_CONFIG[mode];
   const dayLabel = WEEKDAYS.find(({ id }) => id === range.day)?.label;
@@ -126,12 +136,12 @@ function getRangeLabel(range: TimeRange, mode: WorkTimeMode) {
     return '수 3시 - 6시';
   }
 
-  const durationHours = (range.endSlot - range.startSlot + 1) / 2;
   const startHour =
     config.startHour + (range.startSlot - config.slotOffset) / 2;
-  const endHour = startHour + durationHours - 1;
+  const endHour =
+    config.startHour + (range.endSlot - config.slotOffset + 1) / 2;
 
-  return `${dayLabel} ${getHourLabel(startHour)}시 - ${getHourLabel(endHour)}시`;
+  return `${dayLabel} ${formatTimeLabel(startHour)} - ${formatTimeLabel(endHour)}`;
 }
 
 export function WorkTimeGrid({

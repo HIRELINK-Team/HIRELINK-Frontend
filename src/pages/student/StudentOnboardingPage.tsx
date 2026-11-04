@@ -892,9 +892,9 @@ export default function StudentOnboardingPage({
     return (
       <OnboardingScaffold
         activeSubStep={2}
-        contentClassName="mt-10 min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         ctaLabel="확인"
         currentStage={3}
+        isPageScrollable
         question={'원하는 근무시간대를\n선택해주세요.'}
         stageLabel="구직조건 입력"
         totalSubSteps={3}
