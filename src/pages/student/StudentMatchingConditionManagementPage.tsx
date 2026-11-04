@@ -2,6 +2,7 @@ import backIcon from '../../assets/icons/student/documents/back.svg';
 import matchingConditionChevronIcon from '../../assets/icons/student/my/matching-condition-chevron.svg';
 import matchingConditionNoticeImage from '../../assets/images/student/my/matching-condition-notice.png';
 import priorityDragHandleIcon from '../../assets/icons/student/priority-drag-handle.svg';
+import type { MatchingPriorityId } from '../../types/matchingPriority';
 
 type MatchingConditionId =
   'industry' | 'location' | 'work-time' | 'start-date' | 'priority';
@@ -13,9 +14,11 @@ type MatchingConditionSummaryValues = Partial<
 >;
 
 type StudentMatchingConditionManagementPageProps = {
+  isLoading?: boolean;
   onApply?: () => void;
   onBack?: () => void;
   onConditionClick?: (conditionId: MatchingConditionId) => void;
+  priorityOrder?: readonly MatchingPriorityId[];
   summaryValues?: MatchingConditionSummaryValues;
 };
 
@@ -35,16 +38,30 @@ const MATCHING_CONDITION_SUMMARIES = [
 ] as const;
 
 const MATCHING_PRIORITY_CARDS = [
-  { description: '원하는 시간대에 일하고 싶어요.', title: '근무시간' },
-  { description: '만족스러운 급여를 받고 싶어요.', title: '급여' },
-  { description: '집 가까운 곳에서 일하고 싶어요.', title: '거리' },
-  { description: '원하는 분야에서 일하고 싶어요.', title: '업종' },
+  {
+    description: '원하는 시간대에 일하고 싶어요.',
+    id: 'workTime',
+    title: '근무시간',
+  },
+  { description: '만족스러운 급여를 받고 싶어요.', id: 'wage', title: '급여' },
+  {
+    description: '집 가까운 곳에서 일하고 싶어요.',
+    id: 'distance',
+    title: '거리',
+  },
+  {
+    description: '원하는 분야에서 일하고 싶어요.',
+    id: 'industry',
+    title: '업종',
+  },
 ] as const;
 
 export default function StudentMatchingConditionManagementPage({
+  isLoading = false,
   onApply,
   onBack,
   onConditionClick,
+  priorityOrder,
   summaryValues,
 }: StudentMatchingConditionManagementPageProps) {
   const handleConditionClick = (conditionId: MatchingConditionId) => {
@@ -52,7 +69,10 @@ export default function StudentMatchingConditionManagementPage({
   };
 
   return (
-    <main className="mx-auto h-[1074px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[34px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main
+      aria-busy={isLoading}
+      className="mx-auto h-[1074px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[34px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+    >
       <button
         aria-label="뒤로가기"
         className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
@@ -121,10 +141,18 @@ export default function StudentMatchingConditionManagementPage({
         매칭 중요도
       </h2>
       <section className="mt-[18px] space-y-[10px]">
-        {MATCHING_PRIORITY_CARDS.map((card) => (
+        {(priorityOrder?.length
+          ? priorityOrder.flatMap((priorityId) => {
+              const card = MATCHING_PRIORITY_CARDS.find(
+                (priorityCard) => priorityCard.id === priorityId,
+              );
+              return card ? [card] : [];
+            })
+          : MATCHING_PRIORITY_CARDS
+        ).map((card) => (
           <button
             className="flex h-[89px] w-full items-center rounded-[20px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[30.3px] text-left"
-            key={card.title}
+            key={card.id}
             type="button"
             onClick={() => handleConditionClick('priority')}
           >

@@ -1,9 +1,9 @@
 import { apiClient } from '../client';
 
-export async function getStudentMatchingPreferences<
-  TResponse = unknown,
->(): Promise<TResponse> {
-  const { data } = await apiClient.get<TResponse>(
+import type { StudentMatchingPreferencesResponse } from '../../types/studentMatchingPreferences';
+
+export async function getStudentMatchingPreferences(): Promise<StudentMatchingPreferencesResponse> {
+  const { data } = await apiClient.get<StudentMatchingPreferencesResponse>(
     '/api/students/me/matching-preferences',
   );
 

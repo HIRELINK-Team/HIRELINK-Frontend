@@ -1,6 +1,8 @@
-export type WorkLocationRadius = 100 | 500 | 1000;
+export type WorkLocationRadius = number;
 
 export type WorkLocation = {
   address: string;
+  latitude?: number;
+  longitude?: number;
   radius: WorkLocationRadius;
 };

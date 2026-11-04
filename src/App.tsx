@@ -10,7 +10,12 @@ import {
 } from 'react-router-dom';
 
 import { setAccessToken } from './api/accessToken';
-import { getStudentProfile, loginStudent } from './api/student';
+import {
+  getStudentMatchingPreferences,
+  getStudentProfile,
+  loginStudent,
+} from './api/student';
+import { mapStudentMatchingPreferencesToUiState } from './adapters/studentMatchingPreferences';
 import { mapStudentProfileResponseToValues } from './adapters/studentProfile';
 import EmployerApplicantsProvider from './components/employer/EmployerApplicantsProvider';
 import EmployerLayout from './components/employer/EmployerLayout';
@@ -63,6 +68,7 @@ import type { StudentNavigationTab } from './types/studentHome';
 import type { StudentApplication } from './types/studentApplication';
 import type { StudentDocument } from './types/studentDocument';
 import type { IndustryId } from './types/industry';
+import type { MatchingPriorityId } from './types/matchingPriority';
 import type {
   RecommendedJob,
   StudentMatchingView,
@@ -210,7 +216,10 @@ const STUDENT_DOCUMENT_ROUTE_CONFIG: Record<
 };
 
 type MatchingConditionRouteContext = {
+  businessTypeFlexible: boolean;
+  isMatchingPreferencesLoading: boolean;
   otherIndustry: string;
+  priorityOrder: MatchingPriorityId[];
   selectedIndustries: IndustryId[];
   startDate: string;
   updatedSummaryIds: Set<MatchingConditionSummaryId>;
@@ -260,7 +269,11 @@ const INDUSTRY_SUMMARY_LABELS: Record<IndustryId, string> = {
 function formatMatchingConditionIndustries(
   industries: readonly IndustryId[],
   otherIndustry: string,
+  isFlexible: boolean,
 ) {
+  if (isFlexible) return '상관없음';
+  if (industries.length === 0) return '미입력';
+
   return industries
     .map((industry) =>
       industry === 'other' && otherIndustry
@@ -783,10 +796,12 @@ function StudentProfileDetailRoute({ view }: { view: ProfileDetailView }) {
 }
 
 function StudentMatchingConditionLayout() {
+  const [businessTypeFlexible, setBusinessTypeFlexible] = useState(false);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>([
     'foodCafe',
   ]);
   const [otherIndustry, setOtherIndustry] = useState('');
+  const [priorityOrder, setPriorityOrder] = useState<MatchingPriorityId[]>([]);
   const [workLocation, setWorkLocation] = useState<WorkLocation>({
     address: '',
     radius: 500,
@@ -798,6 +813,45 @@ function StudentMatchingConditionLayout() {
   const [updatedSummaryIds, setUpdatedSummaryIds] = useState<
     Set<MatchingConditionSummaryId>
   >(new Set());
+  const [isMatchingPreferencesLoading, setIsMatchingPreferencesLoading] =
+    useState(true);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void getStudentMatchingPreferences()
+      .then((preferences) => {
+        if (!isActive) return;
+
+        const mappedPreferences =
+          mapStudentMatchingPreferencesToUiState(preferences);
+        setBusinessTypeFlexible(mappedPreferences.businessTypeFlexible);
+        setSelectedIndustries(mappedPreferences.selectedIndustries);
+        setOtherIndustry(mappedPreferences.otherIndustry);
+        setPriorityOrder(mappedPreferences.priorityOrder);
+        setWorkAvailability(mappedPreferences.workAvailability);
+        setWorkLocation(mappedPreferences.workLocation);
+        setUpdatedSummaryIds(
+          new Set<MatchingConditionSummaryId>([
+            'industry',
+            'location',
+            'work-time',
+          ]),
+        );
+      })
+      .catch(() => {
+        // Preserve the current local fallback for 401, 404, and network errors.
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsMatchingPreferencesLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const markSummaryUpdated = (summaryId: MatchingConditionSummaryId) => {
     setUpdatedSummaryIds((currentSummaryIds) =>
@@ -809,9 +863,13 @@ function StudentMatchingConditionLayout() {
     <Outlet
       context={
         {
+          businessTypeFlexible,
+          isMatchingPreferencesLoading,
           otherIndustry,
+          priorityOrder,
           selectedIndustries,
           setIndustry: (industries, industry) => {
+            setBusinessTypeFlexible(false);
             setSelectedIndustries(industries);
             setOtherIndustry(industry);
             markSummaryUpdated('industry');
@@ -841,7 +899,10 @@ function StudentMatchingConditionLayout() {
 function StudentMatchingConditionRoute() {
   const navigate = useNavigate();
   const {
+    businessTypeFlexible,
+    isMatchingPreferencesLoading,
     otherIndustry,
+    priorityOrder,
     selectedIndustries,
     startDate,
     updatedSummaryIds,
@@ -851,6 +912,7 @@ function StudentMatchingConditionRoute() {
 
   return (
     <StudentMatchingConditionManagementPage
+      isLoading={isMatchingPreferencesLoading}
       onApply={() => navigate('/student/my')}
       onBack={() => navigate('/student/my')}
       onConditionClick={(conditionId) => {
@@ -866,9 +928,14 @@ function StudentMatchingConditionRoute() {
           navigate(detailRoute);
         }
       }}
+      priorityOrder={priorityOrder}
       summaryValues={{
         industry: updatedSummaryIds.has('industry')
-          ? formatMatchingConditionIndustries(selectedIndustries, otherIndustry)
+          ? formatMatchingConditionIndustries(
+              selectedIndustries,
+              otherIndustry,
+              businessTypeFlexible,
+            )
           : undefined,
         location: updatedSummaryIds.has('location')
           ? workLocation.address || '주소 미입력'
