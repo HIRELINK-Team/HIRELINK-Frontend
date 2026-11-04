@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 import {
   Navigate,
   Outlet,
@@ -460,7 +461,15 @@ function StudentOnboardingRoute() {
       skipPhoneVerification={shouldSkipPhoneVerification}
       onBack={() => navigate('/student/entry')}
       onComplete={async (requestBody) => {
-        await createStudentProfile(requestBody);
+        try {
+          await createStudentProfile(requestBody);
+        } catch (error) {
+          // A test account can already have a profile while revisiting onboarding.
+          // In that case, continue to the student home instead of trapping the user here.
+          if (!axios.isAxiosError(error) || error.response?.status !== 409) {
+            throw error;
+          }
+        }
         navigate('/student/home', { replace: true });
       }}
     />

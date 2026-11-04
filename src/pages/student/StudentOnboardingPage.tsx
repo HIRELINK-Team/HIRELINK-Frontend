@@ -1275,6 +1275,7 @@ export default function StudentOnboardingPage({
             initialDate={residenceExpiryDateDraft}
             onClose={() => setIsResidenceExpiryDatePickerOpen(false)}
             onConfirm={handleResidenceExpiryDateConfirm}
+            onDateChange={setResidenceExpiryDateDraft}
           />
         ) : null}
       </OnboardingScaffold>
@@ -1286,6 +1287,7 @@ export default function StudentOnboardingPage({
       <OnboardingScaffold
         activeSubStep={0}
         contentClassName="mt-6"
+        ctaContainerClassName="mt-auto shrink-0 pt-6"
         ctaLabel={'\uB9E4\uCE6D\uD558\uAE30'}
         currentStage={5}
         isCtaDisabled={isProfileSubmitting}
