@@ -18,9 +18,13 @@ type StudentApplicationsPageProps = {
   isBottomNavigationFixed?: boolean;
   isApplicationsLoading?: boolean;
   initialScenario?: StudentApplicationsScenario;
-  onAcceptOffer?: (application: StudentApplicationCardModel) => void;
+  onAcceptOffer?: (
+    application: StudentApplicationCardModel,
+  ) => boolean | Promise<boolean> | void;
   onBack?: () => void;
-  onDeclineOffer?: (application: StudentApplicationCardModel) => void;
+  onDeclineOffer?: (
+    application: StudentApplicationCardModel,
+  ) => boolean | Promise<boolean> | void;
   onDetailClick?: (application: StudentApplicationCardModel) => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
 };
@@ -78,6 +82,9 @@ export default function StudentApplicationsPage({
   const [isEmptyScenario, setIsEmptyScenario] = useState(
     initialScenario === 'empty',
   );
+  const [pendingOfferApplicationId, setPendingOfferApplicationId] = useState<
+    string | null
+  >(null);
   const applications = isEmptyScenario
     ? []
     : getApplicationsForFilter(applicationData, activeFilter);
@@ -90,10 +97,37 @@ export default function StudentApplicationsPage({
     setIsEmptyScenario(false);
   };
 
-  const handleAcceptOffer = (application: StudentApplicationCardModel) => {
-    onAcceptOffer?.(application);
-    setActiveFilter('hired');
-    setIsEmptyScenario(false);
+  const handleAcceptOffer = async (
+    application: StudentApplicationCardModel,
+  ) => {
+    if (pendingOfferApplicationId) return;
+
+    setPendingOfferApplicationId(application.id);
+
+    try {
+      const didSucceed = await onAcceptOffer?.(application);
+
+      if (didSucceed !== false) {
+        setActiveFilter('hired');
+        setIsEmptyScenario(false);
+      }
+    } finally {
+      setPendingOfferApplicationId(null);
+    }
+  };
+
+  const handleDeclineOffer = async (
+    application: StudentApplicationCardModel,
+  ) => {
+    if (pendingOfferApplicationId) return;
+
+    setPendingOfferApplicationId(application.id);
+
+    try {
+      await onDeclineOffer?.(application);
+    } finally {
+      setPendingOfferApplicationId(null);
+    }
   };
 
   return (
@@ -137,9 +171,12 @@ export default function StudentApplicationsPage({
                 application={application}
                 isGeneralLayout={isGeneralLayout || isReviewingLayout}
                 isHiredLayout={isHiredLayout}
+                isOfferActionPending={
+                  pendingOfferApplicationId === application.id
+                }
                 key={application.id}
                 onAcceptOffer={handleAcceptOffer}
-                onDeclineOffer={onDeclineOffer}
+                onDeclineOffer={handleDeclineOffer}
                 onDetailClick={onDetailClick}
               />
             ))}

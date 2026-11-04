@@ -10,8 +10,11 @@ const WAGE_TYPE_LABELS: Record<StudentApplication['wageType'], string> = {
 };
 
 function mapApplicationStatus(
-  status: StudentApplication['status'],
+  application: StudentApplication,
 ): StudentApplicationStatus {
+  if (application.matchId !== null) return 'HIRED';
+  if (application.offerId !== null) return 'OFFER_WAITING';
+
   const statusMap: Record<
     StudentApplication['status'],
     StudentApplicationStatus
@@ -19,7 +22,7 @@ function mapApplicationStatus(
     WAITING_RESPONSE: 'REVIEWING',
   };
 
-  return statusMap[status];
+  return statusMap[application.status];
 }
 
 function formatDeadline(deadline: string | null) {
@@ -76,7 +79,7 @@ export function mapStudentApplicationToCardModel(
     offeredAt: application.offeredAt,
     offerStatus: application.offerStatus,
     startedAt: application.offeredAt ?? application.appliedAt,
-    status: mapApplicationStatus(application.status),
+    status: mapApplicationStatus(application),
     studentResponseDeadline: application.studentResponseDeadline,
     timerLabel: formatDeadline(responseDeadline),
   };

@@ -11,11 +11,13 @@ import {
 
 import { setAccessToken } from './api/accessToken';
 import {
+  acceptStudentEmploymentOffer,
   getStudentMatchingPreferences,
   getMyStudentApplications,
   getStudentProfile,
   getStudentRecommendations,
   loginStudent,
+  rejectStudentEmploymentOffer,
 } from './api/student';
 import { mapStudentMatchingPreferencesToUiState } from './adapters/studentMatchingPreferences';
 import { mapStudentApplicationToCardModel } from './adapters/studentApplications';
@@ -608,9 +610,33 @@ function StudentApplicationsRoute() {
     <StudentApplicationsPage
       applications={applications}
       isApplicationsLoading={isApplicationsLoading}
-      onAcceptOffer={(application) => acceptOffer(application.id)}
+      onAcceptOffer={async (application) => {
+        if (application.offerId === null || application.offerId === undefined) {
+          return false;
+        }
+
+        try {
+          await acceptStudentEmploymentOffer(application.offerId);
+          acceptOffer(application.id);
+          return true;
+        } catch {
+          return false;
+        }
+      }}
       onBack={() => navigate('/student/home')}
-      onDeclineOffer={(application) => declineOffer(application.id)}
+      onDeclineOffer={async (application) => {
+        if (application.offerId === null || application.offerId === undefined) {
+          return false;
+        }
+
+        try {
+          await rejectStudentEmploymentOffer(application.offerId);
+          declineOffer(application.id);
+          return true;
+        } catch {
+          return false;
+        }
+      }}
       onDetailClick={(application) => {
         if (application.status === 'HIRED') {
           navigate(`hiring-complete/${application.id}`);

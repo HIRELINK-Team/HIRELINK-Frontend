@@ -7,6 +7,7 @@ type StudentApplicationCardProps = {
   application: StudentApplicationCardModel;
   isGeneralLayout?: boolean;
   isHiredLayout?: boolean;
+  isOfferActionPending?: boolean;
   onDeclineOffer?: (application: StudentApplicationCardModel) => void;
   onDetailClick?: (application: StudentApplicationCardModel) => void;
   onAcceptOffer?: (application: StudentApplicationCardModel) => void;
@@ -20,11 +21,16 @@ const STATUS_COPY = {
 
 type OfferWaitingApplicationCardProps = Pick<
   StudentApplicationCardProps,
-  'application' | 'onAcceptOffer' | 'onDeclineOffer' | 'onDetailClick'
+  | 'application'
+  | 'isOfferActionPending'
+  | 'onAcceptOffer'
+  | 'onDeclineOffer'
+  | 'onDetailClick'
 >;
 
 function OfferWaitingApplicationCard({
   application,
+  isOfferActionPending = false,
   onAcceptOffer,
   onDeclineOffer,
   onDetailClick,
@@ -69,6 +75,7 @@ function OfferWaitingApplicationCard({
       <div className="absolute top-[153.3px] left-[21.3px] grid grid-cols-[145px_145px] gap-[7px]">
         <button
           className="h-[50px] rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium tracking-[-0.02em] text-[#F5F5F5]"
+          disabled={isOfferActionPending}
           type="button"
           onClick={() => onAcceptOffer?.(application)}
         >
@@ -76,6 +83,7 @@ function OfferWaitingApplicationCard({
         </button>
         <button
           className="h-[50px] rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent text-[17px] leading-[1.5] font-medium tracking-[-0.02em] text-[#8B95A1]"
+          disabled={isOfferActionPending}
           type="button"
           onClick={() => onDeclineOffer?.(application)}
         >
@@ -131,6 +139,7 @@ export function StudentApplicationCard({
   application,
   isGeneralLayout = false,
   isHiredLayout = false,
+  isOfferActionPending = false,
   onAcceptOffer,
   onDeclineOffer,
   onDetailClick,
@@ -142,6 +151,7 @@ export function StudentApplicationCard({
     return (
       <OfferWaitingApplicationCard
         application={application}
+        isOfferActionPending={isOfferActionPending}
         onAcceptOffer={onAcceptOffer}
         onDeclineOffer={onDeclineOffer}
         onDetailClick={onDetailClick}
