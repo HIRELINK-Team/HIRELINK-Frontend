@@ -21,6 +21,7 @@ import {
   getStudentRecommendations,
   loginStudent,
   rejectStudentEmploymentOffer,
+  updateStudentProfile,
   updateStudentMatchingPreferences,
 } from './api/student';
 import {
@@ -30,7 +31,10 @@ import {
   mapWorkLocationToUpdateRequest,
 } from './adapters/studentMatchingPreferences';
 import { mapStudentApplicationToCardModel } from './adapters/studentApplications';
-import { mapStudentProfileResponseToValues } from './adapters/studentProfile';
+import {
+  mapStudentProfileResponseToValues,
+  mapStudentProfileValuesToUpdateRequest,
+} from './adapters/studentProfile';
 import { mapStudentRecommendationToRecommendedJob } from './adapters/studentRecommendations';
 import EmployerApplicantsProvider from './components/employer/EmployerApplicantsProvider';
 import EmployerLayout from './components/employer/EmployerLayout';
@@ -95,6 +99,7 @@ import type {
 } from './types/studentNotification';
 import type { StudentMyMenuId } from './types/studentMy';
 import type { StudentEmploymentMatchContact } from './types/studentMatch';
+import type { StudentProfileResponse } from './types/studentProfile';
 import type { WorkAvailability } from './types/workAvailability';
 import type { WorkLocation } from './types/workLocation';
 
@@ -136,7 +141,10 @@ type StudentApplicationsRouteContext = {
 type StudentProfileRouteContext = {
   isProfileLoading: boolean;
   profileValues: StudentProfileValues;
-  saveProfile: (view: ProfileDetailView, values: readonly string[]) => void;
+  saveProfile: (
+    view: ProfileDetailView,
+    values: readonly string[],
+  ) => Promise<boolean>;
 };
 
 const PROFILE_DETAIL_VIEWS: readonly ProfileDetailView[] = [
@@ -899,6 +907,8 @@ function StudentWorkConditionRoute() {
 }
 
 function StudentProfileLayout() {
+  const [studentProfile, setStudentProfile] =
+    useState<StudentProfileResponse | null>(null);
   const [profileValues, setProfileValues] = useState<StudentProfileValues>(
     getStoredStudentProfileValues,
   );
@@ -910,6 +920,7 @@ function StudentProfileLayout() {
     void getStudentProfile()
       .then((profile) => {
         if (isActive) {
+          setStudentProfile(profile);
           setProfileValues(mapStudentProfileResponseToValues(profile));
         }
       })
@@ -944,11 +955,32 @@ function StudentProfileLayout() {
         {
           isProfileLoading,
           profileValues,
-          saveProfile: (view, values) => {
-            setProfileValues((currentValues) => ({
-              ...currentValues,
-              [view]: values,
-            }));
+          saveProfile: async (view, values) => {
+            if (!studentProfile) return false;
+
+            const mappingResult = mapStudentProfileValuesToUpdateRequest(
+              view,
+              values,
+              studentProfile,
+            );
+
+            if (mappingResult.status === 'invalid') return false;
+            if (mappingResult.status === 'unchanged') return true;
+
+            try {
+              const updatedProfile = await updateStudentProfile(
+                mappingResult.requestBody,
+              );
+
+              setStudentProfile(updatedProfile);
+              setProfileValues(
+                mapStudentProfileResponseToValues(updatedProfile),
+              );
+
+              return true;
+            } catch {
+              return false;
+            }
           },
         } satisfies StudentProfileRouteContext
       }
@@ -981,9 +1013,7 @@ function StudentProfileDetailRoute({ view }: { view: ProfileDetailView }) {
     <StudentProfileManagementPage
       initialView={view}
       onBack={() => navigate('/student/my/profile')}
-      onSave={(profileView, values) => {
-        saveProfile(profileView, values);
-      }}
+      onSave={saveProfile}
       profileValues={profileValues}
     />
   );

@@ -38,7 +38,10 @@ type StudentProfileManagementPageProps = {
   isLoading?: boolean;
   onApply?: () => void;
   onBack?: () => void;
-  onSave?: (view: ProfileDetailView, values: readonly string[]) => void;
+  onSave?: (
+    view: ProfileDetailView,
+    values: readonly string[],
+  ) => boolean | void | Promise<boolean | void>;
   onViewChange?: (view: Exclude<ProfileManagementView, 'main'>) => void;
   profileValues?: StudentProfileValues;
 };
@@ -353,12 +356,14 @@ function DetailPage({
 
 function BasicInformationPage({
   fields,
+  isSaving,
   onBack,
   onSave,
 }: {
   fields: readonly ProfileField[];
+  isSaving: boolean;
   onBack: () => void;
-  onSave: (values: readonly string[]) => void;
+  onSave: (values: readonly string[]) => Promise<void>;
 }) {
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
@@ -417,7 +422,8 @@ function BasicInformationPage({
       <button
         className="mt-[85px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        onClick={() => onSave(values)}
+        disabled={isSaving}
+        onClick={() => void onSave(values)}
       >
         수정하기
       </button>
@@ -437,12 +443,14 @@ function BasicInformationPage({
 
 function ResidenceInformationPage({
   fields,
+  isSaving,
   onBack,
   onSave,
 }: {
   fields: readonly ProfileField[];
+  isSaving: boolean;
   onBack: () => void;
-  onSave: (values: readonly string[]) => void;
+  onSave: (values: readonly string[]) => Promise<void>;
 }) {
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
@@ -487,7 +495,8 @@ function ResidenceInformationPage({
       <button
         className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        onClick={() => onSave(values)}
+        disabled={isSaving}
+        onClick={() => void onSave(values)}
       >
         수정하기
       </button>
@@ -528,13 +537,15 @@ function ResidenceInformationPage({
 
 function AcademicInformationPage({
   fields,
+  isSaving,
   onBack,
   onSave,
   residenceQualification,
 }: {
   fields: readonly ProfileField[];
+  isSaving: boolean;
   onBack: () => void;
-  onSave: (values: readonly string[]) => void;
+  onSave: (values: readonly string[]) => Promise<void>;
   residenceQualification: ResidenceQualification;
 }) {
   const [values, setValues] = useState(() =>
@@ -578,7 +589,8 @@ function AcademicInformationPage({
       <button
         className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        onClick={() => onSave(values)}
+        disabled={isSaving}
+        onClick={() => void onSave(values)}
       >
         수정하기
       </button>
@@ -605,12 +617,14 @@ function AcademicInformationPage({
 
 function LanguageInformationPage({
   fields,
+  isSaving,
   onBack,
   onSave,
 }: {
   fields: readonly ProfileField[];
+  isSaving: boolean;
   onBack: () => void;
-  onSave: (values: readonly string[]) => void;
+  onSave: (values: readonly string[]) => Promise<void>;
 }) {
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
@@ -668,7 +682,8 @@ function LanguageInformationPage({
       <button
         className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        onClick={() => onSave(values)}
+        disabled={isSaving}
+        onClick={() => void onSave(values)}
       >
         수정하기
       </button>
@@ -698,22 +713,33 @@ export default function StudentProfileManagementPage({
   const [view, setView] = useState<ProfileManagementView>(initialView);
   const [localProfileValues, setLocalProfileValues] =
     useState<StudentProfileValues>({});
+  const [isSaving, setIsSaving] = useState(false);
   const resolvedProfileValues = profileValues ?? localProfileValues;
 
-  const handleSave = (
+  const handleSave = async (
     profileView: ProfileDetailView,
     values: readonly string[],
   ) => {
-    if (onSave) {
-      onSave(profileView, values);
-    } else {
-      setLocalProfileValues((currentValues) => ({
-        ...currentValues,
-        [profileView]: values,
-      }));
-    }
+    if (isSaving) return;
 
-    handleDetailBack();
+    setIsSaving(true);
+
+    try {
+      if (onSave) {
+        const isSaved = await onSave(profileView, values);
+
+        if (isSaved === false) return;
+      } else {
+        setLocalProfileValues((currentValues) => ({
+          ...currentValues,
+          [profileView]: values,
+        }));
+      }
+
+      handleDetailBack();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDetailBack = () => {
@@ -740,6 +766,7 @@ export default function StudentProfileManagementPage({
     return (
       <BasicInformationPage
         fields={getDetailFields('basic', resolvedProfileValues)}
+        isSaving={isSaving}
         onBack={handleDetailBack}
         onSave={(values) => handleSave('basic', values)}
       />
@@ -750,6 +777,7 @@ export default function StudentProfileManagementPage({
     return (
       <ResidenceInformationPage
         fields={getDetailFields('residence', resolvedProfileValues)}
+        isSaving={isSaving}
         onBack={handleDetailBack}
         onSave={(values) => handleSave('residence', values)}
       />
@@ -760,6 +788,7 @@ export default function StudentProfileManagementPage({
     return (
       <AcademicInformationPage
         fields={getDetailFields('academic', resolvedProfileValues)}
+        isSaving={isSaving}
         onBack={handleDetailBack}
         onSave={(values) => handleSave('academic', values)}
         residenceQualification={getResidenceQualification(
@@ -774,6 +803,7 @@ export default function StudentProfileManagementPage({
     return (
       <LanguageInformationPage
         fields={getDetailFields('language', resolvedProfileValues)}
+        isSaving={isSaving}
         onBack={handleDetailBack}
         onSave={(values) => handleSave('language', values)}
       />

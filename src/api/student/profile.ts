@@ -1,6 +1,9 @@
 import { apiClient } from '../client';
 
-import type { StudentProfileResponse } from '../../types/studentProfile';
+import type {
+  StudentProfileResponse,
+  StudentProfileUpdateRequest,
+} from '../../types/studentProfile';
 
 export async function createStudentProfile<TResponse = unknown>(
   requestBody: unknown,
@@ -21,10 +24,10 @@ export async function getStudentProfile(): Promise<StudentProfileResponse> {
   return data;
 }
 
-export async function updateStudentProfile<TResponse = unknown>(
-  requestBody: unknown,
-): Promise<TResponse> {
-  const { data } = await apiClient.patch<TResponse>(
+export async function updateStudentProfile(
+  requestBody: StudentProfileUpdateRequest,
+): Promise<StudentProfileResponse> {
+  const { data } = await apiClient.patch<StudentProfileResponse>(
     '/api/students/me/profile',
     requestBody,
   );
