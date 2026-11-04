@@ -19,7 +19,7 @@ export function ApplicationFilterTabs({
   return (
     <div
       aria-label="지원 내역 상태 필터"
-      className="flex w-full gap-[5px]"
+      className="flex w-full justify-center gap-[5px]"
       role="tablist"
     >
       {FILTERS.map((filter) => {
