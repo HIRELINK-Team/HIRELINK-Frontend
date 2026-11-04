@@ -100,6 +100,7 @@ type StudentOnboardingPageProps = {
   onComplete?: (
     requestBody: StudentProfileCreateRequest,
   ) => boolean | Promise<boolean | void> | void;
+  skipPhoneVerification?: boolean;
 };
 
 type BasicInfo = {
@@ -270,6 +271,7 @@ export default function StudentOnboardingPage({
   initialStep = 'name',
   onBack,
   onComplete,
+  skipPhoneVerification = false,
 }: StudentOnboardingPageProps) {
   const [experienceDraft, setExperienceDraft] = useState<ExperienceDraft>(
     EMPTY_EXPERIENCE_DRAFT,
@@ -1320,6 +1322,11 @@ export default function StudentOnboardingPage({
       return;
     }
 
+    if (skipPhoneVerification && step === 'birthYear') {
+      setStep('name');
+      return;
+    }
+
     setPhoneError('');
     setVerificationError('');
     setStep(STEP_ORDER[currentIndex - 1]);
@@ -1357,6 +1364,14 @@ export default function StudentOnboardingPage({
   };
 
   const handleNext = async () => {
+    if (
+      skipPhoneVerification &&
+      (step === 'phone' || step === 'verification')
+    ) {
+      setStep('birthYear');
+      return;
+    }
+
     if (step === 'phone') {
       if (!isValidPhone(info.phone)) {
         setPhoneError('다시 입력해주세요.');
@@ -1418,6 +1433,11 @@ export default function StudentOnboardingPage({
 
     if (step === 'koreanLevel') {
       setStep('experienceList');
+      return;
+    }
+
+    if (skipPhoneVerification && step === 'name') {
+      setStep('birthYear');
       return;
     }
 

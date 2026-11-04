@@ -122,6 +122,8 @@ const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
 const STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY =
   'hirelink.student.matching.offerHandled';
 const STUDENT_PROFILE_SESSION_STORAGE_KEY = 'hirelink.student.profile.values';
+const STUDENT_PHONE_VERIFICATION_DEMO_BYPASS_STORAGE_KEY =
+  'hirelink.student.onboarding.skipPhoneVerification';
 const PUBLIC_STUDENT_ROUTES = new Set([
   '/student',
   '/student/entry',
@@ -412,6 +414,11 @@ function StudentLoginRoute() {
       onLogin={async (request) => {
         const { accessToken } = await loginStudent(request);
         setAccessToken(accessToken);
+        // Temporary demo flag only; the access token remains memory-only.
+        window.localStorage.setItem(
+          STUDENT_PHONE_VERIFICATION_DEMO_BYPASS_STORAGE_KEY,
+          'true',
+        );
         navigate('/student/onboarding');
       }}
       onSignup={() => navigate('/student/signup')}
@@ -429,6 +436,9 @@ function StudentSignupRoute() {
       onSignup={async (request) => {
         const { accessToken } = await signupStudent(request);
         setAccessToken(accessToken);
+        window.localStorage.removeItem(
+          STUDENT_PHONE_VERIFICATION_DEMO_BYPASS_STORAGE_KEY,
+        );
         navigate('/student/onboarding');
       }}
     />
@@ -437,11 +447,17 @@ function StudentSignupRoute() {
 
 function StudentOnboardingRoute() {
   const navigate = useNavigate();
+  // Temporary demo bypass shared across tabs; no credential or token is persisted.
+  const shouldSkipPhoneVerification =
+    window.localStorage.getItem(
+      STUDENT_PHONE_VERIFICATION_DEMO_BYPASS_STORAGE_KEY,
+    ) === 'true';
 
   return (
     <StudentOnboardingPage
       enableCareerApi
       enablePhoneVerificationApi
+      skipPhoneVerification={shouldSkipPhoneVerification}
       onBack={() => navigate('/student/entry')}
       onComplete={async (requestBody) => {
         await createStudentProfile(requestBody);
