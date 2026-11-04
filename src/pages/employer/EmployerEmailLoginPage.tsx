@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import EmployerAuthLayout from "../../components/employer/EmployerAuthLayout";
-import { isMockEmployerAccountValid } from "../../data/employerAuthMock";
+import { getApiErrorResponse, getApiErrorStatus } from "../../api/errors";
+import { useAuth } from "../../hooks/useAuth";
 
 interface LoginLocationState {
   email?: string;
+  from?: string;
 }
 
 const INPUT_CLASS_NAME =
@@ -14,19 +16,51 @@ function EmployerEmailLoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as LoginLocationState | null;
+  const { login, isAuthInitializing } = useAuth();
   const [email, setEmail] = useState(locationState?.email ?? "");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setErrorMessage(null);
+    setIsSubmitting(true);
 
-    if (!isMockEmployerAccountValid({ email, password })) {
-      setErrorMessage("이메일 또는 비밀번호를 확인해주세요.");
-      return;
+    try {
+      const response = await login({ email: email.trim(), password });
+
+      if (response.role === "EMPLOYER") {
+        const requestedPath = locationState?.from;
+        const destination = requestedPath?.startsWith("/employer/")
+          ? requestedPath
+          : "/employer/onboarding";
+        navigate(destination, { replace: true });
+        return;
+      }
+
+      navigate("/", { replace: true });
+    } catch (error: unknown) {
+      const status = getApiErrorStatus(error);
+      const apiError = getApiErrorResponse(error);
+
+      if (status === 400) {
+        setErrorMessage("이메일과 비밀번호 입력 형식을 확인해주세요.");
+      } else if (status === 401) {
+        setErrorMessage("이메일 또는 비밀번호를 확인해주세요.");
+      } else if (status === 403) {
+        setErrorMessage("로그인이 제한된 계정입니다.");
+      } else if (status && status >= 500) {
+        setErrorMessage("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      } else {
+        setErrorMessage(
+          apiError?.message ??
+            "로그인 요청을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.",
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    navigate("/employer/onboarding");
   };
 
   return (
@@ -77,10 +111,10 @@ function EmployerEmailLoginPage() {
 
         <button
           type="submit"
-          disabled={!email || !password}
+          disabled={!email || !password || isSubmitting || isAuthInitializing}
           className="h-[52px] w-full cursor-pointer rounded-xl bg-[#00b894] text-base font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
         >
-          로그인
+          {isSubmitting ? "로그인 중" : "로그인"}
         </button>
       </form>
 

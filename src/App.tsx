@@ -1,4 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import AuthProvider from "./components/auth/AuthProvider";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 import EmployerApplicantsProvider from "./components/employer/EmployerApplicantsProvider";
 import EmployerLayout from "./components/employer/EmployerLayout";
 import EmployerJobsProvider from "./components/employer/EmployerJobsProvider";
@@ -21,60 +23,71 @@ import EmployerSignUpPage from "./pages/employer/EmployerSignUpPage";
 
 function App() {
   return (
-    <EmployerProfileProvider>
-      <Routes>
-        <Route path="/" element={<EmployerLoginPage />} />
-        <Route path="/employer/login" element={<EmployerEmailLoginPage />} />
-        <Route path="/employer/signup" element={<EmployerSignUpPage />} />
-        <Route
-          path="/employer/onboarding"
-          element={<EmployerOnboardingPage />}
-        />
-        <Route
-          path="/employer"
-          element={
-            <EmployerJobsProvider>
-              <EmployerApplicantsProvider>
-                <EmployerLayout />
-              </EmployerApplicantsProvider>
-            </EmployerJobsProvider>
-          }
-        >
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<EmployerDashboard />} />
-          <Route path="jobs" element={<EmployerJobsPage />} />
-          <Route path="jobs/new" element={<EmployerJobFormPage />} />
-          <Route path="jobs/:jobId/edit" element={<EmployerJobFormPage />} />
+    <AuthProvider>
+      <EmployerProfileProvider>
+        <Routes>
+          <Route path="/" element={<EmployerLoginPage />} />
+          <Route path="/employer/login" element={<EmployerEmailLoginPage />} />
+          <Route path="/employer/signup" element={<EmployerSignUpPage />} />
           <Route
-            path="jobs/:jobId/applicants"
-            element={<EmployerApplicantsPage />}
-          />
-          <Route
-            path="applicants"
+            path="/employer/onboarding"
             element={
-              <Navigate to="/employer/jobs/barista-open/applicants" replace />
+              <ProtectedRoute requiredRole="EMPLOYER">
+                <EmployerOnboardingPage />
+              </ProtectedRoute>
             }
           />
           <Route
-            path="applicants/:applicationId"
-            element={<EmployerApplicantDetailPage />}
-          />
-          <Route path="hired" element={<EmployerHiredStudentsPage />} />
-          <Route
-            path="hired/:applicationId"
-            element={<EmployerHiredStudentDetailPage />}
-          />
-          <Route path="mypage" element={<EmployerMyPage />} />
-          <Route path="settings" element={<EmployerSettingsPage />} />
-          <Route
-            path="settings/account"
-            element={<EmployerAccountSettingsPage />}
-          />
-          <Route path="notifications" element={<EmployerNotificationsPage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </EmployerProfileProvider>
+            path="/employer"
+            element={
+              <ProtectedRoute requiredRole="EMPLOYER">
+                <EmployerJobsProvider>
+                  <EmployerApplicantsProvider>
+                    <EmployerLayout />
+                  </EmployerApplicantsProvider>
+                </EmployerJobsProvider>
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<EmployerDashboard />} />
+            <Route path="jobs" element={<EmployerJobsPage />} />
+            <Route path="jobs/new" element={<EmployerJobFormPage />} />
+            <Route path="jobs/:jobId/edit" element={<EmployerJobFormPage />} />
+            <Route
+              path="jobs/:jobId/applicants"
+              element={<EmployerApplicantsPage />}
+            />
+            <Route
+              path="applicants"
+              element={
+                <Navigate to="/employer/jobs/barista-open/applicants" replace />
+              }
+            />
+            <Route
+              path="applicants/:applicationId"
+              element={<EmployerApplicantDetailPage />}
+            />
+            <Route path="hired" element={<EmployerHiredStudentsPage />} />
+            <Route
+              path="hired/:applicationId"
+              element={<EmployerHiredStudentDetailPage />}
+            />
+            <Route path="mypage" element={<EmployerMyPage />} />
+            <Route path="settings" element={<EmployerSettingsPage />} />
+            <Route
+              path="settings/account"
+              element={<EmployerAccountSettingsPage />}
+            />
+            <Route
+              path="notifications"
+              element={<EmployerNotificationsPage />}
+            />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </EmployerProfileProvider>
+    </AuthProvider>
   );
 }
 
