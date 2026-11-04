@@ -196,13 +196,13 @@ export default function StudentNotificationSettingsPage({
           알림 설정
         </h1>
 
-        <section className="relative mt-2 flex h-[68px] items-center overflow-hidden rounded-[20px] bg-[#E5E8EB] pl-[68px] pr-4">
+        <section className="relative mt-2 flex h-[62px] items-center overflow-hidden rounded-[18px] bg-[#E5E8EB] pl-[62px] pr-4">
           <img
             alt=""
-            className="absolute top-[9px] left-[17px] size-[50px] object-cover"
+            className="absolute top-[8px] left-[16px] size-[46px] object-cover"
             src={notificationNoticeImage}
           />
-          <p className="m-0 text-[15px] leading-[1.5] font-semibold">
+          <p className="m-0 text-[14px] leading-[1.4] font-semibold">
             나에게 중요한 소식을 HIRELINK에서
             <br />
             빠짐없이 받아보세요!
@@ -215,14 +215,14 @@ export default function StudentNotificationSettingsPage({
       </div>
 
       {NOTIFICATION_SECTIONS.map((section) => (
-        <section className="mt-3" key={section.title}>
-          <h2 className="m-0 px-6 text-[20px] leading-[1.5] font-semibold">
+        <section className="mt-2.5" key={section.title}>
+          <h2 className="m-0 px-6 text-[18px] leading-[1.4] font-semibold">
             {section.title}
           </h2>
-          <div className="mt-2.5 -ml-[7px] border-y border-[#E5E8EB]">
+          <div className="mt-1.5 -ml-[7px] border-y border-[#E5E8EB]">
             {section.rows.map((row) => (
               <div
-                className="relative h-[62px] border-b border-[#E5E8EB] last:border-b-0"
+                className="relative h-[56px] border-b border-[#E5E8EB] last:border-b-0"
                 key={row.id}
               >
                 <NotificationIcon
@@ -232,17 +232,17 @@ export default function StudentNotificationSettingsPage({
                   style={{ left: row.iconLeft }}
                 />
                 <div
-                  className="absolute top-[8px]"
+                  className="absolute top-[6px]"
                   style={{ left: row.textLeft }}
                 >
-                  <p className="m-0 text-[15px] leading-[1.5] font-semibold">
+                  <p className="m-0 text-[14px] leading-[1.4] font-semibold">
                     {row.title}
                   </p>
-                  <p className="m-0 text-[11px] leading-[17px] text-[#8B95A1]">
+                  <p className="m-0 text-[10px] leading-[15px] text-[#8B95A1]">
                     {row.description}
                   </p>
                 </div>
-                <div className="absolute top-[19px] right-[9px]">
+                <div className="absolute top-[16px] right-[9px]">
                   <NotificationToggle
                     checked={settings[row.id]}
                     label={row.title}
