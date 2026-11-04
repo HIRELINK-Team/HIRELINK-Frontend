@@ -13,6 +13,7 @@ import {
 import { getAccessToken, setAccessToken } from './api/accessToken';
 import {
   acceptStudentEmploymentOffer,
+  createStudentProfile,
   createStudentApplication,
   getStudentMatchingPreferences,
   getStudentRecommendation,
@@ -442,7 +443,10 @@ function StudentOnboardingRoute() {
       enableCareerApi
       enablePhoneVerificationApi
       onBack={() => navigate('/student/entry')}
-      onComplete={() => navigate('/student/home', { replace: true })}
+      onComplete={async (requestBody) => {
+        await createStudentProfile(requestBody);
+        navigate('/student/home', { replace: true });
+      }}
     />
   );
 }

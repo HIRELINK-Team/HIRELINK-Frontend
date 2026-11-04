@@ -1,14 +1,15 @@
 import { apiClient } from '../client';
 
 import type {
+  StudentProfileCreateRequest,
   StudentProfileResponse,
   StudentProfileUpdateRequest,
 } from '../../types/studentProfile';
 
-export async function createStudentProfile<TResponse = unknown>(
-  requestBody: unknown,
-): Promise<TResponse> {
-  const { data } = await apiClient.post<TResponse>(
+export async function createStudentProfile(
+  requestBody: StudentProfileCreateRequest,
+): Promise<unknown> {
+  const { data } = await apiClient.post<unknown>(
     '/api/students/me/profile',
     requestBody,
   );

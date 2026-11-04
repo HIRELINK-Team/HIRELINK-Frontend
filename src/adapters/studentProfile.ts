@@ -5,11 +5,16 @@ import {
   TOPIK_LEVEL_OPTIONS,
 } from '../constants/studentOnboardingOptions';
 import type {
+  CountryOption,
+  KoreanLevel,
+} from '../constants/studentOnboardingOptions';
+import type {
   ProfileDetailView,
   StudentProfileValues,
 } from '../pages/student/StudentProfileManagementPage';
 import type {
   StudentKoreanLevel,
+  StudentProfileCreateRequest,
   StudentProfileResponse,
   StudentProfileUpdateRequest,
   StudentTopikLevel,
@@ -29,6 +34,48 @@ const NATIONALITY_CODE_BY_LABEL = Object.fromEntries(
     code,
   ]),
 ) as Readonly<Record<string, string>>;
+
+const ONBOARDING_KOREAN_LEVEL_CODE: Record<KoreanLevel, StudentKoreanLevel> = {
+  advanced: 'ADVANCED',
+  beginner: 'BEGINNER',
+  intermediate: 'INTERMEDIATE',
+};
+
+export function mapStudentOnboardingToCreateRequest({
+  birthYear,
+  koreanLevel,
+  location,
+  name,
+  nationality,
+}: {
+  birthYear: string;
+  koreanLevel: KoreanLevel;
+  location: string;
+  name: string;
+  nationality: CountryOption;
+}): StudentProfileCreateRequest | null {
+  const trimmedName = name.trim();
+  const trimmedLocation = location.trim();
+  const nationalityCode = NATIONALITY_CODE_BY_LABEL[nationality];
+
+  if (
+    !trimmedName ||
+    !trimmedLocation ||
+    !nationalityCode ||
+    !/^\d{4}$/.test(birthYear)
+  ) {
+    return null;
+  }
+
+  return {
+    name: trimmedName,
+    // Temporary demo conversion. Replace this when onboarding collects a full birth date.
+    birthDate: `${birthYear}-01-01`,
+    nationality: nationalityCode,
+    currentRegion: trimmedLocation,
+    koreanLevel: ONBOARDING_KOREAN_LEVEL_CODE[koreanLevel],
+  };
+}
 
 export type StudentProfileUpdateMappingResult =
   | { status: 'ready'; requestBody: StudentProfileUpdateRequest }

@@ -15,6 +15,7 @@ import {
   requestPhoneVerification,
   updateStudentCareer,
 } from '../../api/student';
+import { mapStudentOnboardingToCreateRequest } from '../../adapters/studentProfile';
 import {
   isExperienceDraftValid,
   mapExperienceDraftToCreateRequest,
@@ -45,6 +46,7 @@ import type {
   StudentCareerResponse,
 } from '../../types/experience';
 import type { IndustryId, IndustryOption } from '../../types/industry';
+import type { StudentProfileCreateRequest } from '../../types/studentProfile';
 import type { MatchingPriority } from '../../types/matchingPriority';
 import type {
   CountryOption,
@@ -95,7 +97,9 @@ type StudentOnboardingPageProps = {
   enablePhoneVerificationApi?: boolean;
   initialStep?: OnboardingView;
   onBack?: () => void;
-  onComplete?: () => void;
+  onComplete?: (
+    requestBody: StudentProfileCreateRequest,
+  ) => boolean | Promise<boolean | void> | void;
 };
 
 type BasicInfo = {
@@ -344,6 +348,7 @@ export default function StudentOnboardingPage({
   }, [enableCareerApi]);
   const [isMatchingPrioritySubmitted, setIsMatchingPrioritySubmitted] =
     useState(false);
+  const [isProfileSubmitting, setIsProfileSubmitting] = useState(false);
   const [residenceInfo, setResidenceInfo] = useState<ResidenceInfo>(
     INITIAL_RESIDENCE_INFO,
   );
@@ -598,9 +603,27 @@ export default function StudentOnboardingPage({
     setStep('matchingPriority');
   };
 
-  const handleMatchingPrioritySubmit = () => {
-    setIsMatchingPrioritySubmitted(true);
-    onComplete?.();
+  const handleMatchingPrioritySubmit = async () => {
+    if (isProfileSubmitting) return;
+
+    if (!onComplete) {
+      setIsMatchingPrioritySubmitted(true);
+      return;
+    }
+
+    const requestBody = mapStudentOnboardingToCreateRequest(info);
+    if (!requestBody) return;
+
+    setIsProfileSubmitting(true);
+
+    try {
+      const didComplete = await onComplete(requestBody);
+      if (didComplete !== false) setIsMatchingPrioritySubmitted(true);
+    } catch {
+      // Keep the final onboarding step open when profile registration fails.
+    } finally {
+      setIsProfileSubmitting(false);
+    }
   };
 
   const isCurrentExperienceDraftValid = isExperienceDraftValid(experienceDraft);
@@ -1259,6 +1282,7 @@ export default function StudentOnboardingPage({
         contentClassName="mt-6"
         ctaLabel={'\uB9E4\uCE6D\uD558\uAE30'}
         currentStage={5}
+        isCtaDisabled={isProfileSubmitting}
         question={
           '\uC6B0\uC120\uC21C\uC704\uB97C \uC815\uD574\uC8FC\uC138\uC694.'
         }

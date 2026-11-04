@@ -5,6 +5,14 @@ import type { StudentCareerResponse } from './experience';
 
 export type StudentProfileCareer = StudentCareerResponse;
 
+export type StudentProfileCreateRequest = {
+  name: string;
+  birthDate: string;
+  nationality: string;
+  currentRegion: string;
+  koreanLevel: StudentKoreanLevel;
+};
+
 export type StudentProfileResponse = {
   studentId: number;
   name: string;
