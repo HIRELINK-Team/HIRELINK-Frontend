@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import academicStatusChevronIcon from '../../assets/icons/student/academic-status-chevron.svg';
-import backIcon from '../../assets/icons/student/back.svg';
 import residenceExpiryCalendarIcon from '../../assets/icons/student/residence-expiry-calendar.svg';
 import locationIcon from '../../assets/icons/student/location.svg';
 import searchIcon from '../../assets/icons/student/search.svg';
@@ -40,6 +39,7 @@ import { OnboardingScaffold } from '../../components/student/onboarding/Onboardi
 import { ResidenceExpiryDatePicker } from '../../components/student/onboarding/ResidenceExpiryDatePicker';
 import { SelectionCard } from '../../components/student/onboarding/SelectionCard';
 import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
+import { WorkLocationRadiusMap } from '../../components/student/onboarding/WorkLocationRadiusMap';
 import type {
   Experience,
   ExperienceDraft,
@@ -763,6 +763,8 @@ export default function StudentOnboardingPage({
       <OnboardingScaffold
         activeSubStep={0}
         ctaLabel="확인"
+        ctaContainerClassName="mt-auto shrink-0 pt-8 mb-[30px]"
+        contentClassName="mt-2"
         currentStage={2}
         question={'이전에 해본 아르바이트나\n근무경험을 알려주세요.'}
         showProgress={false}
@@ -781,7 +783,7 @@ export default function StudentOnboardingPage({
         </button>
 
         {experiences.length > 0 ? (
-          <div className="mt-2.5 max-h-[282px] space-y-2.5 overflow-y-auto overscroll-contain pr-1 pb-1">
+          <div className="mt-2.5 max-h-[282px] space-y-2.5 overflow-y-auto overscroll-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {experiences.map((experience) => (
               <ExperienceCard
                 experience={experience}
@@ -920,67 +922,16 @@ export default function StudentOnboardingPage({
   }
 
   if (step === 'workLocationSelection') {
-    const selectedRadiusIndex = WORK_LOCATION_RADIUS_OPTIONS.indexOf(
-      workLocation.radius,
-    );
-
     if (isWorkLocationRadiusSelectionOpen) {
       return (
-        <main className="relative mx-auto flex h-[min(844px,100dvh)] w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
-          <header className="flex h-[116px] items-end gap-7 bg-white px-6 pb-[18px]">
-            <button
-              aria-label="희망 근무 위치 입력으로 돌아가기"
-              className="flex size-6 items-center justify-center border-0 bg-transparent p-0"
-              type="button"
-              onClick={() => setIsWorkLocationRadiusSelectionOpen(false)}
-            >
-              <img alt="" className="h-4 w-2" src={backIcon} />
-            </button>
-            <span className="flex h-[41px] max-w-[250px] items-center gap-2 rounded-[22px] bg-[#EEF1F5] px-5 text-[15px] leading-[1.5] font-medium">
-              <img alt="" className="h-[14px] w-[14px]" src={locationIcon} />
-              <span className="truncate">{workLocation.address}</span>
-            </span>
-          </header>
-
-          <section className="rounded-b-[15px] bg-white px-6 pt-[13px] pb-[24px] shadow-[0_2px_8px_rgba(25,31,40,0.08)]">
-            <h1 className="m-0 text-[17px] leading-[1.5] font-medium">
-              반경 선택하기
-            </h1>
-            <input
-              aria-label="이동 가능 반경"
-              className="mt-5 h-1 w-full cursor-pointer accent-[#00B894]"
-              max={WORK_LOCATION_RADIUS_OPTIONS.length - 1}
-              min="0"
-              step="1"
-              type="range"
-              value={selectedRadiusIndex}
-              onChange={(event) =>
-                handleWorkLocationRadiusChange(
-                  WORK_LOCATION_RADIUS_OPTIONS[Number(event.target.value)],
-                )
-              }
-            />
-            <div className="mt-3 flex justify-between text-[15px] leading-[1.5] text-[#8B95A1]">
-              <span>100m</span>
-              <span>500m</span>
-              <span>1km</span>
-            </div>
-          </section>
-
-          <p className="mt-8 px-6 text-center text-[15px] leading-[1.5] text-[#8B95A1]">
-            지도와 거리 시각화는 MVP 범위에서 제외됩니다.
-          </p>
-
-          <div className="mt-auto px-6 pb-[calc(37px+env(safe-area-inset-bottom))]">
-            <button
-              className="h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
-              type="button"
-              onClick={handleWorkLocationRadiusConfirm}
-            >
-              확인
-            </button>
-          </div>
-        </main>
+        <WorkLocationRadiusMap
+          address={workLocation.address}
+          radius={workLocation.radius}
+          radiusOptions={WORK_LOCATION_RADIUS_OPTIONS}
+          onBack={() => setIsWorkLocationRadiusSelectionOpen(false)}
+          onConfirm={handleWorkLocationRadiusConfirm}
+          onRadiusChange={handleWorkLocationRadiusChange}
+        />
       );
     }
 
