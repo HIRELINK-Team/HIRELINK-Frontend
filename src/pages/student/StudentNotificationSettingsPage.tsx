@@ -130,7 +130,7 @@ function NotificationIcon({
   return (
     <img
       alt=""
-      className="absolute top-1/2 -translate-y-1/2 object-cover"
+      className="absolute top-1/2 max-h-[42px] max-w-[42px] -translate-y-1/2 object-contain"
       src={image}
       style={{ height, width, ...style }}
     />
@@ -182,7 +182,7 @@ export default function StudentNotificationSettingsPage({
   settings,
 }: StudentNotificationSettingsPageProps) {
   return (
-    <main className="mx-auto h-[1053px] w-full max-w-[390px] bg-[#F5F5F5] pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] pt-10 font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <div className="px-6">
         <button
           aria-label="뒤로가기"
@@ -192,14 +192,14 @@ export default function StudentNotificationSettingsPage({
         >
           <img alt="" className="h-4 w-2" src={backIcon} />
         </button>
-        <h1 className="m-0 mt-[19px] text-[26px] leading-[1.5] font-semibold">
+        <h1 className="m-0 mt-2.5 text-[26px] leading-[1.5] font-semibold">
           알림 설정
         </h1>
 
-        <section className="relative mt-3 flex h-[82px] items-center overflow-hidden rounded-[20px] bg-[#E5E8EB] pl-[72px] pr-4">
+        <section className="relative mt-2 flex h-[68px] items-center overflow-hidden rounded-[20px] bg-[#E5E8EB] pl-[68px] pr-4">
           <img
             alt=""
-            className="absolute left-[19px] top-[13px] h-[55.475px] w-[55.475px] object-cover"
+            className="absolute top-[9px] left-[17px] size-[50px] object-cover"
             src={notificationNoticeImage}
           />
           <p className="m-0 text-[15px] leading-[1.5] font-semibold">
@@ -209,27 +209,20 @@ export default function StudentNotificationSettingsPage({
           </p>
         </section>
 
-        <p className="m-0 mt-[6px] text-[12px] leading-[1.5] text-[#8B95A1]">
+        <p className="m-0 mt-1 text-[12px] leading-[1.5] text-[#8B95A1]">
           원하는 알림만 선택해서 편리하게 관리할 수 있어요.
         </p>
       </div>
 
-      {NOTIFICATION_SECTIONS.map((section, sectionIndex) => (
-        <section
-          className={`mt-[21px] ${sectionIndex === 0 ? '' : 'mt-[21px]'}`}
-          key={section.title}
-        >
+      {NOTIFICATION_SECTIONS.map((section) => (
+        <section className="mt-3" key={section.title}>
           <h2 className="m-0 px-6 text-[20px] leading-[1.5] font-semibold">
             {section.title}
           </h2>
-          <div
-            className={`-ml-[7px] border-y border-[#E5E8EB] ${
-              sectionIndex === 0 ? 'mt-6' : 'mt-[21px]'
-            }`}
-          >
+          <div className="mt-2.5 -ml-[7px] border-y border-[#E5E8EB]">
             {section.rows.map((row) => (
               <div
-                className="relative h-[75px] border-b border-[#E5E8EB] last:border-b-0"
+                className="relative h-[62px] border-b border-[#E5E8EB] last:border-b-0"
                 key={row.id}
               >
                 <NotificationIcon
@@ -239,7 +232,7 @@ export default function StudentNotificationSettingsPage({
                   style={{ left: row.iconLeft }}
                 />
                 <div
-                  className="absolute top-[15px]"
+                  className="absolute top-[8px]"
                   style={{ left: row.textLeft }}
                 >
                   <p className="m-0 text-[15px] leading-[1.5] font-semibold">
@@ -249,7 +242,7 @@ export default function StudentNotificationSettingsPage({
                     {row.description}
                   </p>
                 </div>
-                <div className="absolute top-[26px] right-[9px]">
+                <div className="absolute top-[19px] right-[9px]">
                   <NotificationToggle
                     checked={settings[row.id]}
                     label={row.title}
