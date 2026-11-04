@@ -382,6 +382,7 @@ function StudentOnboardingRoute() {
   return (
     <StudentOnboardingPage
       enableCareerApi
+      enablePhoneVerificationApi
       onBack={() => navigate('/student/entry')}
       onComplete={() => navigate('/student/home', { replace: true })}
     />

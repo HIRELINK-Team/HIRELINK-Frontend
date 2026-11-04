@@ -9,8 +9,10 @@ import clearIcon from '../../assets/icons/student/clear.svg';
 import ageRestrictionImage from '../../assets/images/student/age-restriction.png';
 import {
   createStudentCareer,
+  confirmPhoneVerification,
   deleteStudentCareer,
   getStudentProfile,
+  requestPhoneVerification,
   updateStudentCareer,
 } from '../../api/student';
 import {
@@ -90,6 +92,7 @@ type OnboardingView =
 
 type StudentOnboardingPageProps = {
   enableCareerApi?: boolean;
+  enablePhoneVerificationApi?: boolean;
   initialStep?: OnboardingView;
   onBack?: () => void;
   onComplete?: () => void;
@@ -259,6 +262,7 @@ function isValidPhone(value: string) {
 
 export default function StudentOnboardingPage({
   enableCareerApi = false,
+  enablePhoneVerificationApi = false,
   initialStep = 'name',
   onBack,
   onComplete,
@@ -284,6 +288,8 @@ export default function StudentOnboardingPage({
     useState(false);
   const [otherIndustry, setOtherIndustry] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [isPhoneVerificationPending, setIsPhoneVerificationPending] =
+    useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(143);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>(
     INITIAL_SELECTED_INDUSTRIES,
@@ -1292,26 +1298,84 @@ export default function StudentOnboardingPage({
     setStep(STEP_ORDER[currentIndex - 1]);
   };
 
-  const handleNext = () => {
+  const handlePhoneVerificationRequest = async (
+    shouldMoveToVerification: boolean,
+  ) => {
+    if (isPhoneVerificationPending || !isValidPhone(info.phone)) return false;
+
+    setIsPhoneVerificationPending(true);
+
+    try {
+      const response = await requestPhoneVerification({
+        phoneNumber: info.phone,
+      });
+
+      setRemainingSeconds(response.expiresIn);
+      setPhoneError('');
+      setVerificationError('');
+      if (shouldMoveToVerification) setStep('verification');
+
+      return true;
+    } catch {
+      if (shouldMoveToVerification) {
+        setPhoneError('인증번호를 보내지 못했어요. 다시 시도해주세요.');
+      } else {
+        setVerificationError('인증번호를 다시 보내지 못했어요.');
+      }
+
+      return false;
+    } finally {
+      setIsPhoneVerificationPending(false);
+    }
+  };
+
+  const handleNext = async () => {
     if (step === 'phone') {
       if (!isValidPhone(info.phone)) {
         setPhoneError('다시 입력해주세요.');
         return;
       }
 
-      setPhoneError('');
-      setRemainingSeconds(143);
-      setStep('verification');
+      if (enablePhoneVerificationApi) {
+        await handlePhoneVerificationRequest(true);
+      } else {
+        setPhoneError('');
+        setRemainingSeconds(143);
+        setStep('verification');
+      }
+
       return;
     }
 
     if (step === 'verification') {
-      if (info.verificationCode !== '578412') {
-        setVerificationError('인증번호가 틀렸어요. 다시 입력해주세요.');
-        return;
-      }
+      if (enablePhoneVerificationApi) {
+        if (info.verificationCode.length !== 6 || isPhoneVerificationPending) {
+          setVerificationError('인증번호 6자리를 입력해주세요.');
+          return;
+        }
 
-      setVerificationError('');
+        setIsPhoneVerificationPending(true);
+
+        try {
+          await confirmPhoneVerification({
+            phoneNumber: info.phone,
+            code: info.verificationCode,
+          });
+          setVerificationError('');
+        } catch {
+          setVerificationError('인증번호가 틀렸어요. 다시 입력해주세요.');
+          return;
+        } finally {
+          setIsPhoneVerificationPending(false);
+        }
+      } else {
+        if (info.verificationCode !== '578412') {
+          setVerificationError('인증번호가 틀렸어요. 다시 입력해주세요.');
+          return;
+        }
+
+        setVerificationError('');
+      }
     }
 
     if (step === 'birthYear') {
@@ -1341,7 +1405,9 @@ export default function StudentOnboardingPage({
   };
 
   const isCtaDisabled =
+    isPhoneVerificationPending ||
     (step === 'name' && !info.name.trim()) ||
+    (step === 'verification' && info.verificationCode.length !== 6) ||
     (step === 'birthYear' && !/^\d{4}$/.test(info.birthYear)) ||
     (step === 'location' && !info.location.trim());
 
@@ -1366,7 +1432,7 @@ export default function StudentOnboardingPage({
       question={questions[step]}
       questionClassName={step === 'name' ? 'translate-y-[5.5px]' : undefined}
       onBack={handleBack}
-      onCtaClick={handleNext}
+      onCtaClick={() => void handleNext()}
       stageLabel="기본정보 입력"
       totalSubSteps={BASIC_INFO_TOTAL_SUB_STEPS}
     >
@@ -1405,7 +1471,14 @@ export default function StudentOnboardingPage({
               <button
                 className="rounded-[44px] border-[0.7px] border-[#B0B8C1] bg-transparent px-2.5 py-1.5 text-[13px] leading-[1.5] text-[#191F28]"
                 type="button"
-                onClick={() => setRemainingSeconds(143)}
+                disabled={isPhoneVerificationPending}
+                onClick={() => {
+                  if (enablePhoneVerificationApi) {
+                    void handlePhoneVerificationRequest(false);
+                  } else {
+                    setRemainingSeconds(143);
+                  }
+                }}
               >
                 재요청
               </button>

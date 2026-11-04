@@ -5,6 +5,10 @@ import type {
   EmailLoginRequest,
   EmailSignupRequest,
   LoginResponse,
+  PhoneVerificationConfirmRequest,
+  PhoneVerificationConfirmResponse,
+  PhoneVerificationRequest,
+  PhoneVerificationResponse,
   RefreshAccessTokenResponse,
 } from '../../types/auth';
 
@@ -79,4 +83,26 @@ export async function logoutStudent(): Promise<void> {
   });
 
   clearAccessToken();
+}
+
+export async function requestPhoneVerification(
+  requestBody: PhoneVerificationRequest,
+): Promise<PhoneVerificationResponse> {
+  const { data } = await apiClient.post<PhoneVerificationResponse>(
+    '/api/auth/phone-verifications',
+    requestBody,
+  );
+
+  return data;
+}
+
+export async function confirmPhoneVerification(
+  requestBody: PhoneVerificationConfirmRequest,
+): Promise<PhoneVerificationConfirmResponse> {
+  const { data } = await apiClient.post<PhoneVerificationConfirmResponse>(
+    '/api/auth/phone-verifications/verify',
+    requestBody,
+  );
+
+  return data;
 }

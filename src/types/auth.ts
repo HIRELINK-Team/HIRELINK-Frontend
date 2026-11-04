@@ -30,3 +30,23 @@ export interface CsrfTokenResponse {
   headerName: string;
   token: string;
 }
+
+export interface PhoneVerificationRequest {
+  phoneNumber: string;
+}
+
+export interface PhoneVerificationResponse {
+  expiresIn: number;
+  message: string;
+}
+
+export interface PhoneVerificationConfirmRequest {
+  phoneNumber: string;
+  code: string;
+}
+
+export interface PhoneVerificationConfirmResponse {
+  phoneNumber: string;
+  verifiedAt: string;
+  message: string;
+}
