@@ -35,6 +35,11 @@ export interface EmployerProfileResponse {
   position: string | null;
 }
 
+export interface UpdateEmployerProfileRequest {
+  name?: string;
+  position?: string | null;
+}
+
 /** 실제 주소 검색 API 연결 전 화면 interaction을 위한 Frontend mock 모델입니다. */
 export interface EmployerAddressMock {
   id: string;

@@ -6,17 +6,34 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { getEmployerProfile } from '../../api/employers';
+import {
+  getEmployerProfile,
+  updateEmployerProfile as requestEmployerProfileUpdate,
+} from '../../api/employers';
 import { subscribeToAuthInvalidation } from '../../api/accessToken';
 import { EMPLOYER_PROFILE_MOCK } from '../../data/employerProfileData';
 import { EmployerProfileContext } from '../../hooks/useEmployerProfile';
 import type {
   EmployerProfile,
   EmployerProfileResponse,
+  UpdateEmployerProfileRequest,
 } from '../../types/employerProfile';
 
 function cloneProfile(profile: EmployerProfile): EmployerProfile {
   return { ...profile, business: { ...profile.business } };
+}
+
+function mergeProfileResponse(
+  current: EmployerProfile,
+  response: EmployerProfileResponse,
+): EmployerProfile {
+  return {
+    ...current,
+    name: response.name,
+    email: response.email,
+    phone: response.phoneNumber,
+    position: response.position,
+  };
 }
 
 function EmployerProfileProvider({ children }: { children: ReactNode }) {
@@ -52,13 +69,7 @@ function EmployerProfileProvider({ children }: { children: ReactNode }) {
     const request = getEmployerProfile()
       .then((response) => {
         loadedProfileRef.current = response;
-        setProfile((current) => ({
-          ...current,
-          name: response.name,
-          email: response.email,
-          phone: response.phoneNumber,
-          position: response.position,
-        }));
+        setProfile((current) => mergeProfileResponse(current, response));
         return response;
       })
       .finally(() => {
@@ -69,13 +80,23 @@ function EmployerProfileProvider({ children }: { children: ReactNode }) {
     return request;
   }, []);
 
+  const saveProfile = useCallback(
+    async (request: UpdateEmployerProfileRequest) => {
+      const response = await requestEmployerProfileUpdate(request);
+      loadedProfileRef.current = response;
+      setProfile((current) => mergeProfileResponse(current, response));
+      return response;
+    },
+    [],
+  );
+
   const updateProfile = useCallback((nextProfile: EmployerProfile) => {
     setProfile(cloneProfile(nextProfile));
   }, []);
 
   const value = useMemo(
-    () => ({ profile, loadProfile, updateProfile }),
-    [loadProfile, profile, updateProfile],
+    () => ({ profile, loadProfile, saveProfile, updateProfile }),
+    [loadProfile, profile, saveProfile, updateProfile],
   );
 
   return (

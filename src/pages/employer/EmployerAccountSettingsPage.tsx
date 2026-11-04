@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
 import Toast from '../../components/common/Toast';
+import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
 import { EMPLOYER_INDUSTRY_OPTIONS } from '../../data/employerProfileData';
 import { useEmployerProfile } from '../../hooks/useEmployerProfile';
-import type { EmployerProfile } from '../../types/employerProfile';
+import type {
+  EmployerProfile,
+  UpdateEmployerProfileRequest,
+} from '../../types/employerProfile';
 
-type AccountErrorKey = 'name' | 'phone' | 'position';
+type AccountErrorKey = 'name' | 'position';
 type AccountErrors = Partial<Record<AccountErrorKey, string>>;
 
 const inputClassName =
@@ -38,10 +42,12 @@ function FieldError({ message }: { message?: string }) {
 }
 
 function EmployerAccountSettingsPage() {
-  const { profile, updateProfile } = useEmployerProfile();
+  const { profile, saveProfile } = useEmployerProfile();
   const [draft, setDraft] = useState(() => cloneProfile(profile));
   const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<AccountErrors>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,40 +64,81 @@ function EmployerAccountSettingsPage() {
   const handleStartEditing = () => {
     setDraft(cloneProfile(profile));
     setErrors({});
+    setSubmitError(null);
     setIsEditing(true);
   };
 
   const handleCancel = () => {
     setDraft(cloneProfile(profile));
     setErrors({});
+    setSubmitError(null);
     setIsEditing(false);
   };
 
-  const updateField = (field: 'name' | 'phone' | 'position', value: string) => {
+  const updateField = (field: 'name' | 'position', value: string) => {
     setDraft((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
+    setSubmitError(null);
   };
 
-  const updatePhonePart = (index: number, value: string) => {
-    const parts = splitPhone(draft.phone);
-    parts[index] = value.replace(/\D/g, '').slice(0, index === 0 ? 3 : 4);
-    updateField('phone', parts.join('-'));
-  };
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const name = draft.name.trim();
+    const position = draft.position?.trim() || null;
     const nextErrors: AccountErrors = {};
-    if (!draft.name.trim()) nextErrors.name = '이름을 입력해 주세요.';
-    if (splitPhone(draft.phone).some((part) => !part)) {
-      nextErrors.phone = '전화번호를 입력해 주세요.';
-    }
-    if (!draft.position?.trim()) nextErrors.position = '직책을 입력해 주세요.';
+    if (!name) nextErrors.name = '이름을 입력해 주세요.';
+    if (name.length > 100)
+      nextErrors.name = '이름은 100자 이하로 입력해 주세요.';
+    if (position && position.length > 50)
+      nextErrors.position = '직책은 50자 이하로 입력해 주세요.';
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    updateProfile(draft);
-    setIsEditing(false);
-    setToastMessage('수정이 적용되었어요');
+    const request: UpdateEmployerProfileRequest = {};
+    if (name !== profile.name) request.name = name;
+
+    const currentPosition = profile.position?.trim() || null;
+    if (position !== currentPosition) request.position = position;
+
+    if (Object.keys(request).length === 0) {
+      setIsEditing(false);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      await saveProfile(request);
+      setIsEditing(false);
+      setToastMessage('수정이 적용되었어요');
+    } catch (error: unknown) {
+      const status = getApiErrorStatus(error);
+      const apiError = getApiErrorResponse(error);
+
+      if (status === 400) {
+        setSubmitError(
+          apiError?.message ?? '입력한 이름과 직책을 확인해 주세요.',
+        );
+      } else if (status === 401) {
+        setSubmitError(
+          '로그인 정보를 확인하지 못했습니다. 다시 시도해 주세요.',
+        );
+      } else if (status === 403) {
+        setSubmitError('사업주 프로필을 수정할 권한이 없습니다.');
+      } else if (status === 404) {
+        setSubmitError('수정할 사업주 프로필을 찾지 못했습니다.');
+      } else if (status && status >= 500) {
+        setSubmitError('서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      } else {
+        setSubmitError(
+          apiError?.message ??
+            '프로필을 수정하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -128,6 +175,7 @@ function EmployerAccountSettingsPage() {
                   <FieldLabel>이름</FieldLabel>
                   <input
                     value={draft.name}
+                    maxLength={100}
                     onChange={(event) =>
                       updateField('name', event.target.value)
                     }
@@ -149,16 +197,12 @@ function EmployerAccountSettingsPage() {
                           value={part}
                           inputMode="numeric"
                           aria-label={`전화번호 ${index + 1}번째 자리`}
-                          onChange={(event) =>
-                            updatePhonePart(index, event.target.value)
-                          }
-                          className={`${inputClassName} min-w-0`}
-                          aria-invalid={Boolean(errors.phone)}
+                          disabled
+                          className={`${disabledInputClassName} min-w-0`}
                         />
                       </div>
                     ))}
                   </div>
-                  <FieldError message={errors.phone} />
                 </div>
 
                 <label>
@@ -177,6 +221,7 @@ function EmployerAccountSettingsPage() {
                   <FieldLabel>직책</FieldLabel>
                   <input
                     value={draft.position ?? ''}
+                    maxLength={50}
                     onChange={(event) =>
                       updateField('position', event.target.value)
                     }
@@ -201,18 +246,28 @@ function EmployerAccountSettingsPage() {
           </section>
 
           <div className="mt-6 flex justify-end gap-2">
+            {submitError && (
+              <p
+                role="alert"
+                className="mr-auto self-center text-sm font-medium text-[#e11e1e]"
+              >
+                {submitError}
+              </p>
+            )}
             <button
               type="button"
               onClick={handleCancel}
-              className="h-[58px] w-40 cursor-pointer rounded-xl border border-[rgba(112,115,124,0.32)] bg-white text-lg font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5]"
+              disabled={isSubmitting}
+              className="h-[58px] w-40 cursor-pointer rounded-xl border border-[rgba(112,115,124,0.32)] bg-white text-lg font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5] disabled:cursor-not-allowed disabled:text-[#8b95a1]"
             >
               취소
             </button>
             <button
               type="submit"
-              className="h-[58px] w-40 cursor-pointer rounded-xl bg-[#00b894] text-lg font-semibold text-white transition-colors hover:bg-[#00a886]"
+              disabled={isSubmitting}
+              className="h-[58px] w-40 cursor-pointer rounded-xl bg-[#00b894] text-lg font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
             >
-              저장
+              {isSubmitting ? '저장 중' : '저장'}
             </button>
           </div>
         </form>
