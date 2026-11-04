@@ -1332,15 +1332,24 @@ function StudentMatchingConditionLayout() {
   };
 
   const saveIndustry = async (industries: IndustryId[], industry: string) => {
-    if (!matchingPreferences) return false;
+    const requestBody = matchingPreferences
+      ? mapIndustrySelectionToUpdateRequest(
+          industries,
+          industry,
+          false,
+          matchingPreferences.preferredJobs,
+        )
+      : null;
 
-    const requestBody = mapIndustrySelectionToUpdateRequest(
-      industries,
-      industry,
-      false,
-      matchingPreferences.preferredJobs,
-    );
-    if (!requestBody) return false;
+    if (!requestBody) {
+      // Keep the local onboarding fallback usable until the API can provide
+      // the business type IDs required by the matching-preferences contract.
+      setBusinessTypeFlexible(false);
+      setSelectedIndustries(industries);
+      setOtherIndustry(industry);
+      markSummaryUpdated('industry');
+      return true;
+    }
 
     try {
       const preferences = await updateStudentMatchingPreferences(requestBody);
@@ -1370,7 +1379,13 @@ function StudentMatchingConditionLayout() {
       location,
       matchingPreferences?.preferredLocation ?? null,
     );
-    if (!requestBody) return false;
+    if (!requestBody) {
+      // A typed address has no coordinates until geocoding is connected.
+      // Preserve the existing local edit flow instead of blocking the user.
+      setWorkLocation(location);
+      markSummaryUpdated('location');
+      return true;
+    }
 
     try {
       const preferences = await updateStudentMatchingPreferences(requestBody);
@@ -1428,11 +1443,11 @@ function StudentMatchingConditionRoute() {
       onApply={() => navigate('/student/my')}
       onBack={() => navigate('/student/my')}
       onConditionClick={(conditionId) => {
-        const detailRoutes: Record<string, string> = {
-          industry: 'industry',
-          location: 'location',
-          'start-date': 'start-date',
-          'work-time': 'work-time',
+        const detailRoutes: Partial<Record<typeof conditionId, string>> = {
+          industry: '/student/my/matching-condition/industry',
+          location: '/student/my/matching-condition/location',
+          'start-date': '/student/my/matching-condition/start-date',
+          'work-time': '/student/my/matching-condition/work-time',
         };
         const detailRoute = detailRoutes[conditionId];
 
