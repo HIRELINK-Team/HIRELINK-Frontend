@@ -46,3 +46,26 @@ export interface CreateWorkplaceResponse {
   latitude: number;
   longitude: number;
 }
+
+export interface EmployerWorkplaceListItem {
+  workplaceId: number;
+  workplaceName: string;
+  businessTypeId: number;
+  businessTypeName: BusinessTypeName;
+  workplaceAddress: string;
+  employeeCountRange: EmployeeCountRange;
+}
+
+export interface EmployerWorkplaceListResponse {
+  workplaces: EmployerWorkplaceListItem[];
+}
+
+export type WorkplaceDetailResponse = CreateWorkplaceResponse;
+
+export interface UpdateWorkplaceRequest {
+  workplaceName?: string;
+  businessTypeId?: number;
+  workplaceAddress?: string;
+  latitude?: number;
+  longitude?: number;
+}

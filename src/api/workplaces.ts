@@ -3,8 +3,11 @@ import type {
   BusinessRegistrationOcrResponse,
   CreateWorkplaceRequest,
   CreateWorkplaceResponse,
+  EmployerWorkplaceListResponse,
+  UpdateWorkplaceRequest,
   VerifyBusinessRegistrationRequest,
   VerifyBusinessRegistrationResponse,
+  WorkplaceDetailResponse,
 } from '../types/workplace';
 
 async function extractBusinessRegistration(
@@ -43,8 +46,41 @@ async function createWorkplace(
   return data;
 }
 
+async function getMyWorkplaces(): Promise<EmployerWorkplaceListResponse> {
+  const { data } = await apiClient.get<EmployerWorkplaceListResponse>(
+    '/employers/me/workplaces',
+  );
+
+  return data;
+}
+
+async function getWorkplaceDetail(
+  workplaceId: number,
+): Promise<WorkplaceDetailResponse> {
+  const { data } = await apiClient.get<WorkplaceDetailResponse>(
+    `/workplaces/${workplaceId}`,
+  );
+
+  return data;
+}
+
+async function updateWorkplace(
+  workplaceId: number,
+  request: UpdateWorkplaceRequest,
+): Promise<WorkplaceDetailResponse> {
+  const { data } = await apiClient.patch<WorkplaceDetailResponse>(
+    `/workplaces/${workplaceId}`,
+    request,
+  );
+
+  return data;
+}
+
 export {
   createWorkplace,
   extractBusinessRegistration,
+  getMyWorkplaces,
+  getWorkplaceDetail,
+  updateWorkplace,
   verifyBusinessRegistration,
 };

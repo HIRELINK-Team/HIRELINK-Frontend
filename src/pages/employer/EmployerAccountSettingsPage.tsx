@@ -3,10 +3,15 @@ import Toast from '../../components/common/Toast';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
 import { EMPLOYER_INDUSTRY_OPTIONS } from '../../data/employerProfileData';
 import { useEmployerProfile } from '../../hooks/useEmployerProfile';
+import { useEmployerWorkplaces } from '../../hooks/useEmployerWorkplaces';
 import type {
   EmployerProfile,
   UpdateEmployerProfileRequest,
 } from '../../types/employerProfile';
+import type {
+  BusinessTypeName,
+  EmployerWorkplaceListItem,
+} from '../../types/workplace';
 
 type AccountErrorKey = 'name' | 'position';
 type AccountErrors = Partial<Record<AccountErrorKey, string>>;
@@ -22,6 +27,14 @@ function cloneProfile(profile: EmployerProfile): EmployerProfile {
 function splitPhone(phone: string) {
   const parts = phone.split('-');
   return [parts[0] ?? '', parts[1] ?? '', parts[2] ?? ''];
+}
+
+function getIndustryLabel(businessTypeName: BusinessTypeName) {
+  return (
+    EMPLOYER_INDUSTRY_OPTIONS.find(
+      (option) => option.value === businessTypeName,
+    )?.label ?? businessTypeName
+  );
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -43,23 +56,39 @@ function FieldError({ message }: { message?: string }) {
 
 function EmployerAccountSettingsPage() {
   const { profile, saveProfile } = useEmployerProfile();
+  const { workplaces, loadWorkplaces } = useEmployerWorkplaces();
   const [draft, setDraft] = useState(() => cloneProfile(profile));
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<AccountErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isWorkplacesLoading, setIsWorkplacesLoading] = useState(true);
+  const [workplacesError, setWorkplacesError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    loadWorkplaces()
+      .catch(() => {
+        if (isActive) {
+          setWorkplacesError('사업장 정보를 불러오지 못했어요.');
+        }
+      })
+      .finally(() => {
+        if (isActive) setIsWorkplacesLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [loadWorkplaces]);
 
   useEffect(() => {
     if (!toastMessage) return;
     const timeoutId = window.setTimeout(() => setToastMessage(null), 4000);
     return () => window.clearTimeout(timeoutId);
   }, [toastMessage]);
-
-  const industryLabel =
-    EMPLOYER_INDUSTRY_OPTIONS.find(
-      (option) => option.value === profile.business.industry,
-    )?.label ?? '';
 
   const handleStartEditing = () => {
     setDraft(cloneProfile(profile));
@@ -238,10 +267,10 @@ function EmployerAccountSettingsPage() {
             <h2 className="text-xl font-semibold text-[#171719]">
               연결된 사업장
             </h2>
-            <BusinessCard
-              name={draft.business.name}
-              industry={industryLabel}
-              address={draft.business.address}
+            <WorkplaceCards
+              workplaces={workplaces}
+              isLoading={isWorkplacesLoading}
+              error={workplacesError}
             />
           </section>
 
@@ -300,16 +329,66 @@ function EmployerAccountSettingsPage() {
             <h2 className="text-xl font-semibold text-[#171719]">
               연결된 사업장
             </h2>
-            <BusinessCard
-              name={profile.business.name}
-              industry={industryLabel}
-              address={profile.business.address}
+            <WorkplaceCards
+              workplaces={workplaces}
+              isLoading={isWorkplacesLoading}
+              error={workplacesError}
             />
           </section>
         </div>
       )}
 
       {toastMessage && <Toast message={toastMessage} />}
+    </div>
+  );
+}
+
+function WorkplaceCards({
+  workplaces,
+  isLoading,
+  error,
+}: {
+  workplaces: EmployerWorkplaceListItem[];
+  isLoading: boolean;
+  error: string | null;
+}) {
+  if (isLoading) {
+    return (
+      <div className="mt-3 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-10 text-center text-[15px] font-medium text-[#70737c]">
+        사업장 정보를 불러오는 중이에요.
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        role="alert"
+        className="mt-3 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-10 text-center text-[15px] font-medium text-[#e11e1e]"
+      >
+        {error}
+      </div>
+    );
+  }
+
+  if (workplaces.length === 0) {
+    return (
+      <div className="mt-3 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-10 text-center text-[15px] font-medium text-[#70737c]">
+        연결된 사업장이 없어요.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 space-y-3">
+      {workplaces.map((workplace) => (
+        <BusinessCard
+          key={workplace.workplaceId}
+          name={workplace.workplaceName}
+          industry={getIndustryLabel(workplace.businessTypeName)}
+          address={workplace.workplaceAddress}
+        />
+      ))}
     </div>
   );
 }
@@ -324,7 +403,7 @@ function BusinessCard({
   address: string;
 }) {
   return (
-    <div className="mt-3 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-6 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.10),0_1px_2px_rgba(23,23,25,0.06)]">
+    <div className="rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-6 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.10),0_1px_2px_rgba(23,23,25,0.06)]">
       <div className="flex items-center gap-3">
         <p className="text-xl font-semibold text-[#171719]">{name}</p>
         <span className="rounded-md bg-[#e5f8f3] px-2 py-1 text-xs font-semibold text-[#006e59]">
