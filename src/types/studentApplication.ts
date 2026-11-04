@@ -3,6 +3,41 @@ import type { SalaryType } from './jobForm';
 
 export type StudentApplicationApiStatus = 'WAITING_RESPONSE';
 
+export type StudentApplicationDetailStatus =
+  'WAITING_RESPONSE' | 'OFFERED' | 'COMPLETED' | 'ENDED';
+
+export type StudentApplicationOfferStatus =
+  'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+
+export type StudentApplicationWorkTime = {
+  dayOfWeek: 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN';
+  startTime: string;
+  endTime: string;
+};
+
+export type StudentApplicationDetail = {
+  applicationId: number;
+  status: StudentApplicationDetailStatus;
+  jobPostingId: number;
+  jobTitle: string;
+  workplaceName: string;
+  workplaceAddress: string;
+  wageType: SalaryType;
+  wageAmount: number;
+  workTimes: StudentApplicationWorkTime[];
+  desiredStartDate: string;
+  appliedAt: string;
+  employerResponseDeadline: string | null;
+  offerId: number | null;
+  offerStatus: StudentApplicationOfferStatus | null;
+  offeredAt: string | null;
+  studentResponseDeadline: string | null;
+  respondedAt: string | null;
+  matchId: number | null;
+  endReason: string | null;
+  endedAt: string | null;
+};
+
 export type StudentApplication = {
   applicationId: number;
   status: StudentApplicationApiStatus;
@@ -54,7 +89,7 @@ export type StudentApplicationsFilter = 'all' | 'reviewing' | 'offer' | 'hired';
 export type StudentApplicationsScenario = StudentApplicationsFilter | 'empty';
 
 export type StudentApplicationCardModel = {
-  apiStatus?: StudentApplicationApiStatus;
+  apiStatus?: StudentApplicationApiStatus | StudentApplicationDetailStatus;
   applicationId?: number;
   appliedAt?: string;
   desiredStartDate?: string;

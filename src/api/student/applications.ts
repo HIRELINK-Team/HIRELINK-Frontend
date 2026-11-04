@@ -3,6 +3,7 @@ import { apiClient } from '../client';
 import type {
   CreateStudentApplicationRequest,
   CreateStudentApplicationResponse,
+  StudentApplicationDetail,
   StudentApplicationApiStatus,
   StudentApplicationsResponse,
 } from '../../types/studentApplication';
@@ -39,10 +40,10 @@ export async function getMyStudentApplications(
   return data;
 }
 
-export async function getMyStudentApplication<TResponse = unknown>(
+export async function getMyStudentApplication(
   applicationId: string | number,
-): Promise<TResponse> {
-  const { data } = await apiClient.get<TResponse>(
+): Promise<StudentApplicationDetail> {
+  const { data } = await apiClient.get<StudentApplicationDetail>(
     applicationPath(applicationId),
   );
 

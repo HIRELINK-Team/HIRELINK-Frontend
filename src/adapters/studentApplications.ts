@@ -1,12 +1,26 @@
 import type {
   StudentApplication,
   StudentApplicationCardModel,
+  StudentApplicationDetail,
   StudentApplicationStatus,
 } from '../types/studentApplication';
 
 const WAGE_TYPE_LABELS: Record<StudentApplication['wageType'], string> = {
   HOURLY: '시급',
   MONTHLY: '월급',
+};
+
+const DAY_LABELS: Record<
+  StudentApplicationDetail['workTimes'][number]['dayOfWeek'],
+  string
+> = {
+  MON: '월',
+  TUE: '화',
+  WED: '수',
+  THU: '목',
+  FRI: '금',
+  SAT: '토',
+  SUN: '일',
 };
 
 function mapApplicationStatus(
@@ -80,6 +94,70 @@ export function mapStudentApplicationToCardModel(
     offerStatus: application.offerStatus,
     startedAt: application.offeredAt ?? application.appliedAt,
     status: mapApplicationStatus(application),
+    studentResponseDeadline: application.studentResponseDeadline,
+    timerLabel: formatDeadline(responseDeadline),
+  };
+}
+
+function mapDetailStatus(
+  application: StudentApplicationDetail,
+): StudentApplicationStatus {
+  if (application.status === 'COMPLETED') return 'HIRED';
+  if (application.status === 'OFFERED') return 'OFFER_WAITING';
+  if (application.status === 'WAITING_RESPONSE') return 'REVIEWING';
+  if (application.offerStatus === 'REJECTED') return 'REJECTED';
+  if (application.offerStatus === 'EXPIRED') return 'STUDENT_EXPIRED';
+
+  return 'CANCELED';
+}
+
+export function mapStudentApplicationDetailToCardModel(
+  application: StudentApplicationDetail,
+): StudentApplicationCardModel {
+  const wageLabel = `${WAGE_TYPE_LABELS[application.wageType]} ${application.wageAmount.toLocaleString('ko-KR')}원`;
+  const workTimeLabels = application.workTimes.map(
+    ({ dayOfWeek, startTime, endTime }) =>
+      `${DAY_LABELS[dayOfWeek]} ${startTime}-${endTime}`,
+  );
+  const responseDeadline =
+    application.studentResponseDeadline ?? application.employerResponseDeadline;
+
+  return {
+    apiStatus: application.status,
+    applicationId: application.applicationId,
+    appliedAt: application.appliedAt,
+    desiredStartDate: application.desiredStartDate,
+    employerResponseDeadline: application.employerResponseDeadline ?? undefined,
+    expiresAt: responseDeadline ?? undefined,
+    id: String(application.applicationId),
+    job: {
+      countdownLabel: '',
+      commuteAndWage: wageLabel,
+      companyName: application.workplaceName,
+      detail: {
+        comparisonTags: [],
+        locationAndDistance: application.workplaceAddress,
+        matchRate: 0,
+        metrics: [
+          { label: '급여', value: wageLabel },
+          { label: '시작일', value: application.desiredStartDate },
+        ],
+        tags: workTimeLabels,
+      },
+      id: String(application.applicationId),
+      isCountdownActive: false,
+      jobPostingId: application.jobPostingId,
+      matchDescription: workTimeLabels.join(' · '),
+      matchRate: 0,
+      role: application.jobTitle,
+      showsApplyButton: false,
+    },
+    matchId: application.matchId,
+    offerId: application.offerId,
+    offeredAt: application.offeredAt,
+    offerStatus: application.offerStatus,
+    startedAt: application.offeredAt ?? application.appliedAt,
+    status: mapDetailStatus(application),
     studentResponseDeadline: application.studentResponseDeadline,
     timerLabel: formatDeadline(responseDeadline),
   };

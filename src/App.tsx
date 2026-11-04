@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Navigate,
   Outlet,
@@ -16,6 +16,7 @@ import {
   createStudentApplication,
   getStudentMatchingPreferences,
   getStudentRecommendation,
+  getMyStudentApplication,
   getMyStudentApplications,
   getEmploymentMatch,
   getStudentProfile,
@@ -33,7 +34,10 @@ import {
   mapWorkAvailabilityToUpdateRequest,
   mapWorkLocationToUpdateRequest,
 } from './adapters/studentMatchingPreferences';
-import { mapStudentApplicationToCardModel } from './adapters/studentApplications';
+import {
+  mapStudentApplicationDetailToCardModel,
+  mapStudentApplicationToCardModel,
+} from './adapters/studentApplications';
 import {
   mapStudentProfileResponseToValues,
   mapStudentProfileValuesToUpdateRequest,
@@ -59,6 +63,7 @@ import EmployerOnboardingPage from './pages/employer/EmployerOnboardingPage';
 import EmployerSettingsPage from './pages/employer/EmployerSettingsPage';
 import EmployerSignUpPage from './pages/employer/EmployerSignUpPage';
 import StudentApplicationsPage from './pages/student/StudentApplicationsPage';
+import StudentApplicationDetailPage from './pages/student/StudentApplicationDetailPage';
 import StudentHiringCompletePage from './pages/student/StudentHiringCompletePage';
 import StudentEmailLoginPage from './pages/student/StudentEmailLoginPage';
 import StudentEmailSignupPage from './pages/student/StudentEmailSignupPage';
@@ -145,6 +150,7 @@ type StudentApplicationsRouteContext = {
   acceptOffer: (applicationId: string) => void;
   declineOffer: (applicationId: string) => void;
   isApplicationsLoading: boolean;
+  syncApplicationDetail: (application: StudentApplicationCardModel) => void;
 };
 
 type StudentProfileRouteContext = {
@@ -690,6 +696,19 @@ function StudentApplicationsLayout() {
     );
   };
 
+  const syncApplicationDetail = useCallback(
+    (applicationDetail: StudentApplicationCardModel) => {
+      setApplications((currentApplications) =>
+        currentApplications.map((application) =>
+          application.id === applicationDetail.id
+            ? applicationDetail
+            : application,
+        ),
+      );
+    },
+    [],
+  );
+
   return (
     <Outlet
       context={{
@@ -697,6 +716,7 @@ function StudentApplicationsLayout() {
         applications,
         declineOffer,
         isApplicationsLoading,
+        syncApplicationDetail,
       }}
     />
   );
@@ -741,9 +761,111 @@ function StudentApplicationsRoute() {
       onDetailClick={(application) => {
         if (application.status === 'HIRED') {
           navigate(`hiring-complete/${application.id}`);
+          return;
         }
+
+        navigate(application.id);
       }}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
+    />
+  );
+}
+
+function StudentApplicationDetailRoute() {
+  const navigate = useNavigate();
+  const { applicationId } = useParams();
+  const { acceptOffer, applications, declineOffer, syncApplicationDetail } =
+    useOutletContext<StudentApplicationsRouteContext>();
+  const fallbackApplication = applications.find(
+    (application) => application.id === applicationId,
+  );
+  const [application, setApplication] =
+    useState<StudentApplicationCardModel | null>(fallbackApplication ?? null);
+  const [detailOpenedAt] = useState(() => Date.now());
+  const [isDetailLoading, setIsDetailLoading] = useState(true);
+  const [isOfferActionPending, setIsOfferActionPending] = useState(false);
+
+  useEffect(() => {
+    if (!applicationId) return;
+
+    let isActive = true;
+
+    void getMyStudentApplication(applicationId)
+      .then((response) => {
+        if (!isActive) return;
+
+        const mappedApplication =
+          mapStudentApplicationDetailToCardModel(response);
+        setApplication(mappedApplication);
+        syncApplicationDetail(mappedApplication);
+      })
+      .catch(() => {
+        // Keep list data as a fallback when the detail request fails.
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsDetailLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [applicationId, syncApplicationDetail]);
+
+  if (!application && isDetailLoading) {
+    return (
+      <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5]" />
+    );
+  }
+
+  if (!application) {
+    return <Navigate replace to="/student/applications" />;
+  }
+
+  const responseDeadline = application.studentResponseDeadline;
+  const canRespondToOffer =
+    application.apiStatus === 'OFFERED' &&
+    application.offerStatus === 'PENDING' &&
+    application.offerId !== null &&
+    application.offerId !== undefined &&
+    responseDeadline !== null &&
+    responseDeadline !== undefined &&
+    new Date(responseDeadline).getTime() > detailOpenedAt;
+
+  const handleOfferAction = async (action: 'accept' | 'decline') => {
+    if (!canRespondToOffer || isOfferActionPending) return;
+
+    const offerId = application.offerId;
+    if (offerId === null || offerId === undefined) return;
+
+    setIsOfferActionPending(true);
+
+    try {
+      if (action === 'accept') {
+        await acceptStudentEmploymentOffer(offerId);
+        acceptOffer(application.id);
+      } else {
+        await rejectStudentEmploymentOffer(offerId);
+        declineOffer(application.id);
+      }
+
+      navigate('/student/applications');
+    } catch {
+      // Keep the confirmed detail state when the offer action fails.
+    } finally {
+      setIsOfferActionPending(false);
+    }
+  };
+
+  return (
+    <StudentApplicationDetailPage
+      application={application}
+      isOfferActionPending={isOfferActionPending}
+      onAcceptOffer={() => void handleOfferAction('accept')}
+      onBack={() => navigate('/student/applications')}
+      onDeclineOffer={() => void handleOfferAction('decline')}
+      showOfferActions={canRespondToOffer}
     />
   );
 }
@@ -1486,6 +1608,10 @@ function App() {
             element={<StudentApplicationsLayout />}
           >
             <Route index element={<StudentApplicationsRoute />} />
+            <Route
+              path=":applicationId"
+              element={<StudentApplicationDetailRoute />}
+            />
             <Route
               path="hiring-complete/:applicationId"
               element={<StudentHiringCompleteRoute />}
