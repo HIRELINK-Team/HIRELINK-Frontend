@@ -1,9 +1,24 @@
-import type { CsrfTokenResponse, EmailLoginRequest } from '../../types/auth';
+import type {
+  CsrfTokenResponse,
+  EmailLoginRequest,
+  EmailSignupRequest,
+} from '../../types/auth';
 
 import { apiClient } from '../client';
 
 export async function loginStudent(requestBody: EmailLoginRequest) {
   await apiClient.post('/api/auth/login', requestBody);
+}
+
+export async function signupStudent<TResponse = unknown>(
+  requestBody: EmailSignupRequest,
+): Promise<TResponse> {
+  const { data } = await apiClient.post<TResponse>(
+    '/api/auth/signup',
+    requestBody,
+  );
+
+  return data;
 }
 
 export async function getAuthCsrfToken(): Promise<CsrfTokenResponse> {
