@@ -168,7 +168,7 @@ export function MatchingPriorityList({
   };
 
   return (
-    <ul className="m-0 mt-[24px] list-none space-y-2.5 p-0" role="list">
+    <ul className="m-0 mt-4 list-none space-y-2 p-0" role="list">
       {priorities.map((priority) => {
         const isDragging = draggedPriorityId === priority.id;
         const dragOffset =
@@ -186,7 +186,7 @@ export function MatchingPriorityList({
 
         return (
           <li
-            className="relative h-[89px]"
+            className="relative h-[76px]"
             key={priority.id}
             ref={(element) => {
               if (element) {
@@ -198,7 +198,7 @@ export function MatchingPriorityList({
             }}
           >
             <div
-              className={`relative size-full rounded-[20px] border-[0.7px] border-[#B0B8C1] bg-[#F5F5F5] ${
+              className={`relative size-full rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-[#F5F5F5] ${
                 isDragging
                   ? 'z-10 opacity-95 shadow-[0_8px_20px_rgba(25,31,40,0.18)] transition-none'
                   : flipOffset
@@ -207,16 +207,16 @@ export function MatchingPriorityList({
               }`}
               style={{ transform }}
             >
-              <strong className="absolute top-[19.3px] left-[30.3px] text-[17px] leading-[1.5] font-bold text-[#191F28]">
+              <strong className="absolute top-[13px] left-5 text-[16px] leading-[1.5] font-bold text-[#191F28]">
                 {priority.label}
               </strong>
-              <p className="absolute top-[45.3px] left-[30.3px] text-[15px] leading-[1.5] text-[#8B95A1]">
+              <p className="absolute top-[38px] left-5 text-[13px] leading-[1.5] text-[#8B95A1]">
                 {priority.description}
               </p>
               <button
                 aria-label={`${priority.label} 우선순위 이동`}
                 aria-pressed={isDragging}
-                className="absolute top-[21.8px] right-[19.2px] flex size-11 touch-none cursor-grab items-center justify-center border-0 bg-transparent p-0 active:cursor-grabbing"
+                className="absolute top-[15px] right-4 flex size-11 touch-none cursor-grab items-center justify-center border-0 bg-transparent p-0 active:cursor-grabbing"
                 type="button"
                 onPointerCancel={handlePointerEnd}
                 onPointerDown={(event) => handlePointerDown(event, priority.id)}
