@@ -12,11 +12,13 @@ import {
 import { setAccessToken } from './api/accessToken';
 import {
   getStudentMatchingPreferences,
+  getMyStudentApplications,
   getStudentProfile,
   getStudentRecommendations,
   loginStudent,
 } from './api/student';
 import { mapStudentMatchingPreferencesToUiState } from './adapters/studentMatchingPreferences';
+import { mapStudentApplicationToCardModel } from './adapters/studentApplications';
 import { mapStudentProfileResponseToValues } from './adapters/studentProfile';
 import { mapStudentRecommendationToRecommendedJob } from './adapters/studentRecommendations';
 import EmployerApplicantsProvider from './components/employer/EmployerApplicantsProvider';
@@ -60,14 +62,13 @@ import StudentSplashPage from './pages/student/StudentSplashPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
 import { formatWorkAvailabilityRanges } from './utils/formatWorkAvailability';
-import { STUDENT_APPLICATIONS_MOCK } from './mocks/studentApplications';
 import { STUDENT_RECOMMENDED_JOBS } from './mocks/studentMatching';
 import StudentMatchingConditionIndustryPage from './pages/student/StudentMatchingConditionIndustryPage';
 import StudentMatchingConditionLocationPage from './pages/student/StudentMatchingConditionLocationPage';
 import StudentMatchingConditionStartDatePage from './pages/student/StudentMatchingConditionStartDatePage';
 import StudentMatchingConditionWorkTimePage from './pages/student/StudentMatchingConditionWorkTimePage';
 import type { StudentNavigationTab } from './types/studentHome';
-import type { StudentApplication } from './types/studentApplication';
+import type { StudentApplicationCardModel } from './types/studentApplication';
 import type { StudentDocument } from './types/studentDocument';
 import type { IndustryId } from './types/industry';
 import type { MatchingPriorityId } from './types/matchingPriority';
@@ -113,9 +114,10 @@ type StudentDocumentRouteContext = {
 };
 
 type StudentApplicationsRouteContext = {
-  applications: StudentApplication[];
+  applications: StudentApplicationCardModel[];
   acceptOffer: (applicationId: string) => void;
   declineOffer: (applicationId: string) => void;
+  isApplicationsLoading: boolean;
 };
 
 type StudentProfileRouteContext = {
@@ -523,9 +525,37 @@ function StudentMatchingHiringCompleteRoute() {
 }
 
 function StudentApplicationsLayout() {
-  const [applications, setApplications] = useState<StudentApplication[]>(
-    STUDENT_APPLICATIONS_MOCK,
-  );
+  const [applications, setApplications] = useState<
+    StudentApplicationCardModel[]
+  >([]);
+  const [isApplicationsLoading, setIsApplicationsLoading] = useState(true);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void getMyStudentApplications()
+      .then((response) => {
+        if (isActive) {
+          setApplications(
+            response.applications.map(mapStudentApplicationToCardModel),
+          );
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setApplications([]);
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsApplicationsLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const acceptOffer = (applicationId: string) => {
     setApplications((currentApplications) =>
@@ -563,6 +593,7 @@ function StudentApplicationsLayout() {
         acceptOffer,
         applications,
         declineOffer,
+        isApplicationsLoading,
       }}
     />
   );
@@ -570,12 +601,13 @@ function StudentApplicationsLayout() {
 
 function StudentApplicationsRoute() {
   const navigate = useNavigate();
-  const { acceptOffer, applications, declineOffer } =
+  const { acceptOffer, applications, declineOffer, isApplicationsLoading } =
     useOutletContext<StudentApplicationsRouteContext>();
 
   return (
     <StudentApplicationsPage
       applications={applications}
+      isApplicationsLoading={isApplicationsLoading}
       onAcceptOffer={(application) => acceptOffer(application.id)}
       onBack={() => navigate('/student/home')}
       onDeclineOffer={(application) => declineOffer(application.id)}

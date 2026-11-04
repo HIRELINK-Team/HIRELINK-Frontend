@@ -1,15 +1,15 @@
-import type { StudentApplication } from '../../../types/studentApplication';
+import type { StudentApplicationCardModel } from '../../../types/studentApplication';
 import hiredStatusDotIcon from '../../../assets/icons/student/applications/hired-status-dot.svg';
 import offerStatusDotIcon from '../../../assets/icons/student/applications/offer-status-dot.svg';
 import activeTimerIcon from '../../../assets/icons/student/matching/timer-active.svg';
 
 type StudentApplicationCardProps = {
-  application: StudentApplication;
+  application: StudentApplicationCardModel;
   isGeneralLayout?: boolean;
   isHiredLayout?: boolean;
-  onDeclineOffer?: (application: StudentApplication) => void;
-  onDetailClick?: (application: StudentApplication) => void;
-  onAcceptOffer?: (application: StudentApplication) => void;
+  onDeclineOffer?: (application: StudentApplicationCardModel) => void;
+  onDetailClick?: (application: StudentApplicationCardModel) => void;
+  onAcceptOffer?: (application: StudentApplicationCardModel) => void;
 };
 
 const STATUS_COPY = {

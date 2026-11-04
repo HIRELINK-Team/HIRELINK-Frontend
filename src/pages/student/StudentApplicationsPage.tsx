@@ -7,20 +7,21 @@ import { StudentApplicationsEmptyState } from '../../components/student/applicat
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import { STUDENT_APPLICATIONS_MOCK } from '../../mocks/studentApplications';
 import type {
-  StudentApplication,
+  StudentApplicationCardModel,
   StudentApplicationsFilter,
   StudentApplicationsScenario,
 } from '../../types/studentApplication';
 import type { StudentNavigationTab } from '../../types/studentHome';
 
 type StudentApplicationsPageProps = {
-  applications?: readonly StudentApplication[];
+  applications?: readonly StudentApplicationCardModel[];
   isBottomNavigationFixed?: boolean;
+  isApplicationsLoading?: boolean;
   initialScenario?: StudentApplicationsScenario;
-  onAcceptOffer?: (application: StudentApplication) => void;
+  onAcceptOffer?: (application: StudentApplicationCardModel) => void;
   onBack?: () => void;
-  onDeclineOffer?: (application: StudentApplication) => void;
-  onDetailClick?: (application: StudentApplication) => void;
+  onDeclineOffer?: (application: StudentApplicationCardModel) => void;
+  onDetailClick?: (application: StudentApplicationCardModel) => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
 };
 
@@ -36,7 +37,7 @@ const SCENARIO_FILTER: Record<
 };
 
 function getApplicationsForFilter(
-  applications: readonly StudentApplication[],
+  applications: readonly StudentApplicationCardModel[],
   filter: StudentApplicationsFilter,
 ) {
   if (filter === 'all') {
@@ -63,6 +64,7 @@ function getApplicationsForFilter(
 export default function StudentApplicationsPage({
   applications: applicationData = STUDENT_APPLICATIONS_MOCK,
   isBottomNavigationFixed = false,
+  isApplicationsLoading = false,
   initialScenario = 'all',
   onAcceptOffer,
   onBack,
@@ -88,7 +90,7 @@ export default function StudentApplicationsPage({
     setIsEmptyScenario(false);
   };
 
-  const handleAcceptOffer = (application: StudentApplication) => {
+  const handleAcceptOffer = (application: StudentApplicationCardModel) => {
     onAcceptOffer?.(application);
     setActiveFilter('hired');
     setIsEmptyScenario(false);
@@ -116,7 +118,8 @@ export default function StudentApplicationsPage({
           />
         </div>
 
-        {isEmptyScenario ? (
+        {!isApplicationsLoading &&
+        (isEmptyScenario || applications.length === 0) ? (
           <StudentApplicationsEmptyState />
         ) : (
           <section

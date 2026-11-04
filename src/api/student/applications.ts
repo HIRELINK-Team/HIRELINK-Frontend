@@ -1,7 +1,12 @@
 import { apiClient } from '../client';
 
+import type {
+  StudentApplicationApiStatus,
+  StudentApplicationsResponse,
+} from '../../types/studentApplication';
+
 type ApplicationListParams = {
-  status?: string;
+  status?: StudentApplicationApiStatus;
 };
 
 function applicationPath(applicationId: string | number) {
@@ -21,12 +26,13 @@ export async function createStudentApplication<TResponse = unknown>(
   return data;
 }
 
-export async function getMyStudentApplications<TResponse = unknown>(
+export async function getMyStudentApplications(
   params: ApplicationListParams = {},
-): Promise<TResponse> {
-  const { data } = await apiClient.get<TResponse>('/api/applications/me', {
-    params,
-  });
+): Promise<StudentApplicationsResponse> {
+  const { data } = await apiClient.get<StudentApplicationsResponse>(
+    '/api/applications/me',
+    { params },
+  );
 
   return data;
 }

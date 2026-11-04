@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { RecommendedJobDetail } from '../../components/student/matching/RecommendedJobDetail';
-import type { StudentApplication } from '../../types/studentApplication';
+import type { StudentApplicationCardModel } from '../../types/studentApplication';
 import StudentApplicationsPage from './StudentApplicationsPage';
 import StudentHiringCompletePage from './StudentHiringCompletePage';
 import type { StudentApplicationsScenario } from '../../types/studentApplication';
@@ -20,7 +20,7 @@ export default function StudentApplicationsPreviewPage({
     useState<StudentApplicationsScenario>(initialScenario);
   const [view, setView] = useState<ApplicationsPreviewView>('applications');
   const [acceptedApplication, setAcceptedApplication] =
-    useState<StudentApplication | null>(null);
+    useState<StudentApplicationCardModel | null>(null);
 
   if (view === 'hiring-complete' && acceptedApplication) {
     return (

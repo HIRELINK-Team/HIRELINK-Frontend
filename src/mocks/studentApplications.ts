@@ -1,7 +1,7 @@
 import { STUDENT_RECOMMENDED_JOBS } from './studentMatching';
-import type { StudentApplication } from '../types/studentApplication';
+import type { StudentApplicationCardModel } from '../types/studentApplication';
 
-export const STUDENT_APPLICATIONS_MOCK: StudentApplication[] = [
+export const STUDENT_APPLICATIONS_MOCK: StudentApplicationCardModel[] = [
   {
     id: 'application-reviewing-1',
     job: STUDENT_RECOMMENDED_JOBS[0],

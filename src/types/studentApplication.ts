@@ -1,4 +1,30 @@
 import type { RecommendedJob } from './studentMatching';
+import type { SalaryType } from './jobForm';
+
+export type StudentApplicationApiStatus = 'WAITING_RESPONSE';
+
+export type StudentApplication = {
+  applicationId: number;
+  status: StudentApplicationApiStatus;
+  jobPostingId: number;
+  jobTitle: string;
+  workplaceName: string;
+  wageType: SalaryType;
+  wageAmount: number;
+  recommendationReasons: string[];
+  desiredStartDate: string;
+  appliedAt: string;
+  employerResponseDeadline: string;
+  offerId: number | null;
+  offerStatus: string | null;
+  offeredAt: string | null;
+  studentResponseDeadline: string | null;
+  matchId: number | null;
+};
+
+export type StudentApplicationsResponse = {
+  applications: StudentApplication[];
+};
 
 export type StudentApplicationStatus =
   | 'REVIEWING'
@@ -13,11 +39,21 @@ export type StudentApplicationsFilter = 'all' | 'reviewing' | 'offer' | 'hired';
 
 export type StudentApplicationsScenario = StudentApplicationsFilter | 'empty';
 
-export type StudentApplication = {
+export type StudentApplicationCardModel = {
+  apiStatus?: StudentApplicationApiStatus;
+  applicationId?: number;
+  appliedAt?: string;
+  desiredStartDate?: string;
+  employerResponseDeadline?: string;
   expiresAt?: string;
   id: string;
   job: RecommendedJob;
+  matchId?: number | null;
+  offerId?: number | null;
+  offeredAt?: string | null;
+  offerStatus?: string | null;
   startedAt?: string;
   status: StudentApplicationStatus;
+  studentResponseDeadline?: string | null;
   timerLabel?: string;
 };
