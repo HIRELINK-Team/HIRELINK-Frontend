@@ -397,6 +397,7 @@ function BasicInformationPage({
   );
   const [openFieldIndex, setOpenFieldIndex] = useState<number | null>(null);
   const [pendingValue, setPendingValue] = useState('');
+
   const options =
     openFieldIndex === 2
       ? COUNTRY_OPTIONS.map((label) => ({ label }))
@@ -665,6 +666,7 @@ function LanguageInformationPage({
   );
   const [openFieldIndex, setOpenFieldIndex] = useState<number | null>(null);
   const [pendingValue, setPendingValue] = useState<string | null>(null);
+
   const options =
     openFieldIndex === 0
       ? TOPIK_LEVEL_OPTIONS.map(({ label }) => ({ label }))
@@ -797,6 +799,9 @@ export default function StudentProfileManagementPage({
   if (view === 'basic') {
     return (
       <BasicInformationPage
+        key={getDetailFields('basic', resolvedProfileValues)
+          .map((field) => field.value)
+          .join('|')}
         fields={getDetailFields('basic', resolvedProfileValues)}
         isSaving={isSaving}
         onBack={handleDetailBack}
@@ -808,6 +813,9 @@ export default function StudentProfileManagementPage({
   if (view === 'residence') {
     return (
       <ResidenceInformationPage
+        key={getDetailFields('residence', resolvedProfileValues)
+          .map((field) => field.value)
+          .join('|')}
         fields={getDetailFields('residence', resolvedProfileValues)}
         isSaving={isSaving}
         onBack={handleDetailBack}
@@ -819,6 +827,9 @@ export default function StudentProfileManagementPage({
   if (view === 'academic') {
     return (
       <AcademicInformationPage
+        key={getDetailFields('academic', resolvedProfileValues)
+          .map((field) => field.value)
+          .join('|')}
         fields={getDetailFields('academic', resolvedProfileValues)}
         isSaving={isSaving}
         onBack={handleDetailBack}
@@ -834,6 +845,9 @@ export default function StudentProfileManagementPage({
   if (view === 'language') {
     return (
       <LanguageInformationPage
+        key={getDetailFields('language', resolvedProfileValues)
+          .map((field) => field.value)
+          .join('|')}
         fields={getDetailFields('language', resolvedProfileValues)}
         isSaving={isSaving}
         onBack={handleDetailBack}
