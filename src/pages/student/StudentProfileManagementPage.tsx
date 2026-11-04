@@ -35,6 +35,7 @@ type ProfileCard = {
 
 type StudentProfileManagementPageProps = {
   initialView?: ProfileManagementView;
+  isLoading?: boolean;
   onApply?: () => void;
   onBack?: () => void;
   onSave?: (view: ProfileDetailView, values: readonly string[]) => void;
@@ -123,7 +124,7 @@ const PROFILE_CARD_VALUE_MAPPINGS: Record<
   readonly (number | undefined)[]
 > = {
   academic: [0, 1, 2],
-  basic: [undefined, 1, 2, undefined, 3],
+  basic: [0, 1, 2, 5, 3],
   language: [0, 1, 2],
   residence: [0, 1, 2],
 };
@@ -687,6 +688,7 @@ function LanguageInformationPage({
 
 export default function StudentProfileManagementPage({
   initialView = 'main',
+  isLoading = false,
   onApply,
   onBack,
   onSave,
@@ -789,7 +791,10 @@ export default function StudentProfileManagementPage({
   }
 
   return (
-    <main className="mx-auto h-[954px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[29px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main
+      aria-busy={isLoading}
+      className="mx-auto h-[954px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[29px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+    >
       <BackButton onClick={onBack ?? (() => undefined)} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         내 정보 관리

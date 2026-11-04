@@ -1,5 +1,7 @@
 import { apiClient } from '../client';
 
+import type { StudentProfileResponse } from '../../types/studentProfile';
+
 export async function createStudentProfile<TResponse = unknown>(
   requestBody: unknown,
 ): Promise<TResponse> {
@@ -11,10 +13,10 @@ export async function createStudentProfile<TResponse = unknown>(
   return data;
 }
 
-export async function getStudentProfile<
-  TResponse = unknown,
->(): Promise<TResponse> {
-  const { data } = await apiClient.get<TResponse>('/api/students/me/profile');
+export async function getStudentProfile(): Promise<StudentProfileResponse> {
+  const { data } = await apiClient.get<StudentProfileResponse>(
+    '/api/students/me/profile',
+  );
 
   return data;
 }

@@ -10,7 +10,8 @@ import {
 } from 'react-router-dom';
 
 import { setAccessToken } from './api/accessToken';
-import { loginStudent } from './api/student';
+import { getStudentProfile, loginStudent } from './api/student';
+import { mapStudentProfileResponseToValues } from './adapters/studentProfile';
 import EmployerApplicantsProvider from './components/employer/EmployerApplicantsProvider';
 import EmployerLayout from './components/employer/EmployerLayout';
 import EmployerJobsProvider from './components/employer/EmployerJobsProvider';
@@ -110,6 +111,7 @@ type StudentApplicationsRouteContext = {
 };
 
 type StudentProfileRouteContext = {
+  isProfileLoading: boolean;
   profileValues: StudentProfileValues;
   saveProfile: (view: ProfileDetailView, values: readonly string[]) => void;
 };
@@ -693,6 +695,30 @@ function StudentProfileLayout() {
   const [profileValues, setProfileValues] = useState<StudentProfileValues>(
     getStoredStudentProfileValues,
   );
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void getStudentProfile()
+      .then((profile) => {
+        if (isActive) {
+          setProfileValues(mapStudentProfileResponseToValues(profile));
+        }
+      })
+      .catch(() => {
+        // Keep the existing session/mock fallback for 401, 404, and network errors.
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsProfileLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -709,6 +735,7 @@ function StudentProfileLayout() {
     <Outlet
       context={
         {
+          isProfileLoading,
           profileValues,
           saveProfile: (view, values) => {
             setProfileValues((currentValues) => ({
@@ -724,7 +751,8 @@ function StudentProfileLayout() {
 
 function StudentProfileRoute() {
   const navigate = useNavigate();
-  const { profileValues } = useOutletContext<StudentProfileRouteContext>();
+  const { isProfileLoading, profileValues } =
+    useOutletContext<StudentProfileRouteContext>();
 
   return (
     <StudentProfileManagementPage
@@ -732,6 +760,7 @@ function StudentProfileRoute() {
       onBack={() => navigate('/student/my')}
       onViewChange={(view) => navigate(`/student/my/profile/${view}`)}
       profileValues={profileValues}
+      isLoading={isProfileLoading}
     />
   );
 }
