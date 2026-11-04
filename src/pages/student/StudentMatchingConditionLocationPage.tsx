@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
+import { WorkLocationRadiusMap } from '../../components/student/onboarding/WorkLocationRadiusMap';
 import locationIcon from '../../assets/icons/student/location.svg';
 import searchIcon from '../../assets/icons/student/search.svg';
 import type { WorkLocation } from '../../types/workLocation';
@@ -17,6 +18,8 @@ export default function StudentMatchingConditionLocationPage({
   onSave,
 }: StudentMatchingConditionLocationPageProps) {
   const [draftAddress, setDraftAddress] = useState(initialLocation.address);
+  const [draftRadius, setDraftRadius] = useState(initialLocation.radius);
+  const [isRadiusMapOpen, setIsRadiusMapOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleCurrentLocationClick = () => {
@@ -28,11 +31,28 @@ export default function StudentMatchingConditionLocationPage({
 
     setIsSaving(true);
     try {
-      await onSave({ ...initialLocation, address: draftAddress });
+      await onSave({
+        ...initialLocation,
+        address: draftAddress,
+        radius: draftRadius,
+      });
     } finally {
       setIsSaving(false);
     }
   };
+
+  if (isRadiusMapOpen) {
+    return (
+      <WorkLocationRadiusMap
+        address={draftAddress}
+        radius={draftRadius}
+        radiusOptions={[100, 500, 1000]}
+        onBack={() => setIsRadiusMapOpen(false)}
+        onConfirm={() => void handleSave()}
+        onRadiusChange={setDraftRadius}
+      />
+    );
+  }
 
   return (
     <main className="relative mx-auto h-[100dvh] max-h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] px-6 pt-[clamp(32px,7.2dvh,61px)] pb-5 font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
@@ -76,8 +96,8 @@ export default function StudentMatchingConditionLocationPage({
       <button
         className="absolute right-6 bottom-[clamp(20px,4.38dvh,37px)] left-6 h-[clamp(52px,6.75dvh,57px)] rounded-[15px] border-0 bg-[#00B894] text-[clamp(17px,2.37dvh,20px)] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        disabled={isSaving}
-        onClick={handleSave}
+        disabled={isSaving || !draftAddress.trim()}
+        onClick={() => setIsRadiusMapOpen(true)}
       >
         수정하기
       </button>
