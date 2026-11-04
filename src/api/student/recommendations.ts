@@ -1,16 +1,17 @@
 import { apiClient } from '../client';
 
 import type {
+  CreateStudentRecommendationsResponse,
   StudentRecommendationDetailResponse,
   StudentRecommendationRefreshResponse,
   StudentRecommendationsResponse,
 } from '../../types/studentRecommendation';
 
-export async function createStudentRecommendations<
-  TResponse = unknown,
->(): Promise<TResponse> {
+export async function createStudentRecommendations(): Promise<CreateStudentRecommendationsResponse> {
   // Student-only endpoint. The server creates at most three recommendations.
-  const { data } = await apiClient.post<TResponse>('/api/recommendations');
+  const { data } = await apiClient.post<CreateStudentRecommendationsResponse>(
+    '/api/recommendations',
+  );
 
   return data;
 }
