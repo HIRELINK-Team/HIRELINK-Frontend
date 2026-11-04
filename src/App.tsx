@@ -21,6 +21,7 @@ import {
   getStudentRecommendations,
   loginStudent,
   rejectStudentEmploymentOffer,
+  signupStudent,
   updateStudentProfile,
   updateStudentMatchingPreferences,
 } from './api/student';
@@ -371,7 +372,11 @@ function StudentSignupRoute() {
   return (
     <StudentEmailSignupPage
       onBack={() => navigate('/student/login')}
-      onSignup={() => navigate('/student/onboarding')}
+      onSignup={async (request) => {
+        const { accessToken } = await signupStudent(request);
+        setAccessToken(accessToken);
+        navigate('/student/onboarding');
+      }}
     />
   );
 }

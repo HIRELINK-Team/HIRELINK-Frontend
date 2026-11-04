@@ -10,6 +10,7 @@ import type {
   PhoneVerificationRequest,
   PhoneVerificationResponse,
   RefreshAccessTokenResponse,
+  SignupResponse,
 } from '../../types/auth';
 
 import { clearAccessToken, setAccessToken } from '../accessToken';
@@ -27,12 +28,13 @@ export async function loginStudent(
   return data;
 }
 
-export async function signupStudent<TResponse = unknown>(
+export async function signupStudent(
   requestBody: EmailSignupRequest,
-): Promise<TResponse> {
-  const { data } = await apiClient.post<TResponse>(
+): Promise<SignupResponse> {
+  const { data } = await apiClient.post<SignupResponse>(
     '/api/auth/signup',
     requestBody,
+    { withCredentials: true },
   );
 
   return data;

@@ -6,6 +6,7 @@ export interface EmailLoginRequest {
 export interface EmailSignupRequest {
   email: string;
   password: string;
+  role: 'STUDENT' | 'EMPLOYER';
 }
 
 export interface AccessTokenResponse {
@@ -15,6 +16,12 @@ export interface AccessTokenResponse {
 }
 
 export interface LoginResponse extends AccessTokenResponse {
+  role: 'STUDENT' | 'EMPLOYER';
+  userId: number;
+}
+
+export interface SignupResponse extends AccessTokenResponse {
+  email: string;
   role: 'STUDENT' | 'EMPLOYER';
   userId: number;
 }

@@ -1,11 +1,13 @@
+import axios from 'axios';
 import { useState } from 'react';
 
 import backIcon from '../../assets/icons/student/entry-email-back.svg';
 import hirelinkLogoIcon from '../../assets/images/student/entry/hirelink-logo-mint.svg';
+import type { ApiErrorResponse, EmailSignupRequest } from '../../types/auth';
 
 type StudentEmailSignupPageProps = {
   onBack: () => void;
-  onSignup: () => void;
+  onSignup: (request: EmailSignupRequest) => Promise<void> | void;
 };
 
 /** Renders the student email sign-up view used from entry onboarding. */
@@ -17,32 +19,52 @@ export default function StudentEmailSignupPage({
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isPasswordMatch =
     password.length > 0 && password === passwordConfirmation;
   const isSignupReady =
     email.length > 0 && password.length > 0 && isPasswordMatch;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!isSignupReady) return;
+    if (!isSignupReady || isLoading) return;
 
-    onSignup();
+    setErrorMessage(null);
+    setIsLoading(true);
+
+    try {
+      await onSignup({ email, password, role: 'STUDENT' });
+    } catch (error: unknown) {
+      const responseMessage = axios.isAxiosError<ApiErrorResponse>(error)
+        ? error.response?.data.message
+        : undefined;
+
+      setErrorMessage(
+        responseMessage ?? '회원가입에 실패했어요. 잠시 후 다시 시도해주세요.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
+    setErrorMessage(null);
   };
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(event.target.value);
+    setErrorMessage(null);
   };
 
   const handlePasswordConfirmationChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setPasswordConfirmation(event.target.value);
+    setErrorMessage(null);
   };
 
   const handlePhoneNumberChange = (
@@ -132,12 +154,21 @@ export default function StudentEmailSignupPage({
           </label>
 
           <button
-            aria-disabled={!isSignupReady}
+            aria-disabled={!isSignupReady || isLoading}
             className="absolute top-[718px] right-[25px] left-[25px] h-16 rounded-[35px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+            disabled={!isSignupReady || isLoading}
             type="submit"
           >
-            가입하기
+            {isLoading ? '가입 중...' : '가입하기'}
           </button>
+          {errorMessage && (
+            <p
+              className="absolute top-[787px] right-[25px] left-[25px] m-0 text-center text-[13px] leading-5 text-[#E05260]"
+              role="alert"
+            >
+              {errorMessage}
+            </p>
+          )}
         </form>
       </div>
     </main>
