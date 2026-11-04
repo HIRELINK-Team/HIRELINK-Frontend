@@ -74,7 +74,7 @@ export default function StudentMyPage({
       <div
         className={
           isBottomNavigationFixed
-            ? 'h-full overflow-y-auto px-6 pt-[62px] pb-[130px]'
+            ? 'h-full overflow-y-auto px-6 pt-[62px] pb-[130px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
             : 'contents'
         }
       >

@@ -262,9 +262,7 @@ export default function StudentMatchingPage({
 
   return (
     <main
-      className={`relative mx-auto w-full max-w-[390px] overflow-x-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28] ${
-        matchingView === 'offer' ? 'h-[844px] overflow-hidden' : 'h-[990px]'
-      }`}
+      className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
       data-matching-view={matchingView}
       data-selected-job-id={selectedJob?.id}
     >
@@ -289,7 +287,7 @@ export default function StudentMatchingPage({
 
       <section
         aria-label="추천 근무지 목록"
-        className="absolute top-[248px] left-6 w-[342px] space-y-2.5"
+        className="absolute top-[248px] bottom-[120px] left-6 w-[342px] space-y-2.5 overflow-y-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {recommendedJobs.map((job) => (
           <RecommendedJobCard

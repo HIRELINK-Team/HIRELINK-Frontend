@@ -31,7 +31,7 @@ export function MatchingOfferOverlay({
         <img alt="" src={offerBackIcon} />
       </button>
 
-      <h1 className="absolute top-[92px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
+      <h1 className="absolute top-[112px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
         채용 제안이 도착했어요!
       </h1>
 
