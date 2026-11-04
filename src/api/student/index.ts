@@ -6,3 +6,4 @@ export * from './matchingPreferences';
 export * from './offers';
 export * from './profile';
 export * from './recommendations';
+export * from './termAgreements';
