@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 
 import backIcon from '../../../assets/icons/student/back.svg';
 
@@ -12,6 +12,7 @@ type OnboardingScaffoldProps = {
   isCtaDisabled?: boolean;
   onBack: () => void;
   onCtaClick: () => void;
+  onEnter?: () => void;
   question: string;
   questionClassName?: string;
   showProgress?: boolean;
@@ -30,10 +31,11 @@ export function OnboardingScaffold({
   isCtaDisabled = false,
   onBack,
   onCtaClick,
+  onEnter,
   question,
   questionClassName,
   showProgress = true,
-  stageLabelLayout = 'inline',
+  stageLabelLayout = 'stacked',
   stageLabel,
   totalSubSteps,
 }: OnboardingScaffoldProps) {
@@ -41,10 +43,28 @@ export function OnboardingScaffold({
     gridTemplateColumns: `repeat(${totalSubSteps}, minmax(0, 1fr))`,
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (
+      !onEnter ||
+      event.key !== 'Enter' ||
+      isCtaDisabled ||
+      !(
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLSelectElement
+      )
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    onEnter();
+  };
+
   return (
     <main
       aria-labelledby="onboarding-question"
       className="relative mx-auto flex h-[min(844px,100dvh)] w-[390px] max-w-none flex-col overflow-hidden bg-[#F5F5F5] px-6 pt-[65px] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+      onKeyDown={handleKeyDown}
     >
       <button
         aria-label="이전 단계로 이동"
@@ -75,7 +95,7 @@ export function OnboardingScaffold({
         {showProgress ? (
           <div
             aria-hidden="true"
-            className="mt-[35px] grid gap-[5px]"
+            className={`${stageLabelLayout === 'stacked' ? 'mt-[11px]' : 'mt-[35px]'} grid gap-[5px]`}
             style={progressStyle}
           >
             {Array.from({ length: totalSubSteps }, (_, index) => (

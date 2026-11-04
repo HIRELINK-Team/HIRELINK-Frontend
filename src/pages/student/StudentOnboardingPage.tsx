@@ -720,7 +720,7 @@ export default function StudentOnboardingPage({
 
   if (step === 'ageRestricted') {
     return (
-      <main className="mx-auto flex h-[min(844px,100dvh)] w-full max-w-[390px] flex-col items-center bg-[#F5F5F5] px-6 pt-[262px] pb-[calc(37px+env(safe-area-inset-bottom))] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+      <main className="mx-auto flex h-[min(844px,100dvh)] w-full max-w-[390px] flex-col items-center bg-[#F5F5F5] px-6 pt-[218px] pb-[calc(37px+env(safe-area-inset-bottom))] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
         <img alt="" className="h-auto w-[106px]" src={ageRestrictionImage} />
         <h1 className="mt-[14px] mb-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold">
           아직은 서비스를{`\n`}이용할 수 없어요
@@ -779,7 +779,7 @@ export default function StudentOnboardingPage({
         </button>
 
         {experiences.length > 0 ? (
-          <div className="mt-2.5 space-y-2.5">
+          <div className="mt-2.5 max-h-[282px] space-y-2.5 overflow-y-auto overscroll-contain pr-1 pb-1">
             {experiences.map((experience) => (
               <ExperienceCard
                 experience={experience}
@@ -923,7 +923,7 @@ export default function StudentOnboardingPage({
 
     if (isWorkLocationRadiusSelectionOpen) {
       return (
-        <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+        <main className="relative mx-auto flex h-[min(844px,100dvh)] w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
           <header className="flex h-[116px] items-end gap-7 bg-white px-6 pb-[18px]">
             <button
               aria-label="희망 근무 위치 입력으로 돌아가기"
@@ -1004,8 +1004,11 @@ export default function StudentOnboardingPage({
               src={searchIcon}
             />
             <input
+              autoComplete="street-address"
               className="h-full min-w-0 flex-1 border-0 bg-transparent pl-[14px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28] outline-none placeholder:font-normal placeholder:text-[#B0B8C1]"
+              name="preferredWorkLocation"
               placeholder="주소 검색"
+              type="text"
               value={workLocation.address}
               onChange={(event) => handleWorkLocationChange(event.target.value)}
             />
@@ -1046,7 +1049,7 @@ export default function StudentOnboardingPage({
       >
         <button
           aria-haspopup="dialog"
-          className="mt-[27px] flex h-[57px] w-full items-center border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
+          className="mt-[27px] flex h-[68px] w-full items-center border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
           type="button"
           onClick={() => {
             setResidenceQualificationDraft(
@@ -1056,8 +1059,8 @@ export default function StudentOnboardingPage({
           }}
         >
           <span>
-            <span className="block text-[17px] leading-[1.5]">체류자격</span>
-            <span className="block text-[26px] leading-[1.5] font-semibold">
+            <span className="block text-[15px] leading-[1.2]">체류자격</span>
+            <span className="mt-1 block text-[26px] leading-[1.2] font-semibold">
               {residenceQualificationLabel}
             </span>
           </span>
@@ -1167,7 +1170,7 @@ export default function StudentOnboardingPage({
       >
         <button
           aria-haspopup="dialog"
-          className="mt-[27px] flex h-[57px] w-full items-center border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
+          className="mt-[27px] flex h-[68px] w-full items-center border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
           type="button"
           onClick={() => {
             setTopikLevelDraft(residenceInfo.topikLevel);
@@ -1175,8 +1178,8 @@ export default function StudentOnboardingPage({
           }}
         >
           <span>
-            <span className="block text-[17px] leading-[1.5]">TOPIK</span>
-            <span className="block text-[26px] leading-[1.5] font-semibold">
+            <span className="block text-[15px] leading-[1.2]">TOPIK</span>
+            <span className="mt-1 block text-[26px] leading-[1.2] font-semibold">
               {topikLevelLabel}
             </span>
           </span>
@@ -1457,6 +1460,7 @@ export default function StudentOnboardingPage({
       questionClassName={step === 'name' ? 'translate-y-[5.5px]' : undefined}
       onBack={handleBack}
       onCtaClick={() => void handleNext()}
+      onEnter={() => void handleNext()}
       stageLabel="기본정보 입력"
       totalSubSteps={BASIC_INFO_TOTAL_SUB_STEPS}
     >
@@ -1559,7 +1563,9 @@ export default function StudentOnboardingPage({
       {step === 'location' ? (
         <div>
           <OnboardingField
+            autoComplete="street-address"
             label="주소"
+            name="currentRegion"
             placeholder="주소 검색"
             trailing={
               <img
@@ -1569,6 +1575,7 @@ export default function StudentOnboardingPage({
               />
             }
             value={info.location}
+            type="text"
             onChange={(event) => updateInfo('location', event.target.value)}
           />
           <button

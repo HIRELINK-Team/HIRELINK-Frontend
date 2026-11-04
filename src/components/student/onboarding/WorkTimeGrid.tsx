@@ -33,31 +33,37 @@ const WEEKDAYS: Array<{ id: Weekday; label: string }> = [
 const TIME_CONFIG: Record<
   WorkTimeMode,
   {
-    labels: Array<{ label: string; slot: number }>;
+    labels: Array<{ label: string; position: number }>;
+    rowHeight: number;
+    slotOffset: number;
     slotCount: number;
     startHour: number;
   }
 > = {
   daytime: {
-    startHour: 9,
-    slotCount: 28,
+    startHour: 6,
+    slotCount: 32,
+    slotOffset: -6,
+    rowHeight: 8,
     labels: [
-      { label: '9', slot: 0 },
-      { label: '12', slot: 6 },
-      { label: '15', slot: 12 },
-      { label: '18', slot: 18 },
-      { label: '21', slot: 24 },
+      { label: '6', position: 0 },
+      { label: '10', position: 8 },
+      { label: '14', position: 16 },
+      { label: '18', position: 24 },
+      { label: '22', position: 32 },
     ],
   },
   nighttime: {
     startHour: 22,
     slotCount: 16,
+    slotOffset: 0,
+    rowHeight: 10,
     labels: [
-      { label: '22', slot: 0 },
-      { label: '12', slot: 4 },
-      { label: '2', slot: 8 },
-      { label: '4', slot: 12 },
-      { label: '6', slot: 15 },
+      { label: '22', position: 0 },
+      { label: '0', position: 4 },
+      { label: '2', position: 8 },
+      { label: '4', position: 12 },
+      { label: '6', position: 16 },
     ],
   },
 };
@@ -121,7 +127,8 @@ function getRangeLabel(range: TimeRange, mode: WorkTimeMode) {
   }
 
   const durationHours = (range.endSlot - range.startSlot + 1) / 2;
-  const startHour = config.startHour + range.startSlot / 2;
+  const startHour =
+    config.startHour + (range.startSlot - config.slotOffset) / 2;
   const endHour = startHour + durationHours - 1;
 
   return `${dayLabel} ${getHourLabel(startHour)}시 - ${getHourLabel(endHour)}시`;
@@ -135,11 +142,7 @@ export function WorkTimeGrid({
 }: WorkTimeGridProps) {
   const dragSelection = useRef<boolean | null>(null);
   const config = TIME_CONFIG[mode];
-  const gridHeightClass = mode === 'nighttime' ? 'h-[159px]' : 'h-[280px]';
-  const gridRowsClass =
-    mode === 'nighttime'
-      ? 'grid-rows-[repeat(15,10px)_9px]'
-      : 'grid-rows-[repeat(27,10px)_9px]';
+  const gridHeight = config.slotCount * config.rowHeight;
   const selectedRanges = getSelectedRanges(selectedSlots);
 
   useEffect(() => {
@@ -227,13 +230,14 @@ export function WorkTimeGrid({
 
         <div className="mt-1 flex gap-2">
           <div
-            className={`relative w-3 shrink-0 text-[12px] leading-[17px] text-[#8B95A1] ${gridHeightClass}`}
+            className="relative w-3 shrink-0 text-[12px] leading-[17px] text-[#8B95A1]"
+            style={{ height: `${gridHeight}px` }}
           >
-            {config.labels.map(({ label, slot }) => (
+            {config.labels.map(({ label, position }) => (
               <span
                 className="absolute left-0 -translate-y-1/2"
                 key={label}
-                style={{ top: `${slot * 10 + 5}px` }}
+                style={{ top: `${position * config.rowHeight}px` }}
               >
                 {label}
               </span>
@@ -242,27 +246,36 @@ export function WorkTimeGrid({
 
           <div className="grid w-[321px] grid-cols-7 gap-x-2">
             {WEEKDAYS.map(({ id: day }) => (
-              <div className={`grid ${gridRowsClass}`} key={day}>
-                {Array.from({ length: config.slotCount }, (_, slot) => {
+              <div
+                className="grid"
+                key={day}
+                style={{
+                  gridTemplateRows: `repeat(${config.slotCount}, ${config.rowHeight}px)`,
+                }}
+              >
+                {Array.from({ length: config.slotCount }, (_, visualSlot) => {
+                  const slot = visualSlot + config.slotOffset;
                   const isSelected = selectedSlots[day].includes(slot);
-                  const isDashedDivider = slot % 2 === 0;
+                  const isDashedDivider = visualSlot % 2 === 0;
 
                   return (
                     <button
-                      aria-label={`${WEEKDAYS.find(({ id }) => id === day)?.label}요일 ${getHourLabel(config.startHour + slot / 2)}시 ${slot % 2 === 1 ? '30분 ' : ''}${isSelected ? '선택 해제' : '선택'}`}
+                      aria-label={`${WEEKDAYS.find(({ id }) => id === day)?.label}요일 ${getHourLabel(config.startHour + visualSlot / 2)}시 ${visualSlot % 2 === 1 ? '30분 ' : ''}${isSelected ? '선택 해제' : '선택'}`}
                       aria-pressed={isSelected}
-                      className={`h-[10px] border-[#F5F5F5] ${
+                      className={`h-full border-[#F5F5F5] ${
                         isSelected ? 'bg-[#00B894]' : 'bg-[#E5E8EB]'
-                      } ${slot === 0 ? 'rounded-t-[5px]' : ''} ${
-                        slot === config.slotCount - 1 ? 'rounded-b-[5px]' : ''
+                      } ${visualSlot === 0 ? 'rounded-t-[5px]' : ''} ${
+                        visualSlot === config.slotCount - 1
+                          ? 'rounded-b-[5px]'
+                          : ''
                       } ${
-                        slot === config.slotCount - 1
+                        visualSlot === config.slotCount - 1
                           ? ''
                           : isDashedDivider
                             ? 'border-b-[0.7px] border-dashed'
                             : 'border-b'
                       }`}
-                      key={slot}
+                      key={visualSlot}
                       type="button"
                       onPointerDown={() => handleSlotPointerDown(day, slot)}
                       onPointerEnter={() => handleSlotPointerEnter(day, slot)}
