@@ -29,6 +29,9 @@ type StudentMatchingPageProps = {
   isRecommendationsLoading?: boolean;
   onBack?: () => void;
   onOfferAction?: (action: StudentOfferAction, job: RecommendedJob) => void;
+  onRecommendationDetailRequest?: (
+    job: RecommendedJob,
+  ) => Promise<RecommendedJob | null>;
   onApplicationSubmit?: (
     job: RecommendedJob,
     desiredStartDate: string,
@@ -51,6 +54,7 @@ export default function StudentMatchingPage({
   onBack,
   onApplicationSubmit,
   onOfferAction,
+  onRecommendationDetailRequest,
   onRecommendationRefresh,
   onTabChange,
   onViewChange,
@@ -75,11 +79,26 @@ export default function StudentMatchingPage({
     onBack?.();
   };
 
+  const requestRecommendationDetail = (job: RecommendedJob) => {
+    if (!onRecommendationDetailRequest) return;
+
+    void onRecommendationDetailRequest(job)
+      .then((detailedJob) => {
+        if (!detailedJob) return;
+
+        setSelectedJob((currentJob) =>
+          currentJob?.id === job.id ? detailedJob : currentJob,
+        );
+      })
+      .catch(() => undefined);
+  };
+
   const handleDetailClick = (job: RecommendedJob) => {
     setSelectedJob(job);
     setDetailBackView('result');
     setMatchingView('detail');
     onViewChange?.('detail', job);
+    requestRecommendationDetail(job);
   };
 
   const handleTabChange = (tab: StudentNavigationTab) => {
@@ -147,6 +166,7 @@ export default function StudentMatchingPage({
       setDetailBackView('complete');
       setMatchingView('detail');
       onViewChange?.('detail', selectedJob);
+      requestRecommendationDetail(selectedJob);
     }
   };
 

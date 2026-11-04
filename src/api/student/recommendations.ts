@@ -1,6 +1,9 @@
 import { apiClient } from '../client';
 
-import type { StudentRecommendationsResponse } from '../../types/studentRecommendation';
+import type {
+  StudentRecommendationDetailResponse,
+  StudentRecommendationsResponse,
+} from '../../types/studentRecommendation';
 
 export async function createStudentRecommendations<
   TResponse = unknown,
@@ -19,11 +22,11 @@ export async function getStudentRecommendations(): Promise<StudentRecommendation
   return data;
 }
 
-export async function getStudentRecommendation<TResponse = unknown>(
+export async function getStudentRecommendation(
   recommendationId: string | number,
-): Promise<TResponse> {
+): Promise<StudentRecommendationDetailResponse> {
   // Only a valid recommendation in the student's latest batch is accessible.
-  const { data } = await apiClient.get<TResponse>(
+  const { data } = await apiClient.get<StudentRecommendationDetailResponse>(
     `/api/recommendations/${encodeURIComponent(String(recommendationId))}`,
   );
 

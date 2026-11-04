@@ -27,3 +27,8 @@ export type StudentRecommendationsResponse = {
   refreshRequired: boolean;
   recommendations: StudentRecommendation[];
 };
+
+export type StudentRecommendationDetailResponse = StudentRecommendation & {
+  batchId: number;
+  generatedAt: string;
+};

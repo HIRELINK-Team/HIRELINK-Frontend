@@ -14,6 +14,7 @@ import {
   acceptStudentEmploymentOffer,
   createStudentApplication,
   getStudentMatchingPreferences,
+  getStudentRecommendation,
   getMyStudentApplications,
   getEmploymentMatch,
   getStudentProfile,
@@ -519,6 +520,16 @@ function StudentMatchingRoute() {
 
         if (action === 'accept') {
           navigate('hiring-complete');
+        }
+      }}
+      onRecommendationDetailRequest={async (job) => {
+        if (job.recommendationId === undefined) return null;
+
+        try {
+          const response = await getStudentRecommendation(job.recommendationId);
+          return mapStudentRecommendationToRecommendedJob(response);
+        } catch {
+          return null;
         }
       }}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
