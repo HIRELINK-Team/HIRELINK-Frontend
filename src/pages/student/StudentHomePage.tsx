@@ -2,7 +2,10 @@ import matchingIllustration from '../../assets/images/student/home/matching-illu
 import chevronRightIcon from '../../assets/icons/student/home/chevron-right.svg';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import { STUDENT_HOME_MOCK } from '../../mocks/studentHome';
-import type { StudentNavigationTab } from '../../types/studentHome';
+import type {
+  StudentHomeSummary,
+  StudentNavigationTab,
+} from '../../types/studentHome';
 
 type SummaryCardProps = {
   label: string;
@@ -23,6 +26,7 @@ function SummaryCard({ label, value }: SummaryCardProps) {
 }
 
 type StudentHomePageProps = {
+  homeSummary?: StudentHomeSummary;
   isBottomNavigationFixed?: boolean;
   onEditMatchingCondition?: () => void;
   onMatchingClick?: () => void;
@@ -31,6 +35,7 @@ type StudentHomePageProps = {
 };
 
 export default function StudentHomePage({
+  homeSummary = STUDENT_HOME_MOCK,
   isBottomNavigationFixed = false,
   onEditMatchingCondition,
   onMatchingClick,
@@ -38,7 +43,7 @@ export default function StudentHomePage({
   onViewApplications,
 }: StudentHomePageProps) {
   const { applications, conditions, greetingName, recommendedJobCount } =
-    STUDENT_HOME_MOCK;
+    homeSummary;
 
   const handleTabChange = (tab: StudentNavigationTab) => {
     onTabChange?.(tab);

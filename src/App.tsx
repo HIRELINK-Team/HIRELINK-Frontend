@@ -39,6 +39,10 @@ import {
   mapStudentApplicationToCardModel,
 } from './adapters/studentApplications';
 import {
+  EMPTY_STUDENT_HOME_SUMMARY,
+  mapStudentHomeSummary,
+} from './adapters/studentHome';
+import {
   mapStudentProfileResponseToValues,
   mapStudentProfileValuesToUpdateRequest,
 } from './adapters/studentProfile';
@@ -445,6 +449,37 @@ function StudentOnboardingRoute() {
 
 function StudentHomeRoute() {
   const navigate = useNavigate();
+  const [homeSummary, setHomeSummary] = useState(EMPTY_STUDENT_HOME_SUMMARY);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void Promise.all([
+      getStudentProfile(),
+      getStudentMatchingPreferences(),
+      getStudentRecommendations(),
+      getMyStudentApplications(),
+    ])
+      .then(([profile, matchingPreferences, recommendations, applications]) => {
+        if (!isActive) return;
+
+        setHomeSummary(
+          mapStudentHomeSummary({
+            applications: applications.applications,
+            matchingPreferences,
+            profile,
+            recommendations,
+          }),
+        );
+      })
+      .catch(() => {
+        // Keep the neutral home summary when one of the home APIs fails.
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const handleTabChange = (tab: StudentNavigationTab) => {
     navigate(STUDENT_TAB_ROUTES[tab]);
@@ -452,6 +487,7 @@ function StudentHomeRoute() {
 
   return (
     <StudentHomePage
+      homeSummary={homeSummary}
       onEditMatchingCondition={() => navigate('/student/my/matching-condition')}
       onMatchingClick={() => navigate('/student/matching')}
       onTabChange={handleTabChange}
