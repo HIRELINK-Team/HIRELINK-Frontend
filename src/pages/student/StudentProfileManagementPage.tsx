@@ -33,6 +33,18 @@ type ProfileCard = {
   view: Exclude<ProfileManagementView, 'main'>;
 };
 
+const PROFILE_DETAIL_PAGE_CLASS =
+  "relative mx-auto flex h-[100dvh] max-h-[844px] w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] px-6 pt-[clamp(32px,7.2dvh,61px)] pb-[clamp(20px,4.4dvh,37px)] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]";
+
+const PROFILE_DETAIL_TITLE_CLASS =
+  'm-0 mt-[clamp(12px,2.2dvh,18px)] text-[clamp(22px,3.1dvh,26px)] leading-[1.5] font-semibold';
+
+const PROFILE_DETAIL_FORM_CLASS =
+  'mt-[clamp(18px,3.3dvh,28px)] space-y-[clamp(6px,1.2dvh,8px)]';
+
+const PROFILE_DETAIL_SAVE_BUTTON_CLASS =
+  'mt-auto h-[clamp(48px,6.8dvh,57px)] w-full shrink-0 rounded-[15px] border-0 bg-[#00B894] text-[clamp(17px,2.4dvh,20px)] leading-[1.5] font-medium text-[#F5F5F5]';
+
 type StudentProfileManagementPageProps = {
   initialView?: ProfileManagementView;
   isLoading?: boolean;
@@ -225,7 +237,7 @@ function EditableProfileValue({
   onValueChange?: (value: string) => void;
 }) {
   const className =
-    'mt-1.5 flex h-[50px] w-full items-center rounded-[15px] bg-[#E5E8EB] px-[22px] text-left text-[16px] leading-[1.5]';
+    'mt-[clamp(4px,0.9dvh,6px)] flex h-[clamp(42px,6dvh,50px)] w-full items-center rounded-[15px] bg-[#E5E8EB] px-[22px] text-left text-[clamp(14px,2dvh,16px)] leading-[1.5]';
 
   if (onValueChange) {
     return (
@@ -408,20 +420,19 @@ function BasicInformationPage({
   };
 
   return (
-    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className={PROFILE_DETAIL_PAGE_CLASS}>
       <BackButton onClick={onBack} />
-      <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
-        기본정보
-      </h1>
-      <section className="mt-7 space-y-2">
+      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>기본정보</h1>
+      <section className={PROFILE_DETAIL_FORM_CLASS}>
         {fields.map((field, index) => (
           <div key={field.label}>
-            <p className="m-0 whitespace-nowrap text-[14px] leading-[1.5]">
+            <p className="m-0 whitespace-nowrap text-[clamp(12px,1.7dvh,14px)] leading-[1.5]">
               {field.label}
             </p>
             <EditableProfileValue
               field={{
                 ...field,
+                // Nationality opens COUNTRY_OPTIONS; Korean proficiency uses KOREAN_LEVELS.
                 isSelectable: index === 2 || index === 4,
                 value: values[index] ?? field.value,
               }}
@@ -443,7 +454,7 @@ function BasicInformationPage({
         ))}
       </section>
       <button
-        className="mt-auto h-[57px] w-full shrink-0 rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className={PROFILE_DETAIL_SAVE_BUTTON_CLASS}
         type="button"
         disabled={isSaving}
         onClick={() => void onSave(values)}
@@ -486,15 +497,13 @@ function ResidenceInformationPage({
   );
 
   return (
-    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className={PROFILE_DETAIL_PAGE_CLASS}>
       <BackButton onClick={onBack} />
-      <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
-        체류정보
-      </h1>
-      <section className="mt-7 space-y-2">
+      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>체류정보</h1>
+      <section className={PROFILE_DETAIL_FORM_CLASS}>
         {fields.map((field, index) => (
           <div key={field.label}>
-            <p className="m-0 whitespace-nowrap text-[14px] leading-[1.5]">
+            <p className="m-0 whitespace-nowrap text-[clamp(12px,1.7dvh,14px)] leading-[1.5]">
               {field.label}
             </p>
             <EditableProfileValue
@@ -516,7 +525,7 @@ function ResidenceInformationPage({
         ))}
       </section>
       <button
-        className="mt-auto h-[57px] w-full shrink-0 rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className={PROFILE_DETAIL_SAVE_BUTTON_CLASS}
         type="button"
         disabled={isSaving}
         onClick={() => void onSave(values)}
@@ -589,15 +598,13 @@ function AcademicInformationPage({
   );
 
   return (
-    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className={PROFILE_DETAIL_PAGE_CLASS}>
       <BackButton onClick={onBack} />
-      <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
-        학업정보
-      </h1>
-      <section className="mt-7 space-y-2">
+      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>학업정보</h1>
+      <section className={PROFILE_DETAIL_FORM_CLASS}>
         {fields.map((field, index) => (
           <div key={field.label}>
-            <p className="m-0 whitespace-nowrap text-[14px] leading-[1.5]">
+            <p className="m-0 whitespace-nowrap text-[clamp(12px,1.7dvh,14px)] leading-[1.5]">
               {field.label}
             </p>
             <EditableProfileValue
@@ -622,7 +629,7 @@ function AcademicInformationPage({
         ))}
       </section>
       <button
-        className="mt-auto h-[57px] w-full shrink-0 rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className={PROFILE_DETAIL_SAVE_BUTTON_CLASS}
         type="button"
         disabled={isSaving}
         onClick={() => void onSave(values)}
@@ -713,15 +720,13 @@ function LanguageInformationPage({
   };
 
   return (
-    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className={PROFILE_DETAIL_PAGE_CLASS}>
       <BackButton onClick={onBack} />
-      <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
-        어학정보
-      </h1>
-      <section className="mt-7 space-y-2">
+      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>어학정보</h1>
+      <section className={PROFILE_DETAIL_FORM_CLASS}>
         {fields.map((field, index) => (
           <div key={field.label}>
-            <p className="m-0 whitespace-nowrap text-[14px] leading-[1.5]">
+            <p className="m-0 whitespace-nowrap text-[clamp(12px,1.7dvh,14px)] leading-[1.5]">
               {field.label}
             </p>
             <EditableProfileValue
@@ -732,7 +737,7 @@ function LanguageInformationPage({
         ))}
       </section>
       <button
-        className="mt-auto h-[57px] w-full shrink-0 rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className={PROFILE_DETAIL_SAVE_BUTTON_CLASS}
         type="button"
         disabled={isSaving}
         onClick={() => void onSave(values)}
