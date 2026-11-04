@@ -9,6 +9,7 @@ import clearIcon from '../../assets/icons/student/clear.svg';
 import ageRestrictionImage from '../../assets/images/student/age-restriction.png';
 import {
   createStudentCareer,
+  deleteStudentCareer,
   getStudentProfile,
   updateStudentCareer,
 } from '../../api/student';
@@ -275,6 +276,9 @@ export default function StudentOnboardingPage({
     [],
   );
   const [isCareerSaving, setIsCareerSaving] = useState(false);
+  const [deletingCareerIds, setDeletingCareerIds] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [info, setInfo] = useState<BasicInfo>(INITIAL_INFO);
   const [isIndustrySelectionSubmitted, setIsIndustrySelectionSubmitted] =
     useState(false);
@@ -407,10 +411,48 @@ export default function StudentOnboardingPage({
     setStep('experienceForm');
   };
 
-  const handleExperienceDelete = (experienceId: string) => {
-    setExperiences((currentExperiences) =>
-      currentExperiences.filter((experience) => experience.id !== experienceId),
+  const handleExperienceDelete = async (experienceId: string) => {
+    if (!enableCareerApi) {
+      setExperiences((currentExperiences) =>
+        currentExperiences.filter(
+          (experience) => experience.id !== experienceId,
+        ),
+      );
+      return;
+    }
+
+    if (deletingCareerIds.has(experienceId)) return;
+
+    const career = studentCareers.find(
+      (studentCareer) => String(studentCareer.careerId) === experienceId,
     );
+
+    if (!career) return;
+
+    setDeletingCareerIds((currentIds) => new Set(currentIds).add(experienceId));
+
+    try {
+      await deleteStudentCareer(career.careerId);
+
+      setStudentCareers((currentCareers) =>
+        currentCareers.filter(
+          (studentCareer) => studentCareer.careerId !== career.careerId,
+        ),
+      );
+      setExperiences((currentExperiences) =>
+        currentExperiences.filter(
+          (experience) => experience.id !== experienceId,
+        ),
+      );
+    } catch {
+      // Keep the server-backed and UI lists unchanged when deletion fails.
+    } finally {
+      setDeletingCareerIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        nextIds.delete(experienceId);
+        return nextIds;
+      });
+    }
   };
 
   const handleIndustryToggle = (industryId: IndustryId) => {
@@ -712,8 +754,11 @@ export default function StudentOnboardingPage({
             {experiences.map((experience) => (
               <ExperienceCard
                 experience={experience}
+                isDeleting={deletingCareerIds.has(experience.id)}
                 key={experience.id}
-                onDelete={handleExperienceDelete}
+                onDelete={(experienceId) =>
+                  void handleExperienceDelete(experienceId)
+                }
                 onEdit={handleExperienceEdit}
               />
             ))}

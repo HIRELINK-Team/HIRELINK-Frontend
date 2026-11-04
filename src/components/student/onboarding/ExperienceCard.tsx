@@ -3,6 +3,7 @@ import type { Experience } from '../../../types/experience';
 
 type ExperienceCardProps = {
   experience: Experience;
+  isDeleting?: boolean;
   onDelete: (experienceId: string) => void;
   onEdit: (experienceId: string) => void;
 };
@@ -10,6 +11,7 @@ type ExperienceCardProps = {
 /** Displays a saved experience entry in the student onboarding list. */
 export function ExperienceCard({
   experience,
+  isDeleting = false,
   onDelete,
   onEdit,
 }: ExperienceCardProps) {
@@ -34,6 +36,7 @@ export function ExperienceCard({
       <button
         aria-label={`${experience.workplace} 경력 삭제`}
         className="absolute right-[22px] bottom-[21px] flex size-[21px] items-center justify-center border-0 bg-transparent p-0"
+        disabled={isDeleting}
         type="button"
         onClick={() => onDelete(experience.id)}
       >
