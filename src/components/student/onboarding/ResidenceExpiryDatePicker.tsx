@@ -64,10 +64,8 @@ export function ResidenceExpiryDatePicker({
     });
   }, [displayMonth]);
 
-  const selectedDateValue = selectedDate || toIsoDate(displayMonth);
-
   return (
-    <div className="absolute inset-0 z-20 flex flex-col bg-black/50">
+    <div className="absolute inset-0 z-30 flex flex-col bg-black/50">
       <button
         aria-label={'\uB9CC\uB8CC\uC77C \uC120\uD0DD \uB2EB\uAE30'}
         className="flex-1 cursor-default border-0 bg-transparent p-0"
@@ -140,7 +138,7 @@ export function ResidenceExpiryDatePicker({
           {calendarDays.map((date) => {
             const dateValue = toIsoDate(date);
             const isCurrentMonth = date.getMonth() === displayMonth.getMonth();
-            const isSelected = dateValue === selectedDateValue;
+            const isSelected = dateValue === selectedDate;
 
             return (
               <button
@@ -165,9 +163,10 @@ export function ResidenceExpiryDatePicker({
           })}
         </div>
         <button
-          className="absolute right-6 bottom-[37px] left-6 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
+          className="absolute right-6 bottom-[37px] left-6 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376] disabled:bg-[#B0B8C1] disabled:active:bg-[#B0B8C1]"
+          disabled={!selectedDate}
           type="button"
-          onClick={() => onConfirm(selectedDateValue)}
+          onClick={() => onConfirm(selectedDate)}
         >
           {'\uD655\uC778'}
         </button>

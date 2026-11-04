@@ -21,7 +21,7 @@ export function OnboardingBottomSheet<T extends string>({
   title,
 }: OnboardingBottomSheetProps<T>) {
   return (
-    <div className="absolute inset-0 z-20 flex flex-col bg-black/50">
+    <div className="absolute inset-0 z-30 flex flex-col bg-black/50">
       <button
         aria-label={`${title} 닫기`}
         className="flex-1 cursor-default border-0 bg-transparent p-0"
