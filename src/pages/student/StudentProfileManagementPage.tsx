@@ -218,12 +218,25 @@ function getResidenceQualification(
 function EditableProfileValue({
   field,
   onChange,
+  onValueChange,
 }: {
   field: ProfileField;
   onChange: () => void;
+  onValueChange?: (value: string) => void;
 }) {
   const className =
-    'mt-2 flex h-14 w-full items-center rounded-[15px] bg-[#E5E8EB] px-[25px] text-left text-[17px] leading-[1.5]';
+    'mt-1.5 flex h-[50px] w-full items-center rounded-[15px] bg-[#E5E8EB] px-[22px] text-left text-[16px] leading-[1.5]';
+
+  if (onValueChange) {
+    return (
+      <input
+        aria-label={field.label}
+        className={`${className} border-0 outline-none`}
+        value={field.value}
+        onChange={(event) => onValueChange(event.target.value)}
+      />
+    );
+  }
 
   const content = (
     <>
@@ -395,15 +408,15 @@ function BasicInformationPage({
   };
 
   return (
-    <main className="relative mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         기본정보
       </h1>
-      <section className="mt-[40px] space-y-[10.5px]">
+      <section className="mt-7 space-y-2">
         {fields.map((field, index) => (
           <div key={field.label}>
-            <p className="m-0 whitespace-nowrap text-[15px] leading-[1.5]">
+            <p className="m-0 whitespace-nowrap text-[14px] leading-[1.5]">
               {field.label}
             </p>
             <EditableProfileValue
@@ -412,6 +425,16 @@ function BasicInformationPage({
                 isSelectable: index === 2 || index === 4,
                 value: values[index] ?? field.value,
               }}
+              onValueChange={
+                index === 1 || index === 3
+                  ? (value) =>
+                      setValues((currentValues) =>
+                        currentValues.map((currentValue, valueIndex) =>
+                          valueIndex === index ? value : currentValue,
+                        ),
+                      )
+                  : undefined
+              }
               onChange={() => {
                 if (index === 2 || index === 4) handleOpen(index);
               }}
@@ -420,7 +443,7 @@ function BasicInformationPage({
         ))}
       </section>
       <button
-        className="mt-[85px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className="mt-auto h-[57px] w-full shrink-0 rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
         disabled={isSaving}
         onClick={() => void onSave(values)}
@@ -463,15 +486,15 @@ function ResidenceInformationPage({
   );
 
   return (
-    <main className="relative mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         체류정보
       </h1>
-      <section className="mt-[40px] space-y-[10.5px]">
+      <section className="mt-7 space-y-2">
         {fields.map((field, index) => (
           <div key={field.label}>
-            <p className="m-0 whitespace-nowrap text-[15px] leading-[1.5]">
+            <p className="m-0 whitespace-nowrap text-[14px] leading-[1.5]">
               {field.label}
             </p>
             <EditableProfileValue
@@ -493,7 +516,7 @@ function ResidenceInformationPage({
         ))}
       </section>
       <button
-        className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className="mt-auto h-[57px] w-full shrink-0 rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
         disabled={isSaving}
         onClick={() => void onSave(values)}
@@ -553,30 +576,42 @@ function AcademicInformationPage({
   );
   const [isAcademicStatusSheetOpen, setIsAcademicStatusSheetOpen] =
     useState(false);
+  const [isDegreeSheetOpen, setIsDegreeSheetOpen] = useState(false);
+  const [degreeDraft, setDegreeDraft] = useState(
+    values[1] ?? fields[1]?.value ?? '',
+  );
   const [academicStatusDraft, setAcademicStatusDraft] = useState(
     values[2] ?? fields[2]?.value ?? '',
   );
   const academicStatusOptions = ACADEMIC_STATUS_OPTIONS[residenceQualification];
+  const degreeOptions = RESIDENCE_QUALIFICATION_OPTIONS.slice(0, 4).map(
+    ({ label }) => ({ label: label.split('(')[0] }),
+  );
 
   return (
-    <main className="relative mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         학업정보
       </h1>
-      <section className="mt-[40px] space-y-[10.5px]">
+      <section className="mt-7 space-y-2">
         {fields.map((field, index) => (
           <div key={field.label}>
-            <p className="m-0 whitespace-nowrap text-[15px] leading-[1.5]">
+            <p className="m-0 whitespace-nowrap text-[14px] leading-[1.5]">
               {field.label}
             </p>
             <EditableProfileValue
               field={{
                 ...field,
-                isSelectable: index === 2,
+                isSelectable: index === 1 || index === 2,
                 value: values[index] ?? field.value,
               }}
               onChange={() => {
+                if (index === 1) {
+                  setDegreeDraft(values[index] ?? field.value);
+                  setIsDegreeSheetOpen(true);
+                }
+
                 if (index === 2) {
                   setAcademicStatusDraft(values[index] ?? field.value);
                   setIsAcademicStatusSheetOpen(true);
@@ -587,13 +622,30 @@ function AcademicInformationPage({
         ))}
       </section>
       <button
-        className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className="mt-auto h-[57px] w-full shrink-0 rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
         disabled={isSaving}
         onClick={() => void onSave(values)}
       >
         수정하기
       </button>
+      {isDegreeSheetOpen ? (
+        <ProfileOptionSheet
+          title={fields[1]?.label ?? ''}
+          options={degreeOptions}
+          selectedValue={degreeDraft}
+          onSelect={setDegreeDraft}
+          onClose={() => setIsDegreeSheetOpen(false)}
+          onConfirm={() => {
+            setValues((currentValues) =>
+              currentValues.map((value, index) =>
+                index === 1 ? degreeDraft : value,
+              ),
+            );
+            setIsDegreeSheetOpen(false);
+          }}
+        />
+      ) : null}
       {isAcademicStatusSheetOpen ? (
         <ProfileOptionSheet
           title={fields[2]?.label ?? ''}
@@ -661,15 +713,15 @@ function LanguageInformationPage({
   };
 
   return (
-    <main className="relative mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
         어학정보
       </h1>
-      <section className="mt-[40px] space-y-[10.5px]">
+      <section className="mt-7 space-y-2">
         {fields.map((field, index) => (
           <div key={field.label}>
-            <p className="m-0 whitespace-nowrap text-[15px] leading-[1.5]">
+            <p className="m-0 whitespace-nowrap text-[14px] leading-[1.5]">
               {field.label}
             </p>
             <EditableProfileValue
@@ -680,7 +732,7 @@ function LanguageInformationPage({
         ))}
       </section>
       <button
-        className="mt-[279.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className="mt-auto h-[57px] w-full shrink-0 rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
         disabled={isSaving}
         onClick={() => void onSave(values)}

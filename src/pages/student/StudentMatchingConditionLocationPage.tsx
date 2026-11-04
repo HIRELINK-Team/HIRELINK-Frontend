@@ -45,10 +45,10 @@ export default function StudentMatchingConditionLocationPage({
         <img alt="" className="h-4 w-2" src={backIcon} />
       </button>
 
-      <h1 className="m-0 mt-[36px] text-[26px] leading-[1.5] font-normal">
+      <h1 className="m-0 mt-[36px] text-[26px] leading-[1.5] font-semibold">
         원하는 근무 희망위치를
         <br />
-        입력해주세요.
+        입력해 주세요.
       </h1>
 
       <label className="mt-[35px] block">
