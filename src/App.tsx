@@ -21,8 +21,14 @@ import {
   getStudentRecommendations,
   loginStudent,
   rejectStudentEmploymentOffer,
+  updateStudentMatchingPreferences,
 } from './api/student';
-import { mapStudentMatchingPreferencesToUiState } from './adapters/studentMatchingPreferences';
+import {
+  mapIndustrySelectionToUpdateRequest,
+  mapStudentMatchingPreferencesToUiState,
+  mapWorkAvailabilityToUpdateRequest,
+  mapWorkLocationToUpdateRequest,
+} from './adapters/studentMatchingPreferences';
 import { mapStudentApplicationToCardModel } from './adapters/studentApplications';
 import { mapStudentProfileResponseToValues } from './adapters/studentProfile';
 import { mapStudentRecommendationToRecommendedJob } from './adapters/studentRecommendations';
@@ -77,6 +83,7 @@ import type { StudentApplicationCardModel } from './types/studentApplication';
 import type { StudentDocument } from './types/studentDocument';
 import type { IndustryId } from './types/industry';
 import type { MatchingPriorityId } from './types/matchingPriority';
+import type { StudentMatchingPreferencesResponse } from './types/studentMatchingPreferences';
 import type {
   RecommendedJob,
   StudentMatchingView,
@@ -237,10 +244,13 @@ type MatchingConditionRouteContext = {
   updatedSummaryIds: Set<MatchingConditionSummaryId>;
   workAvailability: WorkAvailability;
   workLocation: WorkLocation;
-  setIndustry: (industries: IndustryId[], otherIndustry: string) => void;
+  setIndustry: (
+    industries: IndustryId[],
+    otherIndustry: string,
+  ) => Promise<boolean>;
   setStartDate: (date: string) => void;
-  setWorkAvailability: (workAvailability: WorkAvailability) => void;
-  setWorkLocation: (workLocation: WorkLocation) => void;
+  setWorkAvailability: (workAvailability: WorkAvailability) => Promise<boolean>;
+  setWorkLocation: (workLocation: WorkLocation) => Promise<boolean>;
 };
 
 type MatchingConditionSummaryId =
@@ -980,6 +990,8 @@ function StudentProfileDetailRoute({ view }: { view: ProfileDetailView }) {
 }
 
 function StudentMatchingConditionLayout() {
+  const [matchingPreferences, setMatchingPreferences] =
+    useState<StudentMatchingPreferencesResponse | null>(null);
   const [businessTypeFlexible, setBusinessTypeFlexible] = useState(false);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>([
     'foodCafe',
@@ -1000,6 +1012,20 @@ function StudentMatchingConditionLayout() {
   const [isMatchingPreferencesLoading, setIsMatchingPreferencesLoading] =
     useState(true);
 
+  const applyMatchingPreferences = (
+    preferences: StudentMatchingPreferencesResponse,
+  ) => {
+    const mappedPreferences =
+      mapStudentMatchingPreferencesToUiState(preferences);
+    setMatchingPreferences(preferences);
+    setBusinessTypeFlexible(mappedPreferences.businessTypeFlexible);
+    setSelectedIndustries(mappedPreferences.selectedIndustries);
+    setOtherIndustry(mappedPreferences.otherIndustry);
+    setPriorityOrder(mappedPreferences.priorityOrder);
+    setWorkAvailability(mappedPreferences.workAvailability);
+    setWorkLocation(mappedPreferences.workLocation);
+  };
+
   useEffect(() => {
     let isActive = true;
 
@@ -1007,14 +1033,7 @@ function StudentMatchingConditionLayout() {
       .then((preferences) => {
         if (!isActive) return;
 
-        const mappedPreferences =
-          mapStudentMatchingPreferencesToUiState(preferences);
-        setBusinessTypeFlexible(mappedPreferences.businessTypeFlexible);
-        setSelectedIndustries(mappedPreferences.selectedIndustries);
-        setOtherIndustry(mappedPreferences.otherIndustry);
-        setPriorityOrder(mappedPreferences.priorityOrder);
-        setWorkAvailability(mappedPreferences.workAvailability);
-        setWorkLocation(mappedPreferences.workLocation);
+        applyMatchingPreferences(preferences);
         setUpdatedSummaryIds(
           new Set<MatchingConditionSummaryId>([
             'industry',
@@ -1043,6 +1062,57 @@ function StudentMatchingConditionLayout() {
     );
   };
 
+  const saveIndustry = async (industries: IndustryId[], industry: string) => {
+    if (!matchingPreferences) return false;
+
+    const requestBody = mapIndustrySelectionToUpdateRequest(
+      industries,
+      industry,
+      false,
+      matchingPreferences.preferredJobs,
+    );
+    if (!requestBody) return false;
+
+    try {
+      const preferences = await updateStudentMatchingPreferences(requestBody);
+      applyMatchingPreferences(preferences);
+      markSummaryUpdated('industry');
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const saveWorkAvailability = async (availability: WorkAvailability) => {
+    try {
+      const preferences = await updateStudentMatchingPreferences(
+        mapWorkAvailabilityToUpdateRequest(availability),
+      );
+      applyMatchingPreferences(preferences);
+      markSummaryUpdated('work-time');
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const saveWorkLocation = async (location: WorkLocation) => {
+    const requestBody = mapWorkLocationToUpdateRequest(
+      location,
+      matchingPreferences?.preferredLocation ?? null,
+    );
+    if (!requestBody) return false;
+
+    try {
+      const preferences = await updateStudentMatchingPreferences(requestBody);
+      applyMatchingPreferences(preferences);
+      markSummaryUpdated('location');
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   return (
     <Outlet
       context={
@@ -1052,24 +1122,13 @@ function StudentMatchingConditionLayout() {
           otherIndustry,
           priorityOrder,
           selectedIndustries,
-          setIndustry: (industries, industry) => {
-            setBusinessTypeFlexible(false);
-            setSelectedIndustries(industries);
-            setOtherIndustry(industry);
-            markSummaryUpdated('industry');
-          },
+          setIndustry: saveIndustry,
           setStartDate: (date) => {
             setStartDate(date);
             markSummaryUpdated('start-date');
           },
-          setWorkAvailability: (availability) => {
-            setWorkAvailability(availability);
-            markSummaryUpdated('work-time');
-          },
-          setWorkLocation: (location) => {
-            setWorkLocation(location);
-            markSummaryUpdated('location');
-          },
+          setWorkAvailability: saveWorkAvailability,
+          setWorkLocation: saveWorkLocation,
           startDate,
           updatedSummaryIds,
           workAvailability,
@@ -1147,9 +1206,10 @@ function StudentMatchingConditionIndustryRoute() {
       initialOtherIndustry={otherIndustry}
       initialSelectedIndustries={selectedIndustries}
       onBack={handleExit}
-      onSave={(industries, industry) => {
-        setIndustry(industries, industry);
-        handleExit();
+      onSave={async (industries, industry) => {
+        const isSaved = await setIndustry(industries, industry);
+        if (isSaved) handleExit();
+        return isSaved;
       }}
     />
   );
@@ -1166,9 +1226,10 @@ function StudentMatchingConditionLocationRoute() {
     <StudentMatchingConditionLocationPage
       initialLocation={workLocation}
       onBack={handleExit}
-      onSave={(location) => {
-        setWorkLocation(location);
-        handleExit();
+      onSave={async (location) => {
+        const isSaved = await setWorkLocation(location);
+        if (isSaved) handleExit();
+        return isSaved;
       }}
     />
   );
@@ -1185,9 +1246,10 @@ function StudentMatchingConditionWorkTimeRoute() {
     <StudentMatchingConditionWorkTimePage
       initialWorkAvailability={workAvailability}
       onBack={handleExit}
-      onSave={(availability) => {
-        setWorkAvailability(availability);
-        handleExit();
+      onSave={async (availability) => {
+        const isSaved = await setWorkAvailability(availability);
+        if (isSaved) handleExit();
+        return isSaved;
       }}
     />
   );

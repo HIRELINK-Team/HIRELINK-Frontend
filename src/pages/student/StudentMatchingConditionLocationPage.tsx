@@ -8,7 +8,7 @@ import type { WorkLocation } from '../../types/workLocation';
 type StudentMatchingConditionLocationPageProps = {
   initialLocation: WorkLocation;
   onBack: () => void;
-  onSave: (location: WorkLocation) => void;
+  onSave: (location: WorkLocation) => boolean | Promise<boolean | void> | void;
 };
 
 export default function StudentMatchingConditionLocationPage({
@@ -17,13 +17,21 @@ export default function StudentMatchingConditionLocationPage({
   onSave,
 }: StudentMatchingConditionLocationPageProps) {
   const [draftAddress, setDraftAddress] = useState(initialLocation.address);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleCurrentLocationClick = () => {
     setDraftAddress('강남역');
   };
 
-  const handleSave = () => {
-    onSave({ ...initialLocation, address: draftAddress });
+  const handleSave = async () => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await onSave({ ...initialLocation, address: draftAddress });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -68,6 +76,7 @@ export default function StudentMatchingConditionLocationPage({
       <button
         className="mt-[355px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
+        disabled={isSaving}
         onClick={handleSave}
       >
         수정하기

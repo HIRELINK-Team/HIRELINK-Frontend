@@ -9,7 +9,10 @@ type StudentMatchingConditionIndustryPageProps = {
   initialOtherIndustry: string;
   initialSelectedIndustries: readonly IndustryId[];
   onBack: () => void;
-  onSave: (selectedIndustries: IndustryId[], otherIndustry: string) => void;
+  onSave: (
+    selectedIndustries: IndustryId[],
+    otherIndustry: string,
+  ) => boolean | Promise<boolean | void> | void;
 };
 
 const INDUSTRY_ROWS: readonly (readonly IndustryOption[])[] = [
@@ -40,6 +43,7 @@ export default function StudentMatchingConditionIndustryPage({
   ]);
   const [draftOtherIndustry, setDraftOtherIndustry] =
     useState(initialOtherIndustry);
+  const [isSaving, setIsSaving] = useState(false);
   const isOtherSelected = draftIndustries.includes('other');
 
   const handleIndustryToggle = (industryId: IndustryId) => {
@@ -59,8 +63,15 @@ export default function StudentMatchingConditionIndustryPage({
     );
   };
 
-  const handleSave = () => {
-    onSave(draftIndustries, draftOtherIndustry);
+  const handleSave = async () => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await onSave(draftIndustries, draftOtherIndustry);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -123,6 +134,7 @@ export default function StudentMatchingConditionIndustryPage({
       <button
         className="mt-[275px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
+        disabled={isSaving}
         onClick={handleSave}
       >
         수정하기

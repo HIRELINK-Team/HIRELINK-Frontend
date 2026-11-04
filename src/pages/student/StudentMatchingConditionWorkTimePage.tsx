@@ -11,7 +11,9 @@ import type {
 type StudentMatchingConditionWorkTimePageProps = {
   initialWorkAvailability: WorkAvailability;
   onBack: () => void;
-  onSave: (workAvailability: WorkAvailability) => void;
+  onSave: (
+    workAvailability: WorkAvailability,
+  ) => boolean | Promise<boolean | void> | void;
 };
 
 function cloneWorkAvailability(
@@ -49,6 +51,7 @@ export default function StudentMatchingConditionWorkTimePage({
     useState<WorkAvailability>(() =>
       cloneWorkAvailability(initialWorkAvailability),
     );
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSlotsChange = (day: Weekday, slots: number[]) => {
     setDraftWorkAvailability((currentAvailability) => ({
@@ -60,8 +63,15 @@ export default function StudentMatchingConditionWorkTimePage({
     }));
   };
 
-  const handleSave = () => {
-    onSave(draftWorkAvailability);
+  const handleSave = async () => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await onSave(draftWorkAvailability);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -95,6 +105,7 @@ export default function StudentMatchingConditionWorkTimePage({
       <button
         className="mt-[154.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
+        disabled={isSaving}
         onClick={handleSave}
       >
         수정하기

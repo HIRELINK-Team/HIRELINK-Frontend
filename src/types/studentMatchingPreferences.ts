@@ -36,3 +36,22 @@ export type StudentMatchingPreferencesResponse = {
   minimumHourlyWage: number | null;
   priorities: StudentMatchingPriority[];
 };
+
+export type StudentPreferredJobUpdate = {
+  businessTypeId: number;
+  otherJobName?: string | null;
+};
+
+export type StudentMatchingPriorityUpdate = {
+  criterionId: number;
+  priorityOrder: number;
+};
+
+export type StudentMatchingPreferencesUpdateRequest = {
+  businessTypeFlexible?: boolean;
+  minimumHourlyWage?: number | null;
+  preferredJobs?: StudentPreferredJobUpdate[];
+  preferredLocation?: StudentPreferredLocation;
+  preferredWorkTimes?: StudentPreferredWorkTime[];
+  priorities?: StudentMatchingPriorityUpdate[];
+};
