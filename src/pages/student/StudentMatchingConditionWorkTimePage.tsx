@@ -75,7 +75,7 @@ export default function StudentMatchingConditionWorkTimePage({
   };
 
   return (
-    <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto flex h-[min(844px,100dvh)] w-full max-w-[390px] flex-col overflow-y-auto overscroll-contain bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <button
         aria-label="뒤로가기"
         className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
@@ -102,14 +102,16 @@ export default function StudentMatchingConditionWorkTimePage({
         onSlotsChange={handleSlotsChange}
       />
 
-      <button
-        className="mt-[154.5px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
-        type="button"
-        disabled={isSaving}
-        onClick={handleSave}
-      >
-        수정하기
-      </button>
+      <div className="mt-auto shrink-0 pt-8">
+        <button
+          className="h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+          type="button"
+          disabled={isSaving}
+          onClick={handleSave}
+        >
+          수정하기
+        </button>
+      </div>
     </main>
   );
 }

@@ -118,7 +118,7 @@ export function OnboardingScaffold({
         {children}
       </section>
 
-      <div className="mt-auto pt-8">
+      <div className="mt-auto shrink-0 pt-8">
         {footer ?? (
           <button
             className="h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376] disabled:bg-[#B0B8C1] disabled:active:bg-[#B0B8C1]"
