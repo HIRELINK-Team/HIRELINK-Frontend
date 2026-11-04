@@ -82,21 +82,6 @@ export type StudentProfileUpdateMappingResult =
   | { status: 'unchanged' }
   | { status: 'invalid' };
 
-function calculateAge(birthDate: string) {
-  const [birthYear, birthMonth, birthDay] = birthDate.split('-').map(Number);
-  const today = new Date();
-  let age = today.getFullYear() - birthYear;
-
-  if (
-    today.getMonth() + 1 < birthMonth ||
-    (today.getMonth() + 1 === birthMonth && today.getDate() < birthDay)
-  ) {
-    age -= 1;
-  }
-
-  return `${age}세`;
-}
-
 function getVisaLabel(visaCode: string) {
   const qualification = visaCode.replace(/^D-/, 'D').replaceAll('-', '_');
 
@@ -181,6 +166,7 @@ function setChangedString(
   requestBody: StudentProfileUpdateRequest,
   key:
     | 'name'
+    | 'birthDate'
     | 'nationality'
     | 'currentRegion'
     | 'visaCode'
@@ -204,7 +190,7 @@ export function mapStudentProfileResponseToValues(
   return {
     basic: [
       profile.name,
-      calculateAge(profile.birthDate),
+      profile.birthDate,
       NATIONALITY_LABEL_BY_CODE[profile.nationality] ?? profile.nationality,
       profile.currentRegion,
       koreanLevelLabel,
@@ -237,12 +223,19 @@ export function mapStudentProfileValuesToUpdateRequest(
 
   if (view === 'basic') {
     const name = values[0]?.trim() ?? '';
+    const birthDate = getDateValue(values[1] ?? '');
     const nationality = getNationalityCode(values[2] ?? '');
     const currentRegion = values[3]?.trim() ?? '';
     const koreanLevel = getKoreanLevelCode(values[4] ?? '');
 
     if (
       !setChangedString(requestBody, 'name', name, profile.name) ||
+      !setChangedString(
+        requestBody,
+        'birthDate',
+        birthDate,
+        profile.birthDate,
+      ) ||
       !setChangedString(
         requestBody,
         'nationality',

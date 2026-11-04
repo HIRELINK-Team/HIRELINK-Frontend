@@ -22,6 +22,7 @@ export type StudentProfileValues = Partial<
 >;
 
 type ProfileField = {
+  inputType?: 'date';
   isSelectable?: boolean;
   label: string;
   value: string;
@@ -64,7 +65,7 @@ const PROFILE_CARDS: readonly ProfileCard[] = [
     view: 'basic',
     fields: [
       { label: '이름', value: '김숭실' },
-      { label: '나이', value: '2002' },
+      { label: '생년월일', value: '2002-01-01' },
       { label: '국적', value: '베트남' },
       { label: '전화번호', value: '010-1234-5678' },
       { label: '현재거주지', value: '서울 마포구' },
@@ -105,7 +106,7 @@ const DETAIL_FIELDS: Record<
 > = {
   basic: [
     { label: '이름', value: '카페 아르바이트' },
-    { label: '나이', value: '22세', isSelectable: true },
+    { label: '생년월일', value: '2002-01-01' },
     { label: '국적', value: '베트남', isSelectable: true },
     { label: '거주지역', value: '서울 마포구', isSelectable: true },
     { label: '한국어 수준', value: '중급', isSelectable: true },
@@ -244,6 +245,7 @@ function EditableProfileValue({
       <input
         aria-label={field.label}
         className={`${className} border-0 outline-none`}
+        type={field.inputType ?? 'text'}
         value={field.value}
         onChange={(event) => onValueChange(event.target.value)}
       />
@@ -432,6 +434,7 @@ function BasicInformationPage({
             <EditableProfileValue
               field={{
                 ...field,
+                inputType: index === 1 ? 'date' : undefined,
                 // Nationality opens COUNTRY_OPTIONS; Korean proficiency uses KOREAN_LEVELS.
                 isSelectable: index === 2 || index === 4,
                 value: values[index] ?? field.value,
@@ -585,17 +588,10 @@ function AcademicInformationPage({
   );
   const [isAcademicStatusSheetOpen, setIsAcademicStatusSheetOpen] =
     useState(false);
-  const [isDegreeSheetOpen, setIsDegreeSheetOpen] = useState(false);
-  const [degreeDraft, setDegreeDraft] = useState(
-    values[1] ?? fields[1]?.value ?? '',
-  );
   const [academicStatusDraft, setAcademicStatusDraft] = useState(
     values[2] ?? fields[2]?.value ?? '',
   );
   const academicStatusOptions = ACADEMIC_STATUS_OPTIONS[residenceQualification];
-  const degreeOptions = RESIDENCE_QUALIFICATION_OPTIONS.slice(0, 4).map(
-    ({ label }) => ({ label: label.split('(')[0] }),
-  );
 
   return (
     <main className={PROFILE_DETAIL_PAGE_CLASS}>
@@ -610,15 +606,11 @@ function AcademicInformationPage({
             <EditableProfileValue
               field={{
                 ...field,
-                isSelectable: index === 1 || index === 2,
+                // studyProgramId is not included in the profile PATCH contract.
+                isSelectable: index === 2,
                 value: values[index] ?? field.value,
               }}
               onChange={() => {
-                if (index === 1) {
-                  setDegreeDraft(values[index] ?? field.value);
-                  setIsDegreeSheetOpen(true);
-                }
-
                 if (index === 2) {
                   setAcademicStatusDraft(values[index] ?? field.value);
                   setIsAcademicStatusSheetOpen(true);
@@ -636,23 +628,6 @@ function AcademicInformationPage({
       >
         수정하기
       </button>
-      {isDegreeSheetOpen ? (
-        <ProfileOptionSheet
-          title={fields[1]?.label ?? ''}
-          options={degreeOptions}
-          selectedValue={degreeDraft}
-          onSelect={setDegreeDraft}
-          onClose={() => setIsDegreeSheetOpen(false)}
-          onConfirm={() => {
-            setValues((currentValues) =>
-              currentValues.map((value, index) =>
-                index === 1 ? degreeDraft : value,
-              ),
-            );
-            setIsDegreeSheetOpen(false);
-          }}
-        />
-      ) : null}
       {isAcademicStatusSheetOpen ? (
         <ProfileOptionSheet
           title={fields[2]?.label ?? ''}

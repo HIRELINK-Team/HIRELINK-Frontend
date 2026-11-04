@@ -122,7 +122,6 @@ const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
   'hirelink.student.documents.guideAcknowledged';
 const STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY =
   'hirelink.student.matching.offerHandled';
-const STUDENT_PROFILE_SESSION_STORAGE_KEY = 'hirelink.student.profile.values';
 const STUDENT_PHONE_VERIFICATION_DEMO_BYPASS_STORAGE_KEY =
   'hirelink.student.onboarding.skipPhoneVerification';
 const PUBLIC_STUDENT_ROUTES = new Set([
@@ -170,58 +169,29 @@ type StudentProfileRouteContext = {
   ) => Promise<boolean>;
 };
 
-const PROFILE_DETAIL_VIEWS: readonly ProfileDetailView[] = [
-  'basic',
-  'residence',
-  'academic',
-  'language',
-];
-
-function isProfileDetailView(value: string): value is ProfileDetailView {
-  return PROFILE_DETAIL_VIEWS.includes(value as ProfileDetailView);
-}
-
-function getStoredStudentProfileValues(): StudentProfileValues {
-  if (typeof window === 'undefined') {
-    return {};
+function isStudentProfileResponse(
+  value: unknown,
+): value is StudentProfileResponse {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false;
   }
 
-  try {
-    const storedValues = window.sessionStorage.getItem(
-      STUDENT_PROFILE_SESSION_STORAGE_KEY,
-    );
+  const profile = value as Record<string, unknown>;
 
-    if (!storedValues) {
-      return {};
-    }
-
-    const parsedValues: unknown = JSON.parse(storedValues);
-
-    if (
-      typeof parsedValues !== 'object' ||
-      parsedValues === null ||
-      Array.isArray(parsedValues)
-    ) {
-      return {};
-    }
-
-    return Object.entries(parsedValues).reduce<StudentProfileValues>(
-      (profileValues, [view, values]) => {
-        if (
-          isProfileDetailView(view) &&
-          Array.isArray(values) &&
-          values.every((value): value is string => typeof value === 'string')
-        ) {
-          profileValues[view] = values;
-        }
-
-        return profileValues;
-      },
-      {},
-    );
-  } catch {
-    return {};
-  }
+  return (
+    typeof profile.studentId === 'number' &&
+    typeof profile.name === 'string' &&
+    typeof profile.phoneNumber === 'string' &&
+    typeof profile.birthDate === 'string' &&
+    typeof profile.nationality === 'string' &&
+    typeof profile.currentRegion === 'string' &&
+    typeof profile.koreanLevel === 'string' &&
+    typeof profile.visaCode === 'string' &&
+    typeof profile.universityName === 'string' &&
+    typeof profile.academicState === 'string' &&
+    typeof profile.stayExpirationDate === 'string' &&
+    (typeof profile.topikLevel === 'number' || profile.topikLevel === null)
+  );
 }
 
 type StudentMatchingJobState = 'accepted' | 'applied' | 'declined';
@@ -1148,9 +1118,7 @@ function StudentWorkConditionRoute() {
 function StudentProfileLayout() {
   const [studentProfile, setStudentProfile] =
     useState<StudentProfileResponse | null>(null);
-  const [profileValues, setProfileValues] = useState<StudentProfileValues>(
-    getStoredStudentProfileValues,
-  );
+  const [profileValues, setProfileValues] = useState<StudentProfileValues>({});
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   useEffect(() => {
@@ -1177,17 +1145,6 @@ function StudentProfileLayout() {
     };
   }, []);
 
-  useEffect(() => {
-    try {
-      window.sessionStorage.setItem(
-        STUDENT_PROFILE_SESSION_STORAGE_KEY,
-        JSON.stringify(profileValues),
-      );
-    } catch {
-      // Mock persistence must not prevent profile editing when storage is unavailable.
-    }
-  }, [profileValues]);
-
   return (
     <Outlet
       context={
@@ -1210,6 +1167,8 @@ function StudentProfileLayout() {
               const updatedProfile = await updateStudentProfile(
                 mappingResult.requestBody,
               );
+
+              if (!isStudentProfileResponse(updatedProfile)) return false;
 
               setStudentProfile(updatedProfile);
               setProfileValues(
