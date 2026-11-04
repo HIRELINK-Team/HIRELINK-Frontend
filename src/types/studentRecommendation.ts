@@ -28,6 +28,13 @@ export type StudentRecommendationsResponse = {
   recommendations: StudentRecommendation[];
 };
 
+export type StudentRecommendationRefreshResponse = {
+  batchId: number;
+  generatedAt: string;
+  recommendationCount: number;
+  refreshed: boolean;
+};
+
 export type StudentRecommendationDetailResponse = StudentRecommendation & {
   batchId: number;
   generatedAt: string;

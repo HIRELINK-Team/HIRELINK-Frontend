@@ -2,6 +2,7 @@ import { apiClient } from '../client';
 
 import type {
   StudentRecommendationDetailResponse,
+  StudentRecommendationRefreshResponse,
   StudentRecommendationsResponse,
 } from '../../types/studentRecommendation';
 
@@ -33,11 +34,9 @@ export async function getStudentRecommendation(
   return data;
 }
 
-export async function refreshStudentRecommendations<
-  TResponse = unknown,
->(): Promise<TResponse> {
+export async function refreshStudentRecommendations(): Promise<StudentRecommendationRefreshResponse> {
   // The server creates a new batch only when a refresh is required.
-  const { data } = await apiClient.post<TResponse>(
+  const { data } = await apiClient.post<StudentRecommendationRefreshResponse>(
     '/api/recommendations/refresh',
   );
 
