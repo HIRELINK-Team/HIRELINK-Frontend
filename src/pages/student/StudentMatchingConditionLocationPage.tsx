@@ -6,6 +6,8 @@ import locationIcon from '../../assets/icons/student/location.svg';
 import searchIcon from '../../assets/icons/student/search.svg';
 import type { WorkLocation } from '../../types/workLocation';
 
+const STUDENT_DEMO_LOCATION_NAME = '강남역';
+
 type StudentMatchingConditionLocationPageProps = {
   initialLocation: WorkLocation;
   onBack: () => void;
@@ -20,33 +22,15 @@ export default function StudentMatchingConditionLocationPage({
   const [draftLocation, setDraftLocation] =
     useState<WorkLocation>(initialLocation);
   const [isRadiusMapOpen, setIsRadiusMapOpen] = useState(false);
-  const [isLocating, setIsLocating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleCurrentLocationClick = () => {
-    if (!navigator.geolocation) return;
-
-    setIsLocating(true);
-
-    try {
-      navigator.geolocation.getCurrentPosition(
-        ({ coords }) => {
-          setDraftLocation((currentLocation) => ({
-            ...currentLocation,
-            address: '현재 위치',
-            latitude: coords.latitude,
-            longitude: coords.longitude,
-          }));
-          setIsLocating(false);
-        },
-        () => {
-          setIsLocating(false);
-        },
-        { enableHighAccuracy: true },
-      );
-    } catch {
-      setIsLocating(false);
-    }
+    setDraftLocation((currentLocation) => ({
+      ...currentLocation,
+      address: STUDENT_DEMO_LOCATION_NAME,
+      latitude: undefined,
+      longitude: undefined,
+    }));
   };
 
   const handleSave = async (): Promise<boolean> => {
@@ -122,7 +106,6 @@ export default function StudentMatchingConditionLocationPage({
         className="mx-[2px] mt-[15px] flex h-[54px] w-[340px] items-center gap-4 rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[23px] text-left text-[17px] leading-[1.5]"
         type="button"
         onClick={handleCurrentLocationClick}
-        disabled={isLocating}
       >
         <img alt="" className="size-[14px]" src={locationIcon} />
         현재 위치로 찾기
@@ -131,7 +114,7 @@ export default function StudentMatchingConditionLocationPage({
       <button
         className="absolute right-6 bottom-[clamp(20px,4.38dvh,37px)] left-6 h-[clamp(52px,6.75dvh,57px)] rounded-[15px] border-0 bg-[#00B894] text-[clamp(17px,2.37dvh,20px)] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        disabled={isLocating || isSaving || !draftLocation.address.trim()}
+        disabled={isSaving || !draftLocation.address.trim()}
         onClick={() => setIsRadiusMapOpen(true)}
       >
         수정하기

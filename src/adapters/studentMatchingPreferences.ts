@@ -78,6 +78,10 @@ const WORK_TIME_MODE_START_MINUTES: Record<WorkTimeMode, number> = {
   nighttime: 22 * 60,
 };
 
+// Temporary coordinates used for student matching-location saves during the demo.
+const STUDENT_DEMO_LOCATION_LATITUDE = 37.4979;
+const STUDENT_DEMO_LOCATION_LONGITUDE = 127.0276;
+
 type SlotRange = {
   endSlot: number;
   startSlot: number;
@@ -240,17 +244,14 @@ export function mapWorkLocationToUpdateRequest(
   workLocation: WorkLocation,
 ): StudentMatchingPreferencesUpdateRequest | null {
   const locationName = workLocation.address.trim();
-  const { latitude, longitude } = workLocation;
 
-  if (!locationName || latitude === undefined || longitude === undefined) {
-    return null;
-  }
+  if (!locationName) return null;
 
   return {
     preferredLocation: {
-      latitude,
+      latitude: STUDENT_DEMO_LOCATION_LATITUDE,
       locationName,
-      longitude,
+      longitude: STUDENT_DEMO_LOCATION_LONGITUDE,
       radiusM: workLocation.radius,
     },
   };
