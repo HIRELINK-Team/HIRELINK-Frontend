@@ -22,6 +22,7 @@ import {
   getMyStudentApplication,
   getMyStudentApplications,
   getEmploymentMatch,
+  getMyEmploymentMatches,
   getStudentProfile,
   getStudentRecommendations,
   loginStudent,
@@ -41,6 +42,7 @@ import {
 } from './adapters/studentMatchingPreferences';
 import {
   mapStudentApplicationDetailToCardModel,
+  mapStudentEmploymentMatchToCardModel,
   mapStudentApplicationToCardModel,
 } from './adapters/studentApplications';
 import {
@@ -659,7 +661,7 @@ function StudentMatchingRoute() {
         updateOfferState(action, job);
 
         if (action === 'accept') {
-          navigate('hiring-complete');
+          navigate('/student/applications');
         }
       }}
       onRecommendationDetailRequest={async (job) => {
@@ -680,25 +682,6 @@ function StudentMatchingRoute() {
   );
 }
 
-function StudentMatchingHiringCompleteRoute() {
-  const navigate = useNavigate();
-  const { acceptedJob } = useOutletContext<StudentMatchingRouteContext>();
-
-  if (!acceptedJob) {
-    return <Navigate replace to="/student/matching" />;
-  }
-
-  return (
-    <StudentHiringCompletePage
-      contactName={null}
-      contactPhone={null}
-      job={acceptedJob}
-      onBack={() => navigate('/student/matching')}
-      onViewApplications={() => navigate('/student/applications')}
-    />
-  );
-}
-
 function StudentApplicationsLayout() {
   const [applications, setApplications] = useState<
     StudentApplicationCardModel[]
@@ -706,8 +689,18 @@ function StudentApplicationsLayout() {
   const [isApplicationsLoading, setIsApplicationsLoading] = useState(true);
 
   const fetchApplications = useCallback(async () => {
-    const response = await getMyStudentApplications();
-    return response.applications.map(mapStudentApplicationToCardModel);
+    const [applicationsResponse, matchesResponse] = await Promise.all([
+      getMyStudentApplications(),
+      getMyEmploymentMatches(),
+    ]);
+    const nonHiredApplications = applicationsResponse.applications
+      .map(mapStudentApplicationToCardModel)
+      .filter((application) => application.status !== 'HIRED');
+
+    return [
+      ...nonHiredApplications,
+      ...matchesResponse.matches.map(mapStudentEmploymentMatchToCardModel),
+    ];
   }, []);
 
   const refreshApplications = useCallback(async () => {
@@ -828,7 +821,12 @@ function StudentApplicationsRoute() {
       }}
       onDetailClick={(application) => {
         if (application.status === 'HIRED') {
-          navigate(`hiring-complete/${application.id}`);
+          if (
+            application.matchId !== null &&
+            application.matchId !== undefined
+          ) {
+            navigate(`hiring-complete/${application.matchId}`);
+          }
           return;
         }
 
@@ -975,10 +973,12 @@ function StudentApplicationDetailRoute() {
 
 function StudentHiringCompleteRoute() {
   const navigate = useNavigate();
-  const { applicationId } = useParams();
-  const { applications } = useOutletContext<StudentApplicationsRouteContext>();
+  const { matchId: matchIdParam } = useParams();
+  const { applications, isApplicationsLoading } =
+    useOutletContext<StudentApplicationsRouteContext>();
+  const matchId = Number(matchIdParam);
   const application = applications.find(
-    (candidate) => candidate.id === applicationId,
+    (candidate) => candidate.matchId === matchId,
   );
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [loadedMatchContact, setLoadedMatchContact] = useState<{
@@ -986,14 +986,10 @@ function StudentHiringCompleteRoute() {
     matchId: number;
   } | null>(null);
   const isMatchDetailLoading =
-    application?.matchId !== null &&
-    application?.matchId !== undefined &&
-    loadedMatchId !== application.matchId;
+    Number.isFinite(matchId) && loadedMatchId !== matchId;
 
   useEffect(() => {
-    const matchId = application?.matchId;
-
-    if (matchId === null || matchId === undefined) return;
+    if (!Number.isFinite(matchId)) return;
 
     let isActive = true;
 
@@ -1015,15 +1011,20 @@ function StudentHiringCompleteRoute() {
     return () => {
       isActive = false;
     };
-  }, [application?.matchId]);
+  }, [matchId]);
+
+  if (isApplicationsLoading) {
+    return (
+      <main className="mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5]" />
+    );
+  }
 
   if (!application || application.status !== 'HIRED') {
     return <Navigate replace to="/student/applications" />;
   }
 
   const matchContact =
-    loadedMatchContact !== null &&
-    loadedMatchContact.matchId === application.matchId
+    loadedMatchContact !== null && loadedMatchContact.matchId === matchId
       ? loadedMatchContact.contact
       : null;
 
@@ -1721,10 +1722,6 @@ function App() {
           <Route path="/student/home" element={<StudentHomeRoute />} />
           <Route path="/student/matching" element={<StudentMatchingLayout />}>
             <Route index element={<StudentMatchingRoute />} />
-            <Route
-              path="hiring-complete"
-              element={<StudentMatchingHiringCompleteRoute />}
-            />
           </Route>
           <Route
             path="/student/applications"
@@ -1736,7 +1733,7 @@ function App() {
               element={<StudentApplicationDetailRoute />}
             />
             <Route
-              path="hiring-complete/:applicationId"
+              path="hiring-complete/:matchId"
               element={<StudentHiringCompleteRoute />}
             />
           </Route>

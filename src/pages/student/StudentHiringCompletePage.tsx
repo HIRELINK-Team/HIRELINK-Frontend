@@ -14,8 +14,8 @@ type StudentHiringCompletePageProps = {
 
 /** The completion state shown immediately after a student accepts an offer. */
 export default function StudentHiringCompletePage({
-  contactName = '채용 연락처',
-  contactPhone = '010-1234-5678',
+  contactName = null,
+  contactPhone = null,
   isMatchDetailLoading = false,
   job,
   onBack,

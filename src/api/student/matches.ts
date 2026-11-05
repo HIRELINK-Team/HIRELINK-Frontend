@@ -5,17 +5,9 @@ import type {
   StudentEmploymentMatchResponse,
 } from '../../types/studentMatch';
 
-type MatchListParams = {
-  jobPostingId?: string | number;
-};
-
-export async function getMyEmploymentMatches(
-  params: MatchListParams = {},
-): Promise<StudentEmploymentMatchesResponse> {
-  const { data } = await apiClient.get<StudentEmploymentMatchesResponse>(
-    '/api/matches/me',
-    { params },
-  );
+export async function getMyEmploymentMatches(): Promise<StudentEmploymentMatchesResponse> {
+  const { data } =
+    await apiClient.get<StudentEmploymentMatchesResponse>('/api/matches/me');
 
   return data;
 }

@@ -4,6 +4,7 @@ import type {
   StudentApplicationDetail,
   StudentApplicationStatus,
 } from '../types/studentApplication';
+import type { StudentEmploymentMatchListItem } from '../types/studentMatch';
 
 const WAGE_TYPE_LABELS: Record<StudentApplication['wageType'], string> = {
   HOURLY: '시급',
@@ -96,6 +97,41 @@ export function mapStudentApplicationToCardModel(
     status: mapApplicationStatus(application),
     studentResponseDeadline: application.studentResponseDeadline,
     timerLabel: formatDeadline(responseDeadline),
+  };
+}
+
+export function mapStudentEmploymentMatchToCardModel(
+  match: StudentEmploymentMatchListItem,
+): StudentApplicationCardModel {
+  const wageLabel = `${WAGE_TYPE_LABELS[match.wageType]} ${match.wageAmount.toLocaleString('ko-KR')}원`;
+
+  return {
+    applicationId: match.applicationId,
+    desiredStartDate: match.desiredStartDate,
+    id: String(match.applicationId),
+    job: {
+      countdownLabel: '',
+      commuteAndWage: wageLabel,
+      companyName: match.workplaceName,
+      detail: {
+        comparisonTags: [],
+        locationAndDistance: '',
+        matchRate: 0,
+        metrics: [{ label: '급여', value: wageLabel }],
+        tags: [],
+      },
+      id: String(match.jobPostingId),
+      isCountdownActive: false,
+      jobPostingId: match.jobPostingId,
+      matchDescription: '',
+      matchRate: 0,
+      role: match.jobTitle,
+      showsApplyButton: false,
+    },
+    matchId: match.matchId,
+    offerId: match.offerId,
+    startedAt: match.matchedAt,
+    status: 'HIRED',
   };
 }
 
