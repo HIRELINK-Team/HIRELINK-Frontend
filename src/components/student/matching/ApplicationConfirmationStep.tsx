@@ -24,18 +24,18 @@ function formatWorkStartDate(date: string) {
 
 function InformationCard({ description, image, title }: InformationCardProps) {
   return (
-    <article className="relative h-[83px] rounded-[20px] border border-[#D9D9D9]">
+    <article className="relative flex h-[clamp(72px,9.8dvh,83px)] items-center rounded-[20px] border border-[#D9D9D9]">
       <img
         alt=""
-        className="absolute top-[15px] left-[23px] h-[52px] w-[53px] object-cover"
+        className="ml-[23px] h-[clamp(44px,6.2dvh,52px)] w-[clamp(45px,6.3dvh,53px)] shrink-0 object-cover"
         src={image}
       />
-      <h3 className="absolute top-[17px] left-24 m-0 text-[15px] leading-[1.5] font-bold">
-        {title}
-      </h3>
-      <p className="absolute top-[44px] left-24 m-0 text-[13px] leading-[1.5] text-[#8B95A1]">
-        {description}
-      </p>
+      <div className="ml-[20px] min-w-0">
+        <h3 className="m-0 text-[15px] leading-[1.5] font-bold">{title}</h3>
+        <p className="mt-[2px] mb-0 text-[13px] leading-[1.5] text-[#8B95A1]">
+          {description}
+        </p>
+      </div>
     </article>
   );
 }
@@ -49,37 +49,37 @@ export function ApplicationConfirmationStep({
   onConfirm,
 }: ApplicationConfirmationStepProps) {
   return (
-    <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
         aria-label="근무 시작일 선택으로 돌아가기"
-        className="absolute top-[69px] left-[26px] flex h-[19px] w-[11px] items-center justify-center border-0 bg-transparent p-0"
+        className="absolute top-[clamp(44px,8.2dvh,69px)] left-[26px] flex h-[19px] w-[11px] items-center justify-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
       >
         <img alt="" src={backIcon} />
       </button>
 
-      <h1 className="absolute top-[112px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
+      <h1 className="absolute top-[clamp(79px,13.3dvh,112px)] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
         지원 전 꼭 확인해주세요!
       </h1>
 
-      <section className="absolute top-[174px] right-6 left-6 h-[132px] rounded-[20px] border-[0.7px] border-[#B0B8C1]">
-        <h2 className="absolute top-[20px] left-[23px] m-0 text-[20px] leading-[1.5] font-semibold">
+      <section className="absolute top-[clamp(126px,20.6dvh,174px)] right-6 left-6 h-[clamp(108px,15.6dvh,132px)] rounded-[20px] border-[0.7px] border-[#B0B8C1] text-left">
+        <h2 className="absolute top-[20px] left-[23px] m-0 text-left text-[20px] leading-[1.5] font-semibold">
           김숭실
         </h2>
-        <p className="absolute top-[57px] left-[23px] m-0 text-[15px] leading-[1.5] text-[#8B95A1]">
+        <p className="absolute top-[52px] left-[23px] m-0 text-left text-[15px] leading-[1.5] text-[#8B95A1]">
           베트남 | 22세 | D-2 (유학) | TOPIK 4급 | 학기 중
         </p>
-        <p className="absolute top-[87px] left-[23px] m-0 text-[15px] leading-[1.5] text-[#8B95A1]">
+        <p className="absolute top-[79px] left-[23px] m-0 text-left text-[15px] leading-[1.5] text-[#8B95A1]">
           {job.companyName} | {formatWorkStartDate(workStartDate)}부터
         </p>
       </section>
 
-      <section className="absolute top-[333px] right-6 left-6">
+      <section className="absolute top-[clamp(246px,38dvh,321px)] right-6 left-6">
         <h2 className="m-0 text-[20px] leading-[1.5] font-semibold">
           사업주에게 전달되는 정보
         </h2>
-        <div className="mt-[16px] space-y-[10px]">
+        <div className="mt-[clamp(10px,1.9dvh,16px)] space-y-[clamp(7px,1.2dvh,10px)]">
           <InformationCard
             description="국적, 지역 한국어 수준이에요."
             image={profileImage}
@@ -98,7 +98,7 @@ export function ApplicationConfirmationStep({
         </div>
       </section>
 
-      <div className="absolute top-[678px] right-6 left-6 text-center text-[13px] leading-[1.5] text-[#8B95A1]">
+      <div className="absolute top-[clamp(557px,78.8dvh,665px)] right-6 left-6 text-center text-[13px] leading-[1.5] text-[#8B95A1]">
         <p className="m-0">
           지원 후 사업주는 24시간 안에 채용 진행 여부를 결정해야 해요.
         </p>
@@ -112,7 +112,7 @@ export function ApplicationConfirmationStep({
 
       <button
         aria-busy={isSubmitting}
-        className="absolute right-6 bottom-[37px] left-6 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
+        className="absolute right-6 bottom-[clamp(22px,4.4dvh,37px)] left-6 h-[clamp(52px,6.8dvh,57px)] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
         disabled={isSubmitting}
         type="button"
         onClick={onConfirm}
