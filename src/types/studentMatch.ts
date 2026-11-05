@@ -17,7 +17,7 @@ export type StudentEmploymentMatchListItem = {
   matchId: number;
   matchedAt: string;
   offerId: number;
-  student: StudentEmploymentMatchStudent | null;
+  student: null;
   wageAmount: number;
   wageType: SalaryType;
   workplaceName: string;

@@ -85,6 +85,21 @@ export type WithdrawStudentApplicationResponse = {
   endedAt: string;
 };
 
+export type AcceptStudentEmploymentOfferResponse = {
+  offerStatus: 'ACCEPTED';
+  status: 'COMPLETED';
+  respondedAt: string;
+  matchId: number;
+};
+
+export type RejectStudentEmploymentOfferResponse = {
+  offerStatus: 'REJECTED';
+  status: 'ENDED';
+  endReason: 'STUDENT_REJECTED';
+  respondedAt: string;
+  endedAt: string;
+};
+
 export type StudentApplicationStatus =
   | 'REVIEWING'
   | 'OFFER_WAITING'

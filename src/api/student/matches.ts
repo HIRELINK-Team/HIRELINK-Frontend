@@ -7,7 +7,7 @@ import type {
 
 export async function getMyEmploymentMatches(): Promise<StudentEmploymentMatchesResponse> {
   const { data } =
-    await apiClient.get<StudentEmploymentMatchesResponse>('/api/matches/me');
+    await apiClient.get<StudentEmploymentMatchesResponse>('/matches/me');
 
   return data;
 }
@@ -17,7 +17,7 @@ export async function getEmploymentMatch(
 ): Promise<StudentEmploymentMatchResponse> {
   // Only a party to the employment match may view its detail and contact data.
   const { data } = await apiClient.get<StudentEmploymentMatchResponse>(
-    `/api/matches/${encodeURIComponent(String(matchId))}`,
+    `/matches/${encodeURIComponent(String(matchId))}`,
   );
 
   return data;
