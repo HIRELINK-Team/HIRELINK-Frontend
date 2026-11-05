@@ -36,6 +36,7 @@ import {
 } from './api/student';
 import {
   mapIndustrySelectionToUpdateRequest,
+  mapPriorityOrderToUpdateRequest,
   mapStudentMatchingPreferencesToUiState,
   mapWorkAvailabilityToUpdateRequest,
   mapWorkLocationToUpdateRequest,
@@ -263,6 +264,7 @@ type MatchingConditionRouteContext = {
     industries: IndustryId[],
     otherIndustry: string,
   ) => Promise<boolean>;
+  savePriorityOrder: () => Promise<boolean>;
   setStartDate: (date: string) => void;
   setWorkAvailability: (workAvailability: WorkAvailability) => Promise<boolean>;
   setWorkLocation: (workLocation: WorkLocation) => Promise<boolean>;
@@ -1304,9 +1306,9 @@ function StudentMatchingConditionLayout() {
   const [matchingPreferences, setMatchingPreferences] =
     useState<StudentMatchingPreferencesResponse | null>(null);
   const [businessTypeFlexible, setBusinessTypeFlexible] = useState(false);
-  const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>([
-    'foodCafe',
-  ]);
+  const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>(
+    [],
+  );
   const [otherIndustry, setOtherIndustry] = useState('');
   const [priorityOrder, setPriorityOrder] = useState<MatchingPriorityId[]>([]);
   const [workLocation, setWorkLocation] = useState<WorkLocation>({
@@ -1354,7 +1356,14 @@ function StudentMatchingConditionLayout() {
         );
       })
       .catch(() => {
-        // Preserve the current local fallback for 401, 404, and network errors.
+        setMatchingPreferences(null);
+        setBusinessTypeFlexible(false);
+        setSelectedIndustries([]);
+        setOtherIndustry('');
+        setPriorityOrder([]);
+        setWorkAvailability(INITIAL_WORK_AVAILABILITY);
+        setWorkLocation({ address: '', radius: 500 });
+        setUpdatedSummaryIds(new Set());
       })
       .finally(() => {
         if (isActive) {
@@ -1384,13 +1393,7 @@ function StudentMatchingConditionLayout() {
       : null;
 
     if (!requestBody) {
-      // Keep the local onboarding fallback usable until the API can provide
-      // the business type IDs required by the matching-preferences contract.
-      setBusinessTypeFlexible(false);
-      setSelectedIndustries(industries);
-      setOtherIndustry(industry);
-      markSummaryUpdated('industry');
-      return true;
+      return false;
     }
 
     try {
@@ -1417,22 +1420,34 @@ function StudentMatchingConditionLayout() {
   };
 
   const saveWorkLocation = async (location: WorkLocation) => {
-    const requestBody = mapWorkLocationToUpdateRequest(
-      location,
-      matchingPreferences?.preferredLocation ?? null,
-    );
+    const requestBody = mapWorkLocationToUpdateRequest(location);
     if (!requestBody) {
-      // A typed address has no coordinates until geocoding is connected.
-      // Preserve the existing local edit flow instead of blocking the user.
-      setWorkLocation(location);
-      markSummaryUpdated('location');
-      return true;
+      return false;
     }
 
     try {
       const preferences = await updateStudentMatchingPreferences(requestBody);
       applyMatchingPreferences(preferences);
       markSummaryUpdated('location');
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const savePriorityOrder = async () => {
+    const requestBody = matchingPreferences
+      ? mapPriorityOrderToUpdateRequest(
+          priorityOrder,
+          matchingPreferences.priorities,
+        )
+      : null;
+
+    if (!requestBody) return false;
+
+    try {
+      const preferences = await updateStudentMatchingPreferences(requestBody);
+      applyMatchingPreferences(preferences);
       return true;
     } catch {
       return false;
@@ -1448,6 +1463,7 @@ function StudentMatchingConditionLayout() {
           otherIndustry,
           priorityOrder,
           selectedIndustries,
+          savePriorityOrder,
           setIndustry: saveIndustry,
           setStartDate: (date) => {
             setStartDate(date);
@@ -1472,6 +1488,7 @@ function StudentMatchingConditionRoute() {
     isMatchingPreferencesLoading,
     otherIndustry,
     priorityOrder,
+    savePriorityOrder,
     selectedIndustries,
     startDate,
     updatedSummaryIds,
@@ -1482,7 +1499,11 @@ function StudentMatchingConditionRoute() {
   return (
     <StudentMatchingConditionManagementPage
       isLoading={isMatchingPreferencesLoading}
-      onApply={() => navigate('/student/my')}
+      onApply={async () => {
+        if (await savePriorityOrder()) {
+          navigate('/student/my');
+        }
+      }}
       onBack={() => navigate('/student/my')}
       onConditionClick={(conditionId) => {
         const detailRoutes: Partial<Record<typeof conditionId, string>> = {

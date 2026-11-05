@@ -15,7 +15,7 @@ type MatchingConditionSummaryValues = Partial<
 
 type StudentMatchingConditionManagementPageProps = {
   isLoading?: boolean;
-  onApply?: () => void;
+  onApply?: () => void | Promise<void>;
   onBack?: () => void;
   onConditionClick?: (conditionId: MatchingConditionId) => void;
   priorityOrder?: readonly MatchingPriorityId[];
@@ -104,7 +104,7 @@ export default function StudentMatchingConditionManagementPage({
 
       <section className="-mx-6 mt-[24px] border-y border-[#E5E8EB]">
         {MATCHING_CONDITION_SUMMARIES.map((condition) => {
-          const value = summaryValues?.[condition.id] ?? condition.value;
+          const value = summaryValues?.[condition.id] ?? '설정되지 않음';
           const isWorkTimeSummary =
             condition.id === 'work-time' && Array.isArray(value);
 
@@ -166,42 +166,41 @@ export default function StudentMatchingConditionManagementPage({
         매칭 중요도
       </h2>
       <section className="mt-[18px] space-y-[10px]">
-        {(priorityOrder?.length
-          ? priorityOrder.flatMap((priorityId) => {
-              const card = MATCHING_PRIORITY_CARDS.find(
-                (priorityCard) => priorityCard.id === priorityId,
-              );
-              return card ? [card] : [];
-            })
-          : MATCHING_PRIORITY_CARDS
-        ).map((card) => (
-          <button
-            className="flex h-[89px] w-full items-center rounded-[20px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[30.3px] text-left"
-            key={card.id}
-            type="button"
-            onClick={() => handleConditionClick('priority')}
-          >
-            <span>
-              <span className="block text-[17px] leading-[1.5] font-bold">
-                {card.title}
+        {(priorityOrder ?? [])
+          .flatMap((priorityId) => {
+            const card = MATCHING_PRIORITY_CARDS.find(
+              (priorityCard) => priorityCard.id === priorityId,
+            );
+            return card ? [card] : [];
+          })
+          .map((card) => (
+            <button
+              className="flex h-[89px] w-full items-center rounded-[20px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[30.3px] text-left"
+              key={card.id}
+              type="button"
+              onClick={() => handleConditionClick('priority')}
+            >
+              <span>
+                <span className="block text-[17px] leading-[1.5] font-bold">
+                  {card.title}
+                </span>
+                <span className="block text-[15px] leading-[1.5] text-[#8B95A1]">
+                  {card.description}
+                </span>
               </span>
-              <span className="block text-[15px] leading-[1.5] text-[#8B95A1]">
-                {card.description}
-              </span>
-            </span>
-            <img
-              alt=""
-              className="ml-auto size-[23px]"
-              src={priorityDragHandleIcon}
-            />
-          </button>
-        ))}
+              <img
+                alt=""
+                className="ml-auto size-[23px]"
+                src={priorityDragHandleIcon}
+              />
+            </button>
+          ))}
       </section>
 
       <button
         className="mt-[29px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        onClick={onApply}
+        onClick={() => void onApply?.()}
       >
         수정 반영하기
       </button>

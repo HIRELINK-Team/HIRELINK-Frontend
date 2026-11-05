@@ -45,6 +45,16 @@ const CRITERION_TO_PRIORITY: Record<
   WORK_TIME: 'workTime',
 };
 
+const PRIORITY_TO_CRITERION: Record<
+  MatchingPriorityId,
+  StudentMatchingCriterionName
+> = {
+  distance: 'DISTANCE',
+  industry: 'BUSINESS_TYPE',
+  wage: 'WAGE',
+  workTime: 'WORK_TIME',
+};
+
 const WEEKDAY_TO_BACKEND = {
   fri: 'FRI',
   mon: 'MON',
@@ -202,20 +212,11 @@ export function mapWorkAvailabilityToUpdateRequest(
 
 export function mapWorkLocationToUpdateRequest(
   workLocation: WorkLocation,
-  sourceLocation: StudentMatchingPreferencesResponse['preferredLocation'],
 ): StudentMatchingPreferencesUpdateRequest | null {
   const locationName = workLocation.address.trim();
   const { latitude, longitude } = workLocation;
 
-  if (
-    !locationName ||
-    latitude === undefined ||
-    longitude === undefined ||
-    (sourceLocation !== null &&
-      locationName !== sourceLocation.locationName &&
-      latitude === sourceLocation.latitude &&
-      longitude === sourceLocation.longitude)
-  ) {
+  if (!locationName || latitude === undefined || longitude === undefined) {
     return null;
   }
 
@@ -226,6 +227,36 @@ export function mapWorkLocationToUpdateRequest(
       longitude,
       radiusM: workLocation.radius,
     },
+  };
+}
+
+export function mapPriorityOrderToUpdateRequest(
+  priorityOrder: readonly MatchingPriorityId[],
+  sourcePriorities: ReadonlyArray<
+    StudentMatchingPreferencesResponse['priorities'][number]
+  >,
+): StudentMatchingPreferencesUpdateRequest | null {
+  if (priorityOrder.length !== 4 || new Set(priorityOrder).size !== 4) {
+    return null;
+  }
+
+  const priorities = priorityOrder.map((priorityId, index) => {
+    const criterionName = PRIORITY_TO_CRITERION[priorityId];
+    const sourcePriority = sourcePriorities.find(
+      (priority) => priority.criterionName === criterionName,
+    );
+
+    return sourcePriority
+      ? { criterionId: sourcePriority.criterionId, priorityOrder: index + 1 }
+      : null;
+  });
+
+  if (priorities.some((priority) => priority === null)) {
+    return null;
+  }
+
+  return {
+    priorities: priorities as NonNullable<(typeof priorities)[number]>[],
   };
 }
 
