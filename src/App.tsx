@@ -930,6 +930,20 @@ function StudentApplicationDetailRoute() {
   const [isDetailLoading, setIsDetailLoading] = useState(true);
   const [isOfferActionPending, setIsOfferActionPending] = useState(false);
   const [isWithdrawalPending, setIsWithdrawalPending] = useState(false);
+  const [currentTime, setCurrentTime] = useState<number | null>(null);
+
+  useEffect(() => {
+    const updateCurrentTime = () => {
+      setCurrentTime(Date.now());
+    };
+
+    updateCurrentTime();
+    const intervalId = window.setInterval(updateCurrentTime, 1_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   useEffect(() => {
     if (!applicationId) return;
@@ -977,7 +991,8 @@ function StudentApplicationDetailRoute() {
     application.offerId !== undefined &&
     responseDeadline !== null &&
     responseDeadline !== undefined &&
-    new Date(responseDeadline).getTime() > Date.now();
+    currentTime !== null &&
+    new Date(responseDeadline).getTime() > currentTime;
 
   const handleOfferAction = async (action: 'accept' | 'decline') => {
     if (
@@ -1465,13 +1480,11 @@ function StudentMatchingConditionLayout() {
   };
 
   const saveIndustry = async (industries: IndustryId[], industry: string) => {
-    const requestBody = matchingPreferences
-      ? mapIndustrySelectionToUpdateRequest(
-          industries,
-          industry,
-          false,
-        )
-      : null;
+    const requestBody = mapIndustrySelectionToUpdateRequest(
+      industries,
+      industry,
+      false,
+    );
 
     if (!requestBody) {
       return false;

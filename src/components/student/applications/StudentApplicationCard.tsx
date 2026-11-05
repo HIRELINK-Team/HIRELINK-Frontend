@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 import type { StudentApplicationCardModel } from '../../../types/studentApplication';
 import hiredStatusDotIcon from '../../../assets/icons/student/applications/hired-status-dot.svg';
 import offerStatusDotIcon from '../../../assets/icons/student/applications/offer-status-dot.svg';
@@ -35,6 +37,21 @@ function OfferWaitingApplicationCard({
   onDeclineOffer,
   onDetailClick,
 }: OfferWaitingApplicationCardProps) {
+  const [currentTime, setCurrentTime] = useState<number | null>(null);
+
+  useEffect(() => {
+    const updateCurrentTime = () => {
+      setCurrentTime(Date.now());
+    };
+
+    updateCurrentTime();
+    const intervalId = window.setInterval(updateCurrentTime, 1_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   const canRespondToOffer =
     application.apiStatus === 'OFFERED' &&
     application.offerStatus === 'PENDING' &&
@@ -42,7 +59,8 @@ function OfferWaitingApplicationCard({
     application.offerId !== undefined &&
     application.studentResponseDeadline !== null &&
     application.studentResponseDeadline !== undefined &&
-    new Date(application.studentResponseDeadline).getTime() > Date.now();
+    currentTime !== null &&
+    new Date(application.studentResponseDeadline).getTime() > currentTime;
 
   return (
     <article className="relative mx-auto h-[223px] w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
