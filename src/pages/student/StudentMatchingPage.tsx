@@ -297,7 +297,6 @@ export default function StudentMatchingPage({
       </section>
 
       <StudentBottomNavigation
-        activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="matching"
         bottomOffsetClassName="bottom-[31px]"
         isFixed={isBottomNavigationFixed}

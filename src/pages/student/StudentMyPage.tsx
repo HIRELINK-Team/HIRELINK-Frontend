@@ -228,7 +228,6 @@ export default function StudentMyPage({
       ) : null}
 
       <StudentBottomNavigation
-        activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="my"
         bottomOffsetClassName={
           isBottomNavigationFixed ? 'bottom-9' : 'bottom-[22px]'

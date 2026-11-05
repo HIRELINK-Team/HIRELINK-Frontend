@@ -185,7 +185,6 @@ export default function StudentApplicationsPage({
       </div>
       <div className="relative h-[106px] shrink-0">
         <StudentBottomNavigation
-          activeBackgroundClassName="bg-[#E5E8EB]/90"
           activeTab="applications"
           isFixed={isBottomNavigationFixed}
           onTabChange={onTabChange}
