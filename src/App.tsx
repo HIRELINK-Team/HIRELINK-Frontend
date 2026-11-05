@@ -157,8 +157,12 @@ type StudentDocumentRouteContext = {
 
 type StudentApplicationsRouteContext = {
   applications: StudentApplicationCardModel[];
-  acceptOffer: (applicationId: string) => void;
-  declineOffer: (applicationId: string) => void;
+  acceptOffer: (
+    offerId: number,
+  ) => Promise<StudentApplicationCardModel[] | null>;
+  declineOffer: (
+    offerId: number,
+  ) => Promise<StudentApplicationCardModel[] | null>;
   isApplicationsLoading: boolean;
   syncApplicationDetail: (application: StudentApplicationCardModel) => void;
   withdrawApplication: (
@@ -706,6 +710,12 @@ function StudentApplicationsLayout() {
     return response.applications.map(mapStudentApplicationToCardModel);
   }, []);
 
+  const refreshApplications = useCallback(async () => {
+    const nextApplications = await fetchApplications();
+    setApplications(nextApplications);
+    return nextApplications;
+  }, [fetchApplications]);
+
   useEffect(() => {
     let isActive = true;
 
@@ -740,42 +750,29 @@ function StudentApplicationsLayout() {
 
     try {
       await withdrawStudentApplication(application.applicationId);
-      const nextApplications = await fetchApplications();
-      setApplications(nextApplications);
+      await refreshApplications();
       return true;
     } catch {
       return false;
     }
   };
 
-  const acceptOffer = (applicationId: string) => {
-    setApplications((currentApplications) =>
-      currentApplications.map((application) =>
-        application.id === applicationId
-          ? {
-              ...application,
-              expiresAt: undefined,
-              status: 'HIRED',
-              timerLabel: undefined,
-            }
-          : application,
-      ),
-    );
+  const acceptOffer = async (offerId: number) => {
+    try {
+      await acceptStudentEmploymentOffer(offerId);
+      return await refreshApplications();
+    } catch {
+      return null;
+    }
   };
 
-  const declineOffer = (applicationId: string) => {
-    setApplications((currentApplications) =>
-      currentApplications.map((application) =>
-        application.id === applicationId
-          ? {
-              ...application,
-              expiresAt: undefined,
-              status: 'REJECTED',
-              timerLabel: undefined,
-            }
-          : application,
-      ),
-    );
+  const declineOffer = async (offerId: number) => {
+    try {
+      await rejectStudentEmploymentOffer(offerId);
+      return await refreshApplications();
+    } catch {
+      return null;
+    }
   };
 
   const syncApplicationDetail = useCallback(
@@ -819,13 +816,7 @@ function StudentApplicationsRoute() {
           return false;
         }
 
-        try {
-          await acceptStudentEmploymentOffer(application.offerId);
-          acceptOffer(application.id);
-          return true;
-        } catch {
-          return false;
-        }
+        return (await acceptOffer(application.offerId)) !== null;
       }}
       onBack={() => navigate('/student/home')}
       onDeclineOffer={async (application) => {
@@ -833,13 +824,7 @@ function StudentApplicationsRoute() {
           return false;
         }
 
-        try {
-          await rejectStudentEmploymentOffer(application.offerId);
-          declineOffer(application.id);
-          return true;
-        } catch {
-          return false;
-        }
+        return (await declineOffer(application.offerId)) !== null;
       }}
       onDetailClick={(application) => {
         if (application.status === 'HIRED') {
@@ -931,17 +916,23 @@ function StudentApplicationDetailRoute() {
     setIsOfferActionPending(true);
 
     try {
-      if (action === 'accept') {
-        await acceptStudentEmploymentOffer(offerId);
-        acceptOffer(application.id);
-      } else {
-        await rejectStudentEmploymentOffer(offerId);
-        declineOffer(application.id);
+      const nextApplications =
+        action === 'accept'
+          ? await acceptOffer(offerId)
+          : await declineOffer(offerId);
+
+      if (nextApplications === null) return;
+
+      const updatedApplication = nextApplications.find(
+        (candidate) => candidate.id === application.id,
+      );
+
+      if (updatedApplication) {
+        setApplication(updatedApplication);
+        syncApplicationDetail(updatedApplication);
       }
 
       navigate('/student/applications');
-    } catch {
-      // Keep the confirmed detail state when the offer action fails.
     } finally {
       setIsOfferActionPending(false);
     }
