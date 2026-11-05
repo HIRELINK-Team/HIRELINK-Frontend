@@ -10,7 +10,7 @@ import type {
 export async function createStudentRecommendations(): Promise<CreateStudentRecommendationsResponse> {
   // Student-only endpoint. The server creates at most three recommendations.
   const { data } = await apiClient.post<CreateStudentRecommendationsResponse>(
-    '/api/recommendations',
+    '/recommendations',
   );
 
   return data;
@@ -18,7 +18,7 @@ export async function createStudentRecommendations(): Promise<CreateStudentRecom
 
 export async function getStudentRecommendations(): Promise<StudentRecommendationsResponse> {
   const { data } = await apiClient.get<StudentRecommendationsResponse>(
-    '/api/recommendations',
+    '/recommendations',
   );
 
   return data;
@@ -29,7 +29,7 @@ export async function getStudentRecommendation(
 ): Promise<StudentRecommendationDetailResponse> {
   // Only a valid recommendation in the student's latest batch is accessible.
   const { data } = await apiClient.get<StudentRecommendationDetailResponse>(
-    `/api/recommendations/${encodeURIComponent(String(recommendationId))}`,
+    `/recommendations/${encodeURIComponent(String(recommendationId))}`,
   );
 
   return data;
@@ -38,7 +38,7 @@ export async function getStudentRecommendation(
 export async function refreshStudentRecommendations(): Promise<StudentRecommendationRefreshResponse> {
   // The server creates a new batch only when a refresh is required.
   const { data } = await apiClient.post<StudentRecommendationRefreshResponse>(
-    '/api/recommendations/refresh',
+    '/recommendations/refresh',
   );
 
   return data;

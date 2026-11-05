@@ -23,6 +23,7 @@ import {
   getEmploymentMatch,
   getMyEmploymentMatches,
   getStudentProfile,
+  getStudentRecommendation,
   getStudentRecommendations,
   loginStudent,
   refreshAccessToken,
@@ -671,14 +672,22 @@ function StudentMatchingRoute() {
         }
       }}
       onRecommendationDetailRequest={async (job) => {
-        if (job.jobPostingId === undefined) return null;
+        if (job.recommendationId === undefined) return null;
 
         try {
-          const response = await getStudentJobPosting(job.jobPostingId);
+          const recommendation = mapStudentRecommendationToRecommendedJob(
+            await getStudentRecommendation(job.recommendationId),
+          );
+
+          if (recommendation.jobPostingId === undefined) return null;
+
+          const response = await getStudentJobPosting(
+            recommendation.jobPostingId,
+          );
 
           if (response.status !== 'RECRUITING') return null;
 
-          return mapStudentJobPostingToRecommendedJob(job, response);
+          return mapStudentJobPostingToRecommendedJob(recommendation, response);
         } catch {
           return null;
         }
