@@ -1,90 +1,85 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import SelectField from "../../components/common/SelectField";
-import ConfirmModal from "../../components/common/ConfirmModal";
-import Toast from "../../components/common/Toast";
-import EmployerHiredStudentRow from "../../components/employer/EmployerHiredStudentRow";
-import { APPLICANT_JOB_MOCKS } from "../../data/employerApplicantsData";
-import { useEmployerApplicants } from "../../hooks/useEmployerApplicants";
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import SelectField from '../../components/common/SelectField';
+import EmployerHiredStudentRow from '../../components/employer/EmployerHiredStudentRow';
+import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
+import { useEmployerJobs } from '../../hooks/useEmployerJobs';
+import { useEmployerMatches } from '../../hooks/useEmployerMatches';
+import type { JobPostingListItem } from '../../types/jobPosting';
+import { formatJobPostingSummary } from '../../utils/jobPosting';
 
-type DeleteTarget = "ALL" | "SELECTED";
+const ALL_JOBS_VALUE = 'ALL';
+
+function formatJobOption(job: JobPostingListItem) {
+  return `${job.jobRole ?? '직무 미입력'}·${formatJobPostingSummary(job)}`;
+}
+
+function getMatchErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+  if (status === 400) return apiError?.message ?? '조회 조건을 확인해 주세요.';
+  if (status === 401) return '로그인 정보를 확인하지 못했습니다.';
+  if (status === 403) return '채용 유학생을 조회할 권한이 없습니다.';
+  if (status === 404) return '채용공고를 찾지 못했습니다.';
+  if (status && status >= 500)
+    return '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+  return apiError?.message ?? '채용 유학생을 불러오지 못했습니다.';
+}
 
 function EmployerHiredStudentsPage() {
   const navigate = useNavigate();
-  const { applicants, removeHiredApplicants } = useEmployerApplicants();
-  const [selectedJobId, setSelectedJobId] = useState(APPLICANT_JOB_MOCKS[0].id);
+  const { jobs, loadJobs } = useEmployerJobs();
+  const { matches, loadMatches } = useEmployerMatches();
+  const [selectedJobValue, setSelectedJobValue] =
+    useState<string>(ALL_JOBS_VALUE);
   const [isJobSelectOpen, setIsJobSelectOpen] = useState(false);
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [selectedApplicationIds, setSelectedApplicationIds] = useState<
-    Set<string>
-  >(new Set());
-  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const selectableJobs = useMemo(
+    () => jobs.filter((job) => job.status !== 'DRAFT'),
+    [jobs],
+  );
+  const jobOptions = useMemo(
+    () => [
+      { value: ALL_JOBS_VALUE, label: '전체 채용공고' },
+      ...selectableJobs.map((job) => ({
+        value: String(job.jobPostingId),
+        label: formatJobOption(job),
+      })),
+    ],
+    [selectableJobs],
+  );
 
   useEffect(() => {
-    if (!toastMessage) return;
+    void loadJobs().catch(() => undefined);
+  }, [loadJobs]);
 
-    const timeoutId = window.setTimeout(() => setToastMessage(null), 4000);
-    return () => window.clearTimeout(timeoutId);
-  }, [toastMessage]);
+  useEffect(() => {
+    let isActive = true;
+    const parsedJobPostingId = Number(selectedJobValue);
+    const jobPostingId =
+      selectedJobValue === ALL_JOBS_VALUE ||
+      !Number.isInteger(parsedJobPostingId)
+        ? undefined
+        : parsedJobPostingId;
 
-  const hiredStudents = useMemo(
-    () =>
-      applicants.filter(
-        (applicant) =>
-          applicant.status === "HIRED" && applicant.jobId === selectedJobId,
-      ),
-    [applicants, selectedJobId],
-  );
-  const selectedJob = APPLICANT_JOB_MOCKS.find(
-    (job) => job.id === selectedJobId,
-  );
-  const selectedCount = selectedApplicationIds.size;
-  const isAllSelected =
-    hiredStudents.length > 0 && selectedCount === hiredStudents.length;
-  const deleteCount =
-    deleteTarget === "ALL" ? hiredStudents.length : selectedCount;
+    loadMatches(jobPostingId)
+      .catch((error: unknown) => {
+        if (isActive) setLoadError(getMatchErrorMessage(error));
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false);
+      });
+    return () => {
+      isActive = false;
+    };
+  }, [loadMatches, selectedJobValue]);
 
-  const handleJobChange = (nextJobId: string) => {
-    setSelectedJobId(nextJobId);
-    setIsJobSelectOpen(false);
-    setIsSelectionMode(false);
-    setSelectedApplicationIds(new Set());
-  };
-
-  const handleToggleSelectionMode = () => {
-    setIsSelectionMode((currentValue) => !currentValue);
-    setSelectedApplicationIds(new Set());
-  };
-
-  const handleSelect = (applicationId: string) => {
-    setSelectedApplicationIds((currentIds) => {
-      const nextIds = new Set(currentIds);
-      if (nextIds.has(applicationId)) nextIds.delete(applicationId);
-      else nextIds.add(applicationId);
-      return nextIds;
-    });
-  };
-
-  const handleSelectAll = () => {
-    setSelectedApplicationIds(
-      isAllSelected
-        ? new Set()
-        : new Set(hiredStudents.map((student) => student.id)),
-    );
-  };
-
-  const handleConfirmDelete = () => {
-    const applicationIds =
-      deleteTarget === "ALL"
-        ? hiredStudents.map((student) => student.id)
-        : [...selectedApplicationIds];
-
-    removeHiredApplicants(applicationIds);
-    setDeleteTarget(null);
-    setSelectedApplicationIds(new Set());
-    setIsSelectionMode(false);
-    setToastMessage(`${applicationIds.length}명을 삭제했어요.`);
+  const handleJobChange = (value: string) => {
+    setIsLoading(true);
+    setLoadError(null);
+    setSelectedJobValue(value);
   };
 
   return (
@@ -94,120 +89,55 @@ function EmployerHiredStudentsPage() {
           채용 유학생
         </h1>
         <p className="mt-1.5 text-xl leading-6 font-semibold text-black/60">
-          최종 매칭된 유학생과 자격 만료일을 확인합니다
+          최종 매칭된 유학생과 채용 정보를 확인합니다
         </p>
       </header>
 
-      <div className="mt-7 flex w-full items-end justify-between gap-6">
-        <div className="relative w-[360px] max-w-full">
-          <SelectField
-            value={selectedJobId}
-            options={APPLICANT_JOB_MOCKS.map((job) => ({
-              value: job.id,
-              label: job.label,
-            }))}
-            placeholder="공고를 선택해 주세요"
-            ariaLabel="채용 공고 선택"
-            isOpen={isJobSelectOpen}
-            onOpenChange={setIsJobSelectOpen}
-            onChange={handleJobChange}
-            variant="compact"
-          />
-        </div>
-
-        <div className="flex shrink-0 items-center gap-2">
-          {isSelectionMode ? (
-            <>
-              <button
-                type="button"
-                onClick={handleSelectAll}
-                disabled={hiredStudents.length === 0}
-                className="h-8 min-w-24 cursor-pointer rounded-lg border border-[rgba(112,115,124,0.32)] bg-white px-3 text-sm font-medium text-[#171719] hover:bg-[#f4f4f5] disabled:cursor-not-allowed disabled:text-[#aeb4bc]"
-              >
-                {isAllSelected ? "전체 해제" : "전체 선택"}
-              </button>
-              <button
-                type="button"
-                onClick={handleToggleSelectionMode}
-                className="h-8 w-24 cursor-pointer rounded-lg border border-[rgba(112,115,124,0.32)] bg-white text-sm font-medium text-[#171719] hover:bg-[#f4f4f5]"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeleteTarget("SELECTED")}
-                disabled={selectedCount === 0}
-                className="h-8 min-w-[140px] cursor-pointer rounded-lg bg-[#008f73] px-4 text-sm font-semibold text-white hover:bg-[#007d65] disabled:cursor-not-allowed disabled:bg-[#c7cbd1]"
-              >
-                선택 삭제 ({selectedCount})
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={handleToggleSelectionMode}
-                disabled={hiredStudents.length === 0}
-                className="h-8 w-24 cursor-pointer rounded-lg border border-[rgba(112,115,124,0.32)] bg-white text-sm font-medium text-[#171719] hover:bg-[#f4f4f5] disabled:cursor-not-allowed disabled:text-[#aeb4bc]"
-              >
-                선택
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeleteTarget("ALL")}
-                disabled={hiredStudents.length === 0}
-                className="h-8 w-24 cursor-pointer rounded-lg border border-[rgba(112,115,124,0.32)] bg-white text-sm font-medium text-[#171719] hover:bg-[#f4f4f5] disabled:cursor-not-allowed disabled:text-[#aeb4bc]"
-              >
-                모두 삭제
-              </button>
-            </>
-          )}
-        </div>
+      <div className="mt-7 w-[430px] max-w-full">
+        <SelectField
+          value={selectedJobValue}
+          options={jobOptions}
+          placeholder="공고를 선택해 주세요"
+          ariaLabel="채용 공고 선택"
+          isOpen={isJobSelectOpen}
+          onOpenChange={setIsJobSelectOpen}
+          onChange={handleJobChange}
+          variant="compact"
+        />
       </div>
 
       <section className="mt-4 space-y-3" aria-label="채용 유학생 목록">
-        {hiredStudents.map((student) => (
-          <EmployerHiredStudentRow
-            key={student.id}
-            applicant={student}
-            jobSummary={selectedJob?.hiredSummary ?? "공고 정보 없음"}
-            isSelectionMode={isSelectionMode}
-            isSelected={selectedApplicationIds.has(student.id)}
-            onSelect={handleSelect}
-            onViewDetails={(applicationId) =>
-              navigate(`/employer/hired/${applicationId}`)
-            }
-          />
-        ))}
+        {!isLoading &&
+          !loadError &&
+          matches.map((match) => (
+            <EmployerHiredStudentRow
+              key={match.matchId}
+              match={match}
+              onViewDetails={(matchId) =>
+                navigate(`/employer/hired/${matchId}`)
+              }
+            />
+          ))}
 
-        {hiredStudents.length === 0 && (
+        {isLoading && (
+          <div className="flex h-40 items-center justify-center rounded-xl bg-white text-sm text-[#70737c]">
+            채용 유학생을 불러오는 중이에요.
+          </div>
+        )}
+        {!isLoading && loadError && (
+          <div
+            role="alert"
+            className="flex h-40 items-center justify-center rounded-xl border border-dashed border-[#e05260] text-sm text-[#e11e1e]"
+          >
+            {loadError}
+          </div>
+        )}
+        {!isLoading && !loadError && matches.length === 0 && (
           <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-[#c7cbd1] text-sm text-[#70737c]">
-            이 공고로 채용된 유학생이 없어요.
+            채용 완료된 유학생이 없어요.
           </div>
         )}
       </section>
-
-      {deleteTarget && (
-        <ConfirmModal
-          title={
-            deleteTarget === "ALL"
-              ? "채용 유학생을 모두 삭제할까요?"
-              : `채용 유학생 ${deleteCount}명을 삭제할까요?`
-          }
-          cancelLabel="취소"
-          confirmLabel={deleteTarget === "ALL" ? "모두 삭제" : "삭제"}
-          onCancel={() => setDeleteTarget(null)}
-          onConfirm={handleConfirmDelete}
-        >
-          <p className="mt-4 text-base leading-6 text-[#70737c]">
-            목록에서 사라지고, 유학생 연락처도 함께 사라져요.
-            <br />
-            삭제하면 서류 만료 알림도 받을 수 없으며 다시 되돌릴 수 없어요.
-          </p>
-        </ConfirmModal>
-      )}
-
-      {toastMessage && <Toast message={toastMessage} />}
     </div>
   );
 }

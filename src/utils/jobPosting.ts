@@ -1,5 +1,6 @@
 import type {
   JobPostingListItem,
+  JobPostingWageType,
   JobPostingWorkTime,
 } from '../types/jobPosting';
 import {
@@ -100,10 +101,14 @@ export function jobPostingWorkTimesToSchedule(
   return schedule;
 }
 
+export function formatWage(wageType: JobPostingWageType, wageAmount: number) {
+  const typeLabel = wageType === 'HOURLY' ? '시급' : '월급';
+  return `${typeLabel} ${wageAmount.toLocaleString('ko-KR')}원`;
+}
+
 export function formatJobPostingWage(job: JobPostingListItem) {
   if (!job.wageType || job.wageAmount === null) return '급여 미입력';
-  const typeLabel = job.wageType === 'HOURLY' ? '시급' : '월급';
-  return `${typeLabel} ${job.wageAmount.toLocaleString('ko-KR')}원`;
+  return formatWage(job.wageType, job.wageAmount);
 }
 
 export function formatJobPostingSummary(job: JobPostingListItem) {

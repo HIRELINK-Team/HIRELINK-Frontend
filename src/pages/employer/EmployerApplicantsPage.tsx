@@ -297,11 +297,18 @@ function EmployerApplicantsPage() {
               isMutating={mutatingApplicationIds.includes(
                 applicant.applicationId,
               )}
-              onViewDetails={(selectedApplicant) =>
+              onViewDetails={(selectedApplicant) => {
+                if (
+                  selectedApplicant.status === 'COMPLETED' &&
+                  selectedApplicant.matchId !== null
+                ) {
+                  navigate(`/employer/hired/${selectedApplicant.matchId}`);
+                  return;
+                }
                 navigate(
                   `/employer/applicants/${selectedApplicant.applicationId}`,
-                )
-              }
+                );
+              }}
               onReject={(selectedApplicant) =>
                 setPendingAction({
                   type: 'REJECT',

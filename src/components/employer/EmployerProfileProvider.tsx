@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  createEmployerProfile as requestEmployerProfileCreation,
   getEmployerProfile,
   updateEmployerProfile as requestEmployerProfileUpdate,
 } from '../../api/employers';
@@ -14,6 +15,7 @@ import { subscribeToAuthInvalidation } from '../../api/accessToken';
 import { EMPLOYER_PROFILE_MOCK } from '../../data/employerProfileData';
 import { EmployerProfileContext } from '../../hooks/useEmployerProfile';
 import type {
+  CreateEmployerProfileRequest,
   EmployerProfile,
   EmployerProfileResponse,
   UpdateEmployerProfileRequest,
@@ -90,13 +92,23 @@ function EmployerProfileProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const createProfile = useCallback(
+    async (request: CreateEmployerProfileRequest) => {
+      const response = await requestEmployerProfileCreation(request);
+      loadedProfileRef.current = response;
+      setProfile((current) => mergeProfileResponse(current, response));
+      return response;
+    },
+    [],
+  );
+
   const updateProfile = useCallback((nextProfile: EmployerProfile) => {
     setProfile(cloneProfile(nextProfile));
   }, []);
 
   const value = useMemo(
-    () => ({ profile, loadProfile, saveProfile, updateProfile }),
-    [loadProfile, profile, saveProfile, updateProfile],
+    () => ({ profile, loadProfile, createProfile, saveProfile, updateProfile }),
+    [createProfile, loadProfile, profile, saveProfile, updateProfile],
   );
 
   return (

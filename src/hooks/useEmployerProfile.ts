@@ -1,5 +1,7 @@
 import { createContext, useContext } from 'react';
 import type {
+  CreateEmployerProfileRequest,
+  CreateEmployerProfileResponse,
   EmployerProfile,
   EmployerProfileResponse,
   UpdateEmployerProfileRequest,
@@ -8,6 +10,9 @@ import type {
 interface EmployerProfileContextValue {
   profile: EmployerProfile;
   loadProfile: () => Promise<EmployerProfileResponse>;
+  createProfile: (
+    request: CreateEmployerProfileRequest,
+  ) => Promise<CreateEmployerProfileResponse>;
   saveProfile: (
     request: UpdateEmployerProfileRequest,
   ) => Promise<EmployerProfileResponse>;

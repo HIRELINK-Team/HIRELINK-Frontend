@@ -1,4 +1,4 @@
-export type UserRole = "STUDENT" | "EMPLOYER";
+export type UserRole = 'STUDENT' | 'EMPLOYER';
 
 export interface LoginRequest {
   email: string;
@@ -9,7 +9,7 @@ export interface LoginResponse {
   userId: number;
   role: UserRole;
   accessToken: string;
-  tokenType: "Bearer";
+  tokenType: 'Bearer';
   expiresIn: number;
 }
 
@@ -20,7 +20,7 @@ export interface CsrfResponse {
 
 export interface RefreshResponse {
   accessToken: string;
-  tokenType: "Bearer";
+  tokenType: 'Bearer';
   expiresIn: number;
 }
 
@@ -36,4 +36,24 @@ export interface ApiErrorResponse {
 export interface AuthenticatedUser {
   userId: number;
   role: UserRole;
+}
+
+export interface RequestPhoneVerificationRequest {
+  phoneNumber: string;
+}
+
+export interface RequestPhoneVerificationResponse {
+  expiresIn: number;
+  message: string;
+}
+
+export interface VerifyPhoneRequest {
+  phoneNumber: string;
+  code: string;
+}
+
+export interface VerifyPhoneResponse {
+  phoneNumber: string;
+  verifiedAt: string;
+  message: string;
 }

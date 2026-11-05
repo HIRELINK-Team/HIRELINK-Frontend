@@ -27,11 +27,10 @@ interface EmployerApplicantsContextValue {
     applicationId: number,
     jobPostingId: number,
   ) => Promise<CreateEmploymentOfferResponse>;
-  /** 아직 Backend Match API 범위 밖인 Dashboard/Hired 화면용 legacy mock state입니다. */
+  /** 아직 Backend Application API 범위 밖인 Dashboard용 legacy mock state입니다. */
   applicants: EmployerApplicantMock[];
   offerApplicant: (applicationId: string) => void;
   rejectApplicant: (applicationId: string) => void;
-  removeHiredApplicants: (applicationIds: string[]) => void;
 }
 
 const EmployerApplicantsContext =

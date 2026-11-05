@@ -30,5 +30,4 @@ export const BETA_DEFAULT_WORKPLACE_COORDINATES = {
   longitude: 0,
 } as const;
 
-export const MOCK_PHONE_VERIFICATION_CODE = '121221';
 export const MAX_REGISTRATION_FILE_SIZE = 5 * 1024 * 1024;
