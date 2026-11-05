@@ -18,7 +18,6 @@ import {
   createStudentRecommendations,
   createStudentApplication,
   getStudentMatchingPreferences,
-  getStudentRecommendation,
   getMyStudentApplication,
   getMyStudentApplications,
   getEmploymentMatch,
@@ -34,6 +33,7 @@ import {
   updateStudentMatchingPreferences,
   withdrawStudentApplication,
 } from './api/student';
+import { getStudentJobPosting } from './api/jobPostings';
 import {
   mapIndustrySelectionToUpdateRequest,
   mapPriorityOrderToUpdateRequest,
@@ -55,6 +55,7 @@ import {
   mapStudentProfileValuesToUpdateRequest,
 } from './adapters/studentProfile';
 import { mapStudentRecommendationToRecommendedJob } from './adapters/studentRecommendations';
+import { mapStudentJobPostingToRecommendedJob } from './adapters/studentJobPostings';
 import EmployerApplicantsProvider from './components/employer/EmployerApplicantsProvider';
 import EmployerLayout from './components/employer/EmployerLayout';
 import EmployerJobsProvider from './components/employer/EmployerJobsProvider';
@@ -667,11 +668,14 @@ function StudentMatchingRoute() {
         }
       }}
       onRecommendationDetailRequest={async (job) => {
-        if (job.recommendationId === undefined) return null;
+        if (job.jobPostingId === undefined) return null;
 
         try {
-          const response = await getStudentRecommendation(job.recommendationId);
-          return mapStudentRecommendationToRecommendedJob(response);
+          const response = await getStudentJobPosting(job.jobPostingId);
+
+          if (response.status !== 'RECRUITING') return null;
+
+          return mapStudentJobPostingToRecommendedJob(job, response);
         } catch {
           return null;
         }

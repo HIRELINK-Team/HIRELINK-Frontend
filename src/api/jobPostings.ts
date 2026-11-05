@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import type { StudentJobPostingDetail } from '../types/studentJobPosting';
 
 export async function getJobPosting<TResponse = unknown>(
   jobPostingId: string | number,
@@ -8,4 +9,8 @@ export async function getJobPosting<TResponse = unknown>(
   );
 
   return data;
+}
+
+export function getStudentJobPosting(jobPostingId: string | number) {
+  return getJobPosting<StudentJobPostingDetail>(jobPostingId);
 }
