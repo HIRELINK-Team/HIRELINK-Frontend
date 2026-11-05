@@ -102,7 +102,6 @@ import StudentSplashPage from './pages/student/StudentSplashPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
 import { formatWorkAvailabilityRanges } from './utils/formatWorkAvailability';
-import { STUDENT_RECOMMENDED_JOBS } from './mocks/studentMatching';
 import StudentMatchingConditionIndustryPage from './pages/student/StudentMatchingConditionIndustryPage';
 import StudentMatchingConditionLocationPage from './pages/student/StudentMatchingConditionLocationPage';
 import StudentMatchingConditionPriorityPage from './pages/student/StudentMatchingConditionPriorityPage';
@@ -114,11 +113,7 @@ import type { StudentDocument } from './types/studentDocument';
 import type { IndustryId } from './types/industry';
 import type { MatchingPriorityId } from './types/matchingPriority';
 import type { StudentMatchingPreferencesResponse } from './types/studentMatchingPreferences';
-import type {
-  RecommendedJob,
-  StudentMatchingView,
-  StudentOfferAction,
-} from './types/studentMatching';
+import type { RecommendedJob } from './types/studentMatching';
 import type {
   StudentNotificationId,
   StudentNotificationSettings,
@@ -135,8 +130,6 @@ import type { WorkLocation } from './types/workLocation';
 const SPLASH_DURATION_MS = 1200;
 const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
   'hirelink.student.documents.guideAcknowledged';
-const STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY =
-  'hirelink.student.matching.offerHandled';
 const PUBLIC_STUDENT_ROUTES = new Set([
   '/student',
   '/student/entry',
@@ -265,19 +258,10 @@ function isStudentProfileUpdateResponse(
   );
 }
 
-type StudentMatchingJobState = 'accepted' | 'applied' | 'declined';
-
 type StudentMatchingRouteContext = {
-  acceptedJob: RecommendedJob | null;
   isRecommendationsLoading: boolean;
-  mockOfferJob: RecommendedJob | null;
   recommendations: RecommendedJob[];
-  recordViewChange: (
-    view: Exclude<StudentMatchingView, 'result'>,
-    job: RecommendedJob,
-  ) => void;
   refreshRecommendations: () => Promise<boolean>;
-  updateOfferState: (action: StudentOfferAction, job: RecommendedJob) => void;
 };
 
 type StudentDocumentRouteConfig = {
@@ -559,20 +543,10 @@ function StudentHomeRoute() {
 }
 
 function StudentMatchingLayout() {
-  const [acceptedJob, setAcceptedJob] = useState<RecommendedJob | null>(null);
   const [recommendations, setRecommendations] = useState<RecommendedJob[]>([]);
   const [isRecommendationsLoading, setIsRecommendationsLoading] =
     useState(true);
   const initialRecommendationRequestRef = useRef<Promise<unknown> | null>(null);
-  const [mockOfferJob, setMockOfferJob] = useState<RecommendedJob | null>(() =>
-    sessionStorage.getItem(STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY) ===
-    'true'
-      ? null
-      : (STUDENT_RECOMMENDED_JOBS[0] ?? null),
-  );
-  const [, setJobStates] = useState<Record<string, StudentMatchingJobState>>(
-    {},
-  );
 
   const loadRecommendations = useCallback(async () => {
     let response = await getStudentRecommendations();
@@ -633,51 +607,13 @@ function StudentMatchingLayout() {
     }
   };
 
-  const recordViewChange = (
-    view: Exclude<StudentMatchingView, 'result'>,
-    job: RecommendedJob,
-  ) => {
-    if (view === 'complete') {
-      setJobStates((currentStates) => ({
-        ...currentStates,
-        [job.id]: 'applied',
-      }));
-    }
-  };
-
-  const updateOfferState = (
-    action: StudentOfferAction,
-    job: RecommendedJob,
-  ) => {
-    setJobStates((currentStates) => ({
-      ...currentStates,
-      [job.id]: action === 'accept' ? 'accepted' : 'declined',
-    }));
-
-    if (mockOfferJob?.id === job.id) {
-      sessionStorage.setItem(
-        STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY,
-        'true',
-      );
-      setMockOfferJob(null);
-    }
-
-    if (action === 'accept') {
-      setAcceptedJob(job);
-    }
-  };
-
   return (
     <Outlet
       context={
         {
-          acceptedJob,
           isRecommendationsLoading,
-          mockOfferJob,
           recommendations,
-          recordViewChange,
           refreshRecommendations,
-          updateOfferState,
         } satisfies StudentMatchingRouteContext
       }
     />
@@ -686,19 +622,11 @@ function StudentMatchingLayout() {
 
 function StudentMatchingRoute() {
   const navigate = useNavigate();
-  const {
-    isRecommendationsLoading,
-    mockOfferJob,
-    recommendations,
-    recordViewChange,
-    refreshRecommendations,
-    updateOfferState,
-  } = useOutletContext<StudentMatchingRouteContext>();
+  const { isRecommendationsLoading, recommendations, refreshRecommendations } =
+    useOutletContext<StudentMatchingRouteContext>();
 
   return (
     <StudentMatchingPage
-      initialSelectedJob={mockOfferJob}
-      initialView={mockOfferJob ? 'offer' : 'result'}
       isRecommendationsLoading={isRecommendationsLoading}
       onApplicationSubmit={async (job, desiredStartDate) => {
         if (job.jobPostingId === undefined) {
@@ -718,13 +646,6 @@ function StudentMatchingRoute() {
         }
       }}
       onBack={() => navigate('/student/home')}
-      onOfferAction={(action, job) => {
-        updateOfferState(action, job);
-
-        if (action === 'accept') {
-          navigate('/student/applications');
-        }
-      }}
       onRecommendationDetailRequest={async (job) => {
         if (job.recommendationId === undefined) return null;
 
@@ -753,7 +674,6 @@ function StudentMatchingRoute() {
       }}
       onRecommendationRefresh={refreshRecommendations}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
-      onViewChange={recordViewChange}
       recommendations={recommendations}
     />
   );
@@ -919,16 +839,12 @@ function StudentApplicationDetailRoute() {
   const { applicationId } = useParams();
   const {
     acceptOffer,
-    applications,
     declineOffer,
     syncApplicationDetail,
     withdrawApplication,
   } = useOutletContext<StudentApplicationsRouteContext>();
-  const fallbackApplication = applications.find(
-    (application) => application.id === applicationId,
-  );
   const [application, setApplication] =
-    useState<StudentApplicationCardModel | null>(fallbackApplication ?? null);
+    useState<StudentApplicationCardModel | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(true);
   const [isOfferActionPending, setIsOfferActionPending] = useState(false);
   const [isWithdrawalPending, setIsWithdrawalPending] = useState(false);
@@ -962,7 +878,7 @@ function StudentApplicationDetailRoute() {
         syncApplicationDetail(mappedApplication);
       })
       .catch(() => {
-        // Keep list data as a fallback when the detail request fails.
+        if (isActive) setApplication(null);
       })
       .finally(() => {
         if (isActive) {

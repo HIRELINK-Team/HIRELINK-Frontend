@@ -2,9 +2,7 @@ import type { RecommendedJob } from './studentMatching';
 import type { SalaryType } from './jobForm';
 
 export type StudentApplicationApiStatus =
-  | 'WAITING_RESPONSE'
-  | 'OFFERED'
-  | 'COMPLETED';
+  'WAITING_RESPONSE' | 'OFFERED' | 'COMPLETED';
 
 export type StudentApplicationDetailStatus =
   'WAITING_RESPONSE' | 'OFFERED' | 'COMPLETED' | 'ENDED';
@@ -86,15 +84,19 @@ export type WithdrawStudentApplicationResponse = {
 };
 
 export type AcceptStudentEmploymentOfferResponse = {
+  offerId: number;
+  applicationId: number;
   offerStatus: 'ACCEPTED';
-  status: 'COMPLETED';
+  applicationStatus: 'COMPLETED';
   respondedAt: string;
   matchId: number;
 };
 
 export type RejectStudentEmploymentOfferResponse = {
+  offerId: number;
+  applicationId: number;
   offerStatus: 'REJECTED';
-  status: 'ENDED';
+  applicationStatus: 'ENDED';
   endReason: 'STUDENT_REJECTED';
   respondedAt: string;
   endedAt: string;

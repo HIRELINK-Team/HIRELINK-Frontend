@@ -16,10 +16,11 @@ export type StudentJobPostingDetail = {
   businessTypeId: number | null;
   businessTypeName: string | null;
   jobRole: string | null;
-  workplace: {
-    name: string;
-    address: string;
-  };
+  workplaceId: number;
+  workplaceName: string;
+  workplaceAddress: string;
+  latitude: number;
+  longitude: number;
   wageType: SalaryType | null;
   wageAmount: number | null;
   recruitmentCount: number | null;

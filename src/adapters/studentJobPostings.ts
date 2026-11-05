@@ -1,15 +1,12 @@
-import type { RecommendedJob } from '../types/studentMatching';
 import type { SalaryType } from '../types/jobForm';
+import type { RecommendedJob } from '../types/studentMatching';
 import type {
   StudentJobPostingDetail,
   StudentJobPostingWorkTime,
 } from '../types/studentJobPosting';
 import { DAY_LABELS } from '../utils/workSchedule';
 
-const WAGE_TYPE_LABELS: Record<
-  SalaryType,
-  string
-> = {
+const WAGE_TYPE_LABELS: Record<SalaryType, string> = {
   HOURLY: '시급',
   MONTHLY: '월급',
 };
@@ -62,11 +59,11 @@ export function mapStudentJobPostingToRecommendedJob(
   return {
     ...recommendation,
     countdownLabel: deadlineLabel,
-    commuteAndWage: `${jobPosting.workplace.address} · ${wageLabel}`,
-    companyName: jobPosting.workplace.name,
+    commuteAndWage: `${jobPosting.workplaceAddress} · ${wageLabel}`,
+    companyName: jobPosting.workplaceName,
     detail: {
       ...recommendation.detail,
-      locationAndDistance: jobPosting.workplace.address,
+      locationAndDistance: jobPosting.workplaceAddress,
       metrics: [
         { label: '급여', value: wageLabel },
         { label: '마감', value: deadlineLabel },

@@ -22,37 +22,31 @@ export default function StudentMatchingConditionLocationPage({
   const [isRadiusMapOpen, setIsRadiusMapOpen] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [locationError, setLocationError] = useState('');
-  const [saveError, setSaveError] = useState('');
 
   const handleCurrentLocationClick = () => {
-    if (!navigator.geolocation) {
-      setLocationError(
-        '현재 위치를 지원하지 않는 환경이에요. 주소를 검색해 주세요.',
-      );
-      return;
-    }
+    if (!navigator.geolocation) return;
 
     setIsLocating(true);
-    setLocationError('');
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        setDraftLocation((currentLocation) => ({
-          ...currentLocation,
-          address: '현재 위치',
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-        }));
-        setIsLocating(false);
-      },
-      () => {
-        setLocationError(
-          '현재 위치를 가져오지 못했어요. 위치 권한을 확인해 주세요.',
-        );
-        setIsLocating(false);
-      },
-      { enableHighAccuracy: true },
-    );
+
+    try {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          setDraftLocation((currentLocation) => ({
+            ...currentLocation,
+            address: '현재 위치',
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          }));
+          setIsLocating(false);
+        },
+        () => {
+          setIsLocating(false);
+        },
+        { enableHighAccuracy: true },
+      );
+    } catch {
+      setIsLocating(false);
+    }
   };
 
   const handleSave = async (): Promise<boolean> => {
@@ -61,12 +55,8 @@ export default function StudentMatchingConditionLocationPage({
     setIsSaving(true);
     try {
       const isSaved = await onSave(draftLocation);
-      if (isSaved === false) {
-        setSaveError('저장하지 못했어요. 주소를 다시 확인한 뒤 시도해주세요.');
-      }
       return isSaved === true;
     } catch {
-      setSaveError('저장하지 못했어요. 잠시 후 다시 시도해주세요.');
       return false;
     } finally {
       setIsSaving(false);
@@ -77,8 +67,6 @@ export default function StudentMatchingConditionLocationPage({
     return (
       <WorkLocationRadiusMap
         address={draftLocation.address}
-        errorMessage={saveError}
-        isConfirming={isSaving}
         radius={draftLocation.radius}
         radiusOptions={[100, 500, 1000]}
         onBack={() => setIsRadiusMapOpen(false)}
@@ -88,7 +76,6 @@ export default function StudentMatchingConditionLocationPage({
             ...currentLocation,
             radius,
           }));
-          setSaveError('');
         }}
       />
     );
@@ -106,7 +93,7 @@ export default function StudentMatchingConditionLocationPage({
       </button>
 
       <h1 className="m-0 mt-[clamp(24px,4.27dvh,36px)] text-[clamp(22px,3.08dvh,26px)] leading-[1.5] font-semibold">
-        원하는 근무 희망위치를
+        원하는 근무 희망 위치를
         <br />
         입력해 주세요.
       </h1>
@@ -126,8 +113,6 @@ export default function StudentMatchingConditionLocationPage({
                 latitude: undefined,
                 longitude: undefined,
               }));
-              setLocationError('');
-              setSaveError('');
             }}
           />
         </span>
@@ -135,19 +120,13 @@ export default function StudentMatchingConditionLocationPage({
 
       <button
         className="mx-[2px] mt-[15px] flex h-[54px] w-[340px] items-center gap-4 rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[23px] text-left text-[17px] leading-[1.5]"
-        disabled={isLocating}
         type="button"
         onClick={handleCurrentLocationClick}
+        disabled={isLocating}
       >
         <img alt="" className="size-[14px]" src={locationIcon} />
         현재 위치로 찾기
       </button>
-
-      {locationError ? (
-        <p aria-live="polite" className="mt-2 text-[14px] text-[#E05260]">
-          {locationError}
-        </p>
-      ) : null}
 
       <button
         className="absolute right-6 bottom-[clamp(20px,4.38dvh,37px)] left-6 h-[clamp(52px,6.75dvh,57px)] rounded-[15px] border-0 bg-[#00B894] text-[clamp(17px,2.37dvh,20px)] leading-[1.5] font-medium text-[#F5F5F5]"

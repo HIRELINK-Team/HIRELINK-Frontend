@@ -46,7 +46,7 @@ function getApplicationsForFilter(
 ) {
   if (filter === 'all') {
     return applications.filter((application) =>
-      ['REVIEWING', 'HIRED'].includes(application.status),
+      ['REVIEWING', 'OFFER_WAITING', 'HIRED'].includes(application.status),
     );
   }
 

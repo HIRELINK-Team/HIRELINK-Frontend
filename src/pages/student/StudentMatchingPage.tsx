@@ -6,18 +6,13 @@ import { RecommendedJobDetail } from '../../components/student/matching/Recommen
 import { RecommendedJobCard } from '../../components/student/matching/RecommendedJobCard';
 import { ApplicationConfirmationStep } from '../../components/student/matching/ApplicationConfirmationStep';
 import { ApplicationCompleteStep } from '../../components/student/matching/ApplicationCompleteStep';
-import { MatchingOfferOverlay } from '../../components/student/matching/MatchingOfferOverlay';
 import { RecommendationRefreshModal } from '../../components/student/matching/RecommendationRefreshModal';
 import { WorkStartDateStep } from '../../components/student/matching/WorkStartDateStep';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
-import {
-  MAX_RECOMMENDED_JOBS,
-  STUDENT_RECOMMENDED_JOBS,
-} from '../../mocks/studentMatching';
+import { MAX_RECOMMENDED_JOBS } from '../../mocks/studentMatching';
 import type { StudentNavigationTab } from '../../types/studentHome';
 import type {
   RecommendedJob,
-  StudentOfferAction,
   StudentMatchingView,
 } from '../../types/studentMatching';
 
@@ -28,7 +23,6 @@ type StudentMatchingPageProps = {
   initialView?: StudentMatchingView;
   isRecommendationsLoading?: boolean;
   onBack?: () => void;
-  onOfferAction?: (action: StudentOfferAction, job: RecommendedJob) => void;
   onRecommendationDetailRequest?: (
     job: RecommendedJob,
   ) => Promise<RecommendedJob | null>;
@@ -53,12 +47,11 @@ export default function StudentMatchingPage({
   isRecommendationsLoading = false,
   onBack,
   onApplicationSubmit,
-  onOfferAction,
   onRecommendationDetailRequest,
   onRecommendationRefresh,
   onTabChange,
   onViewChange,
-  recommendations = STUDENT_RECOMMENDED_JOBS,
+  recommendations = [],
 }: StudentMatchingPageProps) {
   const [matchingView, setMatchingView] =
     useState<StudentMatchingView>(initialView);
@@ -174,17 +167,6 @@ export default function StudentMatchingPage({
 
   const handleCompleteHome = () => {
     onTabChange?.('home');
-  };
-
-  const handleOfferBack = () => {
-    setMatchingView('result');
-  };
-
-  const handleOfferAction = (action: StudentOfferAction) => {
-    if (selectedJob) {
-      onOfferAction?.(action, selectedJob);
-      setMatchingView('result');
-    }
   };
 
   const handleRecommendationRefreshConfirm = async () => {
@@ -318,16 +300,9 @@ export default function StudentMatchingPage({
         activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="matching"
         bottomOffsetClassName="bottom-[31px]"
-        isFixed={isBottomNavigationFixed && matchingView === 'offer'}
+        isFixed={isBottomNavigationFixed}
         onTabChange={handleTabChange}
       />
-      {matchingView === 'offer' && selectedJob ? (
-        <MatchingOfferOverlay
-          job={selectedJob}
-          onAction={handleOfferAction}
-          onBack={handleOfferBack}
-        />
-      ) : null}
       {matchingView === 'result' && isRefreshPopupOpen ? (
         <RecommendationRefreshModal
           isSubmitting={isRecommendationRefreshing}
