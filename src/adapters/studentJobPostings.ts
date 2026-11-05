@@ -1,4 +1,5 @@
 import type { RecommendedJob } from '../types/studentMatching';
+import type { SalaryType } from '../types/jobForm';
 import type {
   StudentJobPostingDetail,
   StudentJobPostingWorkTime,
@@ -6,7 +7,7 @@ import type {
 import { DAY_LABELS } from '../utils/workSchedule';
 
 const WAGE_TYPE_LABELS: Record<
-  StudentJobPostingDetail['wage']['type'],
+  SalaryType,
   string
 > = {
   HOURLY: '시급',
@@ -18,12 +19,16 @@ function formatWorkTime(workTime: StudentJobPostingWorkTime) {
 }
 
 function formatWage(jobPosting: StudentJobPostingDetail) {
-  const { type, amount } = jobPosting.wage;
+  const { wageAmount, wageType } = jobPosting;
 
-  return `${WAGE_TYPE_LABELS[type]} ${amount.toLocaleString('ko-KR')}원`;
+  if (wageType === null || wageAmount === null) return '급여 정보 없음';
+
+  return `${WAGE_TYPE_LABELS[wageType]} ${wageAmount.toLocaleString('ko-KR')}원`;
 }
 
-function formatDeadline(deadline: string) {
+function formatDeadline(deadline: string | null) {
+  if (!deadline) return '마감일 미정';
+
   const today = new Date();
   const todayStart = new Date(
     today.getFullYear(),
@@ -52,7 +57,7 @@ export function mapStudentJobPostingToRecommendedJob(
 ): RecommendedJob {
   const wageLabel = formatWage(jobPosting);
   const workTimeLabels = jobPosting.workTimes.map(formatWorkTime);
-  const deadlineLabel = formatDeadline(jobPosting.deadline);
+  const deadlineLabel = formatDeadline(jobPosting.applicationDeadlineDate);
 
   return {
     ...recommendation,
@@ -68,7 +73,8 @@ export function mapStudentJobPostingToRecommendedJob(
       ],
       tags: workTimeLabels,
     },
-    isCountdownActive: deadlineLabel !== '마감',
-    role: `직무 | ${jobPosting.jobTitle}`,
+    isCountdownActive:
+      jobPosting.applicationDeadlineDate !== null && deadlineLabel !== '마감',
+    role: jobPosting.title ? `직무 | ${jobPosting.title}` : recommendation.role,
   };
 }

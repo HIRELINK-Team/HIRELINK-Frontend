@@ -1,4 +1,4 @@
-import type { SalaryType } from './jobForm';
+import type { KoreanLevelCode, SalaryType } from './jobForm';
 import type { DayOfWeek } from './workSchedule';
 
 export type StudentJobPostingStatus = 'DRAFT' | 'RECRUITING' | 'CLOSED';
@@ -12,15 +12,21 @@ export type StudentJobPostingWorkTime = {
 export type StudentJobPostingDetail = {
   jobPostingId: number;
   status: StudentJobPostingStatus;
-  jobTitle: string;
+  title: string | null;
+  businessTypeId: number | null;
+  businessTypeName: string | null;
+  jobRole: string | null;
   workplace: {
     name: string;
     address: string;
   };
-  wage: {
-    type: SalaryType;
-    amount: number;
-  };
+  wageType: SalaryType | null;
+  wageAmount: number | null;
+  recruitmentCount: number | null;
+  workStartDate: string | null;
+  requiredKoreanLevel: KoreanLevelCode | null;
+  preferredExperience: string | null;
+  workTimeNegotiable: boolean | null;
+  applicationDeadlineDate: string | null;
   workTimes: StudentJobPostingWorkTime[];
-  deadline: string;
 };
