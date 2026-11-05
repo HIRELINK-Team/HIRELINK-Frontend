@@ -309,6 +309,7 @@ const STUDENT_DOCUMENT_ROUTE_CONFIG: Record<
 type MatchingConditionRouteContext = {
   businessTypeFlexible: boolean;
   isMatchingPreferencesLoading: boolean;
+  minimumHourlyWage: number | null;
   otherIndustry: string;
   priorityOrder: MatchingPriorityId[];
   selectedIndustries: IndustryId[];
@@ -1400,9 +1401,10 @@ function StudentProfileDetailRoute({ view }: { view: ProfileDetailView }) {
 }
 
 function StudentMatchingConditionLayout() {
-  const [matchingPreferences, setMatchingPreferences] =
-    useState<StudentMatchingPreferencesResponse | null>(null);
   const [businessTypeFlexible, setBusinessTypeFlexible] = useState(false);
+  const [minimumHourlyWage, setMinimumHourlyWage] = useState<number | null>(
+    null,
+  );
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>(
     [],
   );
@@ -1427,8 +1429,8 @@ function StudentMatchingConditionLayout() {
   ) => {
     const mappedPreferences =
       mapStudentMatchingPreferencesToUiState(preferences);
-    setMatchingPreferences(preferences);
     setBusinessTypeFlexible(mappedPreferences.businessTypeFlexible);
+    setMinimumHourlyWage(mappedPreferences.minimumHourlyWage);
     setSelectedIndustries(mappedPreferences.selectedIndustries);
     setOtherIndustry(mappedPreferences.otherIndustry);
     setPriorityOrder(mappedPreferences.priorityOrder);
@@ -1453,8 +1455,8 @@ function StudentMatchingConditionLayout() {
         );
       })
       .catch(() => {
-        setMatchingPreferences(null);
         setBusinessTypeFlexible(false);
+        setMinimumHourlyWage(null);
         setSelectedIndustries([]);
         setOtherIndustry('');
         setPriorityOrder([]);
@@ -1530,12 +1532,7 @@ function StudentMatchingConditionLayout() {
   };
 
   const savePriorityOrder = async () => {
-    const requestBody = matchingPreferences
-      ? mapPriorityOrderToUpdateRequest(
-          priorityOrder,
-          matchingPreferences.priorities,
-        )
-      : null;
+    const requestBody = mapPriorityOrderToUpdateRequest(priorityOrder);
 
     if (!requestBody) return false;
 
@@ -1554,6 +1551,7 @@ function StudentMatchingConditionLayout() {
         {
           businessTypeFlexible,
           isMatchingPreferencesLoading,
+          minimumHourlyWage,
           otherIndustry,
           priorityOrder,
           selectedIndustries,

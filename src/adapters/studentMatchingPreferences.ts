@@ -15,6 +15,7 @@ import type { WorkLocation } from '../types/workLocation';
 
 export type StudentMatchingPreferencesUiState = {
   businessTypeFlexible: boolean;
+  minimumHourlyWage: number | null;
   otherIndustry: string;
   priorityOrder: MatchingPriorityId[];
   selectedIndustries: IndustryId[];
@@ -55,14 +56,11 @@ const CRITERION_TO_PRIORITY: Record<
   WORK_TIME: 'workTime',
 };
 
-const PRIORITY_TO_CRITERION: Record<
-  MatchingPriorityId,
-  StudentMatchingCriterionName
-> = {
-  distance: 'DISTANCE',
-  industry: 'BUSINESS_TYPE',
-  wage: 'WAGE',
-  workTime: 'WORK_TIME',
+const PRIORITY_TO_CRITERION_ID: Record<MatchingPriorityId, number> = {
+  distance: 3,
+  industry: 4,
+  wage: 2,
+  workTime: 1,
 };
 
 const WEEKDAY_TO_BACKEND = {
@@ -260,35 +258,22 @@ export function mapWorkLocationToUpdateRequest(
 
 export function mapPriorityOrderToUpdateRequest(
   priorityOrder: readonly MatchingPriorityId[],
-  sourcePriorities: ReadonlyArray<
-    StudentMatchingPreferencesResponse['priorities'][number]
-  >,
 ): StudentMatchingPreferencesUpdateRequest | null {
   if (priorityOrder.length !== 4 || new Set(priorityOrder).size !== 4) {
     return null;
   }
 
-  const priorities = priorityOrder.map((priorityId, index) => {
-    const criterionName = PRIORITY_TO_CRITERION[priorityId];
-    const sourcePriority = sourcePriorities.find(
-      (priority) => priority.criterionName === criterionName,
-    );
-
-    return sourcePriority
-      ? { criterionId: sourcePriority.criterionId, priorityOrder: index + 1 }
-      : null;
-  });
-
-  if (priorities.some((priority) => priority === null)) {
-    return null;
-  }
+  const priorities = priorityOrder.map((priorityId, index) => ({
+    criterionId: PRIORITY_TO_CRITERION_ID[priorityId],
+    priorityOrder: index + 1,
+  }));
 
   return {
     priorities: priorities as [
-      NonNullable<(typeof priorities)[number]>,
-      NonNullable<(typeof priorities)[number]>,
-      NonNullable<(typeof priorities)[number]>,
-      NonNullable<(typeof priorities)[number]>,
+      (typeof priorities)[number],
+      (typeof priorities)[number],
+      (typeof priorities)[number],
+      (typeof priorities)[number],
     ],
   };
 }
@@ -407,6 +392,7 @@ export function mapStudentMatchingPreferencesToUiState(
 
   return {
     businessTypeFlexible: preferences.businessTypeFlexible,
+    minimumHourlyWage: preferences.minimumHourlyWage,
     otherIndustry,
     priorityOrder: [...preferences.priorities]
       .sort((first, second) => first.priorityOrder - second.priorityOrder)

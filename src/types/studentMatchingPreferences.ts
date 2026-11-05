@@ -39,7 +39,7 @@ export type StudentMatchingPreferencesResponse = {
 
 export type StudentPreferredJobUpdate = {
   businessTypeId: number;
-  otherJobName?: string | null;
+  otherJobName: string | null;
 };
 
 export type StudentMatchingPriorityUpdate = {
