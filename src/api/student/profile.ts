@@ -19,7 +19,7 @@ export async function createStudentProfile(
 
 export async function getStudentProfile(): Promise<StudentProfileResponse> {
   const { data } = await apiClient.get<StudentProfileResponse>(
-    '/api/students/me/profile',
+    '/students/me/profile',
   );
 
   return data;
@@ -29,7 +29,7 @@ export async function updateStudentProfile(
   requestBody: StudentProfileUpdateRequest,
 ): Promise<StudentProfileResponse> {
   const { data } = await apiClient.patch<StudentProfileResponse>(
-    '/api/students/me/profile',
+    '/students/me/profile',
     requestBody,
   );
 

@@ -22,7 +22,7 @@ export async function loginStudent(
   requestBody: EmailLoginRequest,
 ): Promise<LoginResponse> {
   const { data } = await apiClient.post<LoginResponse>(
-    '/api/auth/login',
+    '/auth/login',
     requestBody,
     { withCredentials: true },
   );
@@ -34,7 +34,7 @@ export async function signupStudent(
   requestBody: EmailSignupRequest,
 ): Promise<SignupResponse> {
   const { data } = await apiClient.post<SignupResponse>(
-    '/api/auth/signup',
+    '/auth/signup',
     requestBody,
     { withCredentials: true },
   );
@@ -43,7 +43,7 @@ export async function signupStudent(
 }
 
 export async function getAuthCsrfToken(): Promise<CsrfTokenResponse> {
-  const { data } = await apiClient.get<CsrfTokenResponse>('/api/auth/csrf', {
+  const { data } = await apiClient.get<CsrfTokenResponse>('/auth/csrf', {
     withCredentials: true,
   });
 
@@ -54,7 +54,7 @@ async function performAccessTokenRefresh(): Promise<RefreshAccessTokenResponse> 
   try {
     const { headerName, token } = await getAuthCsrfToken();
     const { data } = await apiClient.post<RefreshAccessTokenResponse>(
-      '/api/auth/refresh',
+      '/auth/refresh',
       undefined,
       {
         headers: {
@@ -92,7 +92,7 @@ export async function logoutStudent(): Promise<LogoutResponse> {
   const { headerName, token } = await getAuthCsrfToken();
 
   const { data } = await apiClient.post<LogoutResponse>(
-    '/api/auth/logout',
+    '/auth/logout',
     undefined,
     {
       headers: {
@@ -111,7 +111,7 @@ export async function requestPhoneVerification(
   requestBody: PhoneVerificationRequest,
 ): Promise<PhoneVerificationResponse> {
   const { data } = await apiClient.post<PhoneVerificationResponse>(
-    '/api/auth/phone-verifications',
+    '/auth/phone-verifications',
     requestBody,
   );
 
@@ -122,7 +122,7 @@ export async function confirmPhoneVerification(
   requestBody: PhoneVerificationConfirmRequest,
 ): Promise<PhoneVerificationConfirmResponse> {
   const { data } = await apiClient.post<PhoneVerificationConfirmResponse>(
-    '/api/auth/phone-verifications/verify',
+    '/auth/phone-verifications/verify',
     requestBody,
   );
 
