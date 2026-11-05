@@ -629,15 +629,15 @@ function StudentMatchingRoute() {
     <StudentMatchingPage
       isRecommendationsLoading={isRecommendationsLoading}
       onApplicationSubmit={async (job, desiredStartDate) => {
-        if (job.jobPostingId === undefined) {
-          window.alert('지원할 공고 정보를 확인할 수 없어요.');
+        if (job.recommendationId === undefined) {
+          window.alert('지원할 추천 정보를 확인할 수 없어요.');
           return false;
         }
 
         try {
           await createStudentApplication({
             desiredStartDate,
-            jobPostingId: job.jobPostingId,
+            recommendationId: job.recommendationId,
           });
           return true;
         } catch {
