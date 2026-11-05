@@ -59,7 +59,7 @@ export default function StudentWorkConditionPage({
       >
         <img alt="" className="h-4 w-2" src={backIcon} />
       </button>
-      <h1 className="m-0 mt-2 text-[18px] leading-[1.5] font-semibold">
+      <h1 className="m-0 mt-2 text-[26px] leading-[1.5] font-semibold">
         나의 근무 가능 조건
       </h1>
 
