@@ -4,12 +4,14 @@ import restrictedStatusIcon from '../../assets/icons/student/my/work-condition-r
 import reviewStatusIcon from '../../assets/icons/student/my/work-condition-review.png';
 import workConditionSummaryImage from '../../assets/images/student/my/work-condition-summary.png';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
+import type { StudentNavigationTab } from '../../types/studentHome';
 
 type StudentWorkConditionPageProps = {
   onBack?: () => void;
   onEditBasicInfo?: () => void;
   onEditWorkTime?: () => void;
   onEditEligibleFields?: () => void;
+  onTabChange?: (tab: StudentNavigationTab) => void;
 };
 
 const ELIGIBLE_FIELDS = [
@@ -45,6 +47,7 @@ export default function StudentWorkConditionPage({
   onEditBasicInfo,
   onEditWorkTime,
   onEditEligibleFields,
+  onTabChange,
 }: StudentWorkConditionPageProps) {
   return (
     <main className="relative mx-auto h-[914px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] px-6 pt-[61px] pb-[98px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
@@ -123,6 +126,7 @@ export default function StudentWorkConditionPage({
         activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="my"
         bottomOffsetClassName="bottom-[23px]"
+        onTabChange={onTabChange}
       />
     </main>
   );

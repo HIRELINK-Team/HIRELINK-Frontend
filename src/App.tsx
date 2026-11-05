@@ -1195,6 +1195,7 @@ function StudentWorkConditionRoute() {
       onEditWorkTime={() =>
         navigate('/student/my/matching-condition/work-time')
       }
+      onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
     />
   );
 }
