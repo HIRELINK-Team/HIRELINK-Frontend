@@ -13,7 +13,9 @@ import {
   getStudentProfile,
   requestPhoneVerification,
   updateStudentCareer,
+  updateStudentMatchingPreferences,
 } from '../../api/student';
+import { mapIndustrySelectionToUpdateRequest } from '../../adapters/studentMatchingPreferences';
 import { mapStudentOnboardingToCreateRequest } from '../../adapters/studentProfile';
 import {
   isExperienceDraftValid,
@@ -288,6 +290,7 @@ export default function StudentOnboardingPage({
   const [info, setInfo] = useState<BasicInfo>(INITIAL_INFO);
   const [isIndustrySelectionSubmitted, setIsIndustrySelectionSubmitted] =
     useState(false);
+  const [isIndustrySaving, setIsIndustrySaving] = useState(false);
   const [otherIndustry, setOtherIndustry] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [isPhoneVerificationPending, setIsPhoneVerificationPending] =
@@ -484,17 +487,39 @@ export default function StudentOnboardingPage({
     });
   };
 
-  const handleIndustryConfirm = () => {
-    setIsIndustrySelectionSubmitted(true);
-    setStep('workTimeSelection');
+  const handleIndustrySave = async (businessTypeFlexible: boolean) => {
+    if (isIndustrySaving) return;
+
+    const requestBody = mapIndustrySelectionToUpdateRequest(
+      selectedIndustries,
+      otherIndustry,
+      businessTypeFlexible,
+    );
+
+    if (!requestBody) return;
+
+    setIsIndustrySaving(true);
+
+    try {
+      await updateStudentMatchingPreferences(requestBody);
+
+      if (businessTypeFlexible) {
+        setSelectedIndustries([]);
+        setOtherIndustry('');
+      }
+
+      setIsIndustrySelectionSubmitted(true);
+      setStep('workTimeSelection');
+    } catch {
+      // Keep the industry selection unchanged when the server save fails.
+    } finally {
+      setIsIndustrySaving(false);
+    }
   };
 
-  const handleIndustryNoPreference = () => {
-    setSelectedIndustries([]);
-    setOtherIndustry('');
-    setIsIndustrySelectionSubmitted(true);
-    setStep('workTimeSelection');
-  };
+  const handleIndustryConfirm = () => void handleIndustrySave(false);
+
+  const handleIndustryNoPreference = () => void handleIndustrySave(true);
 
   const handleWorkTimeSlotsChange = (day: Weekday, slots: number[]) => {
     setIsWorkTimeSelectionSubmitted(false);
