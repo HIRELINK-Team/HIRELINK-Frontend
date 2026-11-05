@@ -24,7 +24,7 @@ export function DocumentManagementGuide({
 
       <img
         alt=""
-        className="mx-auto mt-0 h-[clamp(52px,9.7dvh,82px)] w-[clamp(48px,8.5dvh,72px)] object-contain"
+        className="mx-auto mt-0 h-[clamp(67px,11.5dvh,97px)] w-[clamp(59px,10.1dvh,85px)] object-contain"
         src={guideIllustration}
       />
       <h1 className="m-0 mt-[clamp(4px,1.1dvh,9px)] text-center text-[clamp(18px,2.37dvh,20px)] leading-[1.5] font-semibold">
@@ -40,11 +40,11 @@ export function DocumentManagementGuide({
 
       <section
         aria-label="서류 등록 안내"
-        className="mt-[clamp(10px,2.84dvh,24px)] space-y-[clamp(6px,1.18dvh,10px)]"
+        className="mt-[clamp(12px,3.55dvh,30px)] space-y-[clamp(6px,1.18dvh,10px)]"
       >
         {STUDENT_DOCUMENT_GUIDE_ITEMS.map((item) => (
           <article
-            className="flex h-[clamp(54px,8.9dvh,75px)] items-center rounded-[20px] bg-[#E5E8EB] px-[clamp(18px,3dvh,25px)]"
+            className="flex h-[clamp(64px,9.83dvh,83px)] items-center rounded-[20px] bg-[#E5E8EB] px-[clamp(18px,3dvh,25px)]"
             key={item.title}
           >
             <img
