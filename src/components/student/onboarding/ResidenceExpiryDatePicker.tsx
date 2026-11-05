@@ -25,8 +25,24 @@ function getMonthStart(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+function isValidIsoDate(value: string) {
+  const matchedDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!matchedDate) return false;
+
+  const year = Number(matchedDate[1]);
+  const month = Number(matchedDate[2]);
+  const day = Number(matchedDate[3]);
+  const date = new Date(year, month - 1, day);
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+}
+
 function getInitialMonth(date: string) {
-  if (!date) return new Date(2027, 2, 1);
+  if (!isValidIsoDate(date)) return new Date(2027, 2, 1);
 
   const [year, month] = date.split('-').map(Number);
   return new Date(year, month - 1, 1);
@@ -50,7 +66,9 @@ export function ResidenceExpiryDatePicker({
   const [displayMonth, setDisplayMonth] = useState(() =>
     getInitialMonth(initialDate),
   );
-  const [selectedDate, setSelectedDate] = useState(initialDate);
+  const [selectedDate, setSelectedDate] = useState(() =>
+    isValidIsoDate(initialDate) ? initialDate : '',
+  );
 
   const calendarDays = useMemo(() => {
     const monthStart = getMonthStart(displayMonth);
