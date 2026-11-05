@@ -31,6 +31,7 @@ import {
   signupStudent,
   updateStudentProfile,
   updateStudentMatchingPreferences,
+  withdrawStudentApplication,
 } from './api/student';
 import {
   mapIndustrySelectionToUpdateRequest,
@@ -160,6 +161,9 @@ type StudentApplicationsRouteContext = {
   declineOffer: (applicationId: string) => void;
   isApplicationsLoading: boolean;
   syncApplicationDetail: (application: StudentApplicationCardModel) => void;
+  withdrawApplication: (
+    application: StudentApplicationCardModel,
+  ) => Promise<boolean>;
 };
 
 type StudentProfileRouteContext = {
@@ -697,24 +701,24 @@ function StudentApplicationsLayout() {
   >([]);
   const [isApplicationsLoading, setIsApplicationsLoading] = useState(true);
 
+  const fetchApplications = useCallback(async () => {
+    const response = await getMyStudentApplications();
+    return response.applications.map(mapStudentApplicationToCardModel);
+  }, []);
+
   useEffect(() => {
     let isActive = true;
 
-    void getMyStudentApplications()
-      .then((response) => {
+    void fetchApplications()
+      .then((nextApplications) => {
         if (isActive) {
-          setApplications(
-            response.applications.map(mapStudentApplicationToCardModel),
-          );
+          setApplications(nextApplications);
+          setIsApplicationsLoading(false);
         }
       })
       .catch(() => {
         if (isActive) {
           setApplications([]);
-        }
-      })
-      .finally(() => {
-        if (isActive) {
           setIsApplicationsLoading(false);
         }
       });
@@ -722,7 +726,27 @@ function StudentApplicationsLayout() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [fetchApplications]);
+
+  const withdrawApplication = async (
+    application: StudentApplicationCardModel,
+  ) => {
+    if (
+      application.applicationId === undefined ||
+      application.apiStatus !== 'WAITING_RESPONSE'
+    ) {
+      return false;
+    }
+
+    try {
+      await withdrawStudentApplication(application.applicationId);
+      const nextApplications = await fetchApplications();
+      setApplications(nextApplications);
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   const acceptOffer = (applicationId: string) => {
     setApplications((currentApplications) =>
@@ -775,6 +799,7 @@ function StudentApplicationsLayout() {
         declineOffer,
         isApplicationsLoading,
         syncApplicationDetail,
+        withdrawApplication,
       }}
     />
   );
@@ -782,8 +807,13 @@ function StudentApplicationsLayout() {
 
 function StudentApplicationsRoute() {
   const navigate = useNavigate();
-  const { acceptOffer, applications, declineOffer, isApplicationsLoading } =
-    useOutletContext<StudentApplicationsRouteContext>();
+  const {
+    acceptOffer,
+    applications,
+    declineOffer,
+    isApplicationsLoading,
+    withdrawApplication,
+  } = useOutletContext<StudentApplicationsRouteContext>();
 
   return (
     <StudentApplicationsPage
@@ -825,6 +855,7 @@ function StudentApplicationsRoute() {
         navigate(application.id);
       }}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
+      onWithdraw={withdrawApplication}
     />
   );
 }
