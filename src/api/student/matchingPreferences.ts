@@ -7,7 +7,7 @@ import type {
 
 export async function getStudentMatchingPreferences(): Promise<StudentMatchingPreferencesResponse> {
   const { data } = await apiClient.get<StudentMatchingPreferencesResponse>(
-    '/api/students/me/matching-preferences',
+    '/students/me/matching-preferences',
   );
 
   return data;
@@ -16,8 +16,8 @@ export async function getStudentMatchingPreferences(): Promise<StudentMatchingPr
 export async function updateStudentMatchingPreferences(
   requestBody: StudentMatchingPreferencesUpdateRequest,
 ): Promise<StudentMatchingPreferencesResponse> {
-  const { data } = await apiClient.patch<StudentMatchingPreferencesResponse>(
-    '/api/students/me/matching-preferences',
+  const { data } = await apiClient.put<StudentMatchingPreferencesResponse>(
+    '/students/me/matching-preferences',
     requestBody,
   );
 
