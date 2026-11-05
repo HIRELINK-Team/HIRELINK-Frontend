@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
+import { getMyStudentApplications } from '../../api/student/applications';
 import backIcon from '../../assets/icons/student/matching/back.svg';
 import { MatchingEmptyState } from '../../components/student/matching/MatchingEmptyState';
 import { RecommendedJobDetail } from '../../components/student/matching/RecommendedJobDetail';
@@ -9,12 +10,14 @@ import { ApplicationCompleteStep } from '../../components/student/matching/Appli
 import { RecommendationRefreshModal } from '../../components/student/matching/RecommendationRefreshModal';
 import { WorkStartDateStep } from '../../components/student/matching/WorkStartDateStep';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
-import { MAX_RECOMMENDED_JOBS } from '../../mocks/studentMatching';
 import type { StudentNavigationTab } from '../../types/studentHome';
+import type { StudentApplication } from '../../types/studentApplication';
 import type {
   RecommendedJob,
   StudentMatchingView,
 } from '../../types/studentMatching';
+
+const MAX_RECOMMENDED_JOBS = 3;
 
 type StudentMatchingPageProps = {
   isBottomNavigationFixed?: boolean;
@@ -68,7 +71,40 @@ export default function StudentMatchingPage({
   const [isApplicationSubmitting, setIsApplicationSubmitting] = useState(false);
   const [isRecommendationRefreshing, setIsRecommendationRefreshing] =
     useState(false);
+  const [applications, setApplications] = useState<StudentApplication[]>([]);
   const recommendedJobs = recommendations.slice(0, MAX_RECOMMENDED_JOBS);
+
+  const refreshApplications = useCallback(async () => {
+    try {
+      const response = await getMyStudentApplications();
+      setApplications(response.applications);
+    } catch {
+      setApplications([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadApplications = async () => {
+      try {
+        const response = await getMyStudentApplications();
+        if (isActive) {
+          setApplications(response.applications);
+        }
+      } catch {
+        if (isActive) {
+          setApplications([]);
+        }
+      }
+    };
+
+    void loadApplications();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const handleBack = () => {
     onBack?.();
@@ -144,6 +180,7 @@ export default function StudentMatchingPage({
         : true;
 
       if (didSubmit) {
+        await refreshApplications();
         setMatchingView('complete');
         onViewChange?.('complete', selectedJob);
       }
@@ -284,16 +321,28 @@ export default function StudentMatchingPage({
 
       <section
         aria-label="추천 근무지 목록"
-        className="absolute top-[248px] bottom-[120px] left-6 w-[342px] space-y-2.5 overflow-y-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="absolute top-[248px] right-6 left-6 flex flex-col gap-2"
       >
-        {recommendedJobs.map((job) => (
-          <RecommendedJobCard
-            job={job}
-            key={job.id}
-            onApply={handleApply}
-            onDetailClick={handleDetailClick}
-          />
-        ))}
+        {recommendedJobs.map((job, index) => {
+          const application = applications.find(
+            (candidate) => candidate.jobPostingId === job.jobPostingId,
+          );
+          const showApplyButton =
+            index === recommendedJobs.length - 1 &&
+            job.showsApplyButton &&
+            application === undefined;
+
+          return (
+            <RecommendedJobCard
+              application={application}
+              job={job}
+              key={job.id}
+              onApply={handleApply}
+              onDetailClick={handleDetailClick}
+              showApplyButton={showApplyButton}
+            />
+          );
+        })}
       </section>
 
       <StudentBottomNavigation
