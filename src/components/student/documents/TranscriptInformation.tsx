@@ -20,7 +20,7 @@ export function TranscriptInformation({
   onRegister,
 }: TranscriptInformationProps) {
   return (
-    <main className="relative mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
         aria-label="뒤로가기"
         className="grid size-8 -ml-2 place-items-center border-0 bg-transparent p-0"
@@ -34,26 +34,26 @@ export function TranscriptInformation({
       </h1>
       <img
         alt=""
-        className="mx-auto mt-[45px] h-[81px] w-[83px] object-contain"
+        className="mx-auto mt-5 h-[60px] w-[62px] object-contain"
         src={illustration}
       />
-      <h2 className="m-0 mt-[9px] text-center text-[22px] leading-[1.5] font-semibold">
+      <h2 className="m-0 mt-[6px] text-center text-[20px] leading-[1.5] font-semibold">
         본인의 성적증명서를
         <br />
         등록해주세요.
       </h2>
-      <p className="m-0 mt-[8px] text-center text-[15px] leading-[1.5] text-[#8B95A1]">
+      <p className="m-0 mt-[6px] text-center text-[13px] leading-[1.5] text-[#8B95A1]">
         성적과 이수학기, 발급일을
         <br />
         확인하기 위해 필요해요.
       </p>
       <section
         aria-label="성적증명서 확인 항목"
-        className="mt-[40px] space-y-[9px]"
+        className="mt-[14px] space-y-2"
       >
         {GUIDE_ITEMS.map((item) => (
           <article
-            className="flex h-[65px] items-center rounded-[20px] bg-[#E5E8EB] px-[25px]"
+            className="flex h-14 items-center rounded-[20px] bg-[#E5E8EB] px-[25px]"
             key={item.label}
           >
             <img
