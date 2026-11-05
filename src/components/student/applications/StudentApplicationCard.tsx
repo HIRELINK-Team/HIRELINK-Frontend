@@ -35,6 +35,15 @@ function OfferWaitingApplicationCard({
   onDeclineOffer,
   onDetailClick,
 }: OfferWaitingApplicationCardProps) {
+  const canRespondToOffer =
+    application.apiStatus === 'OFFERED' &&
+    application.offerStatus === 'PENDING' &&
+    application.offerId !== null &&
+    application.offerId !== undefined &&
+    application.studentResponseDeadline !== null &&
+    application.studentResponseDeadline !== undefined &&
+    new Date(application.studentResponseDeadline).getTime() > Date.now();
+
   return (
     <article className="relative mx-auto h-[223px] w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
       <h2 className="absolute top-[21.3px] left-[23.3px] m-0 text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] whitespace-nowrap text-[#191F28]">
@@ -72,7 +81,8 @@ function OfferWaitingApplicationCard({
         상세보기
       </button>
 
-      <div className="absolute top-[153.3px] left-[21.3px] grid grid-cols-[145px_145px] gap-[7px]">
+      {canRespondToOffer ? (
+        <div className="absolute top-[153.3px] left-[21.3px] grid grid-cols-[145px_145px] gap-[7px]">
         <button
           className="h-[50px] rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium tracking-[-0.02em] text-[#F5F5F5]"
           disabled={isOfferActionPending}
@@ -89,7 +99,8 @@ function OfferWaitingApplicationCard({
         >
           거절
         </button>
-      </div>
+        </div>
+      ) : null}
     </article>
   );
 }

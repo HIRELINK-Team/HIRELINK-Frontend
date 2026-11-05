@@ -940,7 +940,6 @@ function StudentApplicationDetailRoute() {
   );
   const [application, setApplication] =
     useState<StudentApplicationCardModel | null>(fallbackApplication ?? null);
-  const [detailOpenedAt] = useState(() => Date.now());
   const [isDetailLoading, setIsDetailLoading] = useState(true);
   const [isOfferActionPending, setIsOfferActionPending] = useState(false);
   const [isWithdrawalPending, setIsWithdrawalPending] = useState(false);
@@ -991,10 +990,18 @@ function StudentApplicationDetailRoute() {
     application.offerId !== undefined &&
     responseDeadline !== null &&
     responseDeadline !== undefined &&
-    new Date(responseDeadline).getTime() > detailOpenedAt;
+    new Date(responseDeadline).getTime() > Date.now();
 
   const handleOfferAction = async (action: 'accept' | 'decline') => {
-    if (!canRespondToOffer || isOfferActionPending) return;
+    if (
+      !canRespondToOffer ||
+      isOfferActionPending ||
+      responseDeadline === null ||
+      responseDeadline === undefined ||
+      new Date(responseDeadline).getTime() <= Date.now()
+    ) {
+      return;
+    }
 
     const offerId = application.offerId;
     if (offerId === null || offerId === undefined) return;

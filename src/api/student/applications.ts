@@ -6,6 +6,7 @@ import type {
   StudentApplicationDetail,
   StudentApplicationApiStatus,
   StudentApplicationsResponse,
+  WithdrawStudentApplicationResponse,
 } from '../../types/studentApplication';
 
 type ApplicationListParams = {
@@ -13,7 +14,7 @@ type ApplicationListParams = {
 };
 
 function applicationPath(applicationId: string | number) {
-  return `/api/applications/${encodeURIComponent(String(applicationId))}`;
+  return `/applications/${encodeURIComponent(String(applicationId))}`;
 }
 
 export async function createStudentApplication(
@@ -22,7 +23,7 @@ export async function createStudentApplication(
   // The server limits reviewing applicants to five and prevents reapplication.
   // A successful application starts the employer's 24-hour response window.
   const { data } = await apiClient.post<CreateStudentApplicationResponse>(
-    '/api/applications',
+    '/applications',
     requestBody,
   );
 
@@ -33,7 +34,7 @@ export async function getMyStudentApplications(
   params: ApplicationListParams = {},
 ): Promise<StudentApplicationsResponse> {
   const { data } = await apiClient.get<StudentApplicationsResponse>(
-    '/api/applications/me',
+    '/applications/me',
     { params },
   );
 
@@ -50,11 +51,11 @@ export async function getMyStudentApplication(
   return data;
 }
 
-export async function withdrawStudentApplication<TResponse = unknown>(
+export async function withdrawStudentApplication(
   applicationId: string | number,
-): Promise<TResponse> {
+): Promise<WithdrawStudentApplicationResponse> {
   // Withdrawal is permitted only while the employer is reviewing the application.
-  const { data } = await apiClient.patch<TResponse>(
+  const { data } = await apiClient.patch<WithdrawStudentApplicationResponse>(
     `${applicationPath(applicationId)}/withdraw`,
   );
 

@@ -1,7 +1,7 @@
 import { apiClient } from '../client';
 
 function offerPath(offerId: string | number) {
-  return `/api/offers/${encodeURIComponent(String(offerId))}`;
+  return `/offers/${encodeURIComponent(String(offerId))}`;
 }
 
 export async function acceptStudentEmploymentOffer<TResponse = unknown>(

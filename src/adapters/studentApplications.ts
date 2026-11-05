@@ -27,13 +27,12 @@ const DAY_LABELS: Record<
 function mapApplicationStatus(
   application: StudentApplication,
 ): StudentApplicationStatus {
-  if (application.matchId !== null) return 'HIRED';
-  if (application.offerId !== null) return 'OFFER_WAITING';
-
   const statusMap: Record<
     StudentApplication['status'],
     StudentApplicationStatus
   > = {
+    COMPLETED: 'HIRED',
+    OFFERED: 'OFFER_WAITING',
     WAITING_RESPONSE: 'REVIEWING',
   };
 
@@ -164,6 +163,8 @@ export function mapStudentApplicationDetailToCardModel(
     appliedAt: application.appliedAt,
     desiredStartDate: application.desiredStartDate,
     employerResponseDeadline: application.employerResponseDeadline ?? undefined,
+    endReason: application.endReason,
+    endedAt: application.endedAt,
     expiresAt: responseDeadline ?? undefined,
     id: String(application.applicationId),
     job: {
@@ -192,6 +193,7 @@ export function mapStudentApplicationDetailToCardModel(
     offerId: application.offerId,
     offeredAt: application.offeredAt,
     offerStatus: application.offerStatus,
+    respondedAt: application.respondedAt,
     startedAt: application.offeredAt ?? application.appliedAt,
     status: mapDetailStatus(application),
     studentResponseDeadline: application.studentResponseDeadline,
