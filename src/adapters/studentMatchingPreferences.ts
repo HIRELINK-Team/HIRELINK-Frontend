@@ -75,6 +75,20 @@ type SlotRange = {
   startSlot: number;
 };
 
+type DaySlotRange = SlotRange & {
+  day: Weekday;
+};
+
+const WEEKDAYS: readonly Weekday[] = [
+  'mon',
+  'tue',
+  'wed',
+  'thu',
+  'fri',
+  'sat',
+  'sun',
+];
+
 function getSlotRanges(slots: readonly number[]): SlotRange[] {
   const sortedSlots = [...new Set(slots)].sort(
     (first, second) => first - second,
@@ -112,17 +126,26 @@ function formatBackendTime(minutes: number) {
   return `${String(hours).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
 
-function splitNighttimeRange(range: SlotRange): SlotRange[] {
+function getNextWeekday(day: Weekday): Weekday {
+  const dayIndex = WEEKDAYS.indexOf(day);
+  return WEEKDAYS[(dayIndex + 1) % WEEKDAYS.length] ?? day;
+}
+
+function splitNighttimeRange(day: Weekday, range: SlotRange): DaySlotRange[] {
   const midnightSlot = 4;
 
   if (range.startSlot < midnightSlot && range.endSlot >= midnightSlot) {
     return [
-      { endSlot: midnightSlot - 1, startSlot: range.startSlot },
-      { endSlot: range.endSlot, startSlot: midnightSlot },
+      { day, endSlot: midnightSlot - 1, startSlot: range.startSlot },
+      {
+        day: getNextWeekday(day),
+        endSlot: range.endSlot,
+        startSlot: midnightSlot,
+      },
     ];
   }
 
-  return [range];
+  return [{ ...range, day }];
 }
 
 function findSourceJob(
@@ -175,9 +198,14 @@ export function mapIndustrySelectionToUpdateRequest(
     return null;
   }
 
+  if (validPreferredJobs.length === 0) return null;
+
   return {
     businessTypeFlexible: false,
-    preferredJobs: validPreferredJobs,
+    preferredJobs: validPreferredJobs as [
+      (typeof validPreferredJobs)[number],
+      ...(typeof validPreferredJobs)[number][],
+    ],
   };
 }
 
@@ -190,16 +218,18 @@ export function mapWorkAvailabilityToUpdateRequest(
     (Object.keys(workAvailability[mode]) as Weekday[]).flatMap((day) =>
       getSlotRanges(workAvailability[mode][day])
         .flatMap((range) =>
-          mode === 'nighttime' ? splitNighttimeRange(range) : [range],
+          mode === 'nighttime'
+            ? splitNighttimeRange(day, range)
+            : [{ ...range, day }],
         )
-        .map((range) => {
+        .map(({ day: rangeDay, ...range }) => {
           const startMinutes =
             WORK_TIME_MODE_START_MINUTES[mode] + range.startSlot * 30;
           const endMinutes =
             WORK_TIME_MODE_START_MINUTES[mode] + (range.endSlot + 1) * 30;
 
           return {
-            dayOfWeek: WEEKDAY_TO_BACKEND[day],
+            dayOfWeek: WEEKDAY_TO_BACKEND[rangeDay],
             endTime: formatBackendTime(endMinutes),
             startTime: formatBackendTime(startMinutes),
           };
@@ -256,7 +286,12 @@ export function mapPriorityOrderToUpdateRequest(
   }
 
   return {
-    priorities: priorities as NonNullable<(typeof priorities)[number]>[],
+    priorities: priorities as [
+      NonNullable<(typeof priorities)[number]>,
+      NonNullable<(typeof priorities)[number]>,
+      NonNullable<(typeof priorities)[number]>,
+      NonNullable<(typeof priorities)[number]>,
+    ],
   };
 }
 

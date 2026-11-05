@@ -1,6 +1,7 @@
 import { apiClient } from '../client';
 
 import type {
+  StudentProfileCreateResponse,
   StudentProfileCreateRequest,
   StudentProfileResponse,
   StudentProfileUpdateResponse,
@@ -9,9 +10,9 @@ import type {
 
 export async function createStudentProfile(
   requestBody: StudentProfileCreateRequest,
-): Promise<unknown> {
-  const { data } = await apiClient.post<unknown>(
-    '/api/students/me/profile',
+): Promise<StudentProfileCreateResponse> {
+  const { data } = await apiClient.post<StudentProfileCreateResponse>(
+    '/students/me/profile',
     requestBody,
   );
 

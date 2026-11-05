@@ -13,6 +13,16 @@ export type StudentProfileCreateRequest = {
   koreanLevel: StudentKoreanLevel;
 };
 
+export type StudentProfileCreateResponse = {
+  studentId: number;
+  name: string;
+  phoneNumber: string;
+  birthDate: string;
+  nationality: string;
+  currentRegion: string;
+  koreanLevel: StudentKoreanLevel;
+};
+
 export type StudentProfileResponse = {
   studentId: number;
   name: string;

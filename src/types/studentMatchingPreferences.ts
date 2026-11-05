@@ -47,11 +47,26 @@ export type StudentMatchingPriorityUpdate = {
   priorityOrder: number;
 };
 
-export type StudentMatchingPreferencesUpdateRequest = {
-  businessTypeFlexible?: boolean;
-  minimumHourlyWage?: number | null;
-  preferredJobs?: StudentPreferredJobUpdate[];
-  preferredLocation?: StudentPreferredLocation;
-  preferredWorkTimes?: StudentPreferredWorkTime[];
-  priorities?: StudentMatchingPriorityUpdate[];
-};
+export type StudentMatchingIndustryUpdateRequest =
+  | {
+      businessTypeFlexible: true;
+      preferredJobs: [];
+    }
+  | {
+      businessTypeFlexible: false;
+      preferredJobs: [StudentPreferredJobUpdate, ...StudentPreferredJobUpdate[]];
+    };
+
+export type StudentMatchingPreferencesUpdateRequest =
+  | StudentMatchingIndustryUpdateRequest
+  | {
+      minimumHourlyWage?: number | null;
+      preferredLocation?: StudentPreferredLocation;
+      preferredWorkTimes?: StudentPreferredWorkTime[];
+      priorities?: [
+        StudentMatchingPriorityUpdate,
+        StudentMatchingPriorityUpdate,
+        StudentMatchingPriorityUpdate,
+        StudentMatchingPriorityUpdate,
+      ];
+    };
