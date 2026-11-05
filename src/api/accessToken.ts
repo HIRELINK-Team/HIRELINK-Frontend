@@ -1,13 +1,34 @@
-let accessToken: string | null = null;
+type AuthInvalidatedListener = () => void;
 
-export function getAccessToken() {
+let accessToken: string | null = null;
+const authInvalidatedListeners = new Set<AuthInvalidatedListener>();
+
+function getAccessToken() {
   return accessToken;
 }
 
-export function setAccessToken(nextAccessToken: string) {
+function setAccessToken(nextAccessToken: string) {
   accessToken = nextAccessToken;
 }
 
-export function clearAccessToken() {
+function clearAccessToken() {
   accessToken = null;
 }
+
+function invalidateAuthSession() {
+  clearAccessToken();
+  authInvalidatedListeners.forEach((listener) => listener());
+}
+
+function subscribeToAuthInvalidation(listener: AuthInvalidatedListener) {
+  authInvalidatedListeners.add(listener);
+  return () => authInvalidatedListeners.delete(listener);
+}
+
+export {
+  clearAccessToken,
+  getAccessToken,
+  invalidateAuthSession,
+  setAccessToken,
+  subscribeToAuthInvalidation,
+};

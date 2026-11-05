@@ -1,39 +1,52 @@
-import axios, { AxiosHeaders, type InternalAxiosRequestConfig } from 'axios';
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-import { clearAccessToken, getAccessToken } from './accessToken';
+import { API_BASE_URL } from './baseClient';
+import { getAccessToken } from './accessToken';
+import { refreshSessionOnce } from './authSession';
+import type { ApiErrorResponse } from '../types/auth';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-
-export const apiClient = axios.create({
-  baseURL: apiBaseUrl || undefined,
-});
-
-type RetryableRequestConfig = InternalAxiosRequestConfig & {
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
+  _accessToken?: string;
   _retry?: boolean;
-};
+}
 
 type AccessTokenRefreshHandler = () => Promise<string>;
 
 let accessTokenRefreshHandler: AccessTokenRefreshHandler | null = null;
 
-export function registerAccessTokenRefreshHandler(
-  handler: AccessTokenRefreshHandler,
-) {
+function registerAccessTokenRefreshHandler(handler: AccessTokenRefreshHandler) {
   accessTokenRefreshHandler = handler;
 }
 
-function isAuthRequest(url?: string) {
+function isAuthRecoveryRequest(url?: string) {
   if (!url) return false;
 
   const pathname = new URL(url, 'http://hirelink.local').pathname;
-  return pathname.startsWith('/api/auth/');
+
+  return (
+    pathname === '/auth/login' ||
+    pathname === '/auth/csrf' ||
+    pathname === '/auth/refresh' ||
+    pathname === '/api/auth/login' ||
+    pathname === '/api/auth/csrf' ||
+    pathname === '/api/auth/refresh'
+  );
 }
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
 
 apiClient.interceptors.request.use((config) => {
   const accessToken = getAccessToken();
+  const request = config as RetryableRequestConfig;
 
   if (accessToken) {
     config.headers.set('Authorization', `Bearer ${accessToken}`);
+    request._accessToken = accessToken;
+  } else {
+    request._accessToken = undefined;
   }
 
   return config;
@@ -41,38 +54,43 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error: unknown) => {
-    if (!axios.isAxiosError(error) || error.response?.status !== 401) {
-      return Promise.reject(error);
-    }
-
-    const requestConfig = error.config as RetryableRequestConfig | undefined;
+  async (error: AxiosError<ApiErrorResponse>) => {
+    const request = error.config as RetryableRequestConfig | undefined;
 
     if (
-      !requestConfig ||
-      requestConfig._retry ||
-      isAuthRequest(requestConfig.url)
+      error.response?.status !== 401 ||
+      !request ||
+      request._retry ||
+      isAuthRecoveryRequest(request.url)
     ) {
       return Promise.reject(error);
     }
 
-    if (!accessTokenRefreshHandler) {
-      return Promise.reject(error);
-    }
-
-    requestConfig._retry = true;
+    request._retry = true;
 
     try {
-      const accessToken = await accessTokenRefreshHandler();
-      const headers = AxiosHeaders.from(requestConfig.headers);
+      const currentAccessToken = getAccessToken();
 
-      headers.set('Authorization', `Bearer ${accessToken}`);
-      requestConfig.headers = headers;
+      if (
+        currentAccessToken &&
+        request._accessToken &&
+        currentAccessToken !== request._accessToken
+      ) {
+        return apiClient.request(request);
+      }
 
-      return apiClient.request(requestConfig);
-    } catch (refreshError) {
-      clearAccessToken();
-      return Promise.reject(refreshError);
+      if (accessTokenRefreshHandler) {
+        await accessTokenRefreshHandler();
+      } else {
+        await refreshSessionOnce();
+      }
+
+      return apiClient.request(request);
+    } catch {
+      return Promise.reject(error);
     }
   },
 );
+
+export { apiClient, registerAccessTokenRefreshHandler };
+export default apiClient;

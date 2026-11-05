@@ -1,12 +1,16 @@
+export type UserRole = 'STUDENT' | 'EMPLOYER';
+
 export interface EmailLoginRequest {
   email: string;
   password: string;
 }
 
+export type LoginRequest = EmailLoginRequest;
+
 export interface EmailSignupRequest {
   email: string;
   password: string;
-  role: 'STUDENT' | 'EMPLOYER';
+  role: UserRole;
 }
 
 export interface AccessTokenResponse {
@@ -16,27 +20,25 @@ export interface AccessTokenResponse {
 }
 
 export interface LoginResponse extends AccessTokenResponse {
-  role: 'STUDENT' | 'EMPLOYER';
+  role: UserRole;
   userId: number;
 }
 
 export interface SignupResponse extends AccessTokenResponse {
   email: string;
-  role: 'STUDENT' | 'EMPLOYER';
+  role: UserRole;
   userId: number;
 }
 
 export type RefreshAccessTokenResponse = AccessTokenResponse;
 
-export interface ApiErrorResponse {
-  code: string;
-  message: string;
-}
-
 export interface CsrfTokenResponse {
   headerName: string;
   token: string;
 }
+
+export type CsrfResponse = CsrfTokenResponse;
+export type RefreshResponse = AccessTokenResponse;
 
 export interface LogoutResponse {
   message: string;
@@ -60,4 +62,14 @@ export interface PhoneVerificationConfirmResponse {
   phoneNumber: string;
   verifiedAt: string;
   message: string;
+}
+
+export interface ApiErrorResponse {
+  code: string;
+  message: string;
+}
+
+export interface AuthenticatedUser {
+  userId: number;
+  role: UserRole;
 }

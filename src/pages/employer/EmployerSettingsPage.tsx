@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ToggleSwitch from "../../components/common/ToggleSwitch";
+import { useAuth } from "../../hooks/useAuth";
 
 function ChevronIcon() {
   return (
@@ -63,11 +64,27 @@ function StaticRow({
 }
 
 function EmployerSettingsPage() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [notificationSettings, setNotificationSettings] = useState({
     newApplicants: true,
     offerAccepted: false,
     visaExpiry: false,
   });
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      await logout();
+      navigate("/employer/login", { replace: true });
+    } catch {
+      return;
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-[640px] pt-[45px] pb-16">
@@ -131,7 +148,17 @@ function EmployerSettingsPage() {
         </SettingsSection>
 
         <SettingsSection title="계정 관리">
-          <StaticRow label="로그아웃" />
+          <button
+            type="button"
+            disabled={isLoggingOut}
+            onClick={() => void handleLogout()}
+            className="flex h-14 w-full cursor-pointer items-center justify-between border-b border-[#f2f3f5] px-6 text-left transition-colors hover:bg-[#fafafa] disabled:cursor-wait"
+          >
+            <span className="text-[15px] font-medium text-[#171719]">
+              {isLoggingOut ? "로그아웃 중" : "로그아웃"}
+            </span>
+            <ChevronIcon />
+          </button>
           <StaticRow label="회원 탈퇴" muted />
         </SettingsSection>
       </div>

@@ -1,46 +1,48 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import hirelinkLogo from "../../assets/hirelink-logo.svg";
-import applicantsActiveIcon from "../../assets/employer/applicants-active.svg";
-import applicantsIcon from "../../assets/employer/applicants.svg";
-import bellIcon from "../../assets/employer/bell.svg";
-import dashboardActiveIcon from "../../assets/employer/dashboard-active.svg";
-import dashboardIcon from "../../assets/employer/dashboard.svg";
-import hiredStudentsActiveIcon from "../../assets/employer/hired-students-active.svg";
-import hiredStudentsIcon from "../../assets/employer/hired-students.svg";
-import jobsActiveIcon from "../../assets/employer/jobs-active.svg";
-import jobsIcon from "../../assets/employer/jobs.svg";
-import mypageActiveIcon from "../../assets/employer/mypage-active.svg";
-import mypageIcon from "../../assets/employer/mypage.svg";
-import settingsIcon from "../../assets/employer/settings.svg";
+import { useEffect } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import hirelinkLogo from '../../assets/hirelink-logo.svg';
+import applicantsActiveIcon from '../../assets/employer/applicants-active.svg';
+import applicantsIcon from '../../assets/employer/applicants.svg';
+import bellIcon from '../../assets/employer/bell.svg';
+import dashboardActiveIcon from '../../assets/employer/dashboard-active.svg';
+import dashboardIcon from '../../assets/employer/dashboard.svg';
+import hiredStudentsActiveIcon from '../../assets/employer/hired-students-active.svg';
+import hiredStudentsIcon from '../../assets/employer/hired-students.svg';
+import jobsActiveIcon from '../../assets/employer/jobs-active.svg';
+import jobsIcon from '../../assets/employer/jobs.svg';
+import mypageActiveIcon from '../../assets/employer/mypage-active.svg';
+import mypageIcon from '../../assets/employer/mypage.svg';
+import settingsIcon from '../../assets/employer/settings.svg';
+import { useEmployerProfile } from '../../hooks/useEmployerProfile';
 
 const NAVIGATION_ITEMS = [
   {
-    label: "대시보드",
-    to: "/employer/dashboard",
+    label: '대시보드',
+    to: '/employer/dashboard',
     icon: dashboardIcon,
     activeIcon: dashboardActiveIcon,
   },
   {
-    label: "채용 공고",
-    to: "/employer/jobs",
+    label: '채용 공고',
+    to: '/employer/jobs',
     icon: jobsIcon,
     activeIcon: jobsActiveIcon,
   },
   {
-    label: "지원자",
-    to: "/employer/applicants",
+    label: '지원자',
+    to: '/employer/applicants',
     icon: applicantsIcon,
     activeIcon: applicantsActiveIcon,
   },
   {
-    label: "채용 유학생",
-    to: "/employer/hired",
+    label: '채용 유학생',
+    to: '/employer/hired',
     icon: hiredStudentsIcon,
     activeIcon: hiredStudentsActiveIcon,
   },
   {
-    label: "마이페이지",
-    to: "/employer/mypage",
+    label: '마이페이지',
+    to: '/employer/mypage',
     icon: mypageIcon,
     activeIcon: mypageActiveIcon,
   },
@@ -68,7 +70,7 @@ function Header() {
           to="/employer/notifications"
           aria-label="알림"
           className={({ isActive }) =>
-            `flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] ${isActive ? "bg-[#f2f3f5]" : ""}`
+            `flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] ${isActive ? 'bg-[#f2f3f5]' : ''}`
           }
         >
           <img src={bellIcon} alt="" width={24} height={24} />
@@ -77,7 +79,7 @@ function Header() {
           to="/employer/settings"
           aria-label="설정"
           className={({ isActive }) =>
-            `flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] ${isActive ? "bg-[#f2f3f5]" : ""}`
+            `flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] ${isActive ? 'bg-[#f2f3f5]' : ''}`
           }
         >
           <img src={settingsIcon} alt="" width={24} height={24} />
@@ -90,15 +92,15 @@ function Header() {
 function Sidebar() {
   const location = useLocation();
   const isApplicantsRoute =
-    location.pathname.startsWith("/employer/applicants") ||
+    location.pathname.startsWith('/employer/applicants') ||
     (/^\/employer\/jobs\/[^/]+\/applicants$/.test(location.pathname) ?? false);
 
   const isNavigationItemActive = (itemPath: string) => {
-    if (itemPath === "/employer/applicants") return isApplicantsRoute;
+    if (itemPath === '/employer/applicants') return isApplicantsRoute;
 
-    if (itemPath === "/employer/jobs") {
+    if (itemPath === '/employer/jobs') {
       return (
-        location.pathname.startsWith("/employer/jobs") && !isApplicantsRoute
+        location.pathname.startsWith('/employer/jobs') && !isApplicantsRoute
       );
     }
 
@@ -119,12 +121,12 @@ function Sidebar() {
               <li key={item.to}>
                 <NavLink
                   to={item.to}
-                  end={item.to === "/employer/dashboard"}
+                  end={item.to === '/employer/dashboard'}
                   className={() => {
                     return `flex h-11 items-center gap-3 rounded-lg px-5 text-sm transition-colors ${
                       isCurrent
-                        ? "bg-[#e8f7f3] font-semibold text-[#2e6c5a]"
-                        : "font-medium text-[#6d7683] hover:bg-[#f4f4f5] hover:text-[#4e5259] active:bg-[#eceef0]"
+                        ? 'bg-[#e8f7f3] font-semibold text-[#2e6c5a]'
+                        : 'font-medium text-[#6d7683] hover:bg-[#f4f4f5] hover:text-[#4e5259] active:bg-[#eceef0]'
                     }`;
                   }}
                 >
@@ -151,6 +153,14 @@ function Sidebar() {
 }
 
 function EmployerLayout() {
+  const { loadProfile } = useEmployerProfile();
+
+  useEffect(() => {
+    void loadProfile().catch(() => {
+      // 각 화면은 기존 상태를 유지하고, API 오류는 호출 지점의 정책에 맡깁니다.
+    });
+  }, [loadProfile]);
+
   return (
     <div className="min-h-screen bg-white">
       <Header />

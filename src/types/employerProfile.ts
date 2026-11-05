@@ -1,12 +1,6 @@
-export type EmployerIndustryCode =
-  | "FOOD_AND_CAFE"
-  | "RETAIL"
-  | "INTERPRETATION"
-  | "OFFICE_AND_TOURISM"
-  | "DUTY_FREE"
-  | "ACADEMIC"
-  | "INTERNSHIP"
-  | "OTHER";
+import type { BusinessTypeName } from './workplace';
+
+export type EmployerIndustryCode = BusinessTypeName;
 
 export interface EmployerBusinessProfile {
   name: string;
@@ -17,13 +11,27 @@ export interface EmployerBusinessProfile {
   representativeName: string;
 }
 
-/** Backend API가 연결되기 전 마이페이지 화면에서 사용하는 Frontend 임시 모델입니다. */
+/** API 프로필과 아직 mock인 사업장 정보를 화면에서 함께 다루는 모델입니다. */
 export interface EmployerProfile {
   name: string;
   phone: string;
   email: string;
-  position: string;
+  position: string | null;
   business: EmployerBusinessProfile;
+}
+
+/** GET /api/employers/me/profile 응답입니다. */
+export interface EmployerProfileResponse {
+  employerId: number;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  position: string | null;
+}
+
+export interface UpdateEmployerProfileRequest {
+  name?: string;
+  position?: string | null;
 }
 
 /** 실제 주소 검색 API 연결 전 화면 interaction을 위한 Frontend mock 모델입니다. */
