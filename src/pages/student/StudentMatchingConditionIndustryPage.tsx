@@ -44,6 +44,7 @@ export default function StudentMatchingConditionIndustryPage({
   const [draftOtherIndustry, setDraftOtherIndustry] =
     useState(initialOtherIndustry);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const isOtherSelected = draftIndustries.includes('other');
 
   const handleIndustryToggle = (industryId: IndustryId) => {
@@ -53,6 +54,7 @@ export default function StudentMatchingConditionIndustryPage({
     if (isOtherBeingDeselected) {
       setDraftOtherIndustry('');
     }
+    setSaveError('');
 
     setDraftIndustries((currentIndustries) =>
       currentIndustries.includes(industryId)
@@ -68,7 +70,12 @@ export default function StudentMatchingConditionIndustryPage({
 
     setIsSaving(true);
     try {
-      await onSave(draftIndustries, draftOtherIndustry);
+      const isSaved = await onSave(draftIndustries, draftOtherIndustry);
+      if (isSaved === false) {
+        setSaveError('저장하지 못했어요. 선택 내용을 다시 확인해 주세요.');
+      }
+    } catch {
+      setSaveError('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsSaving(false);
     }
@@ -114,7 +121,10 @@ export default function StudentMatchingConditionIndustryPage({
               <input
                 className="h-full w-full border-0 bg-transparent py-0 pr-8 text-[26px] leading-[1.5] font-semibold outline-none"
                 value={draftOtherIndustry}
-                onChange={(event) => setDraftOtherIndustry(event.target.value)}
+                onChange={(event) => {
+                  setDraftOtherIndustry(event.target.value);
+                  setSaveError('');
+                }}
               />
               {draftOtherIndustry ? (
                 <button
@@ -130,6 +140,12 @@ export default function StudentMatchingConditionIndustryPage({
           </label>
         ) : null}
       </section>
+
+      {saveError ? (
+        <p aria-live="polite" className="text-[14px] text-[#E05260]">
+          {saveError}
+        </p>
+      ) : null}
 
       <button
         className="absolute right-6 bottom-[clamp(20px,4.38dvh,37px)] left-6 h-[clamp(52px,6.75dvh,57px)] rounded-[15px] border-0 bg-[#00B894] text-[clamp(17px,2.37dvh,20px)] leading-[1.5] font-medium text-[#F5F5F5]"

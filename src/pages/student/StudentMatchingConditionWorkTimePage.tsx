@@ -52,6 +52,7 @@ export default function StudentMatchingConditionWorkTimePage({
       cloneWorkAvailability(initialWorkAvailability),
     );
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const handleSlotsChange = (day: Weekday, slots: number[]) => {
     setDraftWorkAvailability((currentAvailability) => ({
@@ -61,6 +62,7 @@ export default function StudentMatchingConditionWorkTimePage({
         [day]: slots,
       },
     }));
+    setSaveError('');
   };
 
   const handleSave = async () => {
@@ -68,7 +70,12 @@ export default function StudentMatchingConditionWorkTimePage({
 
     setIsSaving(true);
     try {
-      await onSave(draftWorkAvailability);
+      const isSaved = await onSave(draftWorkAvailability);
+      if (isSaved === false) {
+        setSaveError('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+      }
+    } catch {
+      setSaveError('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsSaving(false);
     }
@@ -101,6 +108,12 @@ export default function StudentMatchingConditionWorkTimePage({
         onModeChange={setWorkTimeMode}
         onSlotsChange={handleSlotsChange}
       />
+
+      {saveError ? (
+        <p aria-live="polite" className="mt-3 text-[14px] text-[#E05260]">
+          {saveError}
+        </p>
+      ) : null}
 
       <div className="mt-auto shrink-0 pt-8">
         <button

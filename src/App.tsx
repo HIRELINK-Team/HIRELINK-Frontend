@@ -105,6 +105,7 @@ import { formatWorkAvailabilityRanges } from './utils/formatWorkAvailability';
 import { STUDENT_RECOMMENDED_JOBS } from './mocks/studentMatching';
 import StudentMatchingConditionIndustryPage from './pages/student/StudentMatchingConditionIndustryPage';
 import StudentMatchingConditionLocationPage from './pages/student/StudentMatchingConditionLocationPage';
+import StudentMatchingConditionPriorityPage from './pages/student/StudentMatchingConditionPriorityPage';
 import StudentMatchingConditionStartDatePage from './pages/student/StudentMatchingConditionStartDatePage';
 import StudentMatchingConditionWorkTimePage from './pages/student/StudentMatchingConditionWorkTimePage';
 import type { StudentNavigationTab } from './types/studentHome';
@@ -321,7 +322,7 @@ type MatchingConditionRouteContext = {
     industries: IndustryId[],
     otherIndustry: string,
   ) => Promise<boolean>;
-  savePriorityOrder: () => Promise<boolean>;
+  savePriorityOrder: (priorityOrder?: MatchingPriorityId[]) => Promise<boolean>;
   setStartDate: (date: string) => void;
   setWorkAvailability: (workAvailability: WorkAvailability) => Promise<boolean>;
   setWorkLocation: (workLocation: WorkLocation) => Promise<boolean>;
@@ -1531,8 +1532,10 @@ function StudentMatchingConditionLayout() {
     }
   };
 
-  const savePriorityOrder = async () => {
-    const requestBody = mapPriorityOrderToUpdateRequest(priorityOrder);
+  const savePriorityOrder = async (
+    nextPriorityOrder: MatchingPriorityId[] = priorityOrder,
+  ) => {
+    const requestBody = mapPriorityOrderToUpdateRequest(nextPriorityOrder);
 
     if (!requestBody) return false;
 
@@ -1592,6 +1595,11 @@ function StudentMatchingConditionRoute() {
     <StudentMatchingConditionManagementPage
       isLoading={isMatchingPreferencesLoading}
       onApply={async () => {
+        if (priorityOrder.length !== 4) {
+          navigate('/student/my/matching-condition/priority');
+          return;
+        }
+
         if (await savePriorityOrder()) {
           navigate('/student/my');
         }
@@ -1601,6 +1609,7 @@ function StudentMatchingConditionRoute() {
         const detailRoutes: Partial<Record<typeof conditionId, string>> = {
           industry: '/student/my/matching-condition/industry',
           location: '/student/my/matching-condition/location',
+          priority: '/student/my/matching-condition/priority',
           'start-date': '/student/my/matching-condition/start-date',
           'work-time': '/student/my/matching-condition/work-time',
         };
@@ -1708,6 +1717,26 @@ function StudentMatchingConditionStartDateRoute() {
       onSave={(date) => {
         setStartDate(date);
         handleExit();
+      }}
+    />
+  );
+}
+
+function StudentMatchingConditionPriorityRoute() {
+  const navigate = useNavigate();
+  const { priorityOrder, savePriorityOrder } =
+    useOutletContext<MatchingConditionRouteContext>();
+
+  const handleExit = () => navigate('/student/my/matching-condition');
+
+  return (
+    <StudentMatchingConditionPriorityPage
+      initialPriorityOrder={priorityOrder}
+      onBack={handleExit}
+      onSave={async (nextPriorityOrder) => {
+        const isSaved = await savePriorityOrder(nextPriorityOrder);
+        if (isSaved) handleExit();
+        return isSaved;
       }}
     />
   );
@@ -1966,6 +1995,10 @@ function App() {
               <Route
                 path="start-date"
                 element={<StudentMatchingConditionStartDateRoute />}
+              />
+              <Route
+                path="priority"
+                element={<StudentMatchingConditionPriorityRoute />}
               />
             </Route>
             <Route

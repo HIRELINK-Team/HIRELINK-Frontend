@@ -6,6 +6,8 @@ import type { WorkLocationRadius } from '../../../types/workLocation';
 
 type WorkLocationRadiusMapProps = {
   address: string;
+  errorMessage?: string;
+  isConfirming?: boolean;
   onBack: () => void;
   onConfirm: () => void;
   onRadiusChange: (radius: WorkLocationRadius) => void;
@@ -21,6 +23,8 @@ const RADIUS_CIRCLE_SIZE_BY_METERS: Record<number, number> = {
 
 export function WorkLocationRadiusMap({
   address,
+  errorMessage,
+  isConfirming = false,
   onBack,
   onConfirm,
   onRadiusChange,
@@ -102,8 +106,15 @@ export function WorkLocationRadiusMap({
           ))}
         </div>
 
+        {errorMessage ? (
+          <p aria-live="polite" className="mt-4 text-[14px] text-[#E05260]">
+            {errorMessage}
+          </p>
+        ) : null}
+
         <button
           className="mt-6 h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
+          disabled={isConfirming}
           type="button"
           onClick={onConfirm}
         >

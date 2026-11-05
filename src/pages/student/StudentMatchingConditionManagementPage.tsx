@@ -67,6 +67,10 @@ export default function StudentMatchingConditionManagementPage({
   const handleConditionClick = (conditionId: MatchingConditionId) => {
     onConditionClick?.(conditionId);
   };
+  const displayedPriorityOrder =
+    priorityOrder && priorityOrder.length > 0
+      ? priorityOrder
+      : MATCHING_PRIORITY_CARDS.map((priorityCard) => priorityCard.id);
 
   return (
     <main
@@ -166,7 +170,7 @@ export default function StudentMatchingConditionManagementPage({
         매칭 중요도
       </h2>
       <section className="mt-[18px] space-y-[10px]">
-        {(priorityOrder ?? [])
+        {displayedPriorityOrder
           .flatMap((priorityId) => {
             const card = MATCHING_PRIORITY_CARDS.find(
               (priorityCard) => priorityCard.id === priorityId,

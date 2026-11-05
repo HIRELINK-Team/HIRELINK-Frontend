@@ -17,25 +17,57 @@ export default function StudentMatchingConditionLocationPage({
   onBack,
   onSave,
 }: StudentMatchingConditionLocationPageProps) {
-  const [draftAddress, setDraftAddress] = useState(initialLocation.address);
-  const [draftRadius, setDraftRadius] = useState(initialLocation.radius);
+  const [draftLocation, setDraftLocation] =
+    useState<WorkLocation>(initialLocation);
   const [isRadiusMapOpen, setIsRadiusMapOpen] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [locationError, setLocationError] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   const handleCurrentLocationClick = () => {
-    setDraftAddress('강남역');
+    if (!navigator.geolocation) {
+      setLocationError(
+        '현재 위치를 지원하지 않는 환경이에요. 주소를 검색해 주세요.',
+      );
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationError('');
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setDraftLocation((currentLocation) => ({
+          ...currentLocation,
+          address: '현재 위치',
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        }));
+        setIsLocating(false);
+      },
+      () => {
+        setLocationError(
+          '현재 위치를 가져오지 못했어요. 위치 권한을 확인해 주세요.',
+        );
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true },
+    );
   };
 
-  const handleSave = async () => {
-    if (isSaving) return;
+  const handleSave = async (): Promise<boolean> => {
+    if (isSaving) return false;
 
     setIsSaving(true);
     try {
-      await onSave({
-        ...initialLocation,
-        address: draftAddress,
-        radius: draftRadius,
-      });
+      const isSaved = await onSave(draftLocation);
+      if (isSaved === false) {
+        setSaveError('저장하지 못했어요. 주소를 다시 확인한 뒤 시도해주세요.');
+      }
+      return isSaved === true;
+    } catch {
+      setSaveError('저장하지 못했어요. 잠시 후 다시 시도해주세요.');
+      return false;
     } finally {
       setIsSaving(false);
     }
@@ -44,12 +76,20 @@ export default function StudentMatchingConditionLocationPage({
   if (isRadiusMapOpen) {
     return (
       <WorkLocationRadiusMap
-        address={draftAddress}
-        radius={draftRadius}
+        address={draftLocation.address}
+        errorMessage={saveError}
+        isConfirming={isSaving}
+        radius={draftLocation.radius}
         radiusOptions={[100, 500, 1000]}
         onBack={() => setIsRadiusMapOpen(false)}
         onConfirm={() => void handleSave()}
-        onRadiusChange={setDraftRadius}
+        onRadiusChange={(radius) => {
+          setDraftLocation((currentLocation) => ({
+            ...currentLocation,
+            radius,
+          }));
+          setSaveError('');
+        }}
       />
     );
   }
@@ -78,14 +118,24 @@ export default function StudentMatchingConditionLocationPage({
           <input
             className="h-full min-w-0 flex-1 border-0 bg-transparent pl-[14px] text-[26px] leading-[1.5] font-normal outline-none placeholder:text-[#B0B8C1]"
             placeholder="주소 검색"
-            value={draftAddress}
-            onChange={(event) => setDraftAddress(event.target.value)}
+            value={draftLocation.address}
+            onChange={(event) => {
+              setDraftLocation((currentLocation) => ({
+                ...currentLocation,
+                address: event.target.value,
+                latitude: undefined,
+                longitude: undefined,
+              }));
+              setLocationError('');
+              setSaveError('');
+            }}
           />
         </span>
       </label>
 
       <button
         className="mx-[2px] mt-[15px] flex h-[54px] w-[340px] items-center gap-4 rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[23px] text-left text-[17px] leading-[1.5]"
+        disabled={isLocating}
         type="button"
         onClick={handleCurrentLocationClick}
       >
@@ -93,10 +143,16 @@ export default function StudentMatchingConditionLocationPage({
         현재 위치로 찾기
       </button>
 
+      {locationError ? (
+        <p aria-live="polite" className="mt-2 text-[14px] text-[#E05260]">
+          {locationError}
+        </p>
+      ) : null}
+
       <button
         className="absolute right-6 bottom-[clamp(20px,4.38dvh,37px)] left-6 h-[clamp(52px,6.75dvh,57px)] rounded-[15px] border-0 bg-[#00B894] text-[clamp(17px,2.37dvh,20px)] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
-        disabled={isSaving || !draftAddress.trim()}
+        disabled={isLocating || isSaving || !draftLocation.address.trim()}
         onClick={() => setIsRadiusMapOpen(true)}
       >
         수정하기
