@@ -56,8 +56,8 @@ function ResponseDeadlineTimer({
 
   return (
     <div className="flex items-center justify-end gap-1 text-[#009376]">
-      <img alt="" className="h-3.5 w-3.5" src={timerActiveIcon} />
-      <span className="text-[15px] leading-5 font-semibold tabular-nums">
+      <img alt="" className="h-4 w-4" src={timerActiveIcon} />
+      <span className="text-[20px] leading-[1.5] font-semibold tabular-nums">
         {label}
       </span>
     </div>
@@ -81,32 +81,30 @@ export function RecommendedJobCard({
 
   return (
     <article
-      className={`relative overflow-hidden rounded-[18px] border border-[#D7DDE3] bg-[#F8FAFB] ${
-        showApplyButton ? 'h-[184px]' : 'h-[128px]'
+      className={`relative overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1] bg-transparent ${
+        showApplyButton ? 'h-[236px]' : 'h-[164px]'
       }`}
     >
-      <h2 className="absolute top-[14px] left-4 m-0 max-w-[205px] truncate text-[16px] leading-5 font-semibold text-[#191F28]">
+      <h2 className="absolute top-[21px] left-[23px] m-0 max-w-[190px] truncate text-[20px] leading-[1.5] font-semibold text-[#191F28]">
         {job.companyName}
       </h2>
-      <p className="absolute top-[40px] left-4 max-w-[210px] truncate text-[12px] leading-4 text-[#8B95A1]">
+      <p className="absolute top-[58px] left-[23px] max-w-[190px] truncate text-[15px] leading-[1.5] text-[#8B95A1]">
         {job.role}
       </p>
-      <p className="absolute top-[61px] left-4 max-w-[210px] truncate text-[12px] leading-4 text-[#8B95A1]">
+      <p className="absolute top-[88px] left-[23px] max-w-[190px] truncate text-[15px] leading-[1.5] text-[#8B95A1]">
         {job.commuteAndWage}
       </p>
-      <p className="absolute top-[82px] left-4 max-w-[210px] truncate text-[12px] leading-4 text-[#8B95A1]">
+      <p className="absolute top-[118px] left-[23px] max-w-[190px] truncate text-[15px] leading-[1.5] text-[#8B95A1]">
         {job.matchDescription}
       </p>
-      <span className="absolute top-[14px] right-4 text-[11px] leading-4 font-medium text-[#8B95A1]">
+      <span className="absolute top-[24px] right-[23px] text-[13px] leading-[1.5] font-medium text-[#8B95A1]">
         {job.matchRate}% 일치
       </span>
-      <div className="absolute top-[34px] right-4 min-h-5">
+      <div className="absolute top-[45px] right-[23px] min-h-5">
         <ResponseDeadlineTimer application={application} />
       </div>
       <button
-        className={`absolute right-4 h-6 rounded-[30px] border-0 bg-[#E5E8EB] px-2.5 text-[11px] leading-4 text-[#4E5968] ${
-          showApplyButton ? 'bottom-[62px]' : 'bottom-3.5'
-        }`}
+        className="absolute top-[108px] right-[23px] h-[27px] rounded-[30px] border-0 bg-[#E5E8EB] px-[13px] text-[13px] leading-[1.5] text-[#191F28]"
         type="button"
         onClick={handleDetailClick}
       >
@@ -114,7 +112,7 @@ export function RecommendedJobCard({
       </button>
       {showApplyButton ? (
         <button
-          className="absolute right-4 bottom-3.5 left-4 flex h-11 items-center justify-center rounded-[12px] border-0 bg-[#00B894] text-[15px] leading-5 font-medium text-[#F5F5F5]"
+          className="absolute top-[162px] right-[23px] left-[23px] flex h-[51px] items-center justify-center rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5]"
           type="button"
           onClick={handleApply}
         >

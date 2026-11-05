@@ -280,7 +280,7 @@ export default function StudentMatchingPage({
     recommendedJobs.length === 0
   ) {
     return (
-      <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em]">
+      <main className="relative mx-auto h-[990px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em]">
         <button
           aria-label="이전 화면으로 이동"
           className="absolute top-[67px] left-6 z-10 flex h-[19px] w-[11px] items-center justify-center border-0 bg-transparent p-0"
@@ -296,7 +296,7 @@ export default function StudentMatchingPage({
 
   return (
     <main
-      className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+      className="relative mx-auto h-[990px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
       data-matching-view={matchingView}
       data-selected-job-id={selectedJob?.id}
     >
@@ -321,7 +321,7 @@ export default function StudentMatchingPage({
 
       <section
         aria-label="추천 근무지 목록"
-        className="absolute top-[248px] right-6 left-6 flex flex-col gap-2"
+        className="absolute top-[248px] right-6 left-6 flex flex-col gap-2.5"
       >
         {recommendedJobs.map((job, index) => {
           const application = applications.find(
