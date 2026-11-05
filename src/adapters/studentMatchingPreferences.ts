@@ -4,7 +4,6 @@ import type {
   StudentMatchingCriterionName,
   StudentMatchingPreferencesResponse,
   StudentMatchingPreferencesUpdateRequest,
-  StudentPreferredJob,
   StudentPreferredWorkTime,
 } from '../types/studentMatchingPreferences';
 import type {
@@ -33,6 +32,17 @@ const BUSINESS_TYPE_TO_INDUSTRY: Readonly<Record<string, IndustryId>> = {
   OFFICE_AND_TOURISM: 'officeTourism',
   OTHER: 'other',
   RETAIL: 'retail',
+};
+
+const INDUSTRY_TO_BUSINESS_TYPE_ID: Readonly<Record<IndustryId, number>> = {
+  foodCafe: 1,
+  retail: 2,
+  officeTourism: 3,
+  translation: 4,
+  dutyFree: 5,
+  majorStudy: 6,
+  internship: 7,
+  other: 8,
 };
 
 const CRITERION_TO_PRIORITY: Record<
@@ -148,20 +158,10 @@ function splitNighttimeRange(day: Weekday, range: SlotRange): DaySlotRange[] {
   return [{ ...range, day }];
 }
 
-function findSourceJob(
-  industry: IndustryId,
-  sourceJobs: readonly StudentPreferredJob[],
-) {
-  return sourceJobs.find(
-    (job) => BUSINESS_TYPE_TO_INDUSTRY[job.businessTypeName] === industry,
-  );
-}
-
 export function mapIndustrySelectionToUpdateRequest(
   selectedIndustries: readonly IndustryId[],
   otherIndustry: string,
   businessTypeFlexible: boolean,
-  sourceJobs: readonly StudentPreferredJob[],
 ): StudentMatchingPreferencesUpdateRequest | null {
   if (businessTypeFlexible) {
     return { businessTypeFlexible: true, preferredJobs: [] };
@@ -170,22 +170,20 @@ export function mapIndustrySelectionToUpdateRequest(
   if (selectedIndustries.length === 0) return null;
 
   const preferredJobs = selectedIndustries.map((industry) => {
-    const sourceJob = findSourceJob(industry, sourceJobs);
-
-    if (!sourceJob) return null;
+    const businessTypeId = INDUSTRY_TO_BUSINESS_TYPE_ID[industry];
 
     if (industry === 'other') {
       const trimmedOtherIndustry = otherIndustry.trim();
       if (!trimmedOtherIndustry) return null;
 
       return {
-        businessTypeId: sourceJob.businessTypeId,
+        businessTypeId,
         otherJobName: trimmedOtherIndustry,
       };
     }
 
     return {
-      businessTypeId: sourceJob.businessTypeId,
+      businessTypeId,
       otherJobName: null,
     };
   });

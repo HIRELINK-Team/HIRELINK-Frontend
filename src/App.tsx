@@ -1470,7 +1470,6 @@ function StudentMatchingConditionLayout() {
           industries,
           industry,
           false,
-          matchingPreferences.preferredJobs,
         )
       : null;
 
