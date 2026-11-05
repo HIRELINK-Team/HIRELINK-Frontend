@@ -22,9 +22,13 @@ export async function createStudentApplication(
 ): Promise<CreateStudentApplicationResponse> {
   // The server limits reviewing applicants to five and prevents reapplication.
   // A successful application starts the employer's 24-hour response window.
+  const request = {
+    desiredStartDate: requestBody.desiredStartDate,
+    recommendationId: requestBody.recommendationId,
+  };
   const { data } = await apiClient.post<CreateStudentApplicationResponse>(
     '/applications',
-    requestBody,
+    request,
   );
 
   return data;
