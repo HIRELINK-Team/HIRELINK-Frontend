@@ -124,7 +124,10 @@ import type {
 } from './types/studentNotification';
 import type { StudentMyMenuId } from './types/studentMy';
 import type { StudentEmploymentMatchContact } from './types/studentMatch';
-import type { StudentProfileResponse } from './types/studentProfile';
+import type {
+  StudentProfileResponse,
+  StudentProfileUpdateResponse,
+} from './types/studentProfile';
 import type { WorkAvailability } from './types/workAvailability';
 import type { WorkLocation } from './types/workLocation';
 
@@ -200,16 +203,66 @@ function isStudentProfileResponse(
   return (
     typeof profile.studentId === 'number' &&
     typeof profile.name === 'string' &&
+    typeof profile.email === 'string' &&
     typeof profile.phoneNumber === 'string' &&
     typeof profile.birthDate === 'string' &&
     typeof profile.nationality === 'string' &&
     typeof profile.currentRegion === 'string' &&
     typeof profile.koreanLevel === 'string' &&
-    typeof profile.visaCode === 'string' &&
-    typeof profile.universityName === 'string' &&
-    typeof profile.academicState === 'string' &&
-    typeof profile.stayExpirationDate === 'string' &&
-    (typeof profile.topikLevel === 'number' || profile.topikLevel === null)
+    (typeof profile.visaCode === 'string' || profile.visaCode === null) &&
+    (typeof profile.universityName === 'string' ||
+      profile.universityName === null) &&
+    (typeof profile.enrollmentStartDate === 'string' ||
+      profile.enrollmentStartDate === null) &&
+    (typeof profile.studyProgramId === 'number' ||
+      profile.studyProgramId === null) &&
+    (typeof profile.gradeLevel === 'number' || profile.gradeLevel === null) &&
+    (typeof profile.academicState === 'string' ||
+      profile.academicState === null) &&
+    (typeof profile.topikLevel === 'number' || profile.topikLevel === null) &&
+    (typeof profile.stayStartDate === 'string' ||
+      profile.stayStartDate === null) &&
+    (typeof profile.stayExpirationDate === 'string' ||
+      profile.stayExpirationDate === null) &&
+    (typeof profile.profileImageUrl === 'string' ||
+      profile.profileImageUrl === null) &&
+    (typeof profile.hirelinkBadgeIssuedAt === 'string' ||
+      profile.hirelinkBadgeIssuedAt === null) &&
+    Array.isArray(profile.careers)
+  );
+}
+
+function isStudentProfileUpdateResponse(
+  value: unknown,
+): value is StudentProfileUpdateResponse {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const profile = value as Record<string, unknown>;
+
+  return (
+    typeof profile.studentId === 'number' &&
+    typeof profile.name === 'string' &&
+    typeof profile.email === 'string' &&
+    typeof profile.phoneNumber === 'string' &&
+    typeof profile.birthDate === 'string' &&
+    typeof profile.nationality === 'string' &&
+    typeof profile.currentRegion === 'string' &&
+    typeof profile.koreanLevel === 'string' &&
+    (typeof profile.visaCode === 'string' || profile.visaCode === null) &&
+    (typeof profile.universityName === 'string' ||
+      profile.universityName === null) &&
+    (typeof profile.studyProgramId === 'number' ||
+      profile.studyProgramId === null) &&
+    (typeof profile.gradeLevel === 'number' || profile.gradeLevel === null) &&
+    (typeof profile.academicState === 'string' ||
+      profile.academicState === null) &&
+    (typeof profile.topikLevel === 'number' || profile.topikLevel === null) &&
+    (typeof profile.stayExpirationDate === 'string' ||
+      profile.stayExpirationDate === null) &&
+    (typeof profile.hirelinkBadgeIssuedAt === 'string' ||
+      profile.hirelinkBadgeIssuedAt === null)
   );
 }
 
@@ -1266,11 +1319,13 @@ function StudentProfileLayout() {
                 mappingResult.requestBody,
               );
 
-              if (!isStudentProfileResponse(updatedProfile)) return false;
+              if (!isStudentProfileUpdateResponse(updatedProfile)) return false;
 
-              setStudentProfile(updatedProfile);
+              const mergedProfile = { ...studentProfile, ...updatedProfile };
+
+              setStudentProfile(mergedProfile);
               setProfileValues(
-                mapStudentProfileResponseToValues(updatedProfile),
+                mapStudentProfileResponseToValues(mergedProfile),
               );
 
               return true;

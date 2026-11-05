@@ -3,6 +3,7 @@ import { apiClient } from '../client';
 import type {
   StudentProfileCreateRequest,
   StudentProfileResponse,
+  StudentProfileUpdateResponse,
   StudentProfileUpdateRequest,
 } from '../../types/studentProfile';
 
@@ -27,8 +28,8 @@ export async function getStudentProfile(): Promise<StudentProfileResponse> {
 
 export async function updateStudentProfile(
   requestBody: StudentProfileUpdateRequest,
-): Promise<StudentProfileResponse> {
-  const { data } = await apiClient.patch<StudentProfileResponse>(
+): Promise<StudentProfileUpdateResponse> {
+  const { data } = await apiClient.patch<StudentProfileUpdateResponse>(
     '/students/me/profile',
     requestBody,
   );

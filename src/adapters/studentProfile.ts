@@ -82,7 +82,9 @@ export type StudentProfileUpdateMappingResult =
   | { status: 'unchanged' }
   | { status: 'invalid' };
 
-function getVisaLabel(visaCode: string) {
+function getVisaLabel(visaCode: string | null) {
+  if (visaCode === null) return '미등록';
+
   const qualification = visaCode.replace(/^D-/, 'D').replaceAll('-', '_');
 
   return (
@@ -92,7 +94,9 @@ function getVisaLabel(visaCode: string) {
   );
 }
 
-function getAcademicStateLabel(academicState: string) {
+function getAcademicStateLabel(academicState: string | null) {
+  if (academicState === null) return '미등록';
+
   return (
     Object.values(ACADEMIC_STATUS_OPTIONS)
       .flat()
@@ -174,7 +178,7 @@ function setChangedString(
     | 'universityName'
     | 'academicState',
   value: string | null,
-  currentValue: string,
+  currentValue: string | null,
 ) {
   if (value === null || value.trim() === '') return false;
   if (value !== currentValue) requestBody[key] = value;
@@ -198,11 +202,11 @@ export function mapStudentProfileResponseToValues(
     ],
     residence: [
       getVisaLabel(profile.visaCode),
-      profile.stayExpirationDate.replaceAll('-', '.'),
+      profile.stayExpirationDate?.replaceAll('-', '.') ?? '미등록',
       '등록 완료',
     ],
     academic: [
-      profile.universityName,
+      profile.universityName ?? '미등록',
       '학사',
       getAcademicStateLabel(profile.academicState),
     ],

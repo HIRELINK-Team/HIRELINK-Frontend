@@ -22,19 +22,24 @@ export type StudentProfileResponse = {
   nationality: string;
   currentRegion: string;
   koreanLevel: StudentKoreanLevel;
-  visaCode: string;
-  universityName: string;
-  enrollmentStartDate: string;
+  visaCode: string | null;
+  universityName: string | null;
+  enrollmentStartDate: string | null;
   studyProgramId: number | null;
   gradeLevel: number | null;
-  academicState: string;
+  academicState: string | null;
   topikLevel: StudentTopikLevel | null;
-  stayStartDate: string;
-  stayExpirationDate: string;
+  stayStartDate: string | null;
+  stayExpirationDate: string | null;
   profileImageUrl: string | null;
   hirelinkBadgeIssuedAt: string | null;
   careers: StudentProfileCareer[];
 };
+
+export type StudentProfileUpdateResponse = Omit<
+  StudentProfileResponse,
+  'careers' | 'enrollmentStartDate' | 'profileImageUrl' | 'stayStartDate'
+>;
 
 export type StudentProfileUpdateRequest = Partial<{
   name: string;
