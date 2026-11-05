@@ -24,7 +24,11 @@ export interface LoginResponse extends AccessTokenResponse {
   userId: number;
 }
 
-export type SignupResponse = AccessTokenResponse;
+export interface SignupResponse extends AccessTokenResponse {
+  email: string;
+  role: UserRole;
+  userId: number;
+}
 
 export type RefreshAccessTokenResponse = AccessTokenResponse;
 
