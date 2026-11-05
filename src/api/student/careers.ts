@@ -10,7 +10,7 @@ export async function createStudentCareer(
   requestBody: CreateStudentCareerRequest,
 ): Promise<StudentCareerResponse> {
   const { data } = await apiClient.post<StudentCareerResponse>(
-    '/api/students/me/careers',
+    '/students/me/careers',
     requestBody,
   );
 
@@ -22,7 +22,7 @@ export async function updateStudentCareer(
   requestBody: UpdateStudentCareerRequest,
 ): Promise<StudentCareerResponse> {
   const { data } = await apiClient.patch<StudentCareerResponse>(
-    `/api/students/me/careers/${encodeURIComponent(String(careerId))}`,
+    `/students/me/careers/${encodeURIComponent(String(careerId))}`,
     requestBody,
   );
 
@@ -33,6 +33,6 @@ export async function deleteStudentCareer(
   careerId: string | number,
 ): Promise<void> {
   await apiClient.delete(
-    `/api/students/me/careers/${encodeURIComponent(String(careerId))}`,
+    `/students/me/careers/${encodeURIComponent(String(careerId))}`,
   );
 }
