@@ -8,6 +8,8 @@ import type {
   RefreshResponse,
   RequestPhoneVerificationRequest,
   RequestPhoneVerificationResponse,
+  SignupRequest,
+  SignupResponse,
   VerifyPhoneRequest,
   VerifyPhoneResponse,
 } from '../types/auth';
@@ -15,6 +17,14 @@ import type {
 async function login(request: LoginRequest) {
   const response = await publicApiClient.post<LoginResponse>(
     '/auth/login',
+    request,
+  );
+  return response.data;
+}
+
+async function signup(request: SignupRequest) {
+  const response = await publicApiClient.post<SignupResponse>(
+    '/auth/signup',
     request,
   );
   return response.data;
@@ -75,5 +85,6 @@ export {
   logout,
   refreshAccessToken,
   requestPhoneVerification,
+  signup,
   verifyPhone,
 };

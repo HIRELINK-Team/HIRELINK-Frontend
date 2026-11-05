@@ -13,7 +13,6 @@ import {
   getEmployerApplications,
   rejectEmployerApplication,
 } from '../../api/applications';
-import { EMPLOYER_APPLICANT_MOCKS } from '../../data/employerApplicantsData';
 import { EmployerApplicantsContext } from '../../hooks/useEmployerApplicants';
 import type {
   CreateEmploymentOfferResponse,
@@ -22,10 +21,7 @@ import type {
   RejectApplicationResponse,
 } from '../../types/application';
 
-const RESPONSE_TIME_LIMIT_HOURS = 24;
-
 function EmployerApplicantsProvider({ children }: { children: ReactNode }) {
-  const [applicants, setApplicants] = useState(EMPLOYER_APPLICANT_MOCKS);
   const [applicationLists, setApplicationLists] = useState<
     Record<number, EmployerApplicationListResponse>
   >({});
@@ -258,37 +254,8 @@ function EmployerApplicantsProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  const offerApplicant = useCallback((applicationId: string) => {
-    const offerExpiresAt = new Date(
-      Date.now() + RESPONSE_TIME_LIMIT_HOURS * 60 * 60 * 1000,
-    ).toISOString();
-
-    setApplicants((currentApplicants) =>
-      currentApplicants.map((applicant) =>
-        applicant.id === applicationId
-          ? {
-              ...applicant,
-              status: 'OFFER_WAITING',
-              expiresAt: offerExpiresAt,
-            }
-          : applicant,
-      ),
-    );
-  }, []);
-
-  const rejectApplicant = useCallback((applicationId: string) => {
-    setApplicants((currentApplicants) =>
-      currentApplicants.map((applicant) =>
-        applicant.id === applicationId
-          ? { ...applicant, status: 'REJECTED', expiresAt: undefined }
-          : applicant,
-      ),
-    );
-  }, []);
-
   const value = useMemo(
     () => ({
-      applicants,
       applicationLists,
       applicationDetails,
       mutatingApplicationIds,
@@ -296,19 +263,14 @@ function EmployerApplicantsProvider({ children }: { children: ReactNode }) {
       loadApplicationDetail,
       rejectApplication,
       offerApplication,
-      offerApplicant,
-      rejectApplicant,
     }),
     [
-      applicants,
       applicationDetails,
       applicationLists,
       loadApplicationDetail,
       loadApplicationList,
       mutatingApplicationIds,
-      offerApplicant,
       offerApplication,
-      rejectApplicant,
       rejectApplication,
     ],
   );

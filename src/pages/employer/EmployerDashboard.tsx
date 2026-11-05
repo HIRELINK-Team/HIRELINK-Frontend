@@ -1,34 +1,34 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import progressLine from '../../assets/employer/progress-line.svg';
+import ConfirmModal from '../../components/common/ConfirmModal';
+import CountdownTimer from '../../components/common/CountdownTimer';
+import Toast from '../../components/common/Toast';
 import ApplicantActionModal, {
   type ApplicantAction,
 } from '../../components/employer/ApplicantActionModal';
-import ConfirmModal from '../../components/common/ConfirmModal';
-import CountdownTimer from '../../components/common/CountdownTimer';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
 import { useEmployerApplicants } from '../../hooks/useEmployerApplicants';
+import { useEmployerDashboard } from '../../hooks/useEmployerDashboard';
 import { useEmployerJobs } from '../../hooks/useEmployerJobs';
-import type { EmployerApplicantMock } from '../../types/application';
+import type { EmployerDashboardApplication } from '../../types/employerDashboard';
 import type { JobPostingListItem } from '../../types/jobPosting';
 import { formatJobPostingSummary } from '../../utils/jobPosting';
 
 type DashboardView = 'openJobs' | 'reviewing' | 'pending';
 
-type SummaryItem = {
+interface SummaryItem {
   id: DashboardView;
   label: string;
-  count: number;
+  count: number | null;
   unit: '개' | '명';
-};
+}
 
-const dashboardMockData: { summary: SummaryItem[] } = {
-  summary: [
-    { id: 'openJobs', label: '모집 중 공고', count: 1, unit: '개' },
-    { id: 'reviewing', label: '검토 중 지원자', count: 1, unit: '명' },
-    { id: 'pending', label: '수락 대기', count: 1, unit: '명' },
-  ],
-};
+const SUMMARY_ITEMS: Omit<SummaryItem, 'count'>[] = [
+  { id: 'openJobs', label: '모집 중 공고', unit: '개' },
+  { id: 'reviewing', label: '검토 중 지원자', unit: '명' },
+  { id: 'pending', label: '수락 대기', unit: '명' },
+];
 
 const hiringSteps = [
   { title: '공고 등록', description: '조건 작성' },
@@ -38,6 +38,21 @@ const hiringSteps = [
   { title: '허가 신청', description: '학교, 출입국' },
   { title: '근무 시작', description: '신고 안내' },
 ] as const;
+
+function getApplicationActionErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+  if (status === 409)
+    return apiError?.message ?? '이미 처리됐거나 응답기한이 지난 지원이에요.';
+  if (status === 400)
+    return apiError?.message ?? '지원자 상태를 다시 확인해 주세요.';
+  if (status === 401) return '로그인 정보를 확인하지 못했습니다.';
+  if (status === 403) return '지원자를 관리할 권한이 없습니다.';
+  if (status === 404) return '지원자 또는 채용공고를 찾지 못했습니다.';
+  if (status && status >= 500)
+    return '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+  return apiError?.message ?? '요청을 처리하지 못했습니다.';
+}
 
 function SummaryCard({
   item,
@@ -64,11 +79,13 @@ function SummaryCard({
       </span>
       <span className="mt-3 flex items-end gap-1 text-[#171719]">
         <span className="text-4xl leading-normal font-semibold">
-          {item.count}
+          {item.count ?? '—'}
         </span>
-        <span className="mb-[6px] text-base leading-normal font-normal text-[#37383c]">
-          {item.unit}
-        </span>
+        {item.count !== null && (
+          <span className="mb-[6px] text-base leading-normal font-normal text-[#37383c]">
+            {item.unit}
+          </span>
+        )}
       </span>
     </button>
   );
@@ -151,6 +168,11 @@ function JobList({
             </div>
           </article>
         ))}
+        {jobs.length === 0 && (
+          <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-[#c7cbd1] bg-white text-sm text-[#70737c]">
+            현재 모집 중인 공고가 없어요.
+          </div>
+        )}
       </div>
     </section>
   );
@@ -163,9 +185,12 @@ function ApplicantList({
   onAction,
 }: {
   view: Exclude<DashboardView, 'openJobs'>;
-  applicants: EmployerApplicantMock[];
-  onViewDetail: (applicant: EmployerApplicantMock) => void;
-  onAction: (action: ApplicantAction, applicant: EmployerApplicantMock) => void;
+  applicants: EmployerDashboardApplication[];
+  onViewDetail: (applicant: EmployerDashboardApplication) => void;
+  onAction: (
+    action: ApplicantAction,
+    applicant: EmployerDashboardApplication,
+  ) => void;
 }) {
   const isReviewing = view === 'reviewing';
 
@@ -186,55 +211,75 @@ function ApplicantList({
         <span>남은 시간</span>
         <span className="ml-[18px] flex w-24 justify-center">관리</span>
       </div>
-      {applicants.map((applicant) => (
-        <article
-          key={applicant.id}
-          className="mt-[15px] grid h-24 grid-cols-[56px_repeat(5,minmax(64px,104px))_minmax(322px,1fr)] items-center rounded-xl border border-[rgba(112,115,124,0.08)] bg-white px-2 text-center shadow-[0_1px_2px_-1px_rgba(23,23,23,0.1)] xl:grid-cols-[80px_repeat(5,104px)_1fr] xl:px-6"
-        >
-          <div
-            aria-hidden="true"
-            className="size-12 rounded-full bg-[#e1e2e4]"
-          />
-          <strong className="text-xl font-semibold text-[#171719]">
-            {applicant.name}
-          </strong>
-          <span className="text-base font-medium text-[#70737c]">
-            {applicant.nationality}
-          </span>
-          <span className="text-base font-medium text-[#70737c]">
-            {applicant.visa}
-          </span>
-          <span className="text-xl font-medium text-[#d97706]">
-            {applicant.matchRate}%
-          </span>
-          <div className="text-xl font-medium text-[#171719]">
-            {applicant.expiresAt ? (
-              <CountdownTimer expiresAt={applicant.expiresAt} />
+      {applicants.map((dashboardApplicant) => {
+        const applicant = dashboardApplicant.application;
+        const deadline = isReviewing
+          ? applicant.employerResponseDeadline
+          : applicant.studentResponseDeadline;
+
+        return (
+          <article
+            key={applicant.applicationId}
+            className="mt-[15px] grid h-24 grid-cols-[56px_repeat(5,minmax(64px,104px))_minmax(322px,1fr)] items-center rounded-xl border border-[rgba(112,115,124,0.08)] bg-white px-2 text-center shadow-[0_1px_2px_-1px_rgba(23,23,23,0.1)] xl:grid-cols-[80px_repeat(5,104px)_1fr] xl:px-6"
+          >
+            {applicant.profileImageUrl ? (
+              <img
+                src={applicant.profileImageUrl}
+                alt=""
+                className="size-12 rounded-full bg-[#e1e2e4] object-cover"
+              />
             ) : (
-              '-'
+              <div
+                aria-hidden="true"
+                className="size-12 rounded-full bg-[#e1e2e4]"
+              />
             )}
-          </div>
-          <div className="ml-[18px] flex items-center gap-2">
-            <OutlineButton onClick={() => onViewDetail(applicant)}>
-              상세
-            </OutlineButton>
-            {isReviewing && (
-              <>
-                <OutlineButton onClick={() => onAction('REJECT', applicant)}>
-                  채용 거절
-                </OutlineButton>
-                <button
-                  type="button"
-                  onClick={() => onAction('OFFER', applicant)}
-                  className="flex h-8 w-24 cursor-pointer items-center justify-center rounded-lg bg-[#00b894] px-3 text-xs font-medium text-white transition-colors hover:bg-[#00a886] active:bg-[#00997a]"
-                >
-                  채용 제안
-                </button>
-              </>
-            )}
-          </div>
-        </article>
-      ))}
+            <strong className="text-xl font-semibold text-[#171719]">
+              {applicant.applicantName}
+            </strong>
+            <span className="text-base font-medium text-[#70737c]">
+              {applicant.nationality}
+            </span>
+            <span className="text-base font-medium text-[#70737c]">
+              {applicant.visaType}
+            </span>
+            <span className="text-xl font-medium text-[#d97706]">
+              {applicant.matchScore}%
+            </span>
+            <div className="text-xl font-medium text-[#171719]">
+              {deadline ? <CountdownTimer expiresAt={deadline} /> : '-'}
+            </div>
+            <div className="ml-[18px] flex items-center gap-2">
+              <OutlineButton onClick={() => onViewDetail(dashboardApplicant)}>
+                상세
+              </OutlineButton>
+              {isReviewing && (
+                <>
+                  <OutlineButton
+                    onClick={() => onAction('REJECT', dashboardApplicant)}
+                  >
+                    채용 거절
+                  </OutlineButton>
+                  <button
+                    type="button"
+                    onClick={() => onAction('OFFER', dashboardApplicant)}
+                    className="flex h-8 w-24 cursor-pointer items-center justify-center rounded-lg bg-[#00b894] px-3 text-xs font-medium text-white transition-colors hover:bg-[#00a886] active:bg-[#00997a]"
+                  >
+                    채용 제안
+                  </button>
+                </>
+              )}
+            </div>
+          </article>
+        );
+      })}
+      {applicants.length === 0 && (
+        <div className="mt-[15px] flex h-24 items-center justify-center rounded-xl border border-dashed border-[#c7cbd1] bg-white text-sm text-[#70737c]">
+          {isReviewing
+            ? '응답이 필요한 지원자가 없어요.'
+            : '수락을 기다리는 지원자가 없어요.'}
+        </div>
+      )}
     </section>
   );
 }
@@ -283,28 +328,33 @@ function HiringProcess() {
 
 function EmployerDashboard() {
   const navigate = useNavigate();
-  const { jobs, loadJobs, closeJob } = useEmployerJobs();
-  const { applicants, offerApplicant, rejectApplicant } =
+  const { closeJob } = useEmployerJobs();
+  const { mutatingApplicationIds, offerApplication, rejectApplication } =
     useEmployerApplicants();
-  const openJobs = jobs.filter((job) => job.status === 'RECRUITING');
-  const reviewingApplicants = applicants.filter(
-    (applicant) => applicant.status === 'REVIEWING',
-  );
-  const pendingApplicants = applicants.filter(
-    (applicant) => applicant.status === 'OFFER_WAITING',
-  );
+  const { data, isLoading, loadError, reloadDashboard, removeRecruitingJob } =
+    useEmployerDashboard();
   const [selectedView, setSelectedView] = useState<DashboardView>('openJobs');
   const [jobToClose, setJobToClose] = useState<JobPostingListItem | null>(null);
   const [isClosingJob, setIsClosingJob] = useState(false);
   const [jobCloseError, setJobCloseError] = useState<string | null>(null);
   const [applicantAction, setApplicantAction] = useState<{
     action: ApplicantAction;
-    applicant: EmployerApplicantMock;
+    applicant: EmployerDashboardApplication;
   } | null>(null);
+  const [isConfirmingAction, setIsConfirmingAction] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    void loadJobs().catch(() => undefined);
-  }, [loadJobs]);
+    if (!toastMessage) return;
+    const timeoutId = window.setTimeout(() => setToastMessage(null), 4000);
+    return () => window.clearTimeout(timeoutId);
+  }, [toastMessage]);
+
+  const summaryCounts: Record<DashboardView, number> = {
+    openJobs: data.recruitingCount,
+    reviewing: data.waitingResponseCount,
+    pending: data.offeredCount,
+  };
 
   const handleConfirmCloseJob = async () => {
     if (!jobToClose || isClosingJob) return;
@@ -312,6 +362,7 @@ function EmployerDashboard() {
     setJobCloseError(null);
     try {
       await closeJob(jobToClose.jobPostingId);
+      removeRecruitingJob(jobToClose.jobPostingId);
       setJobToClose(null);
     } catch (error: unknown) {
       const status = getApiErrorStatus(error);
@@ -329,22 +380,38 @@ function EmployerDashboard() {
     }
   };
 
-  const handleApplicantActionConfirm = () => {
-    if (!applicantAction) {
-      return;
-    }
+  const handleApplicantActionConfirm = async () => {
+    if (!applicantAction || isConfirmingAction) return;
+    const { action, applicant: dashboardApplicant } = applicantAction;
+    const { application, jobPostingId } = dashboardApplicant;
+    setIsConfirmingAction(true);
 
-    if (applicantAction.action === 'OFFER') {
-      offerApplicant(applicantAction.applicant.id);
-    } else {
-      rejectApplicant(applicantAction.applicant.id);
+    try {
+      if (action === 'OFFER') {
+        await offerApplication(application.applicationId, jobPostingId);
+        setToastMessage(
+          `${application.applicantName}님에게 채용제안을 보냈어요. 24시간 안에 응답을 기다려요`,
+        );
+      } else {
+        await rejectApplication(application.applicationId, jobPostingId);
+        setToastMessage(`${application.applicantName}님의 지원을 거절했어요.`);
+      }
+      setApplicantAction(null);
+    } catch (error: unknown) {
+      setToastMessage(getApplicationActionErrorMessage(error));
+    } finally {
+      setIsConfirmingAction(false);
     }
-
-    setApplicantAction(null);
   };
 
+  const selectedApplicants =
+    selectedView === 'reviewing'
+      ? data.recentApplications
+      : data.offeredApplications;
+  const isInitialStatePending = isLoading || Boolean(loadError);
+
   return (
-    <div className="pb-10 pt-10">
+    <div className="pt-10 pb-10">
       <header>
         <h1 className="text-4xl leading-[43px] font-semibold tracking-[-0.8px] text-black">
           안녕하세요, 사장님!
@@ -358,26 +425,51 @@ function EmployerDashboard() {
         className="mt-[43px] grid grid-cols-3 gap-4"
         aria-label="대시보드 요약"
       >
-        {dashboardMockData.summary.map((item) => (
+        {SUMMARY_ITEMS.map((item) => (
           <SummaryCard
             key={item.id}
-            item={
-              item.id === 'openJobs'
-                ? { ...item, count: openJobs.length }
-                : item.id === 'reviewing'
-                  ? { ...item, count: reviewingApplicants.length }
-                  : { ...item, count: pendingApplicants.length }
-            }
+            item={{
+              ...item,
+              count: isInitialStatePending ? null : summaryCounts[item.id],
+            }}
             selected={selectedView === item.id}
             onSelect={() => setSelectedView(item.id)}
           />
         ))}
       </div>
 
+      {data.failedApplicationJobIds.length > 0 && !isLoading && (
+        <p
+          role="status"
+          className="mt-4 rounded-lg bg-[#fff8e8] px-4 py-3 text-sm font-medium text-[#9a6700]"
+        >
+          일부 공고의 지원자 정보를 불러오지 못해 확인된 데이터만 표시하고
+          있어요.
+        </p>
+      )}
+
       <div className="mt-[22px]">
-        {selectedView === 'openJobs' ? (
+        {isLoading ? (
+          <div className="flex h-36 items-center justify-center rounded-xl bg-white text-sm text-[#70737c]">
+            대시보드 정보를 불러오는 중이에요.
+          </div>
+        ) : loadError ? (
+          <div
+            role="alert"
+            className="flex h-36 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#e05260] bg-white text-sm text-[#e11e1e]"
+          >
+            <p>{loadError}</p>
+            <button
+              type="button"
+              onClick={() => void reloadDashboard().catch(() => undefined)}
+              className="rounded-lg border border-[#e05260] px-4 py-2 font-medium"
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : selectedView === 'openJobs' ? (
           <JobList
-            jobs={openJobs}
+            jobs={data.recruitingJobPostings}
             onViewApplicants={(job) =>
               navigate(`/employer/jobs/${job.jobPostingId}/applicants`)
             }
@@ -392,13 +484,9 @@ function EmployerDashboard() {
         ) : (
           <ApplicantList
             view={selectedView}
-            applicants={
-              selectedView === 'reviewing'
-                ? reviewingApplicants
-                : pendingApplicants
-            }
-            onViewDetail={(applicant) =>
-              navigate(`/employer/applicants/${applicant.id}`)
+            applicants={selectedApplicants}
+            onViewDetail={({ application }) =>
+              navigate(`/employer/applicants/${application.applicationId}`)
             }
             onAction={(action, applicant) =>
               setApplicantAction({ action, applicant })
@@ -420,6 +508,8 @@ function EmployerDashboard() {
             if (!isClosingJob) setJobToClose(null);
           }}
           onConfirm={handleConfirmCloseJob}
+          isCancelDisabled={isClosingJob}
+          isConfirmDisabled={isClosingJob}
         >
           <p className="mt-5 flex h-[35px] items-center overflow-hidden rounded-md bg-[#f2f3f5] px-2.5 text-[13px] font-semibold whitespace-nowrap text-[#171719]">
             {jobToClose.jobRole ?? '직무 미입력'} ·{' '}
@@ -450,11 +540,19 @@ function EmployerDashboard() {
       {applicantAction && (
         <ApplicantActionModal
           action={applicantAction.action}
-          applicantName={applicantAction.applicant.name}
+          applicantName={applicantAction.applicant.application.applicantName}
+          isSubmitting={
+            isConfirmingAction ||
+            mutatingApplicationIds.includes(
+              applicantAction.applicant.application.applicationId,
+            )
+          }
           onCancel={() => setApplicantAction(null)}
           onConfirm={handleApplicantActionConfirm}
         />
       )}
+
+      {toastMessage && <Toast message={toastMessage} />}
     </div>
   );
 }

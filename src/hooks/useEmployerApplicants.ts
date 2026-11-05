@@ -1,7 +1,6 @@
 import { createContext, useContext } from 'react';
 import type {
   CreateEmploymentOfferResponse,
-  EmployerApplicantMock,
   EmployerApplicationDetailResponse,
   EmployerApplicationListResponse,
   RejectApplicationResponse,
@@ -27,10 +26,6 @@ interface EmployerApplicantsContextValue {
     applicationId: number,
     jobPostingId: number,
   ) => Promise<CreateEmploymentOfferResponse>;
-  /** 아직 Backend Application API 범위 밖인 Dashboard용 legacy mock state입니다. */
-  applicants: EmployerApplicantMock[];
-  offerApplicant: (applicationId: string) => void;
-  rejectApplicant: (applicationId: string) => void;
 }
 
 const EmployerApplicantsContext =

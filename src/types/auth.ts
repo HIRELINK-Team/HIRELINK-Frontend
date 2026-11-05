@@ -13,6 +13,21 @@ export interface LoginResponse {
   expiresIn: number;
 }
 
+export interface SignupRequest {
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+export interface SignupResponse {
+  userId: number;
+  email: string;
+  role: UserRole;
+  accessToken: string;
+  tokenType: 'Bearer';
+  expiresIn: number;
+}
+
 export interface CsrfResponse {
   headerName: string;
   token: string;

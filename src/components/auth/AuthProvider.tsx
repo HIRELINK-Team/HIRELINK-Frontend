@@ -4,16 +4,31 @@ import {
   useMemo,
   useState,
   type ReactNode,
-} from "react";
-import { login as requestLogin, logout as requestLogout } from "../../api/auth";
+} from 'react';
+import {
+  login as requestLogin,
+  logout as requestLogout,
+  signup as requestSignup,
+} from '../../api/auth';
 import {
   invalidateAuthSession,
   setAccessToken,
   subscribeToAuthInvalidation,
-} from "../../api/accessToken";
-import { initializeAuthSession } from "../../api/authSession";
-import { AuthContext } from "../../hooks/useAuth";
-import type { AuthenticatedUser, LoginRequest } from "../../types/auth";
+} from '../../api/accessToken';
+import { initializeAuthSession } from '../../api/authSession';
+import { AuthContext } from '../../hooks/useAuth';
+import type {
+  AuthenticatedUser,
+  LoginRequest,
+  SignupRequest,
+  UserRole,
+} from '../../types/auth';
+
+interface AuthSessionPayload {
+  userId: number;
+  role: UserRole;
+  accessToken: string;
+}
 
 function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(
@@ -43,14 +58,33 @@ function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = useCallback(async (request: LoginRequest) => {
-    const response = await requestLogin(request);
-    setAccessToken(response.accessToken);
-    setCurrentUser({ userId: response.userId, role: response.role });
-    setIsAuthenticated(true);
-    setIsAuthInitializing(false);
-    return response;
-  }, []);
+  const applyAuthenticatedSession = useCallback(
+    ({ userId, role, accessToken }: AuthSessionPayload) => {
+      setAccessToken(accessToken);
+      setCurrentUser({ userId, role });
+      setIsAuthenticated(true);
+      setIsAuthInitializing(false);
+    },
+    [],
+  );
+
+  const login = useCallback(
+    async (request: LoginRequest) => {
+      const response = await requestLogin(request);
+      applyAuthenticatedSession(response);
+      return response;
+    },
+    [applyAuthenticatedSession],
+  );
+
+  const signup = useCallback(
+    async (request: SignupRequest) => {
+      const response = await requestSignup(request);
+      applyAuthenticatedSession(response);
+      return response;
+    },
+    [applyAuthenticatedSession],
+  );
 
   const logout = useCallback(async () => {
     await requestLogout();
@@ -63,9 +97,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated,
       isAuthInitializing,
       login,
+      signup,
       logout,
     }),
-    [currentUser, isAuthenticated, isAuthInitializing, login, logout],
+    [currentUser, isAuthenticated, isAuthInitializing, login, signup, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
