@@ -450,7 +450,7 @@ function EmployerDashboard() {
       {applicantAction && (
         <ApplicantActionModal
           action={applicantAction.action}
-          applicant={applicantAction.applicant}
+          applicantName={applicantAction.applicant.name}
           onCancel={() => setApplicantAction(null)}
           onConfirm={handleApplicantActionConfirm}
         />

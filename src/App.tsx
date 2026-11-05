@@ -66,15 +66,7 @@ function App() {
                 path="jobs/:jobId/applicants"
                 element={<EmployerApplicantsPage />}
               />
-              <Route
-                path="applicants"
-                element={
-                  <Navigate
-                    to="/employer/jobs/barista-open/applicants"
-                    replace
-                  />
-                }
-              />
+              <Route path="applicants" element={<EmployerApplicantsPage />} />
               <Route
                 path="applicants/:applicationId"
                 element={<EmployerApplicantDetailPage />}

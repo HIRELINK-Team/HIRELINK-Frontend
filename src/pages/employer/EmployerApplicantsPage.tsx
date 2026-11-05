@@ -1,50 +1,73 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import SelectField from "../../components/common/SelectField";
-import Toast from "../../components/common/Toast";
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import SelectField from '../../components/common/SelectField';
+import Toast from '../../components/common/Toast';
 import ApplicantActionModal, {
   type ApplicantAction,
-} from "../../components/employer/ApplicantActionModal";
+} from '../../components/employer/ApplicantActionModal';
 import ApplicantStatusTabs, {
   type ApplicantStatusFilter,
-} from "../../components/employer/ApplicantStatusTabs";
+} from '../../components/employer/ApplicantStatusTabs';
 import EmployerApplicantRow, {
   APPLICANT_ROW_GRID,
   HIRED_APPLICANT_ROW_GRID,
-} from "../../components/employer/EmployerApplicantRow";
-import { APPLICANT_JOB_MOCKS } from "../../data/employerApplicantsData";
-import { useEmployerApplicants } from "../../hooks/useEmployerApplicants";
+} from '../../components/employer/EmployerApplicantRow';
+import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
+import { useEmployerApplicants } from '../../hooks/useEmployerApplicants';
+import { useEmployerJobs } from '../../hooks/useEmployerJobs';
 import type {
-  ApplicationStatus,
-  EmployerApplicantMock,
-} from "../../types/application";
+  EmployerApplicationListItem,
+  EmployerApplicationListStatus,
+} from '../../types/application';
+import type { JobPostingListItem } from '../../types/jobPosting';
+import { formatJobPostingSummary } from '../../utils/jobPosting';
 
-const MAX_REVIEWING_APPLICANTS = 5;
-const VISIBLE_STATUSES: ApplicationStatus[] = [
-  "REVIEWING",
-  "OFFER_WAITING",
-  "HIRED",
-];
+const FILTER_STATUS: Partial<
+  Record<ApplicantStatusFilter, EmployerApplicationListStatus>
+> = {
+  REVIEWING: 'WAITING_RESPONSE',
+  OFFER_WAITING: 'OFFERED',
+  HIRED: 'COMPLETED',
+};
 
 interface PendingAction {
   type: ApplicantAction;
-  applicant: EmployerApplicantMock;
+  applicant: EmployerApplicationListItem;
 }
 
-function ApplicantTableHeader({ isHired }: { isHired: boolean }) {
-  const labels = isHired
-    ? ["", "이름", "국적", "비자", "채용완료일", "전화번호", "관리"]
-    : ["", "이름", "국적", "비자", "공고 일치율", "남은 시간", "관리"];
+function formatJobOption(job: JobPostingListItem) {
+  return `${job.jobRole ?? '직무 미입력'}·${formatJobPostingSummary(job)}`;
+}
+
+function getApplicationErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+  if (status === 409)
+    return apiError?.message ?? '이미 처리됐거나 응답기한이 지난 지원이에요.';
+  if (status === 400)
+    return apiError?.message ?? '지원자 상태를 다시 확인해 주세요.';
+  if (status === 401) return '로그인 정보를 확인하지 못했습니다.';
+  if (status === 403) return '지원자를 관리할 권한이 없습니다.';
+  if (status === 404) return '지원자 또는 채용공고를 찾지 못했습니다.';
+  if (status && status >= 500)
+    return '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+  return apiError?.message ?? '요청을 처리하지 못했습니다.';
+}
+
+function ApplicantTableHeader({ isCompleted }: { isCompleted: boolean }) {
+  const labels = isCompleted
+    ? ['', '이름', '국적', '비자', '희망 시작일', '상태', '관리']
+    : ['', '이름', '국적', '비자', '공고 일치율', '남은 시간', '관리'];
 
   return (
     <div
-      className={`grid h-8 w-full items-center rounded-lg bg-[#f7f7f8] px-[23px] text-center text-sm font-semibold text-[#171719] ${isHired ? HIRED_APPLICANT_ROW_GRID : APPLICANT_ROW_GRID}`}
+      className={`grid h-8 w-full items-center rounded-lg bg-[#f7f7f8] px-[23px] text-center text-sm font-semibold text-[#171719] ${isCompleted ? HIRED_APPLICANT_ROW_GRID : APPLICANT_ROW_GRID}`}
       role="row"
     >
       {labels.map((label, index) => (
         <span
           key={`${label}-${index}`}
-          className={index === labels.length - 1 ? "pl-6 text-left" : ""}
+          className={index === labels.length - 1 ? 'pl-6 text-left' : ''}
         >
           {label}
         </span>
@@ -56,112 +79,148 @@ function ApplicantTableHeader({ isHired }: { isHired: boolean }) {
 function EmployerApplicantsPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
-  const { applicants, offerApplicant, rejectApplicant } =
-    useEmployerApplicants();
-  const initialJobId = APPLICANT_JOB_MOCKS.some((job) => job.id === jobId)
-    ? jobId!
-    : APPLICANT_JOB_MOCKS[0].id;
-  const [selectedJobId, setSelectedJobId] = useState(initialJobId);
+  const { jobs, loadJobs } = useEmployerJobs();
+  const {
+    applicationLists,
+    mutatingApplicationIds,
+    loadApplicationList,
+    offerApplication,
+    rejectApplication,
+  } = useEmployerApplicants();
+  const routeJobId = Number(jobId);
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(
+    Number.isInteger(routeJobId) ? routeJobId : null,
+  );
   const [selectedFilter, setSelectedFilter] =
-    useState<ApplicantStatusFilter>("REVIEWING");
+    useState<ApplicantStatusFilter>('REVIEWING');
   const [isJobSelectOpen, setIsJobSelectOpen] = useState(false);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null,
   );
+  const [isConfirmingAction, setIsConfirmingAction] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!toastMessage) {
-      return;
-    }
+  const selectableJobs = useMemo(
+    () => jobs.filter((job) => job.status !== 'DRAFT'),
+    [jobs],
+  );
 
+  useEffect(() => {
+    let isActive = true;
+    loadJobs()
+      .then((loadedJobs) => {
+        if (!isActive) return;
+        const availableJobs = loadedJobs.filter(
+          (job) => job.status !== 'DRAFT',
+        );
+        const requestedJobId = Number(jobId);
+        const nextJob = availableJobs.find(
+          (job) => job.jobPostingId === requestedJobId,
+        );
+        const nextJobId =
+          nextJob?.jobPostingId ?? availableJobs[0]?.jobPostingId;
+        setSelectedJobId(nextJobId ?? null);
+        if (nextJobId && nextJobId !== requestedJobId) {
+          navigate(`/employer/jobs/${nextJobId}/applicants`, { replace: true });
+        }
+      })
+      .catch((error: unknown) => {
+        if (isActive) setLoadError(getApplicationErrorMessage(error));
+      })
+      .finally(() => {
+        if (isActive) setIsLoadingJobs(false);
+      });
+    return () => {
+      isActive = false;
+    };
+  }, [jobId, loadJobs, navigate]);
+
+  useEffect(() => {
+    if (selectedJobId === null) return;
+    let isActive = true;
+    loadApplicationList(selectedJobId)
+      .then(() => {
+        if (isActive) setLoadError(null);
+      })
+      .catch((error: unknown) => {
+        if (isActive) setLoadError(getApplicationErrorMessage(error));
+      });
+    return () => {
+      isActive = false;
+    };
+  }, [loadApplicationList, selectedJobId]);
+
+  useEffect(() => {
+    if (!toastMessage) return;
     const timeoutId = window.setTimeout(() => setToastMessage(null), 4000);
     return () => window.clearTimeout(timeoutId);
   }, [toastMessage]);
 
-  const activeApplicants = useMemo(
-    () =>
-      applicants.filter(
-        (applicant) =>
-          applicant.jobId === selectedJobId &&
-          VISIBLE_STATUSES.includes(applicant.status),
-      ),
-    [applicants, selectedJobId],
-  );
+  const applicationList =
+    selectedJobId === null ? undefined : applicationLists[selectedJobId];
   const counts = useMemo<Record<ApplicantStatusFilter, number>>(
     () => ({
-      ALL: activeApplicants.length,
-      REVIEWING: activeApplicants.filter(
-        (applicant) => applicant.status === "REVIEWING",
-      ).length,
-      OFFER_WAITING: activeApplicants.filter(
-        (applicant) => applicant.status === "OFFER_WAITING",
-      ).length,
-      HIRED: activeApplicants.filter(
-        (applicant) => applicant.status === "HIRED",
-      ).length,
+      ALL: applicationList?.applications.length ?? 0,
+      REVIEWING: applicationList?.waitingResponseCount ?? 0,
+      OFFER_WAITING: applicationList?.offeredCount ?? 0,
+      HIRED: applicationList?.completedCount ?? 0,
     }),
-    [activeApplicants],
+    [applicationList],
   );
-  const filteredApplicants = useMemo(
-    () =>
-      selectedFilter === "ALL"
-        ? activeApplicants
-        : activeApplicants.filter(
-            (applicant) => applicant.status === selectedFilter,
-          ),
-    [activeApplicants, selectedFilter],
-  );
+  const filteredApplicants = useMemo(() => {
+    const applications = applicationList?.applications ?? [];
+    const status = FILTER_STATUS[selectedFilter];
+    return status
+      ? applications.filter((application) => application.status === status)
+      : applications;
+  }, [applicationList, selectedFilter]);
   const isReviewCapacityVisible =
-    selectedFilter === "ALL" || selectedFilter === "REVIEWING";
-  const isReviewCapacityFull = counts.REVIEWING >= MAX_REVIEWING_APPLICANTS;
+    selectedFilter === 'ALL' || selectedFilter === 'REVIEWING';
+  const isReviewCapacityFull = Boolean(
+    applicationList &&
+    applicationList.occupiedCount >= applicationList.capacity,
+  );
+  const selectedJob = selectableJobs.find(
+    (job) => job.jobPostingId === selectedJobId,
+  );
+  const isLoadingApplications =
+    selectedJobId !== null && !applicationList && !loadError;
 
   const handleJobChange = (nextJobId: string) => {
-    setSelectedJobId(nextJobId);
-    setSelectedFilter("REVIEWING");
+    const numericJobId = Number(nextJobId);
+    setSelectedJobId(numericJobId);
+    setSelectedFilter('REVIEWING');
     setIsJobSelectOpen(false);
-    navigate(`/employer/jobs/${nextJobId}/applicants`, { replace: true });
+    setLoadError(null);
+    navigate(`/employer/jobs/${numericJobId}/applicants`, { replace: true });
   };
 
-  const handleViewDetails = (applicant: EmployerApplicantMock) => {
-    navigate(`/employer/applicants/${applicant.id}`);
-  };
-
-  const handleOffer = (applicant: EmployerApplicantMock) => {
-    setPendingAction({ type: "OFFER", applicant });
-  };
-
-  const handleReject = (applicant: EmployerApplicantMock) => {
-    setPendingAction({ type: "REJECT", applicant });
-  };
-
-  const handleConfirmAction = () => {
-    if (!pendingAction) {
-      return;
-    }
-
+  const handleConfirmAction = async () => {
+    if (!pendingAction || isConfirmingAction || selectedJobId === null) return;
     const { applicant, type } = pendingAction;
-
-    if (type === "OFFER") {
-      offerApplicant(applicant.id);
-      setToastMessage(
-        `${applicant.name}님에게 채용제안을 보냈어요. 24시간 안에 응답을 기다려요`,
-      );
-    } else {
-      rejectApplicant(applicant.id);
-      setToastMessage(`${applicant.name}님을 채용거절했어요.`);
+    setIsConfirmingAction(true);
+    try {
+      if (type === 'OFFER') {
+        await offerApplication(applicant.applicationId, selectedJobId);
+        setToastMessage(
+          `${applicant.applicantName}님에게 채용제안을 보냈어요. 24시간 안에 응답을 기다려요`,
+        );
+      } else {
+        await rejectApplication(applicant.applicationId, selectedJobId);
+        setToastMessage(`${applicant.applicantName}님의 지원을 거절했어요.`);
+      }
+      setPendingAction(null);
+    } catch (error: unknown) {
+      setToastMessage(getApplicationErrorMessage(error));
+    } finally {
+      setIsConfirmingAction(false);
     }
-
-    setPendingAction(null);
   };
-
-  const selectedJob = APPLICANT_JOB_MOCKS.find(
-    (job) => job.id === selectedJobId,
-  );
-  const showHiredHeader = selectedFilter === "HIRED";
 
   return (
-    <div className="w-full max-w-[970px] pb-12 pt-10">
+    <div className="w-full max-w-[970px] pt-10 pb-12">
       <header>
         <h1 className="text-4xl leading-[43px] font-semibold tracking-[-0.8px] text-black">
           지원자 관리
@@ -173,12 +232,14 @@ function EmployerApplicantsPage() {
 
       <div className="relative mt-7 w-[360px] max-w-full">
         <SelectField
-          value={selectedJobId}
-          options={APPLICANT_JOB_MOCKS.map((job) => ({
-            value: job.id,
-            label: job.label,
+          value={selectedJobId === null ? '' : String(selectedJobId)}
+          options={selectableJobs.map((job) => ({
+            value: String(job.jobPostingId),
+            label: formatJobOption(job),
           }))}
-          placeholder="공고를 선택해 주세요"
+          placeholder={
+            isLoadingJobs ? '공고를 불러오는 중이에요' : '공고를 선택해 주세요'
+          }
           ariaLabel="관리할 채용공고"
           isOpen={isJobSelectOpen}
           onOpenChange={setIsJobSelectOpen}
@@ -193,19 +254,19 @@ function EmployerApplicantsPage() {
           counts={counts}
           onChange={setSelectedFilter}
         />
-        {isReviewCapacityVisible && (
+        {isReviewCapacityVisible && applicationList && (
           <div className="flex shrink-0 items-end gap-3 whitespace-nowrap">
             <span className="text-sm text-[#70737c]">검토 정원</span>
             <strong
-              className={`text-base font-medium ${isReviewCapacityFull ? "text-[#ff4242]" : "text-[#171719]"}`}
+              className={`text-base font-medium ${isReviewCapacityFull ? 'text-[#ff4242]' : 'text-[#171719]'}`}
             >
-              {counts.REVIEWING}/{MAX_REVIEWING_APPLICANTS}
+              {applicationList.occupiedCount}/{applicationList.capacity}
             </strong>
           </div>
         )}
       </div>
 
-      {isReviewCapacityVisible && isReviewCapacityFull && (
+      {isReviewCapacityVisible && isReviewCapacityFull && applicationList && (
         <p className="mt-3 flex items-center gap-1 text-sm font-medium text-[#e11e1e]">
           <span
             aria-hidden="true"
@@ -213,57 +274,90 @@ function EmployerApplicantsPage() {
           >
             !
           </span>
-          검토 중 지원자가 5명이에요. 응답해서 자리를 비우면 새 지원자를 다시
-          추천받아요.
+          검토 중이거나 수락을 기다리는 지원자가 {applicationList.capacity}
+          명이에요. 자리를 비우면 새 지원자를 받을 수 있어요.
         </p>
       )}
 
       <section
         className={`w-full ${
-          isReviewCapacityFull && isReviewCapacityVisible ? "mt-3" : "mt-4"
+          isReviewCapacityFull && isReviewCapacityVisible ? 'mt-3' : 'mt-4'
         }`}
-        aria-label={`${selectedJob?.label ?? "선택 공고"} 지원자 목록`}
+        aria-label={`${selectedJob ? formatJobOption(selectedJob) : '선택 공고'} 지원자 목록`}
       >
-        {selectedFilter !== "ALL" && (
-          <ApplicantTableHeader isHired={showHiredHeader} />
+        {selectedFilter !== 'ALL' && (
+          <ApplicantTableHeader isCompleted={selectedFilter === 'HIRED'} />
         )}
 
-        <div className={`${selectedFilter === "ALL" ? "" : "mt-4"} space-y-3`}>
+        <div className={`${selectedFilter === 'ALL' ? '' : 'mt-4'} space-y-3`}>
           {filteredApplicants.map((applicant) => (
             <EmployerApplicantRow
-              key={applicant.id}
+              key={applicant.applicationId}
               applicant={applicant}
-              onViewDetails={handleViewDetails}
-              onReject={handleReject}
-              onOffer={handleOffer}
+              isMutating={mutatingApplicationIds.includes(
+                applicant.applicationId,
+              )}
+              onViewDetails={(selectedApplicant) =>
+                navigate(
+                  `/employer/applicants/${selectedApplicant.applicationId}`,
+                )
+              }
+              onReject={(selectedApplicant) =>
+                setPendingAction({
+                  type: 'REJECT',
+                  applicant: selectedApplicant,
+                })
+              }
+              onOffer={(selectedApplicant) =>
+                setPendingAction({
+                  type: 'OFFER',
+                  applicant: selectedApplicant,
+                })
+              }
             />
           ))}
         </div>
 
-        {filteredApplicants.length === 0 && (
-          <div className="mt-4 flex h-32 items-center justify-center rounded-xl border border-dashed border-[#c7cbd1] text-sm text-[#70737c]">
-            해당 상태의 지원자가 없어요.
+        {(isLoadingJobs || isLoadingApplications) && (
+          <div className="mt-4 flex h-32 items-center justify-center rounded-xl bg-white text-sm text-[#70737c]">
+            지원자를 불러오는 중이에요.
           </div>
         )}
+        {!isLoadingJobs && loadError && (
+          <div
+            role="alert"
+            className="mt-4 flex h-32 items-center justify-center rounded-xl border border-dashed border-[#e05260] text-sm text-[#e11e1e]"
+          >
+            {loadError}
+          </div>
+        )}
+        {!isLoadingJobs &&
+          !isLoadingApplications &&
+          !loadError &&
+          filteredApplicants.length === 0 && (
+            <div className="mt-4 flex h-32 items-center justify-center rounded-xl border border-dashed border-[#c7cbd1] text-sm text-[#70737c]">
+              해당 상태의 지원자가 없어요.
+            </div>
+          )}
       </section>
 
-      {selectedFilter === "OFFER_WAITING" && (
+      {selectedFilter === 'OFFER_WAITING' && (
         <p className="mt-4 text-xs leading-[18px] text-[#8b95a1]">
           채용제안은 개별로 철회할 수 없어요. 유학생이 24시간 안에 응답하지
           않으면 제안이 종료돼요.
         </p>
       )}
-      {selectedFilter === "HIRED" && (
+      {selectedFilter === 'HIRED' && (
         <p className="mt-4 text-xs leading-[18px] text-[#8b95a1]">
-          채용완료는 실제 고용 확정과 별개예요. 공개된 연락처로 직접 연락해 면접
-          일정을 정해보세요.
+          연락처는 추후 채용 매칭 상세에서 확인할 수 있어요.
         </p>
       )}
 
       {pendingAction && (
         <ApplicantActionModal
           action={pendingAction.type}
-          applicant={pendingAction.applicant}
+          applicantName={pendingAction.applicant.applicantName}
+          isSubmitting={isConfirmingAction}
           onCancel={() => setPendingAction(null)}
           onConfirm={handleConfirmAction}
         />
