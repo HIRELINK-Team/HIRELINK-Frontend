@@ -807,13 +807,8 @@ function StudentApplicationsLayout() {
 
 function StudentApplicationsRoute() {
   const navigate = useNavigate();
-  const {
-    acceptOffer,
-    applications,
-    declineOffer,
-    isApplicationsLoading,
-    withdrawApplication,
-  } = useOutletContext<StudentApplicationsRouteContext>();
+  const { acceptOffer, applications, declineOffer, isApplicationsLoading } =
+    useOutletContext<StudentApplicationsRouteContext>();
 
   return (
     <StudentApplicationsPage
@@ -855,7 +850,6 @@ function StudentApplicationsRoute() {
         navigate(application.id);
       }}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
-      onWithdraw={withdrawApplication}
     />
   );
 }
@@ -863,8 +857,13 @@ function StudentApplicationsRoute() {
 function StudentApplicationDetailRoute() {
   const navigate = useNavigate();
   const { applicationId } = useParams();
-  const { acceptOffer, applications, declineOffer, syncApplicationDetail } =
-    useOutletContext<StudentApplicationsRouteContext>();
+  const {
+    acceptOffer,
+    applications,
+    declineOffer,
+    syncApplicationDetail,
+    withdrawApplication,
+  } = useOutletContext<StudentApplicationsRouteContext>();
   const fallbackApplication = applications.find(
     (application) => application.id === applicationId,
   );
@@ -873,6 +872,7 @@ function StudentApplicationDetailRoute() {
   const [detailOpenedAt] = useState(() => Date.now());
   const [isDetailLoading, setIsDetailLoading] = useState(true);
   const [isOfferActionPending, setIsOfferActionPending] = useState(false);
+  const [isWithdrawalPending, setIsWithdrawalPending] = useState(false);
 
   useEffect(() => {
     if (!applicationId) return;
@@ -947,6 +947,26 @@ function StudentApplicationDetailRoute() {
     }
   };
 
+  const canWithdraw =
+    application.apiStatus === 'WAITING_RESPONSE' &&
+    application.applicationId !== undefined;
+
+  const handleWithdraw = async () => {
+    if (!canWithdraw || isWithdrawalPending) return;
+
+    setIsWithdrawalPending(true);
+
+    try {
+      const didWithdraw = await withdrawApplication(application);
+
+      if (didWithdraw) {
+        navigate('/student/applications');
+      }
+    } finally {
+      setIsWithdrawalPending(false);
+    }
+  };
+
   return (
     <StudentApplicationDetailPage
       application={application}
@@ -954,7 +974,10 @@ function StudentApplicationDetailRoute() {
       onAcceptOffer={() => void handleOfferAction('accept')}
       onBack={() => navigate('/student/applications')}
       onDeclineOffer={() => void handleOfferAction('decline')}
+      onWithdraw={() => void handleWithdraw()}
       showOfferActions={canRespondToOffer}
+      showWithdrawAction={canWithdraw}
+      isWithdrawalPending={isWithdrawalPending}
     />
   );
 }

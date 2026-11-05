@@ -5,19 +5,25 @@ import type { StudentApplicationCardModel } from '../../types/studentApplication
 type StudentApplicationDetailPageProps = {
   application: StudentApplicationCardModel;
   isOfferActionPending?: boolean;
+  isWithdrawalPending?: boolean;
   onAcceptOffer?: () => void;
   onBack?: () => void;
   onDeclineOffer?: () => void;
+  onWithdraw?: () => void;
   showOfferActions?: boolean;
+  showWithdrawAction?: boolean;
 };
 
 export default function StudentApplicationDetailPage({
   application,
   isOfferActionPending = false,
+  isWithdrawalPending = false,
   onAcceptOffer,
   onBack,
   onDeclineOffer,
+  onWithdraw,
   showOfferActions = false,
+  showWithdrawAction = false,
 }: StudentApplicationDetailPageProps) {
   return (
     <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
@@ -81,6 +87,18 @@ export default function StudentApplicationDetailPage({
             onClick={onDeclineOffer}
           >
             거절
+          </button>
+        </div>
+      ) : null}
+      {showWithdrawAction ? (
+        <div className="absolute right-6 bottom-[57px] left-6">
+          <button
+            className="h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent text-[20px] leading-[1.5] font-medium text-[#8B95A1] disabled:opacity-50"
+            disabled={isWithdrawalPending}
+            type="button"
+            onClick={onWithdraw}
+          >
+            지원 취소
           </button>
         </div>
       ) : null}

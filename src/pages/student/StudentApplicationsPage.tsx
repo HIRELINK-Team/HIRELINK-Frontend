@@ -27,9 +27,6 @@ type StudentApplicationsPageProps = {
   ) => boolean | Promise<boolean> | void;
   onDetailClick?: (application: StudentApplicationCardModel) => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
-  onWithdraw?: (
-    application: StudentApplicationCardModel,
-  ) => boolean | Promise<boolean> | void;
 };
 
 const SCENARIO_FILTER: Record<
@@ -78,7 +75,6 @@ export default function StudentApplicationsPage({
   onDeclineOffer,
   onDetailClick,
   onTabChange,
-  onWithdraw,
 }: StudentApplicationsPageProps) {
   const [activeFilter, setActiveFilter] = useState<StudentApplicationsFilter>(
     SCENARIO_FILTER[initialScenario],
@@ -89,8 +85,6 @@ export default function StudentApplicationsPage({
   const [pendingOfferApplicationId, setPendingOfferApplicationId] = useState<
     string | null
   >(null);
-  const [pendingWithdrawalApplicationId, setPendingWithdrawalApplicationId] =
-    useState<string | null>(null);
   const applications = isEmptyScenario
     ? []
     : getApplicationsForFilter(applicationData, activeFilter);
@@ -133,18 +127,6 @@ export default function StudentApplicationsPage({
       await onDeclineOffer?.(application);
     } finally {
       setPendingOfferApplicationId(null);
-    }
-  };
-
-  const handleWithdraw = async (application: StudentApplicationCardModel) => {
-    if (pendingWithdrawalApplicationId) return;
-
-    setPendingWithdrawalApplicationId(application.id);
-
-    try {
-      await onWithdraw?.(application);
-    } finally {
-      setPendingWithdrawalApplicationId(null);
     }
   };
 
@@ -192,14 +174,10 @@ export default function StudentApplicationsPage({
                 isOfferActionPending={
                   pendingOfferApplicationId === application.id
                 }
-                isWithdrawalPending={
-                  pendingWithdrawalApplicationId === application.id
-                }
                 key={application.id}
                 onAcceptOffer={handleAcceptOffer}
                 onDeclineOffer={handleDeclineOffer}
                 onDetailClick={onDetailClick}
-                onWithdraw={onWithdraw ? handleWithdraw : undefined}
               />
             ))}
           </section>

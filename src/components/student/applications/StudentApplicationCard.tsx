@@ -8,11 +8,9 @@ type StudentApplicationCardProps = {
   isGeneralLayout?: boolean;
   isHiredLayout?: boolean;
   isOfferActionPending?: boolean;
-  isWithdrawalPending?: boolean;
   onDeclineOffer?: (application: StudentApplicationCardModel) => void;
   onDetailClick?: (application: StudentApplicationCardModel) => void;
   onAcceptOffer?: (application: StudentApplicationCardModel) => void;
-  onWithdraw?: (application: StudentApplicationCardModel) => void;
 };
 
 const STATUS_COPY = {
@@ -142,17 +140,11 @@ export function StudentApplicationCard({
   isGeneralLayout = false,
   isHiredLayout = false,
   isOfferActionPending = false,
-  isWithdrawalPending = false,
   onAcceptOffer,
   onDeclineOffer,
   onDetailClick,
-  onWithdraw,
 }: StudentApplicationCardProps) {
   const isOfferWaiting = application.status === 'OFFER_WAITING';
-  const canWithdraw =
-    application.apiStatus === 'WAITING_RESPONSE' &&
-    application.applicationId !== undefined &&
-    onWithdraw !== undefined;
   const status = STATUS_COPY[application.status as keyof typeof STATUS_COPY];
 
   if (isOfferWaiting) {
@@ -217,17 +209,6 @@ export function StudentApplicationCard({
       >
         상세보기
       </button>
-
-      {canWithdraw ? (
-        <button
-          className="absolute top-[109px] right-[104px] flex h-[27px] items-center justify-center rounded-[30px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[13.636px] text-[13px] leading-[1.5] text-[#8B95A1] disabled:opacity-50"
-          disabled={isWithdrawalPending}
-          type="button"
-          onClick={() => onWithdraw?.(application)}
-        >
-          지원 취소
-        </button>
-      ) : null}
 
       {application.timerLabel ? (
         <div className="absolute top-[47px] right-[23px] flex items-center gap-[5.75px]">
