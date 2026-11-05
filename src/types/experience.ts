@@ -20,7 +20,7 @@ export type CreateStudentCareerRequest = {
   careerName: string;
   startMonth: string;
   endMonth: string;
-  description?: string;
+  description?: string | null;
 };
 
 export type UpdateStudentCareerRequest = Partial<{
