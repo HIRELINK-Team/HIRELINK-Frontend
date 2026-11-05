@@ -36,7 +36,7 @@ type StudentMatchingPageProps = {
     job: RecommendedJob,
     desiredStartDate: string,
   ) => Promise<boolean>;
-  onRecommendationRefresh?: () => void;
+  onRecommendationRefresh?: () => Promise<boolean>;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onViewChange?: (
     view: Exclude<StudentMatchingView, 'result'>,
@@ -73,6 +73,8 @@ export default function StudentMatchingPage({
     initialRefreshPopupOpen,
   );
   const [isApplicationSubmitting, setIsApplicationSubmitting] = useState(false);
+  const [isRecommendationRefreshing, setIsRecommendationRefreshing] =
+    useState(false);
   const recommendedJobs = recommendations.slice(0, MAX_RECOMMENDED_JOBS);
 
   const handleBack = () => {
@@ -185,9 +187,22 @@ export default function StudentMatchingPage({
     }
   };
 
-  const handleRecommendationRefreshConfirm = () => {
-    setIsRefreshPopupOpen(false);
-    onRecommendationRefresh?.();
+  const handleRecommendationRefreshConfirm = async () => {
+    if (isRecommendationRefreshing) return;
+
+    setIsRecommendationRefreshing(true);
+
+    try {
+      const didRefresh = onRecommendationRefresh
+        ? await onRecommendationRefresh()
+        : true;
+
+      if (didRefresh) {
+        setIsRefreshPopupOpen(false);
+      }
+    } finally {
+      setIsRecommendationRefreshing(false);
+    }
   };
 
   if (matchingView === 'detail' && selectedJob) {
@@ -315,6 +330,7 @@ export default function StudentMatchingPage({
       ) : null}
       {matchingView === 'result' && isRefreshPopupOpen ? (
         <RecommendationRefreshModal
+          isSubmitting={isRecommendationRefreshing}
           onConfirm={handleRecommendationRefreshConfirm}
         />
       ) : null}

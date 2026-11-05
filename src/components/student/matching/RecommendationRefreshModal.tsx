@@ -1,11 +1,13 @@
 import refreshIllustration from '../../../assets/images/student/matching/recommendation-refresh-illustration.png';
 
 type RecommendationRefreshModalProps = {
-  onConfirm: () => void;
+  isSubmitting?: boolean;
+  onConfirm: () => void | Promise<void>;
 };
 
 /** Modal shown after the matching recommendations have been refreshed. */
 export function RecommendationRefreshModal({
+  isSubmitting = false,
   onConfirm,
 }: RecommendationRefreshModalProps) {
   return (
@@ -30,7 +32,8 @@ export function RecommendationRefreshModal({
           알아볼 수 있어요.
         </p>
         <button
-          className="absolute right-[19px] bottom-6 left-[19px] h-[54px] rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5]"
+          className="absolute right-[19px] bottom-6 left-[19px] h-[54px] rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isSubmitting}
           type="button"
           onClick={onConfirm}
         >

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import {
   Navigate,
@@ -15,6 +15,7 @@ import { getAccessToken, setAccessToken } from './api/accessToken';
 import {
   acceptStudentEmploymentOffer,
   createStudentProfile,
+  createStudentRecommendations,
   createStudentApplication,
   getStudentMatchingPreferences,
   getStudentRecommendation,
@@ -25,6 +26,7 @@ import {
   getStudentRecommendations,
   loginStudent,
   refreshAccessToken,
+  refreshStudentRecommendations,
   rejectStudentEmploymentOffer,
   signupStudent,
   updateStudentProfile,
@@ -206,6 +208,7 @@ type StudentMatchingRouteContext = {
     view: Exclude<StudentMatchingView, 'result'>,
     job: RecommendedJob,
   ) => void;
+  refreshRecommendations: () => Promise<boolean>;
   updateOfferState: (action: StudentOfferAction, job: RecommendedJob) => void;
 };
 
@@ -501,6 +504,7 @@ function StudentMatchingLayout() {
   const [recommendations, setRecommendations] = useState<RecommendedJob[]>([]);
   const [isRecommendationsLoading, setIsRecommendationsLoading] =
     useState(true);
+  const initialRecommendationRequestRef = useRef<Promise<unknown> | null>(null);
   const [mockOfferJob, setMockOfferJob] = useState<RecommendedJob | null>(() =>
     sessionStorage.getItem(STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY) ===
     'true'
@@ -511,19 +515,24 @@ function StudentMatchingLayout() {
     {},
   );
 
+  const loadRecommendations = useCallback(async () => {
+    const response = await getStudentRecommendations();
+    setRecommendations(
+      response.recommendations.map(mapStudentRecommendationToRecommendedJob),
+    );
+  }, []);
+
   useEffect(() => {
     let isActive = true;
 
-    const loadRecommendations = async () => {
+    const createAndLoadRecommendations = async () => {
       try {
-        const response = await getStudentRecommendations();
+        initialRecommendationRequestRef.current ??=
+          createStudentRecommendations();
+        await initialRecommendationRequestRef.current;
 
         if (isActive) {
-          setRecommendations(
-            response.recommendations.map(
-              mapStudentRecommendationToRecommendedJob,
-            ),
-          );
+          await loadRecommendations();
         }
       } catch {
         if (isActive) {
@@ -536,12 +545,22 @@ function StudentMatchingLayout() {
       }
     };
 
-    void loadRecommendations();
+    void createAndLoadRecommendations();
 
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [loadRecommendations]);
+
+  const refreshRecommendations = async () => {
+    try {
+      await refreshStudentRecommendations();
+      await loadRecommendations();
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   const recordViewChange = (
     view: Exclude<StudentMatchingView, 'result'>,
@@ -586,6 +605,7 @@ function StudentMatchingLayout() {
           mockOfferJob,
           recommendations,
           recordViewChange,
+          refreshRecommendations,
           updateOfferState,
         } satisfies StudentMatchingRouteContext
       }
@@ -600,6 +620,7 @@ function StudentMatchingRoute() {
     mockOfferJob,
     recommendations,
     recordViewChange,
+    refreshRecommendations,
     updateOfferState,
   } = useOutletContext<StudentMatchingRouteContext>();
 
@@ -643,6 +664,7 @@ function StudentMatchingRoute() {
           return null;
         }
       }}
+      onRecommendationRefresh={refreshRecommendations}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
       onViewChange={recordViewChange}
       recommendations={recommendations}
