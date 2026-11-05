@@ -59,7 +59,7 @@ export default function StudentWorkConditionPage({
       >
         <img alt="" className="h-4 w-2" src={backIcon} />
       </button>
-      <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
+      <h1 className="m-0 mt-2 text-[18px] leading-[1.5] font-semibold">
         나의 근무 가능 조건
       </h1>
 
@@ -79,7 +79,7 @@ export default function StudentWorkConditionPage({
         실제 허가 여부는 출입국 심사 결과에 따라 달라질 수 있어요.
       </p>
 
-      <section className="mt-[28px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-[17px]">
+      <section className="mt-[28px] h-[138px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-[17px]">
         <CardHeader title="기본 정보" onEdit={onEditBasicInfo} />
         <InfoRow label="체류자격" value="D-2-2 (학사)" />
         <InfoRow label="학적상태" value="재학 중" />
