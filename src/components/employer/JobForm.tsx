@@ -1,23 +1,36 @@
-import { useState } from "react";
-import DateField from "../common/DateField";
-import SelectField, { type SelectOption } from "../common/SelectField";
-import WorkTimeGrid from "../common/WorkTimeGrid";
-import { EMPLOYER_INDUSTRY_OPTIONS } from "../../data/employerProfileData";
+import { useState } from 'react';
+import DateField from '../common/DateField';
+import SelectField, { type SelectOption } from '../common/SelectField';
+import WorkTimeGrid from '../common/WorkTimeGrid';
+import { EMPLOYER_INDUSTRY_OPTIONS } from '../../data/employerProfileData';
 import type {
   IndustryCode,
   JobFormValues,
   KoreanLevelCode,
+  PreferredExperienceCode,
   SalaryType,
-} from "../../types/jobForm";
-import { getWeeklyTotalHours } from "../../utils/workSchedule";
+} from '../../types/jobForm';
+import type { JobPostingStatus } from '../../types/jobPosting';
+import { getSeoulTodayIsoDate } from '../../utils/jobPosting';
+import { getWeeklyTotalHours } from '../../utils/workSchedule';
 
-type JobFormMode = "CREATE" | "EDIT";
-type OpenControl = "industry" | "koreanLevel" | "startDate" | "deadline" | null;
+type JobFormMode = 'CREATE' | 'EDIT';
+type OpenControl =
+  | 'workplace'
+  | 'industry'
+  | 'koreanLevel'
+  | 'preferredExperience'
+  | 'startDate'
+  | 'deadline'
+  | null;
 type JobFormErrors = Partial<Record<keyof JobFormValues, string>>;
 
 interface JobFormProps {
   mode: JobFormMode;
   initialValues: JobFormValues;
+  initialStatus?: JobPostingStatus;
+  workplaceOptions: SelectOption<string>[];
+  isSubmitting?: boolean;
   onCancel: () => void;
   onSaveDraft: (values: JobFormValues) => void;
   onSubmit: (values: JobFormValues) => void;
@@ -27,14 +40,19 @@ const INDUSTRY_OPTIONS: SelectOption<IndustryCode>[] =
   EMPLOYER_INDUSTRY_OPTIONS;
 
 const KOREAN_LEVEL_OPTIONS: SelectOption<KoreanLevelCode>[] = [
-  { value: "BEGINNER", label: "초급 · 기초 대화" },
-  { value: "INTERMEDIATE", label: "중급 · 일상 대화" },
-  { value: "ADVANCED", label: "고급 · 업무 대화" },
-  { value: "NO_PREFERENCE", label: "무관" },
+  { value: 'BEGINNER', label: '초급 · 기초 대화' },
+  { value: 'INTERMEDIATE', label: '중급 · 일상 대화' },
+  { value: 'ADVANCED', label: '고급 · 업무 대화' },
+];
+
+const PREFERRED_EXPERIENCE_OPTIONS: SelectOption<PreferredExperienceCode>[] = [
+  { value: 'NONE', label: '경력 무관' },
+  { value: 'SIX_MONTHS_OR_MORE', label: '6개월 이상' },
+  { value: 'ONE_YEAR_OR_MORE', label: '1년 이상' },
 ];
 
 const fieldClassName =
-  "h-[58px] w-full rounded-[10px] border border-[rgba(112,115,124,0.22)] bg-white px-4 text-base text-[#171719] outline-none transition-colors placeholder:text-[#8b95a1] hover:border-[#aeb4bc] focus:border-[#00b894] focus:ring-2 focus:ring-[#00b894]/10";
+  'h-[58px] w-full rounded-[10px] border border-[rgba(112,115,124,0.22)] bg-white px-4 text-base text-[#171719] outline-none transition-colors placeholder:text-[#8b95a1] hover:border-[#aeb4bc] focus:border-[#00b894] focus:ring-2 focus:ring-[#00b894]/10';
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -59,6 +77,9 @@ function FieldError({ message }: { message?: string }) {
 function JobForm({
   mode,
   initialValues,
+  initialStatus,
+  workplaceOptions,
+  isSubmitting = false,
   onCancel,
   onSaveDraft,
   onSubmit,
@@ -82,21 +103,49 @@ function JobForm({
     setOpenControl(isOpen ? control : null);
   };
 
+  const handleWorkplaceChange = (workplaceId: string) => {
+    const selected = workplaceOptions.find(
+      (option) => option.value === workplaceId,
+    );
+    setValues((current) => ({
+      ...current,
+      workplaceId: Number(workplaceId),
+      workplace: selected?.label ?? '',
+    }));
+    setErrors((current) => ({ ...current, workplace: undefined }));
+  };
+
   const validate = () => {
     const nextErrors: JobFormErrors = {};
 
-    if (!values.jobTitle.trim()) nextErrors.jobTitle = "직무를 입력해주세요.";
+    if (!values.jobTitle.trim()) nextErrors.jobTitle = '직무를 입력해주세요.';
     if (!values.workplace.trim())
-      nextErrors.workplace = "사업장을 입력해주세요.";
+      nextErrors.workplace = '사업장을 입력해주세요.';
+    if (values.workplaceId === null)
+      nextErrors.workplace = '사업장을 선택해주세요.';
+    if (!values.industry) nextErrors.industry = '업종을 선택해주세요.';
     if (!values.headcount.trim())
-      nextErrors.headcount = "채용 인원을 입력해주세요.";
-    if (!values.salary.trim()) nextErrors.salary = "급여를 입력해주세요.";
-    if (!values.startDate) nextErrors.startDate = "근무 시작일을 선택해주세요.";
+      nextErrors.headcount = '채용 인원을 입력해주세요.';
+    if (values.headcount && Number(values.headcount) <= 0)
+      nextErrors.headcount = '채용 인원은 1명 이상 입력해주세요.';
+    if (!values.salary.trim()) nextErrors.salary = '급여를 입력해주세요.';
+    if (values.salary && Number(values.salary) <= 0)
+      nextErrors.salary = '급여는 0원보다 크게 입력해주세요.';
+    if (!values.startDate) nextErrors.startDate = '근무 시작일을 선택해주세요.';
     if (!values.koreanLevel)
-      nextErrors.koreanLevel = "한국어 수준을 선택해주세요.";
-    if (!values.deadline) nextErrors.deadline = "모집 마감일을 선택해주세요.";
+      nextErrors.koreanLevel = '한국어 수준을 선택해주세요.';
+    if (!values.preferredExperience)
+      nextErrors.preferredExperience = '우대 경력을 선택해주세요.';
+    if (!values.deadline) nextErrors.deadline = '모집 마감일을 선택해주세요.';
     if (getWeeklyTotalHours(values.schedule) === 0) {
-      nextErrors.schedule = "근무시간을 한 구간 이상 선택해주세요.";
+      nextErrors.schedule = '근무시간을 한 구간 이상 선택해주세요.';
+    }
+    const today = getSeoulTodayIsoDate();
+    if (values.startDate && values.startDate < today) {
+      nextErrors.startDate = '근무 시작일은 오늘 이후로 선택해주세요.';
+    }
+    if (values.deadline && values.deadline < today) {
+      nextErrors.deadline = '모집 마감일은 오늘 이후로 선택해주세요.';
     }
 
     setErrors(nextErrors);
@@ -112,8 +161,8 @@ function JobForm({
   };
 
   const hourlyEstimate =
-    values.salaryType === "MONTHLY" && Number(values.salary) > 0
-      ? Math.round(Number(values.salary) / 209).toLocaleString("ko-KR")
+    values.salaryType === 'MONTHLY' && Number(values.salary) > 0
+      ? Math.round(Number(values.salary) / 209).toLocaleString('ko-KR')
       : null;
 
   return (
@@ -129,11 +178,12 @@ function JobForm({
         </div>
 
         <div className="mt-2 flex shrink-0 gap-3">
-          {mode === "CREATE" ? (
+          {mode === 'CREATE' || initialStatus === 'DRAFT' ? (
             <button
               type="button"
               onClick={() => onSaveDraft(values)}
-              className="h-12 cursor-pointer rounded-xl border border-[rgba(112,115,124,0.22)] bg-white px-5 text-sm font-semibold whitespace-nowrap text-[#171719] hover:bg-[#f7f7f8]"
+              disabled={isSubmitting}
+              className="h-12 cursor-pointer rounded-xl border border-[rgba(112,115,124,0.22)] bg-white px-5 text-sm font-semibold whitespace-nowrap text-[#171719] hover:bg-[#f7f7f8] disabled:cursor-not-allowed disabled:text-[#8b95a1]"
             >
               임시 저장
             </button>
@@ -141,6 +191,7 @@ function JobForm({
             <button
               type="button"
               onClick={onCancel}
+              disabled={isSubmitting}
               className="h-12 cursor-pointer rounded-xl border border-[rgba(112,115,124,0.22)] bg-white px-6 text-sm font-semibold whitespace-nowrap text-[#171719] hover:bg-[#f7f7f8]"
             >
               취소
@@ -148,9 +199,16 @@ function JobForm({
           )}
           <button
             type="submit"
-            className="h-12 cursor-pointer rounded-xl bg-[#00b894] px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#00a886] active:bg-[#00997a]"
+            disabled={isSubmitting}
+            className="h-12 cursor-pointer rounded-xl bg-[#00b894] px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#00a886] active:bg-[#00997a] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
           >
-            {mode === "CREATE" ? "공고 등록" : "수정 저장"}
+            {isSubmitting
+              ? '저장 중'
+              : mode === 'CREATE'
+                ? '공고 등록'
+                : initialStatus === 'DRAFT'
+                  ? '모집 시작'
+                  : '수정 저장'}
           </button>
         </div>
       </header>
@@ -163,7 +221,7 @@ function JobForm({
               type="text"
               value={values.jobTitle}
               onChange={(event) =>
-                handleFieldChange("jobTitle", event.target.value)
+                handleFieldChange('jobTitle', event.target.value)
               }
               placeholder="직무를 입력해주세요"
               className={fieldClassName}
@@ -175,19 +233,28 @@ function JobForm({
 
         <div className="mt-7 grid grid-cols-1 gap-x-6 gap-y-7 lg:grid-cols-2">
           <div>
-            <label>
-              <FieldLabel>사업장</FieldLabel>
+            <FieldLabel>사업장</FieldLabel>
+            {mode === 'EDIT' ? (
               <input
-                type="text"
+                disabled
                 value={values.workplace}
-                onChange={(event) =>
-                  handleFieldChange("workplace", event.target.value)
-                }
-                placeholder="사업장을 입력해주세요"
-                className={fieldClassName}
-                aria-invalid={Boolean(errors.workplace)}
+                className={`${fieldClassName} cursor-not-allowed bg-[#f7f7f8] text-[#8b95a1]`}
               />
-            </label>
+            ) : (
+              <SelectField
+                value={
+                  values.workplaceId === null ? '' : String(values.workplaceId)
+                }
+                options={workplaceOptions}
+                placeholder="사업장을 선택해주세요"
+                ariaLabel="사업장"
+                isOpen={openControl === 'workplace'}
+                onOpenChange={(isOpen) =>
+                  handleControlOpen('workplace', isOpen)
+                }
+                onChange={handleWorkplaceChange}
+              />
+            )}
             <FieldError message={errors.workplace} />
           </div>
 
@@ -198,10 +265,11 @@ function JobForm({
               options={INDUSTRY_OPTIONS}
               placeholder="업종을 선택해주세요"
               ariaLabel="업종"
-              isOpen={openControl === "industry"}
-              onOpenChange={(isOpen) => handleControlOpen("industry", isOpen)}
-              onChange={(value) => handleFieldChange("industry", value)}
+              isOpen={openControl === 'industry'}
+              onOpenChange={(isOpen) => handleControlOpen('industry', isOpen)}
+              onChange={(value) => handleFieldChange('industry', value)}
             />
+            <FieldError message={errors.industry} />
           </div>
 
           <div>
@@ -214,8 +282,8 @@ function JobForm({
                   value={values.headcount}
                   onChange={(event) =>
                     handleFieldChange(
-                      "headcount",
-                      event.target.value.replace(/\D/g, ""),
+                      'headcount',
+                      event.target.value.replace(/\D/g, ''),
                     )
                   }
                   placeholder="0"
@@ -243,19 +311,19 @@ function JobForm({
                 )}
               </div>
               <div className="flex h-7 w-[92px] rounded-lg bg-[#f2f3f5] p-[3px]">
-                {(["HOURLY", "MONTHLY"] as SalaryType[]).map((type) => (
+                {(['HOURLY', 'MONTHLY'] as SalaryType[]).map((type) => (
                   <button
                     key={type}
                     type="button"
                     aria-pressed={values.salaryType === type}
-                    onClick={() => handleFieldChange("salaryType", type)}
+                    onClick={() => handleFieldChange('salaryType', type)}
                     className={`h-[22px] w-[43px] cursor-pointer rounded-md text-[9px] leading-none transition-colors ${
                       values.salaryType === type
-                        ? "bg-[#00b894] text-white"
-                        : "text-[#70737c]"
+                        ? 'bg-[#00b894] text-white'
+                        : 'text-[#70737c]'
                     }`}
                   >
-                    {type === "HOURLY" ? "시급" : "월급"}
+                    {type === 'HOURLY' ? '시급' : '월급'}
                   </button>
                 ))}
               </div>
@@ -266,13 +334,13 @@ function JobForm({
                 inputMode="numeric"
                 value={
                   values.salary
-                    ? Number(values.salary).toLocaleString("ko-KR")
-                    : ""
+                    ? Number(values.salary).toLocaleString('ko-KR')
+                    : ''
                 }
                 onChange={(event) =>
                   handleFieldChange(
-                    "salary",
-                    event.target.value.replace(/\D/g, ""),
+                    'salary',
+                    event.target.value.replace(/\D/g, ''),
                   )
                 }
                 placeholder="급여를 입력해주세요"
@@ -293,9 +361,9 @@ function JobForm({
               value={values.startDate}
               placeholder="근무 시작일을 선택해주세요"
               ariaLabel="근무 시작일"
-              isOpen={openControl === "startDate"}
-              onOpenChange={(isOpen) => handleControlOpen("startDate", isOpen)}
-              onChange={(value) => handleFieldChange("startDate", value)}
+              isOpen={openControl === 'startDate'}
+              onOpenChange={(isOpen) => handleControlOpen('startDate', isOpen)}
+              onChange={(value) => handleFieldChange('startDate', value)}
             />
             <FieldError message={errors.startDate} />
           </div>
@@ -307,27 +375,32 @@ function JobForm({
               options={KOREAN_LEVEL_OPTIONS}
               placeholder="한국어 수준을 선택해주세요"
               ariaLabel="한국어 수준"
-              isOpen={openControl === "koreanLevel"}
+              isOpen={openControl === 'koreanLevel'}
               onOpenChange={(isOpen) =>
-                handleControlOpen("koreanLevel", isOpen)
+                handleControlOpen('koreanLevel', isOpen)
               }
-              onChange={(value) => handleFieldChange("koreanLevel", value)}
+              onChange={(value) => handleFieldChange('koreanLevel', value)}
             />
             <FieldError message={errors.koreanLevel} />
           </div>
 
-          <label>
+          <div>
             <FieldLabel>우대 경력</FieldLabel>
-            <input
-              type="text"
+            <SelectField
               value={values.preferredExperience}
-              onChange={(event) =>
-                handleFieldChange("preferredExperience", event.target.value)
+              options={PREFERRED_EXPERIENCE_OPTIONS}
+              placeholder="우대 경력을 선택해주세요"
+              ariaLabel="우대 경력"
+              isOpen={openControl === 'preferredExperience'}
+              onOpenChange={(isOpen) =>
+                handleControlOpen('preferredExperience', isOpen)
               }
-              placeholder="우대 경력을 입력해주세요"
-              className={fieldClassName}
+              onChange={(value) =>
+                handleFieldChange('preferredExperience', value)
+              }
             />
-          </label>
+            <FieldError message={errors.preferredExperience} />
+          </div>
 
           <div>
             <FieldLabel>모집 마감일</FieldLabel>
@@ -335,9 +408,9 @@ function JobForm({
               value={values.deadline}
               placeholder="모집 마감일을 선택해주세요"
               ariaLabel="모집 마감일"
-              isOpen={openControl === "deadline"}
-              onOpenChange={(isOpen) => handleControlOpen("deadline", isOpen)}
-              onChange={(value) => handleFieldChange("deadline", value)}
+              isOpen={openControl === 'deadline'}
+              onOpenChange={(isOpen) => handleControlOpen('deadline', isOpen)}
+              onChange={(value) => handleFieldChange('deadline', value)}
             />
             <FieldError message={errors.deadline} />
           </div>
@@ -348,7 +421,7 @@ function JobForm({
         <div className="overflow-x-auto pb-1">
           <WorkTimeGrid
             value={values.schedule}
-            onChange={(schedule) => handleFieldChange("schedule", schedule)}
+            onChange={(schedule) => handleFieldChange('schedule', schedule)}
           />
         </div>
         <FieldError message={errors.schedule} />
@@ -361,7 +434,7 @@ function JobForm({
                 checked={values.isScheduleNegotiable}
                 onChange={(event) =>
                   handleFieldChange(
-                    "isScheduleNegotiable",
+                    'isScheduleNegotiable',
                     event.target.checked,
                   )
                 }

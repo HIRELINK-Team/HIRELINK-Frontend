@@ -1,20 +1,21 @@
 import type {
-  PreviousJobMock,
-  PreviousJobMockStatus,
-} from "../../types/employerJob";
+  JobPostingListItem,
+  JobPostingStatus,
+} from '../../types/jobPosting';
+import { formatJobPostingSummary } from '../../utils/jobPosting';
 
 interface PreviousJobModalProps {
-  jobs: PreviousJobMock[];
-  selectedJobId: string;
-  onSelect: (jobId: string) => void;
+  jobs: JobPostingListItem[];
+  selectedJobId: number | null;
+  onSelect: (jobId: number) => void;
   onCancel: () => void;
   onLoad: () => void;
 }
 
-const STATUS_LABELS: Record<PreviousJobMockStatus, string> = {
-  OPEN: "모집중",
-  CLOSED: "마감",
-  DRAFT: "임시 저장",
+const STATUS_LABELS: Record<JobPostingStatus, string> = {
+  RECRUITING: '모집중',
+  CLOSED: '마감',
+  DRAFT: '임시 저장',
 };
 
 function PreviousJobModal({
@@ -48,27 +49,27 @@ function PreviousJobModal({
           aria-label="이전 공고"
         >
           {jobs.map((job) => {
-            const isSelected = job.id === selectedJobId;
+            const isSelected = job.jobPostingId === selectedJobId;
             const statusTextClass =
-              job.status === "OPEN" ? "text-[#007a63]" : "text-[#70737c]";
+              job.status === 'RECRUITING' ? 'text-[#007a63]' : 'text-[#70737c]';
 
             return (
               <button
-                key={job.id}
+                key={job.jobPostingId}
                 type="button"
                 role="radio"
                 aria-checked={isSelected}
-                onClick={() => onSelect(job.id)}
+                onClick={() => onSelect(job.jobPostingId)}
                 className={`flex h-[82px] w-full cursor-pointer items-center rounded-xl bg-white px-5 text-left transition-colors ${
                   isSelected
-                    ? "border-[1.5px] border-[#00b894]"
-                    : "border border-[#e1e2e4] hover:border-[#9fded3]"
+                    ? 'border-[1.5px] border-[#00b894]'
+                    : 'border border-[#e1e2e4] hover:border-[#9fded3]'
                 }`}
               >
                 <span
                   aria-hidden="true"
                   className={`flex size-5 shrink-0 items-center justify-center rounded-full border ${
-                    isSelected ? "border-[#00b894]" : "border-[#70737c]"
+                    isSelected ? 'border-[#00b894]' : 'border-[#70737c]'
                   }`}
                 >
                   {isSelected && (
@@ -79,7 +80,7 @@ function PreviousJobModal({
                   <span className="flex min-w-0 flex-col gap-1">
                     <span className="flex items-center gap-2.5">
                       <span className="text-lg leading-normal font-semibold text-[#171719]">
-                        {job.title}
+                        {job.jobRole ?? '직무 미입력'}
                       </span>
                       <span
                         className={`flex items-center gap-[5px] text-xs font-normal whitespace-nowrap ${statusTextClass}`}
@@ -89,11 +90,11 @@ function PreviousJobModal({
                       </span>
                     </span>
                     <span className="text-sm leading-normal font-medium text-[#70737c]">
-                      {job.wageAndSchedule}
+                      {formatJobPostingSummary(job)}
                     </span>
                   </span>
                   <span className="shrink-0 text-sm leading-normal font-normal text-[#8b95a1]">
-                    등록 {job.registeredAt}
+                    등록 {job.createdAt.slice(0, 10).replaceAll('-', '.')}
                   </span>
                 </span>
               </button>
