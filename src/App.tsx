@@ -586,7 +586,13 @@ function StudentMatchingLayout() {
   );
 
   const loadRecommendations = useCallback(async () => {
-    const response = await getStudentRecommendations();
+    let response = await getStudentRecommendations();
+
+    if (response.refreshRequired) {
+      await refreshStudentRecommendations();
+      response = await getStudentRecommendations();
+    }
+
     setRecommendations(
       response.recommendations.map(mapStudentRecommendationToRecommendedJob),
     );
@@ -595,16 +601,22 @@ function StudentMatchingLayout() {
   useEffect(() => {
     let isActive = true;
 
-    const createAndLoadRecommendations = async () => {
+    const loadInitialRecommendations = async () => {
       try {
-        initialRecommendationRequestRef.current ??=
-          createStudentRecommendations();
-        await initialRecommendationRequestRef.current;
+        await loadRecommendations();
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          initialRecommendationRequestRef.current ??=
+            createStudentRecommendations();
+          await initialRecommendationRequestRef.current;
 
-        if (isActive) {
-          await loadRecommendations();
+          if (isActive) {
+            await loadRecommendations();
+          }
+
+          return;
         }
-      } catch {
+
         if (isActive) {
           setRecommendations([]);
         }
@@ -615,7 +627,7 @@ function StudentMatchingLayout() {
       }
     };
 
-    void createAndLoadRecommendations();
+    void loadInitialRecommendations();
 
     return () => {
       isActive = false;
@@ -741,7 +753,12 @@ function StudentMatchingRoute() {
           if (response.status !== 'RECRUITING') return null;
 
           return mapStudentJobPostingToRecommendedJob(recommendation, response);
-        } catch {
+        } catch (error) {
+          if (axios.isAxiosError(error) && error.response?.status === 409) {
+            await refreshRecommendations();
+            navigate('/student/matching');
+          }
+
           return null;
         }
       }}
