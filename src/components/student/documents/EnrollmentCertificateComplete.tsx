@@ -12,7 +12,7 @@ export function EnrollmentCertificateComplete({
   onConfirm,
 }: EnrollmentCertificateCompleteProps) {
   return (
-    <main className="relative mx-auto h-[844px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
         aria-label="뒤로가기"
         className="grid size-8 -ml-2 place-items-center border-0 bg-transparent p-0"
@@ -23,10 +23,10 @@ export function EnrollmentCertificateComplete({
       </button>
       <img
         alt=""
-        className="mx-auto mt-[140px] h-[85px] w-[85px]"
+        className="mx-auto mt-[90px] h-[70px] w-[70px]"
         src={completeCheckIcon}
       />
-      <h1 className="m-0 mt-[19px] text-center text-[26px] leading-[1.5] font-semibold">
+      <h1 className="m-0 mt-3 text-center text-[22px] leading-[1.5] font-semibold">
         등록이 완료되었어요!
       </h1>
       <p className="m-0 mt-[6px] text-center text-[13px] leading-[1.5] text-[#8B95A1]">
@@ -34,10 +34,7 @@ export function EnrollmentCertificateComplete({
         <br />
         학업 정보가 확인되었어요.
       </p>
-      <section
-        aria-label="등록된 재학증명서 정보"
-        className="mt-[48px] space-y-[10px]"
-      >
+      <section aria-label="등록된 재학증명서 정보" className="mt-6 space-y-2">
         {STUDENT_ENROLLMENT_CERTIFICATE_DETAILS.map((detail) => (
           <div className="flex items-center gap-[15px]" key={detail.label}>
             <span className="flex h-8 w-[73px] shrink-0 items-center justify-center rounded-[20px] bg-[#E5E8EB] px-2.5 text-center text-[13px] leading-[1.5] font-medium">
