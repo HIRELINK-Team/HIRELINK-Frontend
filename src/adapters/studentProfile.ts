@@ -264,15 +264,27 @@ export function mapStudentProfileValuesToUpdateRequest(
   if (view === 'residence') {
     const visaCode = getVisaCode(values[0] ?? '');
     const stayExpirationDate = getDateValue(values[1] ?? '');
+    const displayedValues =
+      mapStudentProfileResponseToValues(profile).residence;
+
+    const isUnchangedVisa = values[0] === displayedValues?.[0];
+    const isUnchangedExpiryDate = values[1] === displayedValues?.[1];
 
     if (
-      !setChangedString(requestBody, 'visaCode', visaCode, profile.visaCode) ||
-      !setChangedString(
-        requestBody,
-        'stayExpirationDate',
-        stayExpirationDate,
-        profile.stayExpirationDate,
-      )
+      (!isUnchangedVisa &&
+        !setChangedString(
+          requestBody,
+          'visaCode',
+          visaCode,
+          profile.visaCode,
+        )) ||
+      (!isUnchangedExpiryDate &&
+        !setChangedString(
+          requestBody,
+          'stayExpirationDate',
+          stayExpirationDate,
+          profile.stayExpirationDate,
+        ))
     ) {
       return { status: 'invalid' };
     }
@@ -281,20 +293,28 @@ export function mapStudentProfileValuesToUpdateRequest(
   if (view === 'academic') {
     const universityName = values[0]?.trim() ?? '';
     const academicState = getAcademicStateCode(values[2] ?? '');
+    const displayedUniversityName =
+      mapStudentProfileResponseToValues(profile).academic?.[0];
+    const displayedAcademicState =
+      mapStudentProfileResponseToValues(profile).academic?.[2];
+    const isUnchangedUniversityName = values[0] === displayedUniversityName;
+    const isUnchangedAcademicState = values[2] === displayedAcademicState;
 
     if (
-      !setChangedString(
-        requestBody,
-        'universityName',
-        universityName,
-        profile.universityName,
-      ) ||
-      !setChangedString(
-        requestBody,
-        'academicState',
-        academicState,
-        profile.academicState,
-      )
+      (!isUnchangedUniversityName &&
+        !setChangedString(
+          requestBody,
+          'universityName',
+          universityName,
+          profile.universityName,
+        )) ||
+      (!isUnchangedAcademicState &&
+        !setChangedString(
+          requestBody,
+          'academicState',
+          academicState,
+          profile.academicState,
+        ))
     ) {
       return { status: 'invalid' };
     }
