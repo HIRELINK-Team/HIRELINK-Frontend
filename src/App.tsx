@@ -136,8 +136,6 @@ const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
   'hirelink.student.documents.guideAcknowledged';
 const STUDENT_MATCHING_OFFER_SESSION_STORAGE_KEY =
   'hirelink.student.matching.offerHandled';
-const STUDENT_PHONE_VERIFICATION_DEMO_BYPASS_STORAGE_KEY =
-  'hirelink.student.onboarding.skipPhoneVerification';
 const PUBLIC_STUDENT_ROUTES = new Set([
   '/student',
   '/student/entry',
@@ -457,13 +455,12 @@ function StudentLoginRoute() {
     <StudentEmailLoginPage
       onBack={() => navigate('/student/entry')}
       onLogin={async (request) => {
-        const { accessToken } = await loginStudent(request);
-        setAccessToken(accessToken);
-        // Temporary demo flag only; the access token remains memory-only.
-        window.localStorage.setItem(
-          STUDENT_PHONE_VERIFICATION_DEMO_BYPASS_STORAGE_KEY,
-          'true',
-        );
+        const response = await loginStudent(request);
+        if (response.role !== 'STUDENT') {
+          throw new Error('유학생 계정으로 로그인해 주세요.');
+        }
+
+        setAccessToken(response.accessToken);
         navigate('/student/onboarding');
       }}
       onSignup={() => navigate('/student/signup')}
@@ -481,9 +478,6 @@ function StudentSignupRoute() {
       onSignup={async (request) => {
         const { accessToken } = await signupStudent(request);
         setAccessToken(accessToken);
-        window.localStorage.removeItem(
-          STUDENT_PHONE_VERIFICATION_DEMO_BYPASS_STORAGE_KEY,
-        );
         navigate('/student/onboarding');
       }}
     />
@@ -492,17 +486,10 @@ function StudentSignupRoute() {
 
 function StudentOnboardingRoute() {
   const navigate = useNavigate();
-  // Temporary demo bypass shared across tabs; no credential or token is persisted.
-  const shouldSkipPhoneVerification =
-    window.localStorage.getItem(
-      STUDENT_PHONE_VERIFICATION_DEMO_BYPASS_STORAGE_KEY,
-    ) === 'true';
 
   return (
     <StudentOnboardingPage
       enableCareerApi
-      enablePhoneVerificationApi
-      skipPhoneVerification={shouldSkipPhoneVerification}
       onBack={() => navigate('/student/entry')}
       onComplete={async (requestBody) => {
         try {

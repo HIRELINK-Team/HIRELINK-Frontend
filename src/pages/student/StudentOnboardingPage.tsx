@@ -94,13 +94,11 @@ type OnboardingView =
 
 type StudentOnboardingPageProps = {
   enableCareerApi?: boolean;
-  enablePhoneVerificationApi?: boolean;
   initialStep?: OnboardingView;
   onBack?: () => void;
   onComplete?: (
     requestBody: StudentProfileCreateRequest,
   ) => boolean | Promise<boolean | void> | void;
-  skipPhoneVerification?: boolean;
 };
 
 type BasicInfo = {
@@ -267,11 +265,9 @@ function isValidPhone(value: string) {
 
 export default function StudentOnboardingPage({
   enableCareerApi = false,
-  enablePhoneVerificationApi = false,
   initialStep = 'name',
   onBack,
   onComplete,
-  skipPhoneVerification = false,
 }: StudentOnboardingPageProps) {
   const [experienceDraft, setExperienceDraft] = useState<ExperienceDraft>(
     EMPTY_EXPERIENCE_DRAFT,
@@ -1276,11 +1272,6 @@ export default function StudentOnboardingPage({
       return;
     }
 
-    if (skipPhoneVerification && step === 'birthYear') {
-      setStep('name');
-      return;
-    }
-
     setPhoneError('');
     setVerificationError('');
     setStep(STEP_ORDER[currentIndex - 1]);
@@ -1318,59 +1309,36 @@ export default function StudentOnboardingPage({
   };
 
   const handleNext = async () => {
-    if (
-      skipPhoneVerification &&
-      (step === 'phone' || step === 'verification')
-    ) {
-      setStep('birthYear');
-      return;
-    }
-
     if (step === 'phone') {
       if (!isValidPhone(info.phone)) {
         setPhoneError('다시 입력해주세요.');
         return;
       }
 
-      if (enablePhoneVerificationApi) {
-        await handlePhoneVerificationRequest(true);
-      } else {
-        setPhoneError('');
-        setRemainingSeconds(143);
-        setStep('verification');
-      }
+      await handlePhoneVerificationRequest(true);
 
       return;
     }
 
     if (step === 'verification') {
-      if (enablePhoneVerificationApi) {
-        if (info.verificationCode.length !== 6 || isPhoneVerificationPending) {
-          setVerificationError('인증번호 6자리를 입력해주세요.');
-          return;
-        }
+      if (!/^\d{6}$/.test(info.verificationCode) || isPhoneVerificationPending) {
+        setVerificationError('인증번호 6자리를 입력해주세요.');
+        return;
+      }
 
-        setIsPhoneVerificationPending(true);
+      setIsPhoneVerificationPending(true);
 
-        try {
-          await confirmPhoneVerification({
-            phoneNumber: info.phone,
-            code: info.verificationCode,
-          });
-          setVerificationError('');
-        } catch {
-          setVerificationError('인증번호가 틀렸어요. 다시 입력해주세요.');
-          return;
-        } finally {
-          setIsPhoneVerificationPending(false);
-        }
-      } else {
-        if (info.verificationCode !== '578412') {
-          setVerificationError('인증번호가 틀렸어요. 다시 입력해주세요.');
-          return;
-        }
-
+      try {
+        await confirmPhoneVerification({
+          phoneNumber: info.phone,
+          code: info.verificationCode,
+        });
         setVerificationError('');
+      } catch {
+        setVerificationError('인증번호가 틀렸어요. 다시 입력해주세요.');
+        return;
+      } finally {
+        setIsPhoneVerificationPending(false);
       }
     }
 
@@ -1390,11 +1358,6 @@ export default function StudentOnboardingPage({
       return;
     }
 
-    if (skipPhoneVerification && step === 'name') {
-      setStep('birthYear');
-      return;
-    }
-
     if (currentIndex < STEP_ORDER.length - 1) {
       setStep(STEP_ORDER[currentIndex + 1]);
     }
@@ -1408,7 +1371,7 @@ export default function StudentOnboardingPage({
   const isCtaDisabled =
     isPhoneVerificationPending ||
     (step === 'name' && !info.name.trim()) ||
-    (step === 'verification' && info.verificationCode.length !== 6) ||
+    (step === 'verification' && !/^\d{6}$/.test(info.verificationCode)) ||
     (step === 'birthYear' && !/^\d{4}$/.test(info.birthYear)) ||
     (step === 'location' && !info.location.trim());
 
@@ -1475,11 +1438,7 @@ export default function StudentOnboardingPage({
                 type="button"
                 disabled={isPhoneVerificationPending}
                 onClick={() => {
-                  if (enablePhoneVerificationApi) {
-                    void handlePhoneVerificationRequest(false);
-                  } else {
-                    setRemainingSeconds(143);
-                  }
+                  void handlePhoneVerificationRequest(false);
                 }}
               >
                 재요청
