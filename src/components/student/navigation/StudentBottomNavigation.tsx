@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 
-import applicationsIcon from '../../../assets/icons/student/home/applications.svg';
-import homeIcon from '../../../assets/icons/student/home/home.svg';
-import matchingIcon from '../../../assets/icons/student/home/matching.svg';
-import myIcon from '../../../assets/icons/student/home/my.svg';
 import type { StudentNavigationTab } from '../../../types/studentHome';
 
 type StudentBottomNavigationProps = {
@@ -17,32 +13,170 @@ type StudentBottomNavigationProps = {
 };
 
 const NAVIGATION_ITEMS: Array<{
-  icon: string;
   label: string;
   tab: StudentNavigationTab;
 }> = [
-  { tab: 'home', label: '\uD648', icon: homeIcon },
-  { tab: 'matching', label: '\uB9E4\uCE6D', icon: matchingIcon },
+  { tab: 'home', label: '\uD648' },
+  { tab: 'matching', label: '\uB9E4\uCE6D' },
   {
     tab: 'applications',
     label: '\uC9C0\uC6D0\uB0B4\uC5ED',
-    icon: applicationsIcon,
   },
-  { tab: 'my', label: '\uB9C8\uC774', icon: myIcon },
+  { tab: 'my', label: '\uB9C8\uC774' },
 ];
 
 const ACTIVE_INDICATOR_WIDTH = 83;
 const DRAG_THRESHOLD_PX = 4;
+const FIRST_TAB_INDICATOR_OFFSET = 29.5;
+const TAB_INDICATOR_INTERVAL = 75;
+
+function getInitialIndicatorOffset(activeTab: StudentNavigationTab) {
+  const activeIndex = NAVIGATION_ITEMS.findIndex(
+    (item) => item.tab === activeTab,
+  );
+
+  return (
+    FIRST_TAB_INDICATOR_OFFSET +
+    Math.max(activeIndex, 0) * TAB_INDICATOR_INTERVAL
+  );
+}
+
+function NavigationTabIcon({
+  isActive,
+  tab,
+}: {
+  isActive: boolean;
+  tab: StudentNavigationTab;
+}) {
+  const color = '#00251E';
+  const inactiveStrokeWidth = 1.8;
+
+  if (tab === 'home') {
+    return isActive ? (
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" width="24">
+        <path
+          d="M12.82 2.72a1.2 1.2 0 0 0-1.63 0l-8.4 7.8a1.2 1.2 0 0 0 .81 2.08h.6v6.6a2.4 2.4 0 0 0 2.4 2.4h10.8a2.4 2.4 0 0 0 2.4-2.4v-6.6h.6a1.2 1.2 0 0 0 .82-2.08l-8.4-7.8Zm-.22 11.68c.99 0 1.8.81 1.8 1.8v3.6H9.6v-3.6c0-.99.81-1.8 1.8-1.8h1.2Z"
+          fill={color}
+        />
+      </svg>
+    ) : (
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+      >
+        <path
+          d="m3 10.5 9-7.5 9 7.5v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9Z"
+          stroke={color}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={inactiveStrokeWidth}
+        />
+        <path
+          d="M9 21v-6h6v6"
+          stroke={color}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={inactiveStrokeWidth}
+        />
+      </svg>
+    );
+  }
+
+  if (tab === 'matching') {
+    return (
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height="22"
+        viewBox="0 0 19.8 19.8"
+        width="22"
+      >
+        <path
+          d="M11.44 8.36a4.39 4.39 0 0 0-6.18 0L2.18 11.44a4.39 4.39 0 1 0 6.18 6.18l1.54-1.54"
+          stroke={color}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={isActive ? 2.5 : inactiveStrokeWidth}
+        />
+        <path
+          d="M8.36 11.44a4.39 4.39 0 0 0 6.18 0l3.08-3.08a4.39 4.39 0 1 0-6.18-6.18L9.9 3.72"
+          stroke={color}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={isActive ? 2.5 : inactiveStrokeWidth}
+        />
+      </svg>
+    );
+  }
+
+  if (tab === 'applications') {
+    return (
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+      >
+        <path
+          d="M19.5 10.37V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5v-15A2.25 2.25 0 0 1 6.75 2.25h4.63c.4 0 .78.16 1.06.44l6.62 6.62c.28.28.44.68.44 1.06Z"
+          fill={isActive ? color : 'none'}
+          stroke={color}
+          strokeLinejoin="round"
+          strokeWidth={isActive ? 1 : 1.5}
+        />
+        <path
+          d="M12 2.63v5.62c0 .83.67 1.5 1.5 1.5h5.63M8.25 13.5h7.5m-7.5 3.75h7.5"
+          stroke={isActive ? '#F5F5F5' : color}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="24"
+      viewBox="0 0 24 24"
+      width="24"
+    >
+      <path
+        d="M16.13 6.75c-.18 2.48-2.06 4.5-4.13 4.5-2.06 0-3.94-2.02-4.13-4.5C7.69 4.17 9.52 2.25 12 2.25s4.31 1.97 4.13 4.5Z"
+        fill={isActive ? color : 'none'}
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={isActive ? 1 : inactiveStrokeWidth}
+      />
+      <path
+        d="M12 14.25c-4.08 0-8.22 2.25-8.98 6.5-.09.51.2 1 .73 1h16.5c.54 0 .83-.49.73-1-.76-4.25-4.9-6.5-8.98-6.5Z"
+        fill={isActive ? color : 'none'}
+        stroke={color}
+        strokeMiterlimit="10"
+        strokeWidth={isActive ? 1 : inactiveStrokeWidth}
+      />
+    </svg>
+  );
+}
 
 export function StudentBottomNavigation({
-  activeBackgroundClassName = 'bg-[#E5E8EB]/20',
+  activeBackgroundClassName = 'bg-[#E5E8EB]/90',
   activeTab,
   bottomOffsetClassName = 'bottom-9',
   isFixed = false,
   onTabChange,
   widthClassName = 'w-[367px]',
 }: StudentBottomNavigationProps) {
-  const [indicatorOffset, setIndicatorOffset] = useState(0);
+  const [indicatorOffset, setIndicatorOffset] = useState(() =>
+    getInitialIndicatorOffset(activeTab),
+  );
   const [isDragging, setIsDragging] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
   const tabButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -120,6 +254,8 @@ export function StudentBottomNavigation({
       return;
     }
 
+    const tabIndex = NAVIGATION_ITEMS.findIndex((item) => item.tab === tab);
+    setIndicatorOffset(getIndicatorOffset(Math.max(tabIndex, 0)));
     onTabChange?.(tab);
   };
 
@@ -234,7 +370,7 @@ export function StudentBottomNavigation({
             type="button"
             onClick={() => handleTabClick(item.tab)}
           >
-            <img alt="" className="block" src={item.icon} />
+            <NavigationTabIcon isActive={isActive} tab={item.tab} />
             <span
               className={`min-w-full text-center text-[13px] leading-[1.5] ${
                 isActive ? 'font-bold' : 'font-normal'
