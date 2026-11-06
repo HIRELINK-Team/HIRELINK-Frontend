@@ -14,6 +14,7 @@ interface SelectFieldProps<T extends string> {
   onChange: (value: T) => void;
   ariaLabel: string;
   variant?: "default" | "compact";
+  truncateText?: boolean;
 }
 
 function SelectField<T extends string>({
@@ -25,6 +26,7 @@ function SelectField<T extends string>({
   onChange,
   ariaLabel,
   variant = "default",
+  truncateText = false,
 }: SelectFieldProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedOption = options.find((option) => option.value === value);
@@ -69,13 +71,17 @@ function SelectField<T extends string>({
             : "border-[rgba(112,115,124,0.22)] hover:border-[#aeb4bc]"
         }`}
       >
-        <span className={selectedOption ? "text-[#171719]" : "text-[#8b95a1]"}>
+        <span
+          className={`${truncateText ? "min-w-0 flex-1 truncate" : ""} ${
+            selectedOption ? "text-[#171719]" : "text-[#8b95a1]"
+          }`}
+        >
           {selectedOption?.label ?? placeholder}
         </span>
         <svg
           aria-hidden="true"
           viewBox="0 0 24 24"
-          className={`size-5 text-[#8b95a1] transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`ml-2 size-5 shrink-0 text-[#8b95a1] transition-transform ${isOpen ? "rotate-180" : ""}`}
           fill="none"
         >
           <path
@@ -116,7 +122,9 @@ function SelectField<T extends string>({
                   : "text-[#44464b] hover:bg-[#f7f7f8]"
               }`}
             >
-              {option.label}
+              <span className={truncateText ? "min-w-0 flex-1 truncate" : ""}>
+                {option.label}
+              </span>
             </button>
           ))}
         </div>

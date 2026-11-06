@@ -279,7 +279,7 @@ function EmployerApplicantsPage() {
         </p>
       </header>
 
-      <div className="relative mt-7 w-[360px] max-w-full">
+      <div className="relative mt-7 w-[430px] max-w-full">
         <SelectField
           value={selectedJobId === null ? '' : String(selectedJobId)}
           options={selectableJobs.map((job) => ({
@@ -294,6 +294,7 @@ function EmployerApplicantsPage() {
           onOpenChange={setIsJobSelectOpen}
           onChange={handleJobChange}
           variant="compact"
+          truncateText
         />
       </div>
 
