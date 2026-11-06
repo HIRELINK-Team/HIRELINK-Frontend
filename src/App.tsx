@@ -397,6 +397,7 @@ type MatchingConditionRouteContext = {
     otherIndustry: string,
   ) => Promise<boolean>;
   savePriorityOrder: (priorityOrder?: MatchingPriorityId[]) => Promise<boolean>;
+  setPriorityOrder: (priorityOrder: MatchingPriorityId[]) => void;
   setStartDate: (date: string) => void;
   setWorkAvailability: (workAvailability: WorkAvailability) => Promise<boolean>;
   setWorkLocation: (workLocation: WorkLocation) => Promise<boolean>;
@@ -465,9 +466,9 @@ function formatMatchingConditionWorkTime(workAvailability: WorkAvailability) {
 }
 
 function StudentSessionBootstrap() {
-  const { pathname } = useLocation();
-  const [isSessionReady, setIsSessionReady] = useState(
-    () => getAccessToken() !== null,
+  const location = useLocation();
+  const [isSessionRestored, setIsSessionRestored] = useState<boolean | null>(
+    () => (getAccessToken() ? true : null),
   );
 
   useEffect(() => {
@@ -480,10 +481,14 @@ function StudentSessionBootstrap() {
     }
 
     void refreshAccessToken()
-      .catch(() => undefined)
-      .finally(() => {
+      .then(() => {
         if (isActive) {
-          setIsSessionReady(true);
+          setIsSessionRestored(true);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setIsSessionRestored(false);
         }
       });
 
@@ -492,8 +497,20 @@ function StudentSessionBootstrap() {
     };
   }, []);
 
-  if (!isSessionReady && !PUBLIC_STUDENT_ROUTES.has(pathname)) {
+  if (isSessionRestored === null) {
     return null;
+  }
+
+  if (!isSessionRestored && !PUBLIC_STUDENT_ROUTES.has(location.pathname)) {
+    return (
+      <Navigate
+        replace
+        state={{
+          from: `${location.pathname}${location.search}${location.hash}`,
+        }}
+        to="/student/login"
+      />
+    );
   }
 
   return <Outlet />;
@@ -742,12 +759,34 @@ function StudentMatchingLayout() {
 
 function StudentMatchingRoute() {
   const navigate = useNavigate();
+  const [studentProfile, setStudentProfile] =
+    useState<StudentProfileResponse | null>(null);
   const {
     isRecommendationsLoading,
     recommendations,
     refreshRecommendations,
     reloadRecommendations,
   } = useOutletContext<StudentMatchingRouteContext>();
+
+  useEffect(() => {
+    let isActive = true;
+
+    void getStudentProfile()
+      .then((profile) => {
+        if (isActive && isStudentProfileResponse(profile)) {
+          setStudentProfile(profile);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setStudentProfile(null);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   return (
     <StudentMatchingPage
@@ -814,6 +853,7 @@ function StudentMatchingRoute() {
       onRecommendationRefresh={refreshRecommendations}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
       recommendations={recommendations}
+      studentProfile={studentProfile}
     />
   );
 }
@@ -1196,6 +1236,26 @@ function StudentHiringCompleteRoute() {
 
 function StudentMyRoute() {
   const navigate = useNavigate();
+  const [studentProfile, setStudentProfile] =
+    useState<StudentProfileResponse | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void getStudentProfile()
+      .then((profile) => {
+        if (isActive && isStudentProfileResponse(profile)) {
+          setStudentProfile(profile);
+        }
+      })
+      .catch(() => {
+        if (isActive) setStudentProfile(null);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const handleMenuClick = (menuId: StudentMyMenuId) => {
     const menuRoutes: Record<StudentMyMenuId, string> = {
@@ -1214,9 +1274,10 @@ function StudentMyRoute() {
     <StudentMyPage
       isBottomNavigationFixed
       onMenuClick={handleMenuClick}
+      onMatchingClick={() => navigate('/student/matching')}
       onProfileEditClick={() => navigate('/student/my/profile')}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
-      onWorkConditionClick={() => navigate('/student/my/work-condition')}
+      studentProfile={studentProfile}
     />
   );
 }
@@ -1351,6 +1412,28 @@ function StudentDocumentFlowRoute({
 
 function StudentWorkConditionRoute() {
   const navigate = useNavigate();
+  const [studentProfile, setStudentProfile] =
+    useState<StudentProfileResponse | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void getStudentProfile()
+      .then((profile) => {
+        if (isActive && isStudentProfileResponse(profile)) {
+          setStudentProfile(profile);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setStudentProfile(null);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   return (
     <StudentWorkConditionPage
@@ -1363,6 +1446,7 @@ function StudentWorkConditionRoute() {
         navigate('/student/my/matching-condition/work-time')
       }
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
+      studentProfile={studentProfile}
     />
   );
 }
@@ -1643,6 +1727,7 @@ function StudentMatchingConditionLayout() {
           priorityOrder,
           selectedIndustries,
           savePriorityOrder,
+          setPriorityOrder,
           setIndustry: saveIndustry,
           setStartDate: (date) => {
             setStartDate(date);
@@ -1669,6 +1754,7 @@ function StudentMatchingConditionRoute() {
     priorityOrder,
     savePriorityOrder,
     selectedIndustries,
+    setPriorityOrder,
     startDate,
     updatedSummaryIds,
     workAvailability,
@@ -1703,6 +1789,7 @@ function StudentMatchingConditionRoute() {
           navigate(detailRoute);
         }
       }}
+      onPriorityChange={setPriorityOrder}
       priorityOrder={priorityOrder}
       summaryValues={{
         industry: updatedSummaryIds.has('industry')

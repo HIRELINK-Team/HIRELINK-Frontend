@@ -3,8 +3,10 @@ import approvedStatusIcon from '../../assets/icons/student/my/work-condition-app
 import restrictedStatusIcon from '../../assets/icons/student/my/work-condition-restricted.png';
 import reviewStatusIcon from '../../assets/icons/student/my/work-condition-review.png';
 import workConditionSummaryImage from '../../assets/images/student/my/work-condition-summary.png';
+import { mapStudentProfileResponseToValues } from '../../adapters/studentProfile';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import type { StudentNavigationTab } from '../../types/studentHome';
+import type { StudentProfileResponse } from '../../types/studentProfile';
 
 type StudentWorkConditionPageProps = {
   onBack?: () => void;
@@ -12,6 +14,7 @@ type StudentWorkConditionPageProps = {
   onEditWorkTime?: () => void;
   onEditEligibleFields?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
+  studentProfile?: StudentProfileResponse | null;
 };
 
 const ELIGIBLE_FIELDS = [
@@ -48,7 +51,15 @@ export default function StudentWorkConditionPage({
   onEditWorkTime,
   onEditEligibleFields,
   onTabChange,
+  studentProfile = null,
 }: StudentWorkConditionPageProps) {
+  const profileValues = studentProfile
+    ? mapStudentProfileResponseToValues(studentProfile)
+    : undefined;
+  const visaStatus = profileValues?.residence?.[0] ?? '미등록';
+  const academicStatus = profileValues?.academic?.[2] ?? '미등록';
+  const topikLevel = profileValues?.language?.[0] ?? 'TOPIK 미등록';
+
   return (
     <main className="relative mx-auto h-[914px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <div className="h-full overflow-y-auto px-6 pt-[61px] pb-[126px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -82,9 +93,9 @@ export default function StudentWorkConditionPage({
 
         <section className="mt-[28px] h-[138px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-[17px]">
           <CardHeader title="기본 정보" onEdit={onEditBasicInfo} />
-          <InfoRow label="체류자격" value="D-2-2 (학사)" />
-          <InfoRow label="학적상태" value="재학 중" />
-          <InfoRow label="한국어 능력" value="TOPIK 4급 (기준 충족)" />
+          <InfoRow label="체류자격" value={visaStatus} />
+          <InfoRow label="학적상태" value={academicStatus} />
+          <InfoRow label="한국어 능력" value={topikLevel} />
         </section>
 
         <section className="mt-[16px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-[17px]">

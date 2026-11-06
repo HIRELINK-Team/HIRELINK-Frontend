@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import detailBackIcon from '../../../assets/icons/student/matching/detail-back.svg';
 import detailMapPinIcon from '../../../assets/icons/student/matching/detail-map-pin.svg';
 import detailMapImage from '../../../assets/images/student/matching/detail-map.png';
@@ -9,15 +7,15 @@ type RecommendedJobDetailProps = {
   job: RecommendedJob;
   onApply?: (job: RecommendedJob) => void;
   onBack?: () => void;
+  onRecommendationDismiss?: (job: RecommendedJob) => void;
 };
 
 export function RecommendedJobDetail({
   job,
   onApply,
   onBack,
+  onRecommendationDismiss,
 }: RecommendedJobDetailProps) {
-  const [isRecommendationDisabled, setIsRecommendationDisabled] =
-    useState(false);
   const companyName = job.companyName || '근무지 정보';
   const comparisonTags = (
     job.detail.comparisonTags.length > 0
@@ -46,7 +44,7 @@ export function RecommendedJobDetail({
   };
 
   const handleRecommendationDisabledChange = () => {
-    setIsRecommendationDisabled((currentValue) => !currentValue);
+    onRecommendationDismiss?.(job);
   };
 
   return (
@@ -134,7 +132,6 @@ export function RecommendedJobDetail({
 
         <label className="absolute top-[409px] left-6 flex cursor-pointer items-center gap-2.5 text-[15px] leading-[1.5]">
           <input
-            checked={isRecommendationDisabled}
             className="peer sr-only"
             type="checkbox"
             onChange={handleRecommendationDisabledChange}
@@ -142,9 +139,7 @@ export function RecommendedJobDetail({
           <span
             aria-hidden="true"
             className="flex size-[21px] shrink-0 items-center justify-center rounded-[5px] border border-[#191F28] bg-transparent text-[13px] text-white peer-checked:border-[#00B894] peer-checked:bg-[#00B894]"
-          >
-            {isRecommendationDisabled ? '✓' : ''}
-          </span>
+          ></span>
           이 일자리는 더 이상 추천받지 않을래요!
         </label>
 
