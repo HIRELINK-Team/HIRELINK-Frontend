@@ -17,7 +17,7 @@ type ExperienceFormProps = {
 function formatMonthInput(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 6);
 
-  return digits.length > 4
+  return digits.length >= 4
     ? `${digits.slice(0, 4)}.${digits.slice(4)}`
     : digits;
 }
