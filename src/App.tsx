@@ -537,7 +537,18 @@ function StudentLoginRoute() {
         }
 
         setAccessToken(response.accessToken);
-        navigate('/student/onboarding');
+
+        try {
+          await getStudentProfile();
+          navigate('/student/home');
+        } catch (error) {
+          if (axios.isAxiosError(error) && error.response?.status === 404) {
+            navigate('/student/onboarding');
+            return;
+          }
+
+          throw error;
+        }
       }}
       onSignup={() => navigate('/student/signup')}
       onSocialLogin={() => navigate('/student/onboarding')}
