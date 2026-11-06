@@ -780,8 +780,9 @@ export default function StudentOnboardingPage({
         }
 
         setStep('experienceList');
-      } catch {
-        // Keep the form and the last saved career list when the request fails.
+      } catch (error) {
+        const serverMessage = getApiErrorResponse(error)?.message;
+        window.alert(serverMessage ?? '경력 저장에 실패했어요. 다시 시도해 주세요.');
       } finally {
         setIsCareerSaving(false);
       }
