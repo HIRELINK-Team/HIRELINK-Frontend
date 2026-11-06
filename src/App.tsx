@@ -1057,19 +1057,7 @@ function StudentApplicationsRoute() {
 
         return (await declineOffer(application.offerId)) !== null;
       }}
-      onDetailClick={(application) => {
-        if (application.status === 'HIRED') {
-          if (
-            application.matchId !== null &&
-            application.matchId !== undefined
-          ) {
-            navigate(`hiring-complete/${application.matchId}`);
-          }
-          return;
-        }
-
-        navigate(application.id);
-      }}
+      onDetailClick={(application) => navigate(application.id)}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
     />
   );
