@@ -153,7 +153,11 @@ type StudentDocumentFlowId =
 type StudentDocumentRouteContext = {
   confirmGuide: () => void;
   documentCompletion: Record<StudentDocumentFlowId, boolean>;
-  completeDocument: (documentId: StudentDocumentFlowId) => void;
+  documentRegistrationDates: Partial<Record<StudentDocumentFlowId, string>>;
+  completeDocument: (
+    documentId: StudentDocumentFlowId,
+    registeredAt: string,
+  ) => void;
   registrationView: () => void;
   view: 'guide' | 'registration';
 };
@@ -1136,6 +1140,9 @@ function StudentDocumentsLayout() {
     'topik-transcript': false,
     transcript: false,
   });
+  const [documentRegistrationDates, setDocumentRegistrationDates] = useState<
+    Partial<Record<StudentDocumentFlowId, string>>
+  >({});
 
   return (
     <Outlet
@@ -1148,13 +1155,18 @@ function StudentDocumentsLayout() {
             );
             setView('registration');
           },
-          completeDocument: (documentId) => {
+          completeDocument: (documentId, registeredAt) => {
             setDocumentCompletion((currentCompletion) => ({
               ...currentCompletion,
               [documentId]: true,
             }));
+            setDocumentRegistrationDates((currentDates) => ({
+              ...currentDates,
+              [documentId]: registeredAt,
+            }));
           },
           documentCompletion,
+          documentRegistrationDates,
           registrationView: () => setView('registration'),
           view,
         } satisfies StudentDocumentRouteContext
@@ -1165,8 +1177,13 @@ function StudentDocumentsLayout() {
 
 function StudentDocumentsRoute() {
   const navigate = useNavigate();
-  const { confirmGuide, documentCompletion, registrationView, view } =
-    useOutletContext<StudentDocumentRouteContext>();
+  const {
+    confirmGuide,
+    documentCompletion,
+    documentRegistrationDates,
+    registrationView,
+    view,
+  } = useOutletContext<StudentDocumentRouteContext>();
 
   const handleDocumentClick = (document: StudentDocument) => {
     const documentRoutes: Partial<Record<StudentDocument['id'], string>> = {
@@ -1186,6 +1203,7 @@ function StudentDocumentsRoute() {
   return (
     <StudentDocumentManagementPage
       documentCompletion={documentCompletion}
+      documentRegistrationDates={documentRegistrationDates}
       initialView={view}
       onDocumentClick={handleDocumentClick}
       onExit={() => navigate('/student/my')}
@@ -1200,17 +1218,22 @@ function StudentDocumentFlowRoute({
   initialView,
 }: StudentDocumentRouteConfig) {
   const navigate = useNavigate();
-  const { completeDocument, documentCompletion, registrationView } =
-    useOutletContext<StudentDocumentRouteContext>();
+  const {
+    completeDocument,
+    documentCompletion,
+    documentRegistrationDates,
+    registrationView,
+  } = useOutletContext<StudentDocumentRouteContext>();
 
   const handleExit = () => navigate('/student/my/documents');
 
   return (
     <StudentDocumentManagementPage
       documentCompletion={documentCompletion}
+      documentRegistrationDates={documentRegistrationDates}
       initialView={initialView}
-      onDocumentComplete={() => {
-        completeDocument(documentId);
+      onDocumentComplete={(_, registeredAt) => {
+        completeDocument(documentId, registeredAt);
       }}
       onBadgeConfirm={() => {
         registrationView();
