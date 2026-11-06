@@ -127,7 +127,7 @@ import type {
 import type { WorkAvailability } from './types/workAvailability';
 import type { WorkLocation } from './types/workLocation';
 
-const SPLASH_DURATION_MS = 1200;
+const SPLASH_DURATION_MS = 1800;
 const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
   'hirelink.student.documents.guideAcknowledged';
 const PUBLIC_STUDENT_ROUTES = new Set([
