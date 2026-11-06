@@ -17,6 +17,7 @@ import {
 } from '../../api/student';
 import {
   mapIndustrySelectionToUpdateRequest,
+  mapPriorityOrderToUpdateRequest,
   mapWorkLocationToUpdateRequest,
 } from '../../adapters/studentMatchingPreferences';
 import { mapStudentOnboardingToCreateRequest } from '../../adapters/studentProfile';
@@ -655,9 +656,15 @@ export default function StudentOnboardingPage({
     const requestBody = mapStudentOnboardingToCreateRequest(info);
     if (!requestBody) return;
 
+    const priorityRequest = mapPriorityOrderToUpdateRequest(
+      matchingPriorities.map((priority) => priority.id),
+    );
+    if (!priorityRequest) return;
+
     setIsProfileSubmitting(true);
 
     try {
+      await updateStudentMatchingPreferences(priorityRequest);
       const didComplete = await onComplete(requestBody);
       if (didComplete !== false) setIsMatchingPrioritySubmitted(true);
     } catch {
