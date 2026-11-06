@@ -63,28 +63,32 @@ function OfferWaitingApplicationCard({
     new Date(application.studentResponseDeadline).getTime() > currentTime;
 
   return (
-    <article className="relative mx-auto h-[223px] w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
-      <h2 className="absolute top-[21.3px] left-[23.3px] m-0 text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] whitespace-nowrap text-[#191F28]">
+    <article
+      className={`relative mx-auto w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1] ${
+        canRespondToOffer ? 'h-[223px]' : 'h-[164px]'
+      }`}
+    >
+      <h2 className="absolute top-[21px] left-[23px] m-0 max-w-[190px] truncate text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
         {application.job.companyName}
       </h2>
-      <p className="absolute top-[58.3px] left-[23.3px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#8B95A1]">
+      <p className="absolute top-[58px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.role}
       </p>
-      <p className="absolute top-[88.3px] left-[23.3px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#8B95A1]">
+      <p className="absolute top-[88px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.commuteAndWage}
       </p>
-      <p className="absolute top-[118.3px] left-[23.3px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#8B95A1]">
+      <p className="absolute top-[118px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.matchDescription}
       </p>
 
-      <div className="absolute top-[26.3px] left-[254.3px] flex items-center gap-[7px] whitespace-nowrap">
+      <div className="absolute top-[26px] right-[23px] flex items-center gap-[7px] whitespace-nowrap">
         <img alt="" className="block" src={offerStatusDotIcon} />
         <span className="text-[13px] leading-[1.5] font-medium tracking-[-0.02em] text-[#E05260]">
           채용 제안
         </span>
       </div>
       {application.timerLabel ? (
-        <div className="absolute top-[46.3px] left-[241.3px] flex items-center gap-[5.75px] whitespace-nowrap">
+        <div className="absolute top-[46px] right-[23px] flex items-center gap-[5.75px] whitespace-nowrap">
           <img alt="" className="block" src={activeTimerIcon} />
           <span className="text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#009376]">
             {application.timerLabel}
@@ -92,7 +96,7 @@ function OfferWaitingApplicationCard({
         </div>
       ) : null}
       <button
-        className="absolute top-[108.3px] left-[245.3px] flex h-[27px] w-[72.273px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13.636px] text-[13px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#191F28]"
+        className="absolute top-[108px] right-[23px] flex h-[27px] w-[72px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13px] text-[13px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#191F28]"
         type="button"
         onClick={() => onDetailClick?.(application)}
       >
@@ -100,23 +104,23 @@ function OfferWaitingApplicationCard({
       </button>
 
       {canRespondToOffer ? (
-        <div className="absolute top-[153.3px] left-[21.3px] grid grid-cols-[145px_145px] gap-[7px]">
-        <button
-          className="h-[50px] rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium tracking-[-0.02em] text-[#F5F5F5]"
-          disabled={isOfferActionPending}
-          type="button"
-          onClick={() => onAcceptOffer?.(application)}
-        >
-          수락
-        </button>
-        <button
-          className="h-[50px] rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent text-[17px] leading-[1.5] font-medium tracking-[-0.02em] text-[#8B95A1]"
-          disabled={isOfferActionPending}
-          type="button"
-          onClick={() => onDeclineOffer?.(application)}
-        >
-          거절
-        </button>
+        <div className="absolute right-[21px] bottom-5 left-[21px] grid grid-cols-2 gap-[7px]">
+          <button
+            className="h-[50px] rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium tracking-[-0.02em] text-[#F5F5F5]"
+            disabled={isOfferActionPending}
+            type="button"
+            onClick={() => onAcceptOffer?.(application)}
+          >
+            수락
+          </button>
+          <button
+            className="h-[50px] rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent text-[17px] leading-[1.5] font-medium tracking-[-0.02em] text-[#8B95A1]"
+            disabled={isOfferActionPending}
+            type="button"
+            onClick={() => onDeclineOffer?.(application)}
+          >
+            거절
+          </button>
         </div>
       ) : null}
     </article>
@@ -134,27 +138,27 @@ function HiredApplicationCard({
 }: HiredApplicationCardProps) {
   return (
     <article className="relative mx-auto h-[164px] w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
-      <h2 className="absolute top-[21.3px] left-[23.3px] m-0 text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] whitespace-nowrap text-[#191F28]">
+      <h2 className="absolute top-[21px] left-[23px] m-0 max-w-[190px] truncate text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
         {application.job.companyName}
       </h2>
-      <p className="absolute top-[58.3px] left-[23.3px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#8B95A1]">
+      <p className="absolute top-[58px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.role}
       </p>
-      <p className="absolute top-[88.3px] left-[23.3px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#8B95A1]">
+      <p className="absolute top-[88px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.commuteAndWage}
       </p>
-      <p className="absolute top-[118.3px] left-[23.3px] m-0 text-[15px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#8B95A1]">
+      <p className="absolute top-[118px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.matchDescription}
       </p>
 
-      <div className="absolute top-[26.3px] left-[254.3px] flex items-center gap-[7px] whitespace-nowrap">
+      <div className="absolute top-[26px] right-[23px] flex items-center gap-[7px] whitespace-nowrap">
         <img alt="" className="block" src={hiredStatusDotIcon} />
         <span className="text-[13px] leading-[1.5] font-medium tracking-[-0.02em] text-[#387DD6]">
           채용 완료
         </span>
       </div>
       <button
-        className="absolute top-[108.3px] left-[245.3px] flex h-[27px] w-[72.273px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13.636px] text-[13px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#191F28]"
+        className="absolute top-[108px] right-[23px] flex h-[27px] w-[72px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13px] text-[13px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#191F28]"
         type="button"
         onClick={() => onDetailClick?.(application)}
       >
@@ -203,7 +207,7 @@ export function StudentApplicationCard({
 
   return (
     <article className="relative h-[164px] w-full rounded-[20px] border-[0.7px] border-[#B0B8C1] px-[23px] pt-[21px]">
-      <h2 className="m-0 text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
+      <h2 className="m-0 max-w-[190px] truncate text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
         {application.job.companyName}
       </h2>
       <div className="absolute top-[27px] right-[23px] flex items-center gap-[7px]">
@@ -220,13 +224,13 @@ export function StudentApplicationCard({
         </span>
       </div>
 
-      <p className="mt-[10px] text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
+      <p className="mt-[10px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.role}
       </p>
-      <p className="mt-[6px] text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
+      <p className="mt-[6px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.commuteAndWage}
       </p>
-      <p className="mt-[6px] text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
+      <p className="mt-[6px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.matchDescription}
       </p>
       <button
