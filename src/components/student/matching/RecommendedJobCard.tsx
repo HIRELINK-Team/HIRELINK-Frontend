@@ -79,6 +79,14 @@ export function RecommendedJobCard({
   onDetailClick,
   showApplyButton = false,
 }: RecommendedJobCardProps) {
+  const applicationStatus = job.applicationStatus ?? application?.status;
+  const applicationStatusLabel =
+    applicationStatus === 'WAITING_RESPONSE'
+      ? '채용 제안 대기'
+      : applicationStatus === 'OFFERED'
+        ? '채용 수락 대기'
+        : null;
+
   const handleApply = () => {
     onApply?.(job);
   };
@@ -128,16 +136,18 @@ export function RecommendedJobCard({
         상세보기
       </button>
 
-      {isExpanded && showApplyButton ? (
+      {isExpanded && (showApplyButton || applicationStatusLabel) ? (
         <button
-          className="absolute right-[19px] bottom-[16px] left-[19px] flex h-[42px] items-center justify-center rounded-[13px] border-0 bg-[#00B894] text-[16px] leading-[1.5] font-medium text-[#F5F5F5]"
+          className="absolute right-[19px] bottom-[16px] left-[19px] flex h-[42px] items-center justify-center rounded-[13px] border-0 bg-[#00B894] text-[16px] leading-[1.5] font-medium text-[#F5F5F5] disabled:cursor-default"
+          disabled={applicationStatusLabel !== null}
           type="button"
           onClick={(event) => {
             event.stopPropagation();
+            if (applicationStatusLabel) return;
             handleApply();
           }}
         >
-          지원하기
+          {applicationStatusLabel ?? '지원하기'}
         </button>
       ) : null}
     </article>

@@ -63,7 +63,7 @@ export type StudentApplicationsResponse = {
 };
 
 export type CreateStudentApplicationRequest = {
-  jobPostingId: number;
+  recommendationId: number;
   desiredStartDate: string;
 };
 

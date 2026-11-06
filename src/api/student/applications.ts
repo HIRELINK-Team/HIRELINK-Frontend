@@ -24,7 +24,7 @@ export async function createStudentApplication(
   // A successful application starts the employer's 24-hour response window.
   const request = {
     desiredStartDate: requestBody.desiredStartDate,
-    jobPostingId: requestBody.jobPostingId,
+    recommendationId: requestBody.recommendationId,
   };
   const { data } = await apiClient.post<CreateStudentApplicationResponse>(
     '/applications',

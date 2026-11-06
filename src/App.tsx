@@ -35,6 +35,7 @@ import {
   withdrawStudentApplication,
 } from './api/student';
 import { getStudentJobPosting } from './api/jobPostings';
+import { getApiErrorResponse } from './api/errors';
 import {
   mapIndustrySelectionToUpdateRequest,
   mapPriorityOrderToUpdateRequest,
@@ -792,7 +793,11 @@ function StudentMatchingRoute() {
     <StudentMatchingPage
       isRecommendationsLoading={isRecommendationsLoading}
       onApplicationSubmit={async (job, desiredStartDate) => {
-        if (job.jobPostingId === undefined) {
+        if (
+          job.recommendationId === undefined ||
+          job.applicationStatus === 'WAITING_RESPONSE' ||
+          job.applicationStatus === 'OFFERED'
+        ) {
           return 'recommendation-conflict';
         }
 
@@ -800,8 +805,12 @@ function StudentMatchingRoute() {
           (recommendation) =>
             recommendation.recommendationId === job.recommendationId,
         );
-        const latestJobPostingId = latestRecommendation?.jobPostingId;
-        if (latestJobPostingId === undefined) {
+        const latestRecommendationId = latestRecommendation?.recommendationId;
+        if (
+          latestRecommendationId === undefined ||
+          latestRecommendation?.applicationStatus === 'WAITING_RESPONSE' ||
+          latestRecommendation?.applicationStatus === 'OFFERED'
+        ) {
           await reloadRecommendations();
           navigate('/student/matching');
           return 'recommendation-conflict';
@@ -810,10 +819,16 @@ function StudentMatchingRoute() {
         try {
           return await createStudentApplication({
             desiredStartDate,
-            jobPostingId: latestJobPostingId,
+            recommendationId: latestRecommendationId,
           });
         } catch (error) {
           if (axios.isAxiosError(error) && error.response?.status === 409) {
+            const apiError = getApiErrorResponse(error);
+            if (apiError?.code === 'APPLICATION_CAPACITY_EXCEEDED') {
+              window.alert(apiError.message);
+              return null;
+            }
+
             await reloadRecommendations();
             navigate('/student/matching');
             return 'recommendation-conflict';
