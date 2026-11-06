@@ -34,6 +34,10 @@ function getJobPostingIdKey(jobPostingId: string | number | undefined) {
   return jobPostingId === undefined ? null : String(jobPostingId);
 }
 
+function getRecommendationIdKey(recommendationId: number | undefined) {
+  return recommendationId === undefined ? null : String(recommendationId);
+}
+
 function getWaitingApplicationForRecommendation(
   applications: readonly RecommendationApplication[],
   jobPostingId: string | number | undefined,
@@ -112,9 +116,21 @@ export default function StudentMatchingPage({
   const [applications, setApplications] = useState<RecommendationApplication[]>(
     [],
   );
+  const [dismissedRecommendationIds, setDismissedRecommendationIds] = useState<
+    string[]
+  >([]);
   const selectedJobRef = useRef<RecommendedJob | null>(initialSelectedJob);
   const latestRecommendationIdsRef = useRef<Set<number>>(new Set());
-  const recommendedJobs = recommendations.slice(0, MAX_RECOMMENDED_JOBS);
+  const recommendedJobs = recommendations
+    .filter((job) => {
+      const recommendationIdKey = getRecommendationIdKey(job.recommendationId);
+
+      return (
+        recommendationIdKey === null ||
+        !dismissedRecommendationIds.includes(recommendationIdKey)
+      );
+    })
+    .slice(0, MAX_RECOMMENDED_JOBS);
 
   useEffect(() => {
     selectedJobRef.current = selectedJob;
@@ -216,6 +232,22 @@ export default function StudentMatchingPage({
 
   const handleDetailBack = () => {
     setMatchingView(detailBackView);
+  };
+
+  const handleRecommendationDismiss = (job: RecommendedJob) => {
+    const recommendationIdKey = getRecommendationIdKey(job.recommendationId);
+
+    if (recommendationIdKey !== null) {
+      setDismissedRecommendationIds((currentIds) =>
+        currentIds.includes(recommendationIdKey)
+          ? currentIds
+          : [...currentIds, recommendationIdKey],
+      );
+    }
+
+    setSelectedJob(null);
+    setDetailBackView('result');
+    setMatchingView('result');
   };
 
   const handleApply = (job: RecommendedJob) => {
@@ -331,6 +363,7 @@ export default function StudentMatchingPage({
         job={selectedJob}
         onApply={handleApply}
         onBack={handleDetailBack}
+        onRecommendationDismiss={handleRecommendationDismiss}
       />
     );
   }
