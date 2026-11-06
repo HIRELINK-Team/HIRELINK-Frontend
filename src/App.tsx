@@ -397,6 +397,7 @@ type MatchingConditionRouteContext = {
     otherIndustry: string,
   ) => Promise<boolean>;
   savePriorityOrder: (priorityOrder?: MatchingPriorityId[]) => Promise<boolean>;
+  setPriorityOrder: (priorityOrder: MatchingPriorityId[]) => void;
   setStartDate: (date: string) => void;
   setWorkAvailability: (workAvailability: WorkAvailability) => Promise<boolean>;
   setWorkLocation: (workLocation: WorkLocation) => Promise<boolean>;
@@ -1710,6 +1711,7 @@ function StudentMatchingConditionLayout() {
           priorityOrder,
           selectedIndustries,
           savePriorityOrder,
+          setPriorityOrder,
           setIndustry: saveIndustry,
           setStartDate: (date) => {
             setStartDate(date);
@@ -1736,6 +1738,7 @@ function StudentMatchingConditionRoute() {
     priorityOrder,
     savePriorityOrder,
     selectedIndustries,
+    setPriorityOrder,
     startDate,
     updatedSummaryIds,
     workAvailability,
@@ -1770,6 +1773,7 @@ function StudentMatchingConditionRoute() {
           navigate(detailRoute);
         }
       }}
+      onPriorityChange={setPriorityOrder}
       priorityOrder={priorityOrder}
       summaryValues={{
         industry: updatedSummaryIds.has('industry')

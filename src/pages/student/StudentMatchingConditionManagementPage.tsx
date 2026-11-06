@@ -1,8 +1,11 @@
 import backIcon from '../../assets/icons/student/documents/back.svg';
 import matchingConditionChevronIcon from '../../assets/icons/student/my/matching-condition-chevron.svg';
 import matchingConditionNoticeImage from '../../assets/images/student/my/matching-condition-notice.png';
-import priorityDragHandleIcon from '../../assets/icons/student/priority-drag-handle.svg';
-import type { MatchingPriorityId } from '../../types/matchingPriority';
+import { MatchingPriorityList } from '../../components/student/onboarding/MatchingPriorityList';
+import type {
+  MatchingPriority,
+  MatchingPriorityId,
+} from '../../types/matchingPriority';
 
 type MatchingConditionId =
   'industry' | 'location' | 'work-time' | 'start-date' | 'priority';
@@ -18,6 +21,7 @@ type StudentMatchingConditionManagementPageProps = {
   onApply?: () => void | Promise<void>;
   onBack?: () => void;
   onConditionClick?: (conditionId: MatchingConditionId) => void;
+  onPriorityChange?: (priorityOrder: MatchingPriorityId[]) => void;
   priorityOrder?: readonly MatchingPriorityId[];
   summaryValues?: MatchingConditionSummaryValues;
 };
@@ -61,6 +65,7 @@ export default function StudentMatchingConditionManagementPage({
   onApply,
   onBack,
   onConditionClick,
+  onPriorityChange,
   priorityOrder,
   summaryValues,
 }: StudentMatchingConditionManagementPageProps) {
@@ -71,6 +76,22 @@ export default function StudentMatchingConditionManagementPage({
     priorityOrder && priorityOrder.length > 0
       ? priorityOrder
       : MATCHING_PRIORITY_CARDS.map((priorityCard) => priorityCard.id);
+  const displayedPriorities: MatchingPriority[] =
+    displayedPriorityOrder.flatMap((priorityId) => {
+      const priorityCard = MATCHING_PRIORITY_CARDS.find(
+        (currentPriority) => currentPriority.id === priorityId,
+      );
+
+      return priorityCard
+        ? [
+            {
+              description: priorityCard.description,
+              id: priorityCard.id,
+              label: priorityCard.title,
+            },
+          ]
+        : [];
+    });
 
   return (
     <main
@@ -169,36 +190,13 @@ export default function StudentMatchingConditionManagementPage({
       <h2 className="m-0 mt-[21px] ml-[2px] text-[20px] leading-[1.4] font-semibold">
         매칭 중요도
       </h2>
-      <section className="mt-[18px] space-y-[10px]">
-        {displayedPriorityOrder
-          .flatMap((priorityId) => {
-            const card = MATCHING_PRIORITY_CARDS.find(
-              (priorityCard) => priorityCard.id === priorityId,
-            );
-            return card ? [card] : [];
-          })
-          .map((card) => (
-            <button
-              className="flex h-[89px] w-full items-center rounded-[20px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[30.3px] text-left"
-              key={card.id}
-              type="button"
-              onClick={() => handleConditionClick('priority')}
-            >
-              <span>
-                <span className="block text-[17px] leading-[1.5] font-bold">
-                  {card.title}
-                </span>
-                <span className="block text-[15px] leading-[1.5] text-[#8B95A1]">
-                  {card.description}
-                </span>
-              </span>
-              <img
-                alt=""
-                className="ml-auto size-[23px]"
-                src={priorityDragHandleIcon}
-              />
-            </button>
-          ))}
+      <section className="mt-[18px]">
+        <MatchingPriorityList
+          priorities={displayedPriorities}
+          onChange={(nextPriorities) =>
+            onPriorityChange?.(nextPriorities.map((priority) => priority.id))
+          }
+        />
       </section>
 
       <button
