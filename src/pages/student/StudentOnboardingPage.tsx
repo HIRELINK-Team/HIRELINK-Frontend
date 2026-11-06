@@ -502,8 +502,11 @@ export default function StudentOnboardingPage({
           (experience) => experience.id !== experienceId,
         ),
       );
-    } catch {
-      // Keep the server-backed and UI lists unchanged when deletion fails.
+    } catch (error) {
+      window.alert(
+        getApiErrorResponse(error)?.message ??
+          '경력 삭제에 실패했어요. 다시 시도해 주세요.',
+      );
     } finally {
       setDeletingCareerIds((currentIds) => {
         const nextIds = new Set(currentIds);
@@ -542,7 +545,10 @@ export default function StudentOnboardingPage({
       businessTypeFlexible,
     );
 
-    if (!requestBody) return;
+    if (!requestBody) {
+      window.alert('희망 직종을 하나 이상 선택해 주세요.');
+      return;
+    }
 
     setIsIndustrySaving(true);
 
@@ -556,8 +562,11 @@ export default function StudentOnboardingPage({
 
       setIsIndustrySelectionSubmitted(true);
       setStep('workTimeSelection');
-    } catch {
-      // Keep the industry selection unchanged when the server save fails.
+    } catch (error) {
+      window.alert(
+        getApiErrorResponse(error)?.message ??
+          '희망 직종 저장에 실패했어요. 다시 시도해 주세요.',
+      );
     } finally {
       setIsIndustrySaving(false);
     }
@@ -596,7 +605,10 @@ export default function StudentOnboardingPage({
   };
 
   const handleWorkLocationConfirm = () => {
-    if (!workLocation.address.trim()) return;
+    if (!workLocation.address.trim()) {
+      window.alert('희망 근무위치를 입력해 주세요.');
+      return;
+    }
 
     setIsWorkLocationRadiusSelectionOpen(true);
   };
@@ -610,7 +622,10 @@ export default function StudentOnboardingPage({
     if (isWorkLocationSaving) return;
 
     const requestBody = mapWorkLocationToUpdateRequest(workLocation);
-    if (!requestBody) return;
+    if (!requestBody) {
+      window.alert('희망 근무위치를 입력해 주세요.');
+      return;
+    }
 
     setIsWorkLocationSaving(true);
 
@@ -619,8 +634,11 @@ export default function StudentOnboardingPage({
       setIsWorkLocationRadiusSelectionOpen(false);
       setIsWorkLocationSubmitted(true);
       setStep('residenceQualification');
-    } catch {
-      // Keep the radius selection open so the user can retry after a save failure.
+    } catch (error) {
+      window.alert(
+        getApiErrorResponse(error)?.message ??
+          '희망 근무위치 저장에 실패했어요. 다시 시도해 주세요.',
+      );
     } finally {
       setIsWorkLocationSaving(false);
     }
@@ -680,7 +698,10 @@ export default function StudentOnboardingPage({
   };
 
   const handleResidenceExpiryNext = () => {
-    if (!residenceInfo.residenceExpiryDate) return;
+    if (!residenceInfo.residenceExpiryDate) {
+      window.alert('체류 만료일을 선택해 주세요.');
+      return;
+    }
 
     setIsResidenceExpirySubmitted(true);
     setStep('matchingPriority');
@@ -708,8 +729,11 @@ export default function StudentOnboardingPage({
       await updateStudentMatchingPreferences(priorityRequest);
       const didComplete = await onComplete(requestBody);
       if (didComplete !== false) setIsMatchingPrioritySubmitted(true);
-    } catch {
-      // Keep the final onboarding step open when profile registration fails.
+    } catch (error) {
+      window.alert(
+        getApiErrorResponse(error)?.message ??
+          '프로필 등록에 실패했어요. 다시 시도해 주세요.',
+      );
     } finally {
       setIsProfileSubmitting(false);
     }
