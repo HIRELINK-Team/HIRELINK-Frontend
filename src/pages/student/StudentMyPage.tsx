@@ -81,7 +81,7 @@ export default function StudentMyPage({
         <header>
           <div className="flex items-start justify-between">
             <h1 className="m-0 text-[26px] leading-[1.5] font-semibold">
-              마이
+              마이페이지
             </h1>
             <div className="-mr-2 -mt-1 flex gap-2">
               <button

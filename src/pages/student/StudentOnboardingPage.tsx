@@ -15,7 +15,11 @@ import {
   updateStudentCareer,
   updateStudentMatchingPreferences,
 } from '../../api/student';
-import { mapIndustrySelectionToUpdateRequest } from '../../adapters/studentMatchingPreferences';
+import {
+  mapIndustrySelectionToUpdateRequest,
+  mapPriorityOrderToUpdateRequest,
+  mapWorkLocationToUpdateRequest,
+} from '../../adapters/studentMatchingPreferences';
 import { mapStudentOnboardingToCreateRequest } from '../../adapters/studentProfile';
 import {
   isExperienceDraftValid,
@@ -312,6 +316,7 @@ export default function StudentOnboardingPage({
     setIsWorkLocationRadiusSelectionOpen,
   ] = useState(false);
   const [isWorkLocationSubmitted, setIsWorkLocationSubmitted] = useState(false);
+  const [isWorkLocationSaving, setIsWorkLocationSaving] = useState(false);
   const [
     isResidenceQualificationSheetOpen,
     setIsResidenceQualificationSheetOpen,
@@ -560,10 +565,24 @@ export default function StudentOnboardingPage({
     setIsWorkLocationSubmitted(false);
   };
 
-  const handleWorkLocationRadiusConfirm = () => {
-    setIsWorkLocationRadiusSelectionOpen(false);
-    setIsWorkLocationSubmitted(true);
-    setStep('residenceQualification');
+  const handleWorkLocationRadiusConfirm = async () => {
+    if (isWorkLocationSaving) return;
+
+    const requestBody = mapWorkLocationToUpdateRequest(workLocation);
+    if (!requestBody) return;
+
+    setIsWorkLocationSaving(true);
+
+    try {
+      await updateStudentMatchingPreferences(requestBody);
+      setIsWorkLocationRadiusSelectionOpen(false);
+      setIsWorkLocationSubmitted(true);
+      setStep('residenceQualification');
+    } catch {
+      // Keep the radius selection open so the user can retry after a save failure.
+    } finally {
+      setIsWorkLocationSaving(false);
+    }
   };
 
   const handleResidenceQualificationConfirm = () => {
@@ -637,9 +656,15 @@ export default function StudentOnboardingPage({
     const requestBody = mapStudentOnboardingToCreateRequest(info);
     if (!requestBody) return;
 
+    const priorityRequest = mapPriorityOrderToUpdateRequest(
+      matchingPriorities.map((priority) => priority.id),
+    );
+    if (!priorityRequest) return;
+
     setIsProfileSubmitting(true);
 
     try {
+      await updateStudentMatchingPreferences(priorityRequest);
       const didComplete = await onComplete(requestBody);
       if (didComplete !== false) setIsMatchingPrioritySubmitted(true);
     } catch {
@@ -949,8 +974,9 @@ export default function StudentOnboardingPage({
           address={workLocation.address}
           radius={workLocation.radius}
           radiusOptions={WORK_LOCATION_RADIUS_OPTIONS}
+          isConfirming={isWorkLocationSaving}
           onBack={() => setIsWorkLocationRadiusSelectionOpen(false)}
-          onConfirm={handleWorkLocationRadiusConfirm}
+          onConfirm={() => void handleWorkLocationRadiusConfirm()}
           onRadiusChange={handleWorkLocationRadiusChange}
         />
       );
@@ -1346,7 +1372,10 @@ export default function StudentOnboardingPage({
     }
 
     if (step === 'verification') {
-      if (!/^\d{6}$/.test(info.verificationCode) || isPhoneVerificationPending) {
+      if (
+        !/^\d{6}$/.test(info.verificationCode) ||
+        isPhoneVerificationPending
+      ) {
         setVerificationError('인증번호 6자리를 입력해주세요.');
         return;
       }

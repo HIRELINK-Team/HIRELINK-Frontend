@@ -40,8 +40,12 @@ export type StudentDocumentManagementView =
 
 type StudentDocumentManagementPageProps = {
   documentCompletion?: Partial<Record<StudentDocument['id'], boolean>>;
+  documentRegistrationDates?: Partial<Record<StudentDocument['id'], string>>;
   initialView?: StudentDocumentManagementView;
-  onDocumentComplete?: (documentId: StudentDocument['id']) => void;
+  onDocumentComplete?: (
+    documentId: StudentDocument['id'],
+    registeredAt: string,
+  ) => void;
   onDocumentClick?: (document: StudentDocument) => void;
   onDocumentFlowExit?: () => void;
   onExit?: () => void;
@@ -52,6 +56,7 @@ type StudentDocumentManagementPageProps = {
 
 export default function StudentDocumentManagementPage({
   documentCompletion,
+  documentRegistrationDates: externalDocumentRegistrationDates,
   initialView = 'guide',
   onDocumentComplete,
   onDocumentClick,
@@ -68,6 +73,9 @@ export default function StudentDocumentManagementPage({
     useState(false);
   const [isTranscriptComplete, setIsTranscriptComplete] = useState(true);
   const [isTopikComplete, setIsTopikComplete] = useState(true);
+  const [documentRegistrationDates, setDocumentRegistrationDates] = useState<
+    Partial<Record<StudentDocument['id'], string>>
+  >({});
 
   const handleGuideBack = () => {
     onExit?.();
@@ -92,6 +100,11 @@ export default function StudentDocumentManagementPage({
   };
 
   const handleDocumentComplete = (documentId: StudentDocument['id']) => {
+    const now = new Date();
+    const registeredAt = `등록일 ${String(now.getFullYear()).slice(-2)}.${String(
+      now.getMonth() + 1,
+    ).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+
     if (documentId === 'alien-registration-card') {
       setIsAlienRegistrationComplete(true);
     }
@@ -108,7 +121,11 @@ export default function StudentDocumentManagementPage({
       setIsTopikComplete(true);
     }
 
-    onDocumentComplete?.(documentId);
+    setDocumentRegistrationDates((currentDates) => ({
+      ...currentDates,
+      [documentId]: registeredAt,
+    }));
+    onDocumentComplete?.(documentId, registeredAt);
 
     const nextCompletion = {
       'alien-registration-card': isAlienRegistrationRegistered,
@@ -173,15 +190,18 @@ export default function StudentDocumentManagementPage({
   }
 
   const basicDocuments = STUDENT_BASIC_DOCUMENTS.map((document) => {
+    const registeredAt =
+      externalDocumentRegistrationDates?.[document.id] ??
+      documentRegistrationDates[document.id] ??
+      document.registeredAt;
+
     if (document.id === 'alien-registration-card') {
       return {
         ...document,
         status: isAlienRegistrationRegistered
           ? ('registered' as const)
           : ('required' as const),
-        registeredAt: isAlienRegistrationRegistered
-          ? '등록일 25.03.12'
-          : undefined,
+        registeredAt: isAlienRegistrationRegistered ? registeredAt : undefined,
       };
     }
 
@@ -192,7 +212,7 @@ export default function StudentDocumentManagementPage({
           ? ('registered' as const)
           : ('required' as const),
         registeredAt: isEnrollmentCertificateRegistered
-          ? '등록일 25.03.12'
+          ? registeredAt
           : undefined,
       };
     }
@@ -203,7 +223,7 @@ export default function StudentDocumentManagementPage({
         status: isTranscriptRegistered
           ? ('registered' as const)
           : ('required' as const),
-        registeredAt: isTranscriptRegistered ? '등록일 25.03.12' : undefined,
+        registeredAt: isTranscriptRegistered ? registeredAt : undefined,
       };
     }
 
@@ -213,7 +233,7 @@ export default function StudentDocumentManagementPage({
         status: isTopikRegistered
           ? ('registered' as const)
           : ('required' as const),
-        registeredAt: isTopikRegistered ? '등록일 25.03.12' : undefined,
+        registeredAt: isTopikRegistered ? registeredAt : undefined,
       };
     }
 

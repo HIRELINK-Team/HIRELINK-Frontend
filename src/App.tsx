@@ -128,9 +128,13 @@ import type {
 import type { WorkAvailability } from './types/workAvailability';
 import type { WorkLocation } from './types/workLocation';
 
-const SPLASH_DURATION_MS = 1200;
+const SPLASH_DURATION_MS = 1800;
 const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
   'hirelink.student.documents.guideAcknowledged';
+const STUDENT_DOCUMENT_COMPLETION_SESSION_STORAGE_KEY =
+  'hirelink.student.documents.completion';
+const STUDENT_DOCUMENT_REGISTRATION_DATES_SESSION_STORAGE_KEY =
+  'hirelink.student.documents.registrationDates';
 const PUBLIC_STUDENT_ROUTES = new Set([
   '/student',
   '/student/entry',
@@ -154,10 +158,94 @@ type StudentDocumentFlowId =
 type StudentDocumentRouteContext = {
   confirmGuide: () => void;
   documentCompletion: Record<StudentDocumentFlowId, boolean>;
-  completeDocument: (documentId: StudentDocumentFlowId) => void;
+  documentRegistrationDates: Partial<Record<StudentDocumentFlowId, string>>;
+  completeDocument: (
+    documentId: StudentDocumentFlowId,
+    registeredAt: string,
+  ) => void;
   registrationView: () => void;
   view: 'guide' | 'registration';
 };
+
+const INITIAL_DOCUMENT_COMPLETION: Record<StudentDocumentFlowId, boolean> = {
+  'alien-registration-card': false,
+  'enrollment-certificate': false,
+  'topik-transcript': false,
+  transcript: false,
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getStoredDocumentCompletion(): Record<StudentDocumentFlowId, boolean> {
+  const storedValue = sessionStorage.getItem(
+    STUDENT_DOCUMENT_COMPLETION_SESSION_STORAGE_KEY,
+  );
+
+  if (!storedValue) {
+    return INITIAL_DOCUMENT_COMPLETION;
+  }
+
+  try {
+    const parsedValue: unknown = JSON.parse(storedValue);
+
+    if (!isRecord(parsedValue)) {
+      return INITIAL_DOCUMENT_COMPLETION;
+    }
+
+    return {
+      'alien-registration-card':
+        parsedValue['alien-registration-card'] === true,
+      'enrollment-certificate': parsedValue['enrollment-certificate'] === true,
+      'topik-transcript': parsedValue['topik-transcript'] === true,
+      transcript: parsedValue.transcript === true,
+    };
+  } catch {
+    return INITIAL_DOCUMENT_COMPLETION;
+  }
+}
+
+function getStoredDocumentRegistrationDates(): Partial<
+  Record<StudentDocumentFlowId, string>
+> {
+  const storedValue = sessionStorage.getItem(
+    STUDENT_DOCUMENT_REGISTRATION_DATES_SESSION_STORAGE_KEY,
+  );
+
+  if (!storedValue) {
+    return {};
+  }
+
+  try {
+    const parsedValue: unknown = JSON.parse(storedValue);
+
+    if (!isRecord(parsedValue)) {
+      return {};
+    }
+
+    return {
+      'alien-registration-card':
+        typeof parsedValue['alien-registration-card'] === 'string'
+          ? parsedValue['alien-registration-card']
+          : undefined,
+      'enrollment-certificate':
+        typeof parsedValue['enrollment-certificate'] === 'string'
+          ? parsedValue['enrollment-certificate']
+          : undefined,
+      'topik-transcript':
+        typeof parsedValue['topik-transcript'] === 'string'
+          ? parsedValue['topik-transcript']
+          : undefined,
+      transcript:
+        typeof parsedValue.transcript === 'string'
+          ? parsedValue.transcript
+          : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
 
 type StudentApplicationsRouteContext = {
   applications: StudentApplicationCardModel[];
@@ -263,6 +351,7 @@ type StudentMatchingRouteContext = {
   isRecommendationsLoading: boolean;
   recommendations: RecommendedJob[];
   refreshRecommendations: () => Promise<boolean>;
+  reloadRecommendations: () => Promise<boolean>;
 };
 
 type StudentDocumentRouteConfig = {
@@ -482,10 +571,19 @@ function StudentOnboardingRoute() {
         try {
           await createStudentProfile(requestBody);
         } catch (error) {
-          // A test account can already have a profile while revisiting onboarding.
-          // In that case, continue to the student home instead of trapping the user here.
+          // An existing student profile must still reflect the values entered again
+          // during onboarding instead of leaving the previous profile unchanged.
           if (!axios.isAxiosError(error) || error.response?.status !== 409) {
             throw error;
+          }
+
+          await updateStudentProfile({ name: requestBody.name });
+
+          const updatedProfile = await getStudentProfile();
+          if (updatedProfile.name !== requestBody.name) {
+            throw new Error('Student profile name was not updated.', {
+              cause: error,
+            });
           }
         }
         navigate('/student/home', { replace: true });
@@ -608,6 +706,15 @@ function StudentMatchingLayout() {
     }
   };
 
+  const reloadRecommendations = async () => {
+    try {
+      await loadRecommendations();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   return (
     <Outlet
       context={
@@ -615,6 +722,7 @@ function StudentMatchingLayout() {
           isRecommendationsLoading,
           recommendations,
           refreshRecommendations,
+          reloadRecommendations,
         } satisfies StudentMatchingRouteContext
       }
     />
@@ -623,27 +731,46 @@ function StudentMatchingLayout() {
 
 function StudentMatchingRoute() {
   const navigate = useNavigate();
-  const { isRecommendationsLoading, recommendations, refreshRecommendations } =
-    useOutletContext<StudentMatchingRouteContext>();
+  const {
+    isRecommendationsLoading,
+    recommendations,
+    refreshRecommendations,
+    reloadRecommendations,
+  } = useOutletContext<StudentMatchingRouteContext>();
 
   return (
     <StudentMatchingPage
       isRecommendationsLoading={isRecommendationsLoading}
       onApplicationSubmit={async (job, desiredStartDate) => {
         if (job.recommendationId === undefined) {
-          window.alert('지원할 추천 정보를 확인할 수 없어요.');
-          return false;
+          return 'recommendation-conflict';
+        }
+
+        const latestRecommendation = recommendations.find(
+          (recommendation) =>
+            recommendation.recommendationId === job.recommendationId,
+        );
+        const latestRecommendationId = latestRecommendation?.recommendationId;
+        if (latestRecommendationId === undefined) {
+          await reloadRecommendations();
+          navigate('/student/matching');
+          return 'recommendation-conflict';
         }
 
         try {
-          await createStudentApplication({
+          return await createStudentApplication({
             desiredStartDate,
-            recommendationId: job.recommendationId,
+            recommendationId: latestRecommendationId,
           });
-          return true;
-        } catch {
+        } catch (error) {
+          if (axios.isAxiosError(error) && error.response?.status === 409) {
+            await reloadRecommendations();
+            navigate('/student/matching');
+            return 'recommendation-conflict';
+          }
+
           window.alert('지원에 실패했어요. 잠시 후 다시 시도해주세요.');
-          return false;
+          return null;
         }
       }}
       onBack={() => navigate('/student/home')}
@@ -1092,12 +1219,10 @@ function StudentDocumentsLayout() {
   );
   const [documentCompletion, setDocumentCompletion] = useState<
     Record<StudentDocumentFlowId, boolean>
-  >({
-    'alien-registration-card': false,
-    'enrollment-certificate': false,
-    'topik-transcript': false,
-    transcript: false,
-  });
+  >(getStoredDocumentCompletion);
+  const [documentRegistrationDates, setDocumentRegistrationDates] = useState<
+    Partial<Record<StudentDocumentFlowId, string>>
+  >(getStoredDocumentRegistrationDates);
 
   return (
     <Outlet
@@ -1110,13 +1235,32 @@ function StudentDocumentsLayout() {
             );
             setView('registration');
           },
-          completeDocument: (documentId) => {
+          completeDocument: (documentId, registeredAt) => {
             setDocumentCompletion((currentCompletion) => ({
               ...currentCompletion,
               [documentId]: true,
             }));
+            setDocumentRegistrationDates((currentDates) => ({
+              ...currentDates,
+              [documentId]: registeredAt,
+            }));
+            sessionStorage.setItem(
+              STUDENT_DOCUMENT_COMPLETION_SESSION_STORAGE_KEY,
+              JSON.stringify({
+                ...documentCompletion,
+                [documentId]: true,
+              }),
+            );
+            sessionStorage.setItem(
+              STUDENT_DOCUMENT_REGISTRATION_DATES_SESSION_STORAGE_KEY,
+              JSON.stringify({
+                ...documentRegistrationDates,
+                [documentId]: registeredAt,
+              }),
+            );
           },
           documentCompletion,
+          documentRegistrationDates,
           registrationView: () => setView('registration'),
           view,
         } satisfies StudentDocumentRouteContext
@@ -1127,8 +1271,13 @@ function StudentDocumentsLayout() {
 
 function StudentDocumentsRoute() {
   const navigate = useNavigate();
-  const { confirmGuide, documentCompletion, registrationView, view } =
-    useOutletContext<StudentDocumentRouteContext>();
+  const {
+    confirmGuide,
+    documentCompletion,
+    documentRegistrationDates,
+    registrationView,
+    view,
+  } = useOutletContext<StudentDocumentRouteContext>();
 
   const handleDocumentClick = (document: StudentDocument) => {
     const documentRoutes: Partial<Record<StudentDocument['id'], string>> = {
@@ -1148,6 +1297,7 @@ function StudentDocumentsRoute() {
   return (
     <StudentDocumentManagementPage
       documentCompletion={documentCompletion}
+      documentRegistrationDates={documentRegistrationDates}
       initialView={view}
       onDocumentClick={handleDocumentClick}
       onExit={() => navigate('/student/my')}
@@ -1162,17 +1312,22 @@ function StudentDocumentFlowRoute({
   initialView,
 }: StudentDocumentRouteConfig) {
   const navigate = useNavigate();
-  const { completeDocument, documentCompletion, registrationView } =
-    useOutletContext<StudentDocumentRouteContext>();
+  const {
+    completeDocument,
+    documentCompletion,
+    documentRegistrationDates,
+    registrationView,
+  } = useOutletContext<StudentDocumentRouteContext>();
 
   const handleExit = () => navigate('/student/my/documents');
 
   return (
     <StudentDocumentManagementPage
       documentCompletion={documentCompletion}
+      documentRegistrationDates={documentRegistrationDates}
       initialView={initialView}
-      onDocumentComplete={() => {
-        completeDocument(documentId);
+      onDocumentComplete={(_, registeredAt) => {
+        completeDocument(documentId, registeredAt);
       }}
       onBadgeConfirm={() => {
         registrationView();
@@ -1549,9 +1704,7 @@ function StudentMatchingConditionRoute() {
         location: updatedSummaryIds.has('location')
           ? workLocation.address || '주소 미입력'
           : undefined,
-        'start-date': updatedSummaryIds.has('start-date')
-          ? formatMatchingConditionStartDate(startDate)
-          : undefined,
+        'start-date': formatMatchingConditionStartDate(startDate),
         'work-time': updatedSummaryIds.has('work-time')
           ? formatMatchingConditionWorkTime(workAvailability)
           : undefined,

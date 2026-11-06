@@ -8,7 +8,7 @@ import StudentSplashPage from './StudentSplashPage';
 
 type EntryPreviewStep = 'splash' | 'entry' | 'email-login' | 'email-signup';
 
-const SPLASH_DURATION_MS = 1200;
+const SPLASH_DURATION_MS = 1800;
 
 /** Development-only bridge for reviewing entry onboarding before routing is added. */
 export default function StudentEntryPreviewPage() {
