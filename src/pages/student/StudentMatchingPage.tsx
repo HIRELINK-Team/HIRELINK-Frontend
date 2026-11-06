@@ -22,6 +22,10 @@ import type {
 import type { StudentProfileResponse } from '../../types/studentProfile';
 
 const MAX_RECOMMENDED_JOBS = 3;
+// The recommendations API has no dismissal endpoint, so preserve this explicit
+// browser preference across navigation and reloads.
+const DISMISSED_RECOMMENDATION_STORAGE_KEY =
+  'hirelink.student.dismissed-job-postings';
 
 type ApplicationSubmissionResult =
   CreateStudentApplicationResponse | 'recommendation-conflict' | null;
@@ -35,8 +39,38 @@ function getJobPostingIdKey(jobPostingId: string | number | undefined) {
   return jobPostingId === undefined ? null : String(jobPostingId);
 }
 
-function getRecommendationIdKey(recommendationId: number | undefined) {
-  return recommendationId === undefined ? null : String(recommendationId);
+function getRecommendationDismissalKey(job: RecommendedJob) {
+  return job.jobPostingId === undefined
+    ? `recommendation:${job.recommendationId ?? job.id}`
+    : `job-posting:${job.jobPostingId}`;
+}
+
+function getStoredDismissedRecommendationKeys() {
+  try {
+    const storedValue = localStorage.getItem(
+      DISMISSED_RECOMMENDATION_STORAGE_KEY,
+    );
+    const parsedValue: unknown = storedValue ? JSON.parse(storedValue) : [];
+
+    return Array.isArray(parsedValue)
+      ? parsedValue.filter(
+          (value): value is string => typeof value === 'string',
+        )
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function storeDismissedRecommendationKeys(keys: readonly string[]) {
+  try {
+    localStorage.setItem(
+      DISMISSED_RECOMMENDATION_STORAGE_KEY,
+      JSON.stringify(keys),
+    );
+  } catch {
+    // Keep the current-page dismissal even when browser storage is unavailable.
+  }
 }
 
 function getWaitingApplicationForRecommendation(
@@ -121,17 +155,14 @@ export default function StudentMatchingPage({
   );
   const [dismissedRecommendationIds, setDismissedRecommendationIds] = useState<
     string[]
-  >([]);
+  >(getStoredDismissedRecommendationKeys);
   const selectedJobRef = useRef<RecommendedJob | null>(initialSelectedJob);
   const latestRecommendationIdsRef = useRef<Set<number>>(new Set());
   const recommendedJobs = recommendations
     .filter((job) => {
-      const recommendationIdKey = getRecommendationIdKey(job.recommendationId);
+      const dismissalKey = getRecommendationDismissalKey(job);
 
-      return (
-        recommendationIdKey === null ||
-        !dismissedRecommendationIds.includes(recommendationIdKey)
-      );
+      return !dismissedRecommendationIds.includes(dismissalKey);
     })
     .slice(0, MAX_RECOMMENDED_JOBS);
 
@@ -238,15 +269,15 @@ export default function StudentMatchingPage({
   };
 
   const handleRecommendationDismiss = (job: RecommendedJob) => {
-    const recommendationIdKey = getRecommendationIdKey(job.recommendationId);
+    const dismissalKey = getRecommendationDismissalKey(job);
 
-    if (recommendationIdKey !== null) {
-      setDismissedRecommendationIds((currentIds) =>
-        currentIds.includes(recommendationIdKey)
-          ? currentIds
-          : [...currentIds, recommendationIdKey],
-      );
-    }
+    setDismissedRecommendationIds((currentIds) => {
+      if (currentIds.includes(dismissalKey)) return currentIds;
+
+      const nextIds = [...currentIds, dismissalKey];
+      storeDismissedRecommendationKeys(nextIds);
+      return nextIds;
+    });
 
     setSelectedJob(null);
     setDetailBackView('result');
