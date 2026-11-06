@@ -4,6 +4,7 @@ import { useState } from 'react';
 import backIcon from '../../assets/icons/student/entry-email-back.svg';
 import googleIcon from '../../assets/images/student/entry/google.png';
 import hirelinkLogoIcon from '../../assets/images/student/entry/hirelink-logo-mint.svg';
+import hirelinkWordmark from '../../assets/images/student/entry/hirelink-wordmark.svg';
 import kakaoIcon from '../../assets/images/student/entry/kakao.png';
 import type { ApiErrorResponse, EmailLoginRequest } from '../../types/auth';
 
@@ -77,16 +78,22 @@ export default function StudentEmailLoginPage({
       </button>
 
       <div className="absolute inset-0 translate-y-[min(0px,calc(100dvh-776px))]">
-        <div className="absolute top-[189px] left-[calc(50%-99px)] h-[31.137px] w-[32.688px]">
+        <div className="absolute top-[175px] left-1/2 h-[28px] w-[158px] -translate-x-1/2">
           <img
             alt=""
-            className="h-[31.137px] w-[32.688px]"
+            className="absolute top-[1px] left-0 h-[26px] w-[27px]"
             src={hirelinkLogoIcon}
           />
+          <img
+            alt="HIRELINK"
+            className="absolute top-[6px] left-[35px] h-[16px] w-[123px]"
+            src={hirelinkWordmark}
+            style={{
+              filter:
+                'brightness(0) saturate(100%) invert(50%) sepia(90%) saturate(550%) hue-rotate(119deg) brightness(88%) contrast(101%)',
+            }}
+          />
         </div>
-        <span className="absolute top-[192.43px] left-[calc(50%-59px)] whitespace-nowrap text-[29.733px] leading-none font-black italic tracking-[-0.04em] text-[#00B894]">
-          HIRELINK
-        </span>
 
         <form onSubmit={handleSubmit}>
           <label className="absolute top-[299px] right-[25px] left-[25px] block h-16">
