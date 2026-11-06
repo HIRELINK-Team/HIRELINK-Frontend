@@ -23,6 +23,7 @@ import type {
 import type { StudentProfileResponse } from '../../types/studentProfile';
 
 const MAX_RECOMMENDED_JOBS = 3;
+const APPLICATIONS_POLLING_INTERVAL_MS = 10_000;
 // The recommendations API has no dismissal endpoint, so preserve this explicit
 // browser preference across navigation and reloads.
 const DISMISSED_RECOMMENDATION_STORAGE_KEY =
@@ -235,8 +236,6 @@ export default function StudentMatchingPage({
   const [isRecommendationRefreshing, setIsRecommendationRefreshing] =
     useState(false);
   const [isOfferActionSubmitting, setIsOfferActionSubmitting] = useState(false);
-  const [dismissedOfferApplicationId, setDismissedOfferApplicationId] =
-    useState<number | null>(null);
   const [applications, setApplications] = useState<RecommendationApplication[]>(
     [],
   );
@@ -246,6 +245,8 @@ export default function StudentMatchingPage({
   const selectedJobRef = useRef<RecommendedJob | null>(initialSelectedJob);
   const latestRecommendationIdsRef = useRef<Set<number>>(new Set());
   const pendingApplicationIdsRef = useRef<Set<number>>(new Set());
+  const dismissedOfferApplicationIdRef = useRef<number | null>(null);
+  const isOfferActionSubmittingRef = useRef(false);
   const recommendedJobs = recommendations
     .filter((job) => {
       const dismissalKey = getRecommendationDismissalKey(job);
@@ -290,41 +291,53 @@ export default function StudentMatchingPage({
 
   useEffect(() => {
     let isActive = true;
+    let isApplicationsRequestInFlight = false;
 
     const loadApplications = async () => {
+      if (
+        !isActive ||
+        isApplicationsRequestInFlight ||
+        isOfferActionSubmittingRef.current
+      ) {
+        return;
+      }
+
+      isApplicationsRequestInFlight = true;
+
       try {
         const response = await getMyStudentApplications();
-        if (isActive) {
-          const pendingOffer = response.applications.find(
-            isPendingOfferApplication,
+        if (!isActive) return;
+
+        const pendingOffer = response.applications.find(
+          isPendingOfferApplication,
+        );
+        if (
+          pendingOffer &&
+          pendingOffer.applicationId !== dismissedOfferApplicationIdRef.current
+        ) {
+          setMatchingView('offer');
+        } else if (!pendingOffer) {
+          setMatchingView((currentView) =>
+            currentView === 'offer' ? 'result' : currentView,
           );
-          if (
-            pendingOffer &&
-            pendingOffer.applicationId !== dismissedOfferApplicationId
-          ) {
-            setMatchingView('offer');
-          }
-
-          setApplications((currentApplications) => {
-            const serverApplicationIds = new Set(
-              response.applications.map(
-                (application) => application.applicationId,
-              ),
-            );
-            serverApplicationIds.forEach((applicationId) => {
-              pendingApplicationIdsRef.current.delete(applicationId);
-            });
-
-            const pendingApplications = currentApplications.filter(
-              (application) =>
-                pendingApplicationIdsRef.current.has(
-                  application.applicationId,
-                ) && !serverApplicationIds.has(application.applicationId),
-            );
-
-            return [...response.applications, ...pendingApplications];
-          });
         }
+
+        setApplications((currentApplications) => {
+          const serverApplicationIds = new Set(
+            response.applications.map((application) => application.applicationId),
+          );
+          serverApplicationIds.forEach((applicationId) => {
+            pendingApplicationIdsRef.current.delete(applicationId);
+          });
+
+          const pendingApplications = currentApplications.filter(
+            (application) =>
+              pendingApplicationIdsRef.current.has(application.applicationId) &&
+              !serverApplicationIds.has(application.applicationId),
+          );
+
+          return [...response.applications, ...pendingApplications];
+        });
       } catch {
         if (isActive) {
           setApplications((currentApplications) =>
@@ -333,15 +346,31 @@ export default function StudentMatchingPage({
             ),
           );
         }
+      } finally {
+        isApplicationsRequestInFlight = false;
       }
     };
 
     void loadApplications();
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void loadApplications();
+      }
+    }, APPLICATIONS_POLLING_INTERVAL_MS);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void loadApplications();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       isActive = false;
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [dismissedOfferApplicationId]);
+  }, []);
 
   const handleBack = () => {
     onBack?.();
@@ -517,6 +546,7 @@ export default function StudentMatchingPage({
     }
 
     setIsOfferActionSubmitting(true);
+    isOfferActionSubmittingRef.current = true;
 
     try {
       const nextApplications = onOfferAction
@@ -526,9 +556,11 @@ export default function StudentMatchingPage({
       if (!nextApplications) return;
 
       setApplications(nextApplications);
-      setDismissedOfferApplicationId(offeredApplication.applicationId);
+      dismissedOfferApplicationIdRef.current =
+        offeredApplication.applicationId;
       setMatchingView('result');
     } finally {
+      isOfferActionSubmittingRef.current = false;
       setIsOfferActionSubmitting(false);
     }
   };
@@ -695,7 +727,8 @@ export default function StudentMatchingPage({
           job={offeredJob}
           onAction={(action) => void handleOfferAction(action)}
           onBack={() => {
-            setDismissedOfferApplicationId(offeredApplication.applicationId);
+            dismissedOfferApplicationIdRef.current =
+              offeredApplication.applicationId;
             setMatchingView('result');
           }}
         />
