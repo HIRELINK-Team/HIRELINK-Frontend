@@ -1578,9 +1578,7 @@ function StudentMatchingConditionRoute() {
         location: updatedSummaryIds.has('location')
           ? workLocation.address || '주소 미입력'
           : undefined,
-        'start-date': updatedSummaryIds.has('start-date')
-          ? formatMatchingConditionStartDate(startDate)
-          : undefined,
+        'start-date': formatMatchingConditionStartDate(startDate),
         'work-time': updatedSummaryIds.has('work-time')
           ? formatMatchingConditionWorkTime(workAvailability)
           : undefined,
