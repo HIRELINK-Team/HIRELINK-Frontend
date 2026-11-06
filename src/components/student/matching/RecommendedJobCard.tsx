@@ -55,9 +55,13 @@ function ResponseDeadlineTimer({
   if (!label) return null;
 
   return (
-    <div className="flex items-center gap-[5.75px] text-[#009376]">
-      <img alt="" className="h-[18px] w-[18px]" src={timerActiveIcon} />
-      <span className="text-[20px] leading-[1.5] font-semibold tabular-nums">
+    <div className="flex h-[30px] items-center gap-[6px] whitespace-nowrap text-[#009376]">
+      <img
+        alt=""
+        className="block h-[19px] w-[19px] shrink-0"
+        src={timerActiveIcon}
+      />
+      <span className="block text-[20px] leading-none font-semibold tabular-nums">
         {label}
       </span>
     </div>
@@ -100,7 +104,7 @@ export function RecommendedJobCard({
       <span className="absolute top-[24px] right-[23px] text-[13px] leading-[1.5] font-medium text-[#8B95A1]">
         {job.matchRate}% 일치
       </span>
-      <div className="absolute top-[45px] right-[23px] flex min-h-[30px] items-center justify-end">
+      <div className="absolute top-[45px] right-[23px] z-10 flex h-[30px] items-center justify-end">
         <ResponseDeadlineTimer application={application} />
       </div>
       <button

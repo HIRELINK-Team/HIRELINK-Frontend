@@ -30,6 +30,33 @@ type RecommendationApplication = Pick<
   'employerResponseDeadline' | 'jobPostingId' | 'status'
 >;
 
+function getJobPostingIdKey(jobPostingId: string | number | undefined) {
+  return jobPostingId === undefined ? null : String(jobPostingId);
+}
+
+function getWaitingApplicationForRecommendation(
+  applications: readonly RecommendationApplication[],
+  jobPostingId: string | number | undefined,
+) {
+  const jobPostingIdKey = getJobPostingIdKey(jobPostingId);
+  if (jobPostingIdKey === null) return undefined;
+
+  return applications
+    .filter(
+      (application) =>
+        application.status === 'WAITING_RESPONSE' &&
+        getJobPostingIdKey(application.jobPostingId) === jobPostingIdKey,
+    )
+    .reduce<RecommendationApplication | undefined>((latest, application) => {
+      if (!latest) return application;
+
+      return new Date(application.employerResponseDeadline).getTime() >
+        new Date(latest.employerResponseDeadline).getTime()
+        ? application
+        : latest;
+    }, undefined);
+}
+
 type StudentMatchingPageProps = {
   isBottomNavigationFixed?: boolean;
   initialRefreshPopupOpen?: boolean;
@@ -250,7 +277,8 @@ export default function StudentMatchingPage({
           createdApplication,
           ...currentApplications.filter(
             (application) =>
-              application.jobPostingId !== createdApplication.jobPostingId,
+              getJobPostingIdKey(application.jobPostingId) !==
+              getJobPostingIdKey(createdApplication.jobPostingId),
           ),
         ]);
         void refreshApplications();
@@ -397,8 +425,9 @@ export default function StudentMatchingPage({
         className="absolute top-[248px] right-6 left-6 flex flex-col gap-2.5"
       >
         {recommendedJobs.map((job, index) => {
-          const application = applications.find(
-            (candidate) => candidate.jobPostingId === job.jobPostingId,
+          const application = getWaitingApplicationForRecommendation(
+            applications,
+            job.jobPostingId,
           );
           const showApplyButton =
             index === recommendedJobs.length - 1 &&
