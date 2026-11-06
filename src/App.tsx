@@ -130,6 +130,10 @@ import type { WorkLocation } from './types/workLocation';
 const SPLASH_DURATION_MS = 1800;
 const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
   'hirelink.student.documents.guideAcknowledged';
+const STUDENT_DOCUMENT_COMPLETION_SESSION_STORAGE_KEY =
+  'hirelink.student.documents.completion';
+const STUDENT_DOCUMENT_REGISTRATION_DATES_SESSION_STORAGE_KEY =
+  'hirelink.student.documents.registrationDates';
 const PUBLIC_STUDENT_ROUTES = new Set([
   '/student',
   '/student/entry',
@@ -161,6 +165,86 @@ type StudentDocumentRouteContext = {
   registrationView: () => void;
   view: 'guide' | 'registration';
 };
+
+const INITIAL_DOCUMENT_COMPLETION: Record<StudentDocumentFlowId, boolean> = {
+  'alien-registration-card': false,
+  'enrollment-certificate': false,
+  'topik-transcript': false,
+  transcript: false,
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getStoredDocumentCompletion(): Record<StudentDocumentFlowId, boolean> {
+  const storedValue = sessionStorage.getItem(
+    STUDENT_DOCUMENT_COMPLETION_SESSION_STORAGE_KEY,
+  );
+
+  if (!storedValue) {
+    return INITIAL_DOCUMENT_COMPLETION;
+  }
+
+  try {
+    const parsedValue: unknown = JSON.parse(storedValue);
+
+    if (!isRecord(parsedValue)) {
+      return INITIAL_DOCUMENT_COMPLETION;
+    }
+
+    return {
+      'alien-registration-card':
+        parsedValue['alien-registration-card'] === true,
+      'enrollment-certificate': parsedValue['enrollment-certificate'] === true,
+      'topik-transcript': parsedValue['topik-transcript'] === true,
+      transcript: parsedValue.transcript === true,
+    };
+  } catch {
+    return INITIAL_DOCUMENT_COMPLETION;
+  }
+}
+
+function getStoredDocumentRegistrationDates(): Partial<
+  Record<StudentDocumentFlowId, string>
+> {
+  const storedValue = sessionStorage.getItem(
+    STUDENT_DOCUMENT_REGISTRATION_DATES_SESSION_STORAGE_KEY,
+  );
+
+  if (!storedValue) {
+    return {};
+  }
+
+  try {
+    const parsedValue: unknown = JSON.parse(storedValue);
+
+    if (!isRecord(parsedValue)) {
+      return {};
+    }
+
+    return {
+      'alien-registration-card':
+        typeof parsedValue['alien-registration-card'] === 'string'
+          ? parsedValue['alien-registration-card']
+          : undefined,
+      'enrollment-certificate':
+        typeof parsedValue['enrollment-certificate'] === 'string'
+          ? parsedValue['enrollment-certificate']
+          : undefined,
+      'topik-transcript':
+        typeof parsedValue['topik-transcript'] === 'string'
+          ? parsedValue['topik-transcript']
+          : undefined,
+      transcript:
+        typeof parsedValue.transcript === 'string'
+          ? parsedValue.transcript
+          : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
 
 type StudentApplicationsRouteContext = {
   applications: StudentApplicationCardModel[];
@@ -1134,15 +1218,10 @@ function StudentDocumentsLayout() {
   );
   const [documentCompletion, setDocumentCompletion] = useState<
     Record<StudentDocumentFlowId, boolean>
-  >({
-    'alien-registration-card': false,
-    'enrollment-certificate': false,
-    'topik-transcript': false,
-    transcript: false,
-  });
+  >(getStoredDocumentCompletion);
   const [documentRegistrationDates, setDocumentRegistrationDates] = useState<
     Partial<Record<StudentDocumentFlowId, string>>
-  >({});
+  >(getStoredDocumentRegistrationDates);
 
   return (
     <Outlet
@@ -1164,6 +1243,20 @@ function StudentDocumentsLayout() {
               ...currentDates,
               [documentId]: registeredAt,
             }));
+            sessionStorage.setItem(
+              STUDENT_DOCUMENT_COMPLETION_SESSION_STORAGE_KEY,
+              JSON.stringify({
+                ...documentCompletion,
+                [documentId]: true,
+              }),
+            );
+            sessionStorage.setItem(
+              STUDENT_DOCUMENT_REGISTRATION_DATES_SESSION_STORAGE_KEY,
+              JSON.stringify({
+                ...documentRegistrationDates,
+                [documentId]: registeredAt,
+              }),
+            );
           },
           documentCompletion,
           documentRegistrationDates,
