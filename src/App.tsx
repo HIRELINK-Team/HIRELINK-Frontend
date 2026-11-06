@@ -1234,9 +1234,9 @@ function StudentMyRoute() {
     <StudentMyPage
       isBottomNavigationFixed
       onMenuClick={handleMenuClick}
+      onMatchingClick={() => navigate('/student/matching')}
       onProfileEditClick={() => navigate('/student/my/profile')}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
-      onWorkConditionClick={() => navigate('/student/my/work-condition')}
       studentProfile={studentProfile}
     />
   );
