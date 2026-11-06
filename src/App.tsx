@@ -482,10 +482,19 @@ function StudentOnboardingRoute() {
         try {
           await createStudentProfile(requestBody);
         } catch (error) {
-          // A test account can already have a profile while revisiting onboarding.
-          // In that case, continue to the student home instead of trapping the user here.
+          // An existing student profile must still reflect the values entered again
+          // during onboarding instead of leaving the previous profile unchanged.
           if (!axios.isAxiosError(error) || error.response?.status !== 409) {
             throw error;
+          }
+
+          await updateStudentProfile({ name: requestBody.name });
+
+          const updatedProfile = await getStudentProfile();
+          if (updatedProfile.name !== requestBody.name) {
+            throw new Error('Student profile name was not updated.', {
+              cause: error,
+            });
           }
         }
         navigate('/student/home', { replace: true });
