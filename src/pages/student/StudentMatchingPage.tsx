@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getMyStudentApplications } from '../../api/student/applications';
 import backIcon from '../../assets/icons/student/matching/back.svg';
@@ -22,6 +22,9 @@ import type {
 
 const MAX_RECOMMENDED_JOBS = 3;
 
+type ApplicationSubmissionResult =
+  CreateStudentApplicationResponse | 'recommendation-conflict' | null;
+
 type RecommendationApplication = Pick<
   StudentApplication,
   'employerResponseDeadline' | 'jobPostingId' | 'status'
@@ -40,7 +43,7 @@ type StudentMatchingPageProps = {
   onApplicationSubmit?: (
     job: RecommendedJob,
     desiredStartDate: string,
-  ) => Promise<CreateStudentApplicationResponse | null>;
+  ) => Promise<ApplicationSubmissionResult>;
   onRecommendationRefresh?: () => Promise<boolean>;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onViewChange?: (
@@ -82,7 +85,38 @@ export default function StudentMatchingPage({
   const [applications, setApplications] = useState<RecommendationApplication[]>(
     [],
   );
+  const selectedJobRef = useRef<RecommendedJob | null>(initialSelectedJob);
+  const latestRecommendationIdsRef = useRef<Set<number>>(new Set());
   const recommendedJobs = recommendations.slice(0, MAX_RECOMMENDED_JOBS);
+
+  useEffect(() => {
+    selectedJobRef.current = selectedJob;
+  }, [selectedJob]);
+
+  useEffect(() => {
+    const latestRecommendationIds = new Set(
+      recommendations.flatMap((job) =>
+        job.recommendationId === undefined ? [] : [job.recommendationId],
+      ),
+    );
+    latestRecommendationIdsRef.current = latestRecommendationIds;
+
+    const currentSelectedJob = selectedJobRef.current;
+    if (!currentSelectedJob) return;
+
+    const latestSelectedJob = recommendations.find(
+      (job) => job.recommendationId === currentSelectedJob.recommendationId,
+    );
+
+    if (!latestSelectedJob) {
+      setSelectedJob(null);
+      setMatchingView('result');
+      setDetailBackView('result');
+      return;
+    }
+
+    setSelectedJob(latestSelectedJob);
+  }, [recommendations]);
 
   const refreshApplications = useCallback(async () => {
     try {
@@ -126,6 +160,13 @@ export default function StudentMatchingPage({
     void onRecommendationDetailRequest(job)
       .then((detailedJob) => {
         if (!detailedJob) return;
+
+        if (
+          detailedJob.recommendationId === undefined ||
+          !latestRecommendationIdsRef.current.has(detailedJob.recommendationId)
+        ) {
+          return;
+        }
 
         setSelectedJob((currentJob) =>
           currentJob?.id === job.id ? detailedJob : currentJob,
@@ -182,12 +223,27 @@ export default function StudentMatchingPage({
   const handleApplicationConfirmation = async () => {
     if (!selectedJob || isApplicationSubmitting) return;
 
+    const latestSelectedJob = recommendedJobs.find(
+      (job) => job.recommendationId === selectedJob.recommendationId,
+    );
+    if (!latestSelectedJob) {
+      setSelectedJob(null);
+      setMatchingView('result');
+      return;
+    }
+
     setIsApplicationSubmitting(true);
 
     try {
       const createdApplication = onApplicationSubmit
-        ? await onApplicationSubmit(selectedJob, workStartDate)
+        ? await onApplicationSubmit(latestSelectedJob, workStartDate)
         : null;
+
+      if (createdApplication === 'recommendation-conflict') {
+        setSelectedJob(null);
+        setMatchingView('result');
+        return;
+      }
 
       if (createdApplication) {
         setApplications((currentApplications) => [
@@ -199,7 +255,7 @@ export default function StudentMatchingPage({
         ]);
         void refreshApplications();
         setMatchingView('complete');
-        onViewChange?.('complete', selectedJob);
+        onViewChange?.('complete', latestSelectedJob);
       }
     } finally {
       setIsApplicationSubmitting(false);

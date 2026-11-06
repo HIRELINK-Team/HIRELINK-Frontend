@@ -262,6 +262,7 @@ type StudentMatchingRouteContext = {
   isRecommendationsLoading: boolean;
   recommendations: RecommendedJob[];
   refreshRecommendations: () => Promise<boolean>;
+  reloadRecommendations: () => Promise<boolean>;
 };
 
 type StudentDocumentRouteConfig = {
@@ -607,6 +608,15 @@ function StudentMatchingLayout() {
     }
   };
 
+  const reloadRecommendations = async () => {
+    try {
+      await loadRecommendations();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   return (
     <Outlet
       context={
@@ -614,6 +624,7 @@ function StudentMatchingLayout() {
           isRecommendationsLoading,
           recommendations,
           refreshRecommendations,
+          reloadRecommendations,
         } satisfies StudentMatchingRouteContext
       }
     />
@@ -622,24 +633,44 @@ function StudentMatchingLayout() {
 
 function StudentMatchingRoute() {
   const navigate = useNavigate();
-  const { isRecommendationsLoading, recommendations, refreshRecommendations } =
-    useOutletContext<StudentMatchingRouteContext>();
+  const {
+    isRecommendationsLoading,
+    recommendations,
+    refreshRecommendations,
+    reloadRecommendations,
+  } = useOutletContext<StudentMatchingRouteContext>();
 
   return (
     <StudentMatchingPage
       isRecommendationsLoading={isRecommendationsLoading}
       onApplicationSubmit={async (job, desiredStartDate) => {
         if (job.recommendationId === undefined) {
-          window.alert('지원할 추천 정보를 확인할 수 없어요.');
-          return null;
+          return 'recommendation-conflict';
+        }
+
+        const latestRecommendation = recommendations.find(
+          (recommendation) =>
+            recommendation.recommendationId === job.recommendationId,
+        );
+        const latestRecommendationId = latestRecommendation?.recommendationId;
+        if (latestRecommendationId === undefined) {
+          await reloadRecommendations();
+          navigate('/student/matching');
+          return 'recommendation-conflict';
         }
 
         try {
           return await createStudentApplication({
             desiredStartDate,
-            recommendationId: job.recommendationId,
+            recommendationId: latestRecommendationId,
           });
-        } catch {
+        } catch (error) {
+          if (axios.isAxiosError(error) && error.response?.status === 409) {
+            await reloadRecommendations();
+            navigate('/student/matching');
+            return 'recommendation-conflict';
+          }
+
           window.alert('지원에 실패했어요. 잠시 후 다시 시도해주세요.');
           return null;
         }
