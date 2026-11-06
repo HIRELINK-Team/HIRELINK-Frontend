@@ -182,38 +182,30 @@ function EmployerApplicantDetailPage() {
   const matchItems = useMemo(() => {
     if (!applicant) return [];
     const { matchResult } = applicant;
-    const careerNames = applicant.applicant.careers
-      .map((career) => career.careerName)
-      .join(', ');
     return [
       {
         id: 'work-time',
         label: '근무 시간',
-        detail: `지원자 ${formatApplicationWorkTimes(applicant.applicant.availableWorkTimes)} / 공고 ${formatApplicationWorkTimes(applicant.jobRequirements.workTimes)}`,
         matched: matchResult.workTimeMatched,
       },
       {
         id: 'experience',
         label: '경력',
-        detail: careerNames || '등록된 경력 없음',
         matched: matchResult.experienceMatched,
       },
       {
         id: 'location',
         label: '근무 지역',
-        detail: '지원자와 공고의 지역 조건 비교 결과',
         matched: matchResult.locationMatched,
       },
       {
         id: 'wage',
         label: '급여',
-        detail: `공고 급여 ${applicant.jobRequirements.wageAmount.toLocaleString('ko-KR')}원`,
         matched: matchResult.wageMatched,
       },
       {
         id: 'korean-level',
         label: '한국어',
-        detail: `지원자 ${formatKoreanLevel(applicant.applicant.koreanLevel)} / 공고 요구 ${formatKoreanLevel(applicant.jobRequirements.requiredKoreanLevel)}`,
         matched: matchResult.koreanLevelMatched,
       },
     ];
@@ -302,7 +294,7 @@ function EmployerApplicantDetailPage() {
         )}
       </header>
 
-      <section className="mt-7 grid min-h-[183px] grid-cols-[96px_minmax(0,1fr)_auto] items-center gap-6 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-6 shadow-[0_2px_8px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+      <section className="mt-7 grid min-h-[183px] items-center gap-6 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-6 py-6 shadow-[0_2px_8px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)] md:grid-cols-[96px_minmax(0,1fr)] lg:grid-cols-[96px_minmax(0,1fr)_180px] lg:px-8">
         {applicant.applicant.profileImageUrl ? (
           <img
             src={applicant.applicant.profileImageUrl}
@@ -325,7 +317,7 @@ function EmployerApplicantDetailPage() {
               {formatApplicationStatus(applicant.status)}
             </span>
           </div>
-          <dl className="mt-4 flex flex-wrap gap-x-7 gap-y-3 text-sm">
+          <dl className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3 text-sm sm:grid-cols-3 xl:grid-cols-6">
             <div>
               <dt className="text-[#8b95a1]">국적</dt>
               <dd className="mt-0.5 text-[#171719]">
@@ -339,6 +331,14 @@ function EmployerApplicantDetailPage() {
               </dd>
             </div>
             <div>
+              <dt className="text-[#8b95a1]">TOPIK</dt>
+              <dd className="mt-0.5 text-[#171719]">
+                {applicant.applicant.topikLevel === null
+                  ? '-'
+                  : `${applicant.applicant.topikLevel}급`}
+              </dd>
+            </div>
+            <div className="xl:col-span-2">
               <dt className="text-[#8b95a1]">체류기간 만료일</dt>
               <dd className="mt-0.5 text-[#171719]">
                 {formatApplicationDate(applicant.applicant.visaExpirationDate)}
@@ -351,21 +351,13 @@ function EmployerApplicantDetailPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-[#8b95a1]">TOPIK</dt>
-              <dd className="mt-0.5 text-[#171719]">
-                {applicant.applicant.topikLevel === null
-                  ? '-'
-                  : `${applicant.applicant.topikLevel}급`}
-              </dd>
-            </div>
-            <div>
               <dt className="text-[#8b95a1]">희망 근무 시작일</dt>
               <dd className="mt-0.5 text-[#171719]">
                 {formatApplicationDate(applicant.desiredStartDate)}
               </dd>
             </div>
           </dl>
-          <div className="mt-4 flex min-h-8 max-w-[459px] items-center gap-3 rounded-lg bg-[#e8f7f3] px-4 py-2 text-sm">
+          <div className="mt-4 flex min-h-8 max-w-[540px] items-center gap-3 rounded-lg bg-[#e8f7f3] px-4 py-2 text-sm">
             <span className="shrink-0 text-[#70737c]">지원 공고</span>
             <span className="truncate text-[#006e59]">
               {selectedJob
@@ -376,7 +368,7 @@ function EmployerApplicantDetailPage() {
         </div>
 
         {deadline && (
-          <div className="min-w-[150px] text-center">
+          <div className="min-w-[150px] text-left md:col-start-2 lg:col-start-auto lg:text-center">
             <p className="text-base font-medium text-[#70737c]">
               {applicant.status === 'OFFERED'
                 ? '유학생 응답까지 남은 시간'
@@ -392,47 +384,15 @@ function EmployerApplicantDetailPage() {
         )}
       </section>
 
-      <div className="mt-9 grid gap-6 xl:grid-cols-2">
+      <div className="mt-9 grid items-stretch gap-6 lg:grid-cols-2">
         <section className="flex flex-col">
-          <h2 className="text-xl font-semibold text-[#171719]">지원 정보</h2>
-          <div className="mt-2 flex-1 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-6 py-5 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
-            <dl className="divide-y divide-[#f2f3f5]">
-              {[
-                ['지원 일시', formatApplicationDateTime(applicant.appliedAt)],
-                [
-                  '희망 시작일',
-                  formatApplicationDate(applicant.desiredStartDate),
-                ],
-                [
-                  '가능 근무시간',
-                  formatApplicationWorkTimes(
-                    applicant.applicant.availableWorkTimes,
-                  ),
-                ],
-                [
-                  '공고 근무시간',
-                  formatApplicationWorkTimes(
-                    applicant.jobRequirements.workTimes,
-                  ),
-                ],
-                [
-                  '공고 급여',
-                  `${applicant.jobRequirements.wageAmount.toLocaleString('ko-KR')}원`,
-                ],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  className="grid min-h-12 grid-cols-[100px_minmax(0,1fr)] items-center gap-4"
-                >
-                  <dt className="text-sm font-medium text-[#70737c]">
-                    {label}
-                  </dt>
-                  <dd className="text-sm font-medium text-[#171719]">
-                    {value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+          <h2 className="text-xl font-semibold text-[#171719]">
+            증빙 서류 상태
+          </h2>
+          <div className="mt-2 flex min-h-[340px] flex-1 items-center justify-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-7 text-center shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+            <p className="text-sm leading-6 text-[#70737c]">
+              등록된 증빙 서류 정보를 확인할 수 없습니다.
+            </p>
           </div>
         </section>
 
@@ -445,7 +405,7 @@ function EmployerApplicantDetailPage() {
               {matchedCount}/{matchItems.length} 일치
             </span>
           </div>
-          <div className="mt-2 flex-1 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-7 shadow-[0_2px_8px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+          <div className="mt-2 min-h-[340px] flex-1 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-7 shadow-[0_2px_8px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
             <div className="flex items-center gap-4">
               <div className="h-3 flex-1 overflow-hidden rounded-full bg-[#f2f3f5]">
                 <div
@@ -462,18 +422,16 @@ function EmployerApplicantDetailPage() {
               {matchItems.map((item) => (
                 <li
                   key={item.id}
-                  className="grid min-h-[46px] grid-cols-[20px_84px_minmax(0,1fr)_64px] items-center gap-2 border-b border-[#f2f3f5] last:border-b-0"
+                  className="grid min-h-[46px] grid-cols-[20px_minmax(0,1fr)_64px] items-center gap-3 border-b border-[#f2f3f5] last:border-b-0"
                 >
                   <img
                     src={item.matched ? matchCheckIcon : matchNegotiableIcon}
                     alt=""
+                    className="size-5"
                   />
                   <strong className="text-base font-bold text-[#171719]">
                     {item.label}
                   </strong>
-                  <span className="truncate text-sm text-[#70737c]">
-                    {item.detail}
-                  </span>
                   <span
                     className={`text-right text-sm font-semibold ${item.matched ? 'text-[#007a63]' : 'text-[#c26a00]'}`}
                   >
@@ -485,6 +443,43 @@ function EmployerApplicantDetailPage() {
           </div>
         </section>
       </div>
+
+      <section className="mt-9">
+        <h2 className="text-xl font-semibold text-[#171719]">지원 정보</h2>
+        <div className="mt-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-6 py-5 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+          <dl className="divide-y divide-[#f2f3f5]">
+            {[
+              ['지원 일시', formatApplicationDateTime(applicant.appliedAt)],
+              [
+                '희망 시작일',
+                formatApplicationDate(applicant.desiredStartDate),
+              ],
+              [
+                '가능 근무시간',
+                formatApplicationWorkTimes(
+                  applicant.applicant.availableWorkTimes,
+                ),
+              ],
+              [
+                '공고 근무시간',
+                formatApplicationWorkTimes(applicant.jobRequirements.workTimes),
+              ],
+              [
+                '공고 급여',
+                `${applicant.jobRequirements.wageAmount.toLocaleString('ko-KR')}원`,
+              ],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="grid min-h-12 grid-cols-[100px_minmax(0,1fr)] items-center gap-4"
+              >
+                <dt className="text-sm font-medium text-[#70737c]">{label}</dt>
+                <dd className="text-sm font-medium text-[#171719]">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
 
       <section className="mt-9">
         <h2 className="text-xl font-semibold text-[#171719]">경력</h2>
