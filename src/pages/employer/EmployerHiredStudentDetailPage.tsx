@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import PhoneNumber from '../../components/employer/PhoneNumber';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
 import { useEmployerApplicants } from '../../hooks/useEmployerApplicants';
@@ -11,6 +12,10 @@ import {
   formatKoreanLevel,
 } from '../../utils/application';
 import { formatWage } from '../../utils/jobPosting';
+
+type DetailTab = 'QUALIFICATION' | 'WORK_ELIGIBILITY_ANALYSIS';
+
+const CAN_OPEN_WORK_ELIGIBILITY_ANALYSIS = false;
 
 function getMatchErrorMessage(error: unknown) {
   const status = getApiErrorStatus(error);
@@ -45,8 +50,12 @@ function formatCareerSummary(
 function QualificationRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid min-h-[45px] grid-cols-[88px_minmax(0,1fr)] items-center gap-3 border-b border-[#e1e2e4] last:border-b-0">
-      <dt className="text-sm font-medium text-[#70737c]">{label}</dt>
-      <dd className="min-w-0 text-base font-medium text-[#171719]">{value}</dd>
+      <dt className="whitespace-nowrap text-sm font-medium text-[#70737c]">
+        {label}
+      </dt>
+      <dd className="min-w-0 truncate text-base font-medium text-[#171719]">
+        {value}
+      </dd>
     </div>
   );
 }
@@ -55,10 +64,12 @@ function QualificationCard({
   application,
   errorMessage,
   isLoading,
+  onOpenAnalysis,
 }: {
   application: EmployerApplicationDetailResponse | undefined;
   errorMessage: string | null;
   isLoading: boolean;
+  onOpenAnalysis: () => void;
 }) {
   if (isLoading) {
     return (
@@ -83,8 +94,8 @@ function QualificationCard({
       : `TOPIK ${applicant.topikLevel}급`;
 
   return (
-    <div className="min-h-[271px] rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-6 py-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
-      <dl>
+    <div className="flex h-full min-h-[271px] flex-col rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-6 py-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+      <dl className="min-w-0">
         <QualificationRow
           label="자격 만료일"
           value={formatApplicationDate(applicant.visaExpirationDate)}
@@ -100,13 +111,23 @@ function QualificationCard({
           value={formatApplicationWorkTimes(applicant.availableWorkTimes)}
         />
       </dl>
+      <div className="mt-2 grid grid-cols-[88px_minmax(0,1fr)] gap-3">
+        <span aria-hidden="true" />
+        <button
+          type="button"
+          onClick={onOpenAnalysis}
+          className="justify-self-start rounded-sm text-sm font-medium text-[#007a63] underline-offset-2 transition-colors hover:text-[#006653] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b894]"
+        >
+          분석 보기 &gt;
+        </button>
+      </div>
     </div>
   );
 }
 
 function DocumentsEmptyCard() {
   return (
-    <div className="flex min-h-[271px] items-center justify-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 text-center shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
+    <div className="flex h-full min-h-[271px] items-center justify-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-8 text-center shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
       <p className="text-sm leading-6 text-[#70737c]">
         등록된 증빙 서류 정보를 확인할 수 없습니다.
       </p>
@@ -152,11 +173,23 @@ function EmployerHiredStudentDetailPage() {
     applicationId: number;
     message: string;
   } | null>(null);
+  const [activeTab, setActiveTab] = useState<DetailTab>('QUALIFICATION');
+  const [isAnalysisUnavailableModalOpen, setIsAnalysisUnavailableModalOpen] =
+    useState(false);
   const applicationLoadError =
     applicationLoadFailure &&
     applicationLoadFailure.applicationId === applicationId
       ? applicationLoadFailure.message
       : null;
+
+  const handleOpenAnalysis = () => {
+    if (CAN_OPEN_WORK_ELIGIBILITY_ANALYSIS) {
+      setActiveTab('WORK_ELIGIBILITY_ANALYSIS');
+      return;
+    }
+
+    setIsAnalysisUnavailableModalOpen(true);
+  };
 
   useEffect(() => {
     if (!isValidMatchId || detail) return;
@@ -288,37 +321,78 @@ function EmployerHiredStudentDetailPage() {
         </div>
       </section>
 
-      <div className="mt-10 flex items-end gap-5 border-b border-[#e1e2e4]">
-        <div className="border-b-2 border-[#00b894] px-3 pb-2 text-lg font-semibold text-[#171719]">
+      <div
+        className="mt-10 flex items-end gap-5 border-b border-[#e1e2e4]"
+        role="tablist"
+        aria-label="채용 유학생 상세 정보"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'QUALIFICATION'}
+          onClick={() => setActiveTab('QUALIFICATION')}
+          className={`px-3 pb-2 text-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b894] ${
+            activeTab === 'QUALIFICATION'
+              ? 'border-b-2 border-[#00b894] font-semibold text-[#171719]'
+              : 'text-[#8b95a1]'
+          }`}
+        >
           자격 정보
-        </div>
-        <div className="flex items-center gap-1 px-3 pb-2 text-lg text-[#b0b5bd]">
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'WORK_ELIGIBILITY_ANALYSIS'}
+          aria-haspopup="dialog"
+          onClick={handleOpenAnalysis}
+          className={`flex items-center gap-1 px-3 pb-2 text-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b894] ${
+            activeTab === 'WORK_ELIGIBILITY_ANALYSIS'
+              ? 'border-b-2 border-[#00b894] font-semibold text-[#171719]'
+              : 'text-[#b0b5bd] hover:text-[#8b95a1]'
+          }`}
+        >
           <span>근로자격 확인 분석</span>
-          <LockIcon />
+          {!CAN_OPEN_WORK_ELIGIBILITY_ANALYSIS && <LockIcon />}
+        </button>
+      </div>
+
+      {activeTab === 'QUALIFICATION' && (
+        <div className="mt-6 grid items-stretch gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
+          <section className="flex h-full min-w-0 flex-col">
+            <h3 className="text-xl font-semibold text-[#171719]">자격 정보</h3>
+            <div className="mt-2 min-w-0 flex-1">
+              <QualificationCard
+                application={application}
+                errorMessage={applicationLoadError}
+                isLoading={isQualificationLoading}
+                onOpenAnalysis={handleOpenAnalysis}
+              />
+            </div>
+          </section>
+
+          <section className="flex h-full min-w-0 flex-col">
+            <h3 className="text-xl font-semibold text-[#171719]">
+              증빙 서류 상태
+            </h3>
+            <div className="mt-2 min-w-0 flex-1">
+              <DocumentsEmptyCard />
+            </div>
+          </section>
         </div>
-      </div>
+      )}
 
-      <div className="mt-6 grid items-stretch gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
-        <section className="flex flex-col">
-          <h3 className="text-xl font-semibold text-[#171719]">자격 정보</h3>
-          <div className="mt-2 flex-1">
-            <QualificationCard
-              application={application}
-              errorMessage={applicationLoadError}
-              isLoading={isQualificationLoading}
-            />
-          </div>
-        </section>
-
-        <section className="flex flex-col">
-          <h3 className="text-xl font-semibold text-[#171719]">
-            증빙 서류 상태
-          </h3>
-          <div className="mt-2 flex-1">
-            <DocumentsEmptyCard />
-          </div>
-        </section>
-      </div>
+      {isAnalysisUnavailableModalOpen && (
+        <ConfirmModal
+          title="서류를 모두 등록한 유학생만 볼 수 있어요"
+          confirmLabel="확인"
+          onCancel={() => setIsAnalysisUnavailableModalOpen(false)}
+          onConfirm={() => setIsAnalysisUnavailableModalOpen(false)}
+        >
+          <p className="mt-3 text-base leading-6 text-[#70737c]">
+            등록된 증빙 서류 정보를 확인할 수 없습니다.
+          </p>
+        </ConfirmModal>
+      )}
     </div>
   );
 }
