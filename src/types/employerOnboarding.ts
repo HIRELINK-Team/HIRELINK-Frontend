@@ -1,7 +1,10 @@
-import type { EmployerIndustryCode } from "./employerProfile";
+import type {
+  EmployerAcquisitionChannel,
+  EmployerIndustryCode,
+} from './employerProfile';
 
-export type ReferralSourceCode = "SEARCH" | "REFERRAL" | "OTHER";
-export type EmployeeCountCode = "UNDER_FIVE" | "FIVE_OR_MORE";
+export type ReferralSourceCode = EmployerAcquisitionChannel;
+export type EmployeeCountCode = 'UNDER_FIVE' | 'FIVE_OR_MORE';
 export type OnboardingStep = 1 | 2;
 
 export interface EmployerOnboardingForm {
@@ -9,14 +12,14 @@ export interface EmployerOnboardingForm {
     name: string;
     phoneParts: [string, string, string];
     verificationCode: string;
-    referralSource: ReferralSourceCode | "";
+    referralSource: ReferralSourceCode | '';
   };
   business: {
     name: string;
     registrationNumberParts: [string, string, string];
     registrationFile: File | null;
-    industry: EmployerIndustryCode | "";
-    employeeCount: EmployeeCountCode | "";
+    industry: EmployerIndustryCode | '';
+    employeeCount: EmployeeCountCode | '';
     address: string;
     detailAddress: string;
   };

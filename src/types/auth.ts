@@ -13,10 +13,12 @@ export interface EmailSignupRequest {
   role: UserRole;
 }
 
+export type SignupRequest = EmailSignupRequest;
+
 export interface AccessTokenResponse {
   accessToken: string;
-  expiresIn: number;
   tokenType: 'Bearer';
+  expiresIn: number;
 }
 
 export interface LoginResponse extends AccessTokenResponse {
@@ -31,6 +33,7 @@ export interface SignupResponse extends AccessTokenResponse {
 }
 
 export type RefreshAccessTokenResponse = AccessTokenResponse;
+export type RefreshResponse = AccessTokenResponse;
 
 export interface CsrfTokenResponse {
   headerName: string;
@@ -38,7 +41,6 @@ export interface CsrfTokenResponse {
 }
 
 export type CsrfResponse = CsrfTokenResponse;
-export type RefreshResponse = AccessTokenResponse;
 
 export interface LogoutResponse {
   message: string;
@@ -63,6 +65,12 @@ export interface PhoneVerificationConfirmResponse {
   verifiedAt: string;
   message: string;
 }
+
+export type RequestPhoneVerificationRequest = PhoneVerificationRequest;
+export type RequestPhoneVerificationResponse = PhoneVerificationResponse;
+
+export type VerifyPhoneRequest = PhoneVerificationConfirmRequest;
+export type VerifyPhoneResponse = PhoneVerificationConfirmResponse;
 
 export interface ApiErrorResponse {
   code: string;

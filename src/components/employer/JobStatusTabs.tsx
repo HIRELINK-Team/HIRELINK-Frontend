@@ -1,4 +1,4 @@
-export type JobStatusFilter = "ALL" | "OPEN" | "CLOSED";
+export type JobStatusFilter = 'ALL' | 'RECRUITING' | 'CLOSED';
 
 interface JobStatusTabsProps {
   selectedFilter: JobStatusFilter;
@@ -7,9 +7,9 @@ interface JobStatusTabsProps {
 }
 
 const TAB_LABELS: Record<JobStatusFilter, string> = {
-  ALL: "전체",
-  OPEN: "모집 중",
-  CLOSED: "마감",
+  ALL: '전체',
+  RECRUITING: '모집 중',
+  CLOSED: '마감',
 };
 
 function JobStatusTabs({
@@ -35,11 +35,11 @@ function JobStatusTabs({
             onClick={() => onChange(filter)}
             className={`flex h-8 cursor-pointer items-center justify-center rounded-[50px] px-5 py-2.5 text-[15px] leading-normal whitespace-nowrap transition-colors ${
               isSelected
-                ? "border border-[#007a63] bg-[#e5f8f4] font-semibold text-[#2e6c5a] shadow-[0_2px_1.5px_rgba(46,108,90,0.1)]"
-                : "bg-white font-normal text-[#242424] shadow-[0_2px_1.5px_rgba(0,0,0,0.1)] hover:bg-[#f4f4f5] active:bg-[#eceef0]"
+                ? 'border border-[#007a63] bg-[#e5f8f4] font-semibold text-[#2e6c5a] shadow-[0_2px_1.5px_rgba(46,108,90,0.1)]'
+                : 'bg-white font-normal text-[#242424] shadow-[0_2px_1.5px_rgba(0,0,0,0.1)] hover:bg-[#f4f4f5] active:bg-[#eceef0]'
             }`}
           >
-            {TAB_LABELS[filter]}{" "}
+            {TAB_LABELS[filter]}{' '}
             <span className="ml-1 font-semibold">{counts[filter]}</span>
           </button>
         );

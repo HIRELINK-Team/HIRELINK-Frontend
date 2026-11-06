@@ -29,6 +29,18 @@ export interface EmployerProfileResponse {
   position: string | null;
 }
 
+export type EmployerAcquisitionChannel = 'SEARCH' | 'REFERRAL' | 'OTHER';
+
+export interface CreateEmployerProfileRequest {
+  name: string;
+  acquisitionChannel: EmployerAcquisitionChannel;
+}
+
+/** POST /api/employers/me/profile 응답입니다. */
+export interface CreateEmployerProfileResponse extends EmployerProfileResponse {
+  acquisitionChannel: EmployerAcquisitionChannel;
+}
+
 export interface UpdateEmployerProfileRequest {
   name?: string;
   position?: string | null;

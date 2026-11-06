@@ -62,6 +62,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import EmployerApplicantsProvider from './components/employer/EmployerApplicantsProvider';
 import EmployerLayout from './components/employer/EmployerLayout';
 import EmployerJobsProvider from './components/employer/EmployerJobsProvider';
+import EmployerMatchesProvider from './components/employer/EmployerMatchesProvider';
 import EmployerProfileProvider from './components/employer/EmployerProfileProvider';
 import EmployerWorkplacesProvider from './components/employer/EmployerWorkplacesProvider';
 import EmployerAccountSettingsPage from './pages/employer/EmployerAccountSettingsPage';
@@ -1749,7 +1750,9 @@ function App() {
                 <ProtectedRoute requiredRole="EMPLOYER">
                   <EmployerJobsProvider>
                     <EmployerApplicantsProvider>
-                      <EmployerLayout />
+                      <EmployerMatchesProvider>
+                        <EmployerLayout />
+                      </EmployerMatchesProvider>
                     </EmployerApplicantsProvider>
                   </EmployerJobsProvider>
                 </ProtectedRoute>
@@ -1767,22 +1770,14 @@ function App() {
                 path="jobs/:jobId/applicants"
                 element={<EmployerApplicantsPage />}
               />
-              <Route
-                path="applicants"
-                element={
-                  <Navigate
-                    to="/employer/jobs/barista-open/applicants"
-                    replace
-                  />
-                }
-              />
+              <Route path="applicants" element={<EmployerApplicantsPage />} />
               <Route
                 path="applicants/:applicationId"
                 element={<EmployerApplicantDetailPage />}
               />
               <Route path="hired" element={<EmployerHiredStudentsPage />} />
               <Route
-                path="hired/:applicationId"
+                path="hired/:matchId"
                 element={<EmployerHiredStudentDetailPage />}
               />
               <Route path="mypage" element={<EmployerMyPage />} />

@@ -1,11 +1,31 @@
-import { createContext, useContext } from "react";
-import type { EmployerApplicantMock } from "../types/application";
+import { createContext, useContext } from 'react';
+import type {
+  CreateEmploymentOfferResponse,
+  EmployerApplicationDetailResponse,
+  EmployerApplicationListResponse,
+  RejectApplicationResponse,
+} from '../types/application';
 
 interface EmployerApplicantsContextValue {
-  applicants: EmployerApplicantMock[];
-  offerApplicant: (applicationId: string) => void;
-  rejectApplicant: (applicationId: string) => void;
-  removeHiredApplicants: (applicationIds: string[]) => void;
+  applicationLists: Record<number, EmployerApplicationListResponse>;
+  applicationDetails: Record<number, EmployerApplicationDetailResponse>;
+  mutatingApplicationIds: number[];
+  loadApplicationList: (
+    jobPostingId: number,
+    force?: boolean,
+  ) => Promise<EmployerApplicationListResponse>;
+  loadApplicationDetail: (
+    applicationId: number,
+    force?: boolean,
+  ) => Promise<EmployerApplicationDetailResponse>;
+  rejectApplication: (
+    applicationId: number,
+    jobPostingId: number,
+  ) => Promise<RejectApplicationResponse>;
+  offerApplication: (
+    applicationId: number,
+    jobPostingId: number,
+  ) => Promise<CreateEmploymentOfferResponse>;
 }
 
 const EmployerApplicantsContext =
@@ -16,7 +36,7 @@ function useEmployerApplicants() {
 
   if (!context) {
     throw new Error(
-      "useEmployerApplicants must be used within EmployerApplicantsProvider",
+      'useEmployerApplicants must be used within EmployerApplicantsProvider',
     );
   }
 
