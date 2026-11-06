@@ -21,6 +21,57 @@ const STATUS_COPY = {
   HIRED: { color: '#387DD6', label: '채용 완료' },
 } as const;
 
+function formatRemainingTime(deadline: string, currentTime: number | null) {
+  if (currentTime === null) return null;
+
+  const deadlineTime = new Date(deadline).getTime();
+  if (Number.isNaN(deadlineTime)) return null;
+
+  const remainingSeconds = Math.max(
+    0,
+    Math.floor((deadlineTime - currentTime) / 1_000),
+  );
+  const hours = Math.floor(remainingSeconds / 3_600);
+  const minutes = Math.floor((remainingSeconds % 3_600) / 60);
+
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function ApplicationDeadlineTimer({ deadline }: { deadline?: string | null }) {
+  const [currentTime, setCurrentTime] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!deadline) return undefined;
+
+    const updateCurrentTime = () => setCurrentTime(Date.now());
+    const timeoutId = window.setTimeout(updateCurrentTime, 0);
+    const intervalId = window.setInterval(updateCurrentTime, 1_000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.clearInterval(intervalId);
+    };
+  }, [deadline]);
+
+  const timerLabel = deadline
+    ? formatRemainingTime(deadline, currentTime)
+    : null;
+  if (!timerLabel) return null;
+
+  return (
+    <div className="flex h-[30px] items-center gap-[6px] whitespace-nowrap text-[#009376]">
+      <img
+        alt=""
+        className="block h-[18px] w-[18px] shrink-0"
+        src={activeTimerIcon}
+      />
+      <span className="block text-[20px] leading-none font-semibold tabular-nums">
+        {timerLabel}
+      </span>
+    </div>
+  );
+}
+
 type OfferWaitingApplicationCardProps = Pick<
   StudentApplicationCardProps,
   | 'application'
@@ -87,14 +138,9 @@ function OfferWaitingApplicationCard({
           채용 제안
         </span>
       </div>
-      {application.timerLabel ? (
-        <div className="absolute top-[46px] right-[23px] flex items-center gap-[5.75px] whitespace-nowrap">
-          <img alt="" className="block" src={activeTimerIcon} />
-          <span className="text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#009376]">
-            {application.timerLabel}
-          </span>
-        </div>
-      ) : null}
+      <div className="absolute top-[46px] right-[23px] flex h-[30px] items-center justify-end">
+        <ApplicationDeadlineTimer deadline={application.expiresAt} />
+      </div>
       <button
         className="absolute top-[108px] right-[23px] flex h-[27px] w-[72px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13px] text-[13px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#191F28]"
         type="button"
@@ -243,16 +289,9 @@ export function StudentApplicationCard({
         상세보기
       </button>
 
-      {application.timerLabel ? (
-        <div className="absolute top-[47px] right-[23px] flex items-center gap-[5.75px]">
-          <img
-            alt=""
-            className="mt-[5.4px] h-[19.166px] w-[19.166px]"
-            src={activeTimerIcon}
-          />
-          <span className="text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#009376]">
-            {application.timerLabel}
-          </span>
+      {application.status === 'REVIEWING' ? (
+        <div className="absolute top-[47px] right-[23px] flex h-[30px] items-center justify-end">
+          <ApplicationDeadlineTimer deadline={application.expiresAt} />
         </div>
       ) : null}
     </article>
