@@ -31,7 +31,7 @@ export function ApplicationCompleteStep({
         <img alt="" src={backIcon} />
       </button>
 
-      <div className="absolute top-[clamp(161px,24.2dvh,204px)] left-1/2 h-[clamp(88px,12.1dvh,102px)] w-[clamp(85px,11.9dvh,100px)] -translate-x-1/2 pointer-events-none">
+      <div className="absolute top-[clamp(178px,25.8dvh,218px)] left-1/2 h-[clamp(102px,14.6dvh,123px)] w-[clamp(100px,14.3dvh,121px)] -translate-x-1/2 pointer-events-none">
         <img
           alt=""
           className="absolute top-[0.04%] left-[0.25%] h-[99.84%] w-[99.52%] max-w-none"
@@ -39,11 +39,11 @@ export function ApplicationCompleteStep({
         />
       </div>
 
-      <h1 className="absolute top-[clamp(246px,36.97dvh,312px)] left-0 m-0 w-full text-center text-[26px] leading-[1.5] font-semibold">
+      <h1 className="absolute top-[clamp(310px,45dvh,380px)] left-0 m-0 w-full text-center text-[26px] leading-[1.5] font-semibold">
         지원이 완료되었어요!
       </h1>
 
-      <section className="absolute top-[clamp(300px,44.9dvh,379px)] right-6 left-6 h-[96px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
+      <section className="absolute top-[clamp(387px,56.1dvh,473px)] right-6 left-6 h-[clamp(108px,15.6dvh,132px)] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
         <h2 className="absolute top-[16px] right-[95px] left-[23px] m-0 truncate text-[17px] leading-[1.5] font-semibold">
           {companyName}
         </h2>
@@ -63,7 +63,7 @@ export function ApplicationCompleteStep({
       </section>
 
       <button
-        className="absolute top-[clamp(396px,58.3dvh,492px)] right-6 left-6 h-[42px] rounded-[15px] border border-[#191F28] bg-transparent text-[16px] leading-[1.5] font-medium"
+        className="absolute top-[clamp(517px,75dvh,633px)] right-6 left-6 h-[clamp(49px,6.75dvh,57px)] rounded-[15px] border border-[#191F28] bg-transparent text-[16px] leading-[1.5] font-medium"
         type="button"
         onClick={onHome}
       >
