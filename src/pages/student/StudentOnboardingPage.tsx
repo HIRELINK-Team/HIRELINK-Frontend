@@ -15,6 +15,7 @@ import {
   updateStudentCareer,
   updateStudentMatchingPreferences,
 } from '../../api/student';
+import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
 import {
   mapIndustrySelectionToUpdateRequest,
   mapPriorityOrderToUpdateRequest,
@@ -267,6 +268,46 @@ function formatPhone(value: string) {
 
 function isValidPhone(value: string) {
   return /^01[0-9]-\d{3,4}-\d{4}$/.test(value);
+}
+
+function getPhoneVerificationRequestErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+  const serverMessage = apiError?.message.trim();
+
+  if (status === 401 && apiError?.code === 'UNAUTHORIZED') {
+    return '로그인 정보가 만료되었어요. 다시 로그인해주세요.';
+  }
+
+  if (status === 409 && apiError?.code === 'DUPLICATE_PHONE_NUMBER') {
+    return '이미 사용 중인 휴대전화 번호예요.';
+  }
+
+  return serverMessage ?? '인증번호를 보내지 못했어요. 다시 시도해주세요.';
+}
+
+function getPhoneVerificationConfirmErrorMessage(error: unknown) {
+  const apiError = getApiErrorResponse(error);
+  const serverMessage = apiError?.message.trim();
+
+  if (serverMessage) return serverMessage;
+
+  if (
+    apiError?.code === 'PHONE_VERIFICATION_EXPIRED' ||
+    apiError?.code === 'VERIFICATION_CODE_EXPIRED'
+  ) {
+    return '인증번호가 만료되었어요. 다시 요청해주세요.';
+  }
+
+  if (
+    apiError?.code === 'PHONE_VERIFICATION_MISMATCH' ||
+    apiError?.code === 'INVALID_VERIFICATION_CODE' ||
+    apiError?.code === 'VERIFICATION_CODE_MISMATCH'
+  ) {
+    return '인증번호가 일치하지 않아요. 다시 입력해주세요.';
+  }
+
+  return '인증번호가 틀렸어요. 다시 입력해주세요.';
 }
 
 export default function StudentOnboardingPage({
@@ -1346,11 +1387,13 @@ export default function StudentOnboardingPage({
       if (shouldMoveToVerification) setStep('verification');
 
       return true;
-    } catch {
+    } catch (error) {
+      const errorMessage = getPhoneVerificationRequestErrorMessage(error);
+
       if (shouldMoveToVerification) {
-        setPhoneError('인증번호를 보내지 못했어요. 다시 시도해주세요.');
+        setPhoneError(errorMessage);
       } else {
-        setVerificationError('인증번호를 다시 보내지 못했어요.');
+        setVerificationError(errorMessage);
       }
 
       return false;
@@ -1388,8 +1431,8 @@ export default function StudentOnboardingPage({
           code: info.verificationCode,
         });
         setVerificationError('');
-      } catch {
-        setVerificationError('인증번호가 틀렸어요. 다시 입력해주세요.');
+      } catch (error) {
+        setVerificationError(getPhoneVerificationConfirmErrorMessage(error));
         return;
       } finally {
         setIsPhoneVerificationPending(false);
