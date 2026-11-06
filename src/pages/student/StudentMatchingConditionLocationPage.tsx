@@ -23,14 +23,14 @@ export default function StudentMatchingConditionLocationPage({
     useState<WorkLocation>(initialLocation);
   const [isRadiusMapOpen, setIsRadiusMapOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const handleCurrentLocationClick = () => {
     setDraftLocation((currentLocation) => ({
       ...currentLocation,
       address: STUDENT_DEMO_LOCATION_NAME,
-      latitude: undefined,
-      longitude: undefined,
     }));
+    setSaveError('');
   };
 
   const handleSave = async (): Promise<boolean> => {
@@ -39,8 +39,15 @@ export default function StudentMatchingConditionLocationPage({
     setIsSaving(true);
     try {
       const isSaved = await onSave(draftLocation);
-      return isSaved === true;
+      if (isSaved !== true) {
+        setSaveError('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+        return false;
+      }
+
+      setSaveError('');
+      return true;
     } catch {
+      setSaveError('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
       return false;
     } finally {
       setIsSaving(false);
@@ -53,8 +60,14 @@ export default function StudentMatchingConditionLocationPage({
         address={draftLocation.address}
         radius={draftLocation.radius}
         radiusOptions={[100, 500, 1000]}
+        errorMessage={saveError}
+        isConfirming={isSaving}
         onBack={() => setIsRadiusMapOpen(false)}
-        onConfirm={() => void handleSave()}
+        onConfirm={() => {
+          void handleSave().then((isSaved) => {
+            if (isSaved) setIsRadiusMapOpen(false);
+          });
+        }}
         onRadiusChange={(radius) => {
           setDraftLocation((currentLocation) => ({
             ...currentLocation,
@@ -94,9 +107,8 @@ export default function StudentMatchingConditionLocationPage({
               setDraftLocation((currentLocation) => ({
                 ...currentLocation,
                 address: event.target.value,
-                latitude: undefined,
-                longitude: undefined,
               }));
+              setSaveError('');
             }}
           />
         </span>
@@ -110,6 +122,12 @@ export default function StudentMatchingConditionLocationPage({
         <img alt="" className="size-[14px]" src={locationIcon} />
         현재 위치로 찾기
       </button>
+
+      {saveError ? (
+        <p aria-live="polite" className="mt-3 text-[14px] text-[#E05260]">
+          {saveError}
+        </p>
+      ) : null}
 
       <button
         className="absolute right-6 bottom-[clamp(20px,4.38dvh,37px)] left-6 h-[clamp(52px,6.75dvh,57px)] rounded-[15px] border-0 bg-[#00B894] text-[clamp(17px,2.37dvh,20px)] leading-[1.5] font-medium text-[#F5F5F5]"

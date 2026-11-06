@@ -23,7 +23,9 @@ type StudentMyPageProps = {
   onDocumentManagementClick?: () => void;
   onMatchingClick?: () => void;
   onMenuClick?: (menuId: StudentMyMenuId) => void;
+  onNotificationClick?: () => void;
   onProfileEditClick?: () => void;
+  onSettingsClick?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onWorkConditionClick?: () => void;
   studentProfile?: StudentProfileResponse | null;
@@ -52,7 +54,9 @@ export default function StudentMyPage({
   onDocumentManagementClick,
   onMatchingClick,
   onMenuClick,
+  onNotificationClick,
   onProfileEditClick,
+  onSettingsClick,
   onTabChange,
   onWorkConditionClick,
   studentProfile,
@@ -98,6 +102,7 @@ export default function StudentMyPage({
                 aria-label="알림"
                 className="grid size-10 place-items-center rounded-lg border-0 bg-transparent p-0"
                 type="button"
+                onClick={onNotificationClick}
               >
                 <img alt="" className="size-6" src={headerBellIcon} />
               </button>
@@ -105,6 +110,7 @@ export default function StudentMyPage({
                 aria-label="설정"
                 className="grid size-10 place-items-center rounded-lg border-0 bg-transparent p-0"
                 type="button"
+                onClick={onSettingsClick}
               >
                 <img alt="" className="size-6" src={headerSettingsIcon} />
               </button>

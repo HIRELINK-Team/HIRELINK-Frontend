@@ -12,6 +12,8 @@ export type RecommendedJobDetail = {
 };
 
 export type RecommendedJob = {
+  applicationId?: number | null;
+  applicationStatus?: 'WAITING_RESPONSE' | 'OFFERED' | null;
   countdownLabel: string;
   commuteAndWage: string;
   companyName: string;

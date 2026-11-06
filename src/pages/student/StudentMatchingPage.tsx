@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { getMyStudentApplications } from '../../api/student/applications';
 import backIcon from '../../assets/icons/student/matching/back.svg';
@@ -7,6 +7,7 @@ import { RecommendedJobDetail } from '../../components/student/matching/Recommen
 import { RecommendedJobCard } from '../../components/student/matching/RecommendedJobCard';
 import { ApplicationConfirmationStep } from '../../components/student/matching/ApplicationConfirmationStep';
 import { ApplicationCompleteStep } from '../../components/student/matching/ApplicationCompleteStep';
+import { MatchingOfferOverlay } from '../../components/student/matching/MatchingOfferOverlay';
 import { RecommendationRefreshModal } from '../../components/student/matching/RecommendationRefreshModal';
 import { WorkStartDateStep } from '../../components/student/matching/WorkStartDateStep';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
@@ -22,6 +23,7 @@ import type {
 import type { StudentProfileResponse } from '../../types/studentProfile';
 
 const MAX_RECOMMENDED_JOBS = 3;
+const APPLICATIONS_POLLING_INTERVAL_MS = 10_000;
 // The recommendations API has no dismissal endpoint, so preserve this explicit
 // browser preference across navigation and reloads.
 const DISMISSED_RECOMMENDATION_STORAGE_KEY =
@@ -32,8 +34,35 @@ type ApplicationSubmissionResult =
 
 type RecommendationApplication = Pick<
   StudentApplication,
-  'employerResponseDeadline' | 'jobPostingId' | 'status'
->;
+  | 'applicationId'
+  | 'employerResponseDeadline'
+  | 'jobPostingId'
+  | 'status'
+> &
+  Partial<
+    Pick<
+      StudentApplication,
+      | 'jobTitle'
+      | 'workplaceName'
+      | 'wageType'
+      | 'wageAmount'
+      | 'recommendationReasons'
+      | 'offerId'
+      | 'offerStatus'
+    >
+  >;
+
+type PendingOfferApplication = RecommendationApplication &
+  Pick<
+    StudentApplication,
+    | 'jobTitle'
+    | 'workplaceName'
+    | 'wageType'
+    | 'wageAmount'
+    | 'recommendationReasons'
+    | 'offerId'
+    | 'offerStatus'
+  >;
 
 function getJobPostingIdKey(jobPostingId: string | number | undefined) {
   return jobPostingId === undefined ? null : String(jobPostingId);
@@ -43,6 +72,10 @@ function getRecommendationDismissalKey(job: RecommendedJob) {
   return job.jobPostingId === undefined
     ? `recommendation:${job.recommendationId ?? job.id}`
     : `job-posting:${job.jobPostingId}`;
+}
+
+function getRecommendationKey(job: RecommendedJob) {
+  return String(job.recommendationId ?? job.id);
 }
 
 function getStoredDismissedRecommendationKeys() {
@@ -96,6 +129,50 @@ function getWaitingApplicationForRecommendation(
     }, undefined);
 }
 
+function isPendingOfferApplication(
+  application: RecommendationApplication,
+): application is PendingOfferApplication {
+  return (
+    application.status === 'OFFERED' &&
+    application.offerStatus === 'PENDING' &&
+    application.offerId !== null &&
+    application.offerId !== undefined &&
+    typeof application.jobTitle === 'string' &&
+    typeof application.workplaceName === 'string' &&
+    application.wageType !== undefined &&
+    typeof application.wageAmount === 'number' &&
+    Array.isArray(application.recommendationReasons)
+  );
+}
+
+function mapOfferApplicationToRecommendedJob(
+  application: PendingOfferApplication,
+): RecommendedJob {
+  const wageLabel = `${application.wageType === 'HOURLY' ? '시급' : '월급'} ${application.wageAmount.toLocaleString('ko-KR')}원`;
+
+  return {
+    applicationId: application.applicationId,
+    applicationStatus: 'OFFERED',
+    countdownLabel: '',
+    commuteAndWage: wageLabel,
+    companyName: application.workplaceName,
+    detail: {
+      comparisonTags: application.recommendationReasons,
+      locationAndDistance: '',
+      matchRate: 0,
+      metrics: [{ label: '급여', value: wageLabel }],
+      tags: [],
+    },
+    id: `offer:${application.applicationId}`,
+    isCountdownActive: false,
+    jobPostingId: application.jobPostingId,
+    matchDescription: application.recommendationReasons.join(' · '),
+    matchRate: 0,
+    role: `직무 | ${application.jobTitle}`,
+    showsApplyButton: false,
+  };
+}
+
 type StudentMatchingPageProps = {
   isBottomNavigationFixed?: boolean;
   initialRefreshPopupOpen?: boolean;
@@ -110,6 +187,10 @@ type StudentMatchingPageProps = {
     job: RecommendedJob,
     desiredStartDate: string,
   ) => Promise<ApplicationSubmissionResult>;
+  onOfferAction?: (
+    offerId: number,
+    action: 'accept' | 'decline',
+  ) => Promise<StudentApplication[] | null>;
   onRecommendationRefresh?: () => Promise<boolean>;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onViewChange?: (
@@ -128,6 +209,7 @@ export default function StudentMatchingPage({
   isRecommendationsLoading = false,
   onBack,
   onApplicationSubmit,
+  onOfferAction,
   onRecommendationDetailRequest,
   onRecommendationRefresh,
   onTabChange,
@@ -140,6 +222,9 @@ export default function StudentMatchingPage({
   const [selectedJob, setSelectedJob] = useState<RecommendedJob | null>(
     initialSelectedJob,
   );
+  const [expandedRecommendationKey, setExpandedRecommendationKey] = useState<
+    string | null
+  >(initialSelectedJob ? getRecommendationKey(initialSelectedJob) : null);
   const [detailBackView, setDetailBackView] = useState<'complete' | 'result'>(
     'result',
   );
@@ -150,6 +235,7 @@ export default function StudentMatchingPage({
   const [isApplicationSubmitting, setIsApplicationSubmitting] = useState(false);
   const [isRecommendationRefreshing, setIsRecommendationRefreshing] =
     useState(false);
+  const [isOfferActionSubmitting, setIsOfferActionSubmitting] = useState(false);
   const [applications, setApplications] = useState<RecommendationApplication[]>(
     [],
   );
@@ -158,6 +244,9 @@ export default function StudentMatchingPage({
   >(getStoredDismissedRecommendationKeys);
   const selectedJobRef = useRef<RecommendedJob | null>(initialSelectedJob);
   const latestRecommendationIdsRef = useRef<Set<number>>(new Set());
+  const pendingApplicationIdsRef = useRef<Set<number>>(new Set());
+  const dismissedOfferApplicationIdRef = useRef<number | null>(null);
+  const isOfferActionSubmittingRef = useRef(false);
   const recommendedJobs = recommendations
     .filter((job) => {
       const dismissalKey = getRecommendationDismissalKey(job);
@@ -165,6 +254,10 @@ export default function StudentMatchingPage({
       return !dismissedRecommendationIds.includes(dismissalKey);
     })
     .slice(0, MAX_RECOMMENDED_JOBS);
+  const offeredApplication = applications.find(isPendingOfferApplication);
+  const offeredJob = offeredApplication
+    ? mapOfferApplicationToRecommendedJob(offeredApplication)
+    : null;
 
   useEffect(() => {
     selectedJobRef.current = selectedJob;
@@ -187,6 +280,7 @@ export default function StudentMatchingPage({
 
     if (!latestSelectedJob) {
       setSelectedJob(null);
+      setExpandedRecommendationKey(null);
       setMatchingView('result');
       setDetailBackView('result');
       return;
@@ -195,35 +289,86 @@ export default function StudentMatchingPage({
     setSelectedJob(latestSelectedJob);
   }, [recommendations]);
 
-  const refreshApplications = useCallback(async () => {
-    try {
-      const response = await getMyStudentApplications();
-      setApplications(response.applications);
-    } catch {
-      setApplications([]);
-    }
-  }, []);
-
   useEffect(() => {
     let isActive = true;
+    let isApplicationsRequestInFlight = false;
 
     const loadApplications = async () => {
+      if (
+        !isActive ||
+        isApplicationsRequestInFlight ||
+        isOfferActionSubmittingRef.current
+      ) {
+        return;
+      }
+
+      isApplicationsRequestInFlight = true;
+
       try {
         const response = await getMyStudentApplications();
-        if (isActive) {
-          setApplications(response.applications);
+        if (!isActive) return;
+
+        const pendingOffer = response.applications.find(
+          isPendingOfferApplication,
+        );
+        if (
+          pendingOffer &&
+          pendingOffer.applicationId !== dismissedOfferApplicationIdRef.current
+        ) {
+          setMatchingView('offer');
+        } else if (!pendingOffer) {
+          setMatchingView((currentView) =>
+            currentView === 'offer' ? 'result' : currentView,
+          );
         }
+
+        setApplications((currentApplications) => {
+          const serverApplicationIds = new Set(
+            response.applications.map((application) => application.applicationId),
+          );
+          serverApplicationIds.forEach((applicationId) => {
+            pendingApplicationIdsRef.current.delete(applicationId);
+          });
+
+          const pendingApplications = currentApplications.filter(
+            (application) =>
+              pendingApplicationIdsRef.current.has(application.applicationId) &&
+              !serverApplicationIds.has(application.applicationId),
+          );
+
+          return [...response.applications, ...pendingApplications];
+        });
       } catch {
         if (isActive) {
-          setApplications([]);
+          setApplications((currentApplications) =>
+            currentApplications.filter((application) =>
+              pendingApplicationIdsRef.current.has(application.applicationId),
+            ),
+          );
         }
+      } finally {
+        isApplicationsRequestInFlight = false;
       }
     };
 
     void loadApplications();
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void loadApplications();
+      }
+    }, APPLICATIONS_POLLING_INTERVAL_MS);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void loadApplications();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       isActive = false;
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -250,6 +395,15 @@ export default function StudentMatchingPage({
         );
       })
       .catch(() => undefined);
+  };
+
+  const handleCardClick = (job: RecommendedJob) => {
+    const recommendationKey = getRecommendationKey(job);
+
+    setExpandedRecommendationKey((currentKey) =>
+      currentKey === recommendationKey ? null : recommendationKey,
+    );
+    setSelectedJob(job);
   };
 
   const handleDetailClick = (job: RecommendedJob) => {
@@ -280,6 +434,7 @@ export default function StudentMatchingPage({
     });
 
     setSelectedJob(null);
+    setExpandedRecommendationKey(null);
     setDetailBackView('result');
     setMatchingView('result');
   };
@@ -321,6 +476,7 @@ export default function StudentMatchingPage({
     );
     if (!latestSelectedJob) {
       setSelectedJob(null);
+      setExpandedRecommendationKey(null);
       setMatchingView('result');
       return;
     }
@@ -339,6 +495,13 @@ export default function StudentMatchingPage({
       }
 
       if (createdApplication) {
+        pendingApplicationIdsRef.current.add(createdApplication.applicationId);
+        setSelectedJob({
+          ...latestSelectedJob,
+          applicationId: createdApplication.applicationId,
+          applicationStatus: createdApplication.status,
+          showsApplyButton: false,
+        });
         setApplications((currentApplications) => [
           createdApplication,
           ...currentApplications.filter(
@@ -347,7 +510,6 @@ export default function StudentMatchingPage({
               getJobPostingIdKey(createdApplication.jobPostingId),
           ),
         ]);
-        void refreshApplications();
         setMatchingView('complete');
         onViewChange?.('complete', latestSelectedJob);
       }
@@ -371,6 +533,36 @@ export default function StudentMatchingPage({
 
   const handleCompleteHome = () => {
     onTabChange?.('home');
+  };
+
+  const handleOfferAction = async (action: 'accept' | 'decline') => {
+    if (
+      !offeredApplication ||
+      offeredApplication.offerId === null ||
+      offeredApplication.offerId === undefined ||
+      isOfferActionSubmitting
+    ) {
+      return;
+    }
+
+    setIsOfferActionSubmitting(true);
+    isOfferActionSubmittingRef.current = true;
+
+    try {
+      const nextApplications = onOfferAction
+        ? await onOfferAction(offeredApplication.offerId, action)
+        : null;
+
+      if (!nextApplications) return;
+
+      setApplications(nextApplications);
+      dismissedOfferApplicationIdRef.current =
+        offeredApplication.applicationId;
+      setMatchingView('result');
+    } finally {
+      isOfferActionSubmittingRef.current = false;
+      setIsOfferActionSubmitting(false);
+    }
   };
 
   const handleRecommendationRefreshConfirm = async () => {
@@ -492,22 +684,24 @@ export default function StudentMatchingPage({
         aria-label="추천 근무지 목록"
         className="absolute top-[248px] right-6 left-6 flex flex-col gap-2.5"
       >
-        {recommendedJobs.map((job, index) => {
+        {recommendedJobs.map((job) => {
           const application = getWaitingApplicationForRecommendation(
             applications,
             job.jobPostingId,
           );
+          const isExpanded =
+            expandedRecommendationKey === getRecommendationKey(job);
           const showApplyButton =
-            index === recommendedJobs.length - 1 &&
-            job.showsApplyButton &&
-            application === undefined;
+            job.showsApplyButton && application === undefined;
 
           return (
             <RecommendedJobCard
               application={application}
+              isExpanded={isExpanded}
               job={job}
               key={job.id}
               onApply={handleApply}
+              onCardClick={handleCardClick}
               onDetailClick={handleDetailClick}
               showApplyButton={showApplyButton}
             />
@@ -525,6 +719,18 @@ export default function StudentMatchingPage({
         <RecommendationRefreshModal
           isSubmitting={isRecommendationRefreshing}
           onConfirm={handleRecommendationRefreshConfirm}
+        />
+      ) : null}
+      {matchingView === 'offer' && offeredJob && offeredApplication ? (
+        <MatchingOfferOverlay
+          isSubmitting={isOfferActionSubmitting}
+          job={offeredJob}
+          onAction={(action) => void handleOfferAction(action)}
+          onBack={() => {
+            dismissedOfferApplicationIdRef.current =
+              offeredApplication.applicationId;
+            setMatchingView('result');
+          }}
         />
       ) : null}
     </main>

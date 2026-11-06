@@ -8,6 +8,8 @@ export type StudentRecommendationWorkTime = {
 };
 
 export type StudentRecommendation = {
+  applicationId: number | null;
+  applicationStatus: 'WAITING_RESPONSE' | 'OFFERED' | null;
   recommendationId: number;
   jobPostingId: number;
   rank: number;

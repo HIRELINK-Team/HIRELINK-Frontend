@@ -12,7 +12,13 @@ export type StudentCareerUpdateMappingResult =
   | { status: 'invalid' };
 
 function normalizeMonth(value: string) {
-  return value.trim().replace('.', '-');
+  const digits = value.replace(/\D/g, '');
+
+  if (/^\d{6}$/.test(digits)) {
+    return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  }
+
+  return value.trim().replace(/[./]/g, '-');
 }
 
 function getCurrentMonth() {

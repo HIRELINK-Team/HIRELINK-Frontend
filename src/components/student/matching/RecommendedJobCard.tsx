@@ -6,8 +6,10 @@ import timerActiveIcon from '../../../assets/icons/student/matching/timer-active
 
 type RecommendedJobCardProps = {
   application?: Pick<StudentApplication, 'employerResponseDeadline' | 'status'>;
+  isExpanded?: boolean;
   job: RecommendedJob;
   onApply?: (job: RecommendedJob) => void;
+  onCardClick?: (job: RecommendedJob) => void;
   onDetailClick?: (job: RecommendedJob) => void;
   showApplyButton?: boolean;
 };
@@ -70,13 +72,27 @@ function ResponseDeadlineTimer({
 
 export function RecommendedJobCard({
   application,
+  isExpanded = false,
   job,
   onApply,
+  onCardClick,
   onDetailClick,
   showApplyButton = false,
 }: RecommendedJobCardProps) {
+  const applicationStatus = job.applicationStatus ?? application?.status;
+  const applicationStatusLabel =
+    applicationStatus === 'WAITING_RESPONSE'
+      ? '채용 제안 대기'
+      : applicationStatus === 'OFFERED'
+        ? '채용 수락 대기'
+        : null;
+
   const handleApply = () => {
     onApply?.(job);
+  };
+
+  const handleCardClick = () => {
+    onCardClick?.(job);
   };
 
   const handleDetailClick = () => {
@@ -85,42 +101,53 @@ export function RecommendedJobCard({
 
   return (
     <article
-      className={`relative overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1] bg-transparent ${
-        showApplyButton ? 'h-[236px]' : 'h-[164px]'
+      className={`relative cursor-pointer overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1] bg-transparent transition-[height] duration-200 ease-out ${
+        isExpanded ? 'h-[206px]' : 'h-[140px]'
       }`}
+      onClick={handleCardClick}
     >
-      <h2 className="absolute top-[21px] left-[23px] m-0 max-w-[190px] truncate text-[20px] leading-[1.5] font-semibold text-[#191F28]">
+      <h2 className="absolute top-[17px] left-[19px] m-0 max-w-[190px] truncate text-[18px] leading-[1.5] font-semibold text-[#191F28]">
         {job.companyName}
       </h2>
-      <p className="absolute top-[58px] left-[23px] max-w-[190px] truncate text-[15px] leading-[1.5] text-[#8B95A1]">
+      <p className="absolute top-[47px] left-[19px] max-w-[190px] truncate text-[13px] leading-[1.5] text-[#8B95A1]">
         {job.role}
       </p>
-      <p className="absolute top-[88px] left-[23px] max-w-[190px] truncate text-[15px] leading-[1.5] text-[#8B95A1]">
+      <p className="absolute top-[70px] left-[19px] max-w-[190px] truncate text-[13px] leading-[1.5] text-[#8B95A1]">
         {job.commuteAndWage}
       </p>
-      <p className="absolute top-[118px] left-[23px] max-w-[190px] truncate text-[15px] leading-[1.5] text-[#8B95A1]">
+      <p className="absolute top-[93px] left-[19px] max-w-[190px] truncate text-[13px] leading-[1.5] text-[#8B95A1]">
         {job.matchDescription}
       </p>
-      <span className="absolute top-[24px] right-[23px] text-[13px] leading-[1.5] font-medium text-[#8B95A1]">
+      <span className="absolute top-[20px] right-[19px] text-[13px] leading-[1.5] font-medium text-[#8B95A1]">
         {job.matchRate}% 일치
       </span>
-      <div className="absolute top-[45px] right-[23px] z-10 flex h-[30px] items-center justify-end">
+      <div className="absolute top-[39px] right-[19px] z-10 flex h-[30px] items-center justify-end">
         <ResponseDeadlineTimer application={application} />
       </div>
       <button
-        className="absolute top-[108px] right-[23px] h-[27px] rounded-[30px] border-0 bg-[#E5E8EB] px-[13px] text-[13px] leading-[1.5] text-[#191F28]"
+        aria-expanded={isExpanded}
+        className="absolute top-[99px] right-[19px] h-[25px] rounded-[30px] border-0 bg-[#E5E8EB] px-[11px] text-[12px] leading-[1.5] text-[#191F28]"
         type="button"
-        onClick={handleDetailClick}
+        onClick={(event) => {
+          event.stopPropagation();
+          handleDetailClick();
+        }}
       >
         상세보기
       </button>
-      {showApplyButton ? (
+
+      {isExpanded && (showApplyButton || applicationStatusLabel) ? (
         <button
-          className="absolute top-[162px] right-[23px] left-[23px] flex h-[51px] items-center justify-center rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5]"
+          className="absolute right-[19px] bottom-[16px] left-[19px] flex h-[42px] items-center justify-center rounded-[13px] border-0 bg-[#00B894] text-[16px] leading-[1.5] font-medium text-[#F5F5F5] disabled:cursor-default"
+          disabled={applicationStatusLabel !== null}
           type="button"
-          onClick={handleApply}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (applicationStatusLabel) return;
+            handleApply();
+          }}
         >
-          지원하기
+          {applicationStatusLabel ?? '지원하기'}
         </button>
       ) : null}
     </article>

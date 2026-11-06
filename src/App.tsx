@@ -35,6 +35,7 @@ import {
   withdrawStudentApplication,
 } from './api/student';
 import { getStudentJobPosting } from './api/jobPostings';
+import { getApiErrorResponse } from './api/errors';
 import {
   mapIndustrySelectionToUpdateRequest,
   mapPriorityOrderToUpdateRequest,
@@ -709,6 +710,10 @@ function StudentMatchingLayout() {
 
         if (isActive) {
           setRecommendations([]);
+          window.alert(
+            getApiErrorResponse(error)?.message ??
+              '추천 공고를 불러오지 못했어요. 다시 시도해 주세요.',
+          );
         }
       } finally {
         if (isActive) {
@@ -729,7 +734,11 @@ function StudentMatchingLayout() {
       await refreshStudentRecommendations();
       await loadRecommendations();
       return true;
-    } catch {
+    } catch (error) {
+      window.alert(
+        getApiErrorResponse(error)?.message ??
+          '추천 공고를 갱신하지 못했어요. 다시 시도해 주세요.',
+      );
       return false;
     }
   };
@@ -792,7 +801,11 @@ function StudentMatchingRoute() {
     <StudentMatchingPage
       isRecommendationsLoading={isRecommendationsLoading}
       onApplicationSubmit={async (job, desiredStartDate) => {
-        if (job.recommendationId === undefined) {
+        if (
+          job.recommendationId === undefined ||
+          job.applicationStatus === 'WAITING_RESPONSE' ||
+          job.applicationStatus === 'OFFERED'
+        ) {
           return 'recommendation-conflict';
         }
 
@@ -801,7 +814,11 @@ function StudentMatchingRoute() {
             recommendation.recommendationId === job.recommendationId,
         );
         const latestRecommendationId = latestRecommendation?.recommendationId;
-        if (latestRecommendationId === undefined) {
+        if (
+          latestRecommendationId === undefined ||
+          latestRecommendation?.applicationStatus === 'WAITING_RESPONSE' ||
+          latestRecommendation?.applicationStatus === 'OFFERED'
+        ) {
           await reloadRecommendations();
           navigate('/student/matching');
           return 'recommendation-conflict';
@@ -814,6 +831,12 @@ function StudentMatchingRoute() {
           });
         } catch (error) {
           if (axios.isAxiosError(error) && error.response?.status === 409) {
+            const apiError = getApiErrorResponse(error);
+            if (apiError?.code === 'APPLICATION_CAPACITY_EXCEEDED') {
+              window.alert(apiError.message);
+              return null;
+            }
+
             await reloadRecommendations();
             navigate('/student/matching');
             return 'recommendation-conflict';
@@ -824,6 +847,28 @@ function StudentMatchingRoute() {
         }
       }}
       onBack={() => navigate('/student/home')}
+      onOfferAction={async (offerId, action) => {
+        try {
+          if (action === 'accept') {
+            await acceptStudentEmploymentOffer(offerId);
+          } else {
+            await rejectStudentEmploymentOffer(offerId);
+          }
+
+          const [applicationsResponse] = await Promise.all([
+            getMyStudentApplications(),
+            getMyEmploymentMatches(),
+          ]);
+
+          return applicationsResponse.applications;
+        } catch (error) {
+          window.alert(
+            getApiErrorResponse(error)?.message ??
+              `채용 제안 ${action === 'accept' ? '수락' : '거절'}에 실패했어요. 다시 시도해 주세요.`,
+          );
+          return null;
+        }
+      }}
       onRecommendationDetailRequest={async (job) => {
         if (job.recommendationId === undefined) return null;
 
@@ -845,6 +890,11 @@ function StudentMatchingRoute() {
           if (axios.isAxiosError(error) && error.response?.status === 409) {
             await refreshRecommendations();
             navigate('/student/matching');
+          } else {
+            window.alert(
+              getApiErrorResponse(error)?.message ??
+                '추천 공고 상세를 불러오지 못했어요. 다시 시도해 주세요.',
+            );
           }
 
           return null;
@@ -921,7 +971,11 @@ function StudentApplicationsLayout() {
       await withdrawStudentApplication(application.applicationId);
       await refreshApplications();
       return true;
-    } catch {
+    } catch (error) {
+      window.alert(
+        getApiErrorResponse(error)?.message ??
+          '지원 취소에 실패했어요. 다시 시도해 주세요.',
+      );
       return false;
     }
   };
@@ -930,7 +984,11 @@ function StudentApplicationsLayout() {
     try {
       await acceptStudentEmploymentOffer(offerId);
       return await refreshApplications();
-    } catch {
+    } catch (error) {
+      window.alert(
+        getApiErrorResponse(error)?.message ??
+          '채용 제안 수락에 실패했어요. 다시 시도해 주세요.',
+      );
       return null;
     }
   };
@@ -939,7 +997,11 @@ function StudentApplicationsLayout() {
     try {
       await rejectStudentEmploymentOffer(offerId);
       return await refreshApplications();
-    } catch {
+    } catch (error) {
+      window.alert(
+        getApiErrorResponse(error)?.message ??
+          '채용 제안 거절에 실패했어요. 다시 시도해 주세요.',
+      );
       return null;
     }
   };
@@ -995,19 +1057,7 @@ function StudentApplicationsRoute() {
 
         return (await declineOffer(application.offerId)) !== null;
       }}
-      onDetailClick={(application) => {
-        if (application.status === 'HIRED') {
-          if (
-            application.matchId !== null &&
-            application.matchId !== undefined
-          ) {
-            navigate(`hiring-complete/${application.matchId}`);
-          }
-          return;
-        }
-
-        navigate(application.id);
-      }}
+      onDetailClick={(application) => navigate(application.id)}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
     />
   );
@@ -1056,8 +1106,16 @@ function StudentApplicationDetailRoute() {
         setApplication(mappedApplication);
         syncApplicationDetail(mappedApplication);
       })
-      .catch(() => {
-        if (isActive) setApplication(null);
+      .catch((error) => {
+        if (!isActive) return;
+
+        setApplication(null);
+        if (!axios.isAxiosError(error) || error.response?.status !== 404) {
+          window.alert(
+            getApiErrorResponse(error)?.message ??
+              '지원 상세를 불러오지 못했어요. 다시 시도해 주세요.',
+          );
+        }
       })
       .finally(() => {
         if (isActive) {
@@ -1275,7 +1333,9 @@ function StudentMyRoute() {
       isBottomNavigationFixed
       onMenuClick={handleMenuClick}
       onMatchingClick={() => navigate('/student/matching')}
+      onNotificationClick={() => navigate('/student/my/notifications')}
       onProfileEditClick={() => navigate('/student/my/profile')}
+      onSettingsClick={() => navigate('/student/my/notifications')}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
       studentProfile={studentProfile}
     />
@@ -1499,7 +1559,10 @@ function StudentProfileLayout() {
           isProfileUnavailable,
           profileValues,
           saveProfile: async (view, values) => {
-            if (!studentProfile) return false;
+            if (!studentProfile) {
+              window.alert('프로필 정보를 불러온 뒤 다시 시도해 주세요.');
+              return false;
+            }
 
             const mappingResult = mapStudentProfileValuesToUpdateRequest(
               view,
@@ -1507,7 +1570,10 @@ function StudentProfileLayout() {
               studentProfile,
             );
 
-            if (mappingResult.status === 'invalid') return false;
+            if (mappingResult.status === 'invalid') {
+              window.alert('입력한 프로필 정보를 다시 확인해 주세요.');
+              return false;
+            }
             if (mappingResult.status === 'unchanged') return true;
 
             try {
@@ -1515,7 +1581,10 @@ function StudentProfileLayout() {
                 mappingResult.requestBody,
               );
 
-              if (!isStudentProfileUpdateResponse(updatedProfile)) return false;
+              if (!isStudentProfileUpdateResponse(updatedProfile)) {
+                window.alert('프로필 수정 결과를 확인하지 못했어요. 다시 시도해 주세요.');
+                return false;
+              }
 
               const mergedProfile = { ...studentProfile, ...updatedProfile };
 
@@ -1525,7 +1594,11 @@ function StudentProfileLayout() {
               );
 
               return true;
-            } catch {
+            } catch (error) {
+              window.alert(
+                getApiErrorResponse(error)?.message ??
+                  '프로필 수정에 실패했어요. 다시 시도해 주세요.',
+              );
               return false;
             }
           },
