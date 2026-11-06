@@ -234,7 +234,7 @@ export function StudentApplicationCard({
         {application.job.matchDescription}
       </p>
       <button
-        className={`absolute top-[109px] right-[23px] flex h-[27px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13.636px] text-[13px] leading-[1.5] text-[#191F28] ${
+        className={`absolute top-[109px] right-[23px] flex h-[27px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13.636px] text-[13px] leading-[1.5] whitespace-nowrap text-[#191F28] ${
           isGeneralLayout ? 'w-[72.273px]' : ''
         }`}
         type="button"
