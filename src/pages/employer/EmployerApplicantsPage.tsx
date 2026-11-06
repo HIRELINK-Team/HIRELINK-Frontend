@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SelectField from '../../components/common/SelectField';
 import Toast from '../../components/common/Toast';
@@ -29,6 +29,8 @@ const FILTER_STATUS: Partial<
   OFFER_WAITING: 'OFFERED',
   HIRED: 'COMPLETED',
 };
+
+const APPLICATION_POLL_INTERVAL_MS = 7000;
 
 interface PendingAction {
   type: ApplicantAction;
@@ -101,6 +103,9 @@ function EmployerApplicantsPage() {
   );
   const [isConfirmingAction, setIsConfirmingAction] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const isApplicantMutationPending =
+    isConfirmingAction || mutatingApplicationIds.length > 0;
+  const isApplicantMutationPendingRef = useRef(isApplicantMutationPending);
 
   const selectableJobs = useMemo(
     () => jobs.filter((job) => job.status !== 'DRAFT'),
@@ -138,17 +143,61 @@ function EmployerApplicantsPage() {
   }, [jobId, loadJobs, navigate]);
 
   useEffect(() => {
+    isApplicantMutationPendingRef.current = isApplicantMutationPending;
+  }, [isApplicantMutationPending]);
+
+  useEffect(() => {
     if (selectedJobId === null) return;
+
     let isActive = true;
-    loadApplicationList(selectedJobId)
-      .then(() => {
-        if (isActive) setLoadError(null);
-      })
-      .catch((error: unknown) => {
-        if (isActive) setLoadError(getApplicationErrorMessage(error));
-      });
+    let isRequestPending = false;
+
+    const refetchApplicationList = () => {
+      if (
+        !isActive ||
+        isRequestPending ||
+        isApplicantMutationPendingRef.current ||
+        document.visibilityState !== 'visible'
+      ) {
+        return;
+      }
+
+      isRequestPending = true;
+      void loadApplicationList(selectedJobId, true)
+        .then(() => {
+          if (isActive) setLoadError(null);
+        })
+        .catch((error: unknown) => {
+          if (isActive) setLoadError(getApplicationErrorMessage(error));
+        })
+        .finally(() => {
+          isRequestPending = false;
+        });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refetchApplicationList();
+      }
+    };
+
+    const handleWindowFocus = () => {
+      refetchApplicationList();
+    };
+
+    refetchApplicationList();
+    const intervalId = window.setInterval(
+      refetchApplicationList,
+      APPLICATION_POLL_INTERVAL_MS,
+    );
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleWindowFocus);
+
     return () => {
       isActive = false;
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleWindowFocus);
     };
   }, [loadApplicationList, selectedJobId]);
 
