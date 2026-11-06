@@ -19,6 +19,7 @@ import type {
   RecommendedJob,
   StudentMatchingView,
 } from '../../types/studentMatching';
+import type { StudentProfileResponse } from '../../types/studentProfile';
 
 const MAX_RECOMMENDED_JOBS = 3;
 
@@ -82,6 +83,7 @@ type StudentMatchingPageProps = {
     job: RecommendedJob,
   ) => void;
   recommendations?: readonly RecommendedJob[];
+  studentProfile?: StudentProfileResponse | null;
 };
 
 export default function StudentMatchingPage({
@@ -97,6 +99,7 @@ export default function StudentMatchingPage({
   onTabChange,
   onViewChange,
   recommendations = [],
+  studentProfile = null,
 }: StudentMatchingPageProps) {
   const [matchingView, setMatchingView] =
     useState<StudentMatchingView>(initialView);
@@ -390,6 +393,7 @@ export default function StudentMatchingPage({
       <ApplicationConfirmationStep
         isSubmitting={isApplicationSubmitting}
         job={selectedJob}
+        studentProfile={studentProfile}
         workStartDate={workStartDate}
         onBack={handleConfirmationBack}
         onConfirm={handleApplicationConfirmation}

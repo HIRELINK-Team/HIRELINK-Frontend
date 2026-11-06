@@ -742,12 +742,34 @@ function StudentMatchingLayout() {
 
 function StudentMatchingRoute() {
   const navigate = useNavigate();
+  const [studentProfile, setStudentProfile] =
+    useState<StudentProfileResponse | null>(null);
   const {
     isRecommendationsLoading,
     recommendations,
     refreshRecommendations,
     reloadRecommendations,
   } = useOutletContext<StudentMatchingRouteContext>();
+
+  useEffect(() => {
+    let isActive = true;
+
+    void getStudentProfile()
+      .then((profile) => {
+        if (isActive && isStudentProfileResponse(profile)) {
+          setStudentProfile(profile);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setStudentProfile(null);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   return (
     <StudentMatchingPage
@@ -814,6 +836,7 @@ function StudentMatchingRoute() {
       onRecommendationRefresh={refreshRecommendations}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
       recommendations={recommendations}
+      studentProfile={studentProfile}
     />
   );
 }
@@ -1372,6 +1395,28 @@ function StudentDocumentFlowRoute({
 
 function StudentWorkConditionRoute() {
   const navigate = useNavigate();
+  const [studentProfile, setStudentProfile] =
+    useState<StudentProfileResponse | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void getStudentProfile()
+      .then((profile) => {
+        if (isActive && isStudentProfileResponse(profile)) {
+          setStudentProfile(profile);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setStudentProfile(null);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   return (
     <StudentWorkConditionPage
@@ -1384,6 +1429,7 @@ function StudentWorkConditionRoute() {
         navigate('/student/my/matching-condition/work-time')
       }
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
+      studentProfile={studentProfile}
     />
   );
 }

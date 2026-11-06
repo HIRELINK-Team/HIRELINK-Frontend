@@ -1,12 +1,17 @@
+import { useState } from 'react';
+
 import backIcon from '../../../assets/icons/student/matching/back.svg';
 import checklistImage from '../../../assets/images/student/matching/application-checklist.png';
 import experienceImage from '../../../assets/images/student/matching/application-experience.png';
 import profileImage from '../../../assets/images/student/matching/application-profile.png';
+import { mapStudentProfileResponseToValues } from '../../../adapters/studentProfile';
 import type { RecommendedJob } from '../../../types/studentMatching';
+import type { StudentProfileResponse } from '../../../types/studentProfile';
 
 type ApplicationConfirmationStepProps = {
   isSubmitting?: boolean;
   job: RecommendedJob;
+  studentProfile?: StudentProfileResponse | null;
   workStartDate: string;
   onBack: () => void;
   onConfirm: () => void;
@@ -20,6 +25,22 @@ type InformationCardProps = {
 
 function formatWorkStartDate(date: string) {
   return date.replaceAll('-', '.');
+}
+
+function getAge(birthDate: string, today: Date) {
+  const birthDateValue = new Date(`${birthDate}T00:00:00`);
+
+  if (Number.isNaN(birthDateValue.getTime())) return null;
+
+  let age = today.getFullYear() - birthDateValue.getFullYear();
+  const hasNotHadBirthdayThisYear =
+    today.getMonth() < birthDateValue.getMonth() ||
+    (today.getMonth() === birthDateValue.getMonth() &&
+      today.getDate() < birthDateValue.getDate());
+
+  if (hasNotHadBirthdayThisYear) age -= 1;
+
+  return age;
 }
 
 function InformationCard({ description, image, title }: InformationCardProps) {
@@ -44,10 +65,26 @@ function InformationCard({ description, image, title }: InformationCardProps) {
 export function ApplicationConfirmationStep({
   isSubmitting = false,
   job,
+  studentProfile = null,
   workStartDate,
   onBack,
   onConfirm,
 }: ApplicationConfirmationStepProps) {
+  const [today] = useState(() => new Date());
+  const profileValues = studentProfile
+    ? mapStudentProfileResponseToValues(studentProfile)
+    : undefined;
+  const age = studentProfile ? getAge(studentProfile.birthDate, today) : null;
+  const profileSummary = [
+    profileValues?.basic?.[2],
+    age === null ? undefined : `${age}세`,
+    profileValues?.residence?.[0],
+    profileValues?.language?.[0],
+    profileValues?.academic?.[2],
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(' | ');
+
   return (
     <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
@@ -65,10 +102,10 @@ export function ApplicationConfirmationStep({
 
       <section className="absolute top-[clamp(126px,20.6dvh,174px)] right-6 left-6 h-[clamp(108px,15.6dvh,132px)] rounded-[20px] border-[0.7px] border-[#B0B8C1] text-left">
         <h2 className="absolute top-[20px] left-[23px] m-0 text-left text-[20px] leading-[1.5] font-semibold">
-          김숭실
+          {studentProfile?.name ?? '이름 미등록'}
         </h2>
         <p className="absolute top-[52px] left-[23px] m-0 text-left text-[15px] leading-[1.5] text-[#8B95A1]">
-          베트남 | 22세 | D-2 (유학) | TOPIK 4급 | 학기 중
+          {profileSummary || '프로필 정보를 불러오지 못했어요.'}
         </p>
         <p className="absolute top-[79px] left-[23px] m-0 text-left text-[15px] leading-[1.5] text-[#8B95A1]">
           {job.companyName} | {formatWorkStartDate(workStartDate)}부터
