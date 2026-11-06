@@ -7,6 +7,7 @@ import { RecommendedJobDetail } from '../../components/student/matching/Recommen
 import { RecommendedJobCard } from '../../components/student/matching/RecommendedJobCard';
 import { ApplicationConfirmationStep } from '../../components/student/matching/ApplicationConfirmationStep';
 import { ApplicationCompleteStep } from '../../components/student/matching/ApplicationCompleteStep';
+import { MatchingOfferOverlay } from '../../components/student/matching/MatchingOfferOverlay';
 import { RecommendationRefreshModal } from '../../components/student/matching/RecommendationRefreshModal';
 import { WorkStartDateStep } from '../../components/student/matching/WorkStartDateStep';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
@@ -32,8 +33,35 @@ type ApplicationSubmissionResult =
 
 type RecommendationApplication = Pick<
   StudentApplication,
-  'applicationId' | 'employerResponseDeadline' | 'jobPostingId' | 'status'
->;
+  | 'applicationId'
+  | 'employerResponseDeadline'
+  | 'jobPostingId'
+  | 'status'
+> &
+  Partial<
+    Pick<
+      StudentApplication,
+      | 'jobTitle'
+      | 'workplaceName'
+      | 'wageType'
+      | 'wageAmount'
+      | 'recommendationReasons'
+      | 'offerId'
+      | 'offerStatus'
+    >
+  >;
+
+type PendingOfferApplication = RecommendationApplication &
+  Pick<
+    StudentApplication,
+    | 'jobTitle'
+    | 'workplaceName'
+    | 'wageType'
+    | 'wageAmount'
+    | 'recommendationReasons'
+    | 'offerId'
+    | 'offerStatus'
+  >;
 
 function getJobPostingIdKey(jobPostingId: string | number | undefined) {
   return jobPostingId === undefined ? null : String(jobPostingId);
@@ -100,6 +128,50 @@ function getWaitingApplicationForRecommendation(
     }, undefined);
 }
 
+function isPendingOfferApplication(
+  application: RecommendationApplication,
+): application is PendingOfferApplication {
+  return (
+    application.status === 'OFFERED' &&
+    application.offerStatus === 'PENDING' &&
+    application.offerId !== null &&
+    application.offerId !== undefined &&
+    typeof application.jobTitle === 'string' &&
+    typeof application.workplaceName === 'string' &&
+    application.wageType !== undefined &&
+    typeof application.wageAmount === 'number' &&
+    Array.isArray(application.recommendationReasons)
+  );
+}
+
+function mapOfferApplicationToRecommendedJob(
+  application: PendingOfferApplication,
+): RecommendedJob {
+  const wageLabel = `${application.wageType === 'HOURLY' ? '시급' : '월급'} ${application.wageAmount.toLocaleString('ko-KR')}원`;
+
+  return {
+    applicationId: application.applicationId,
+    applicationStatus: 'OFFERED',
+    countdownLabel: '',
+    commuteAndWage: wageLabel,
+    companyName: application.workplaceName,
+    detail: {
+      comparisonTags: application.recommendationReasons,
+      locationAndDistance: '',
+      matchRate: 0,
+      metrics: [{ label: '급여', value: wageLabel }],
+      tags: [],
+    },
+    id: `offer:${application.applicationId}`,
+    isCountdownActive: false,
+    jobPostingId: application.jobPostingId,
+    matchDescription: application.recommendationReasons.join(' · '),
+    matchRate: 0,
+    role: `직무 | ${application.jobTitle}`,
+    showsApplyButton: false,
+  };
+}
+
 type StudentMatchingPageProps = {
   isBottomNavigationFixed?: boolean;
   initialRefreshPopupOpen?: boolean;
@@ -114,6 +186,10 @@ type StudentMatchingPageProps = {
     job: RecommendedJob,
     desiredStartDate: string,
   ) => Promise<ApplicationSubmissionResult>;
+  onOfferAction?: (
+    offerId: number,
+    action: 'accept' | 'decline',
+  ) => Promise<StudentApplication[] | null>;
   onRecommendationRefresh?: () => Promise<boolean>;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onViewChange?: (
@@ -132,6 +208,7 @@ export default function StudentMatchingPage({
   isRecommendationsLoading = false,
   onBack,
   onApplicationSubmit,
+  onOfferAction,
   onRecommendationDetailRequest,
   onRecommendationRefresh,
   onTabChange,
@@ -157,6 +234,9 @@ export default function StudentMatchingPage({
   const [isApplicationSubmitting, setIsApplicationSubmitting] = useState(false);
   const [isRecommendationRefreshing, setIsRecommendationRefreshing] =
     useState(false);
+  const [isOfferActionSubmitting, setIsOfferActionSubmitting] = useState(false);
+  const [dismissedOfferApplicationId, setDismissedOfferApplicationId] =
+    useState<number | null>(null);
   const [applications, setApplications] = useState<RecommendationApplication[]>(
     [],
   );
@@ -173,6 +253,10 @@ export default function StudentMatchingPage({
       return !dismissedRecommendationIds.includes(dismissalKey);
     })
     .slice(0, MAX_RECOMMENDED_JOBS);
+  const offeredApplication = applications.find(isPendingOfferApplication);
+  const offeredJob = offeredApplication
+    ? mapOfferApplicationToRecommendedJob(offeredApplication)
+    : null;
 
   useEffect(() => {
     selectedJobRef.current = selectedJob;
@@ -211,6 +295,16 @@ export default function StudentMatchingPage({
       try {
         const response = await getMyStudentApplications();
         if (isActive) {
+          const pendingOffer = response.applications.find(
+            isPendingOfferApplication,
+          );
+          if (
+            pendingOffer &&
+            pendingOffer.applicationId !== dismissedOfferApplicationId
+          ) {
+            setMatchingView('offer');
+          }
+
           setApplications((currentApplications) => {
             const serverApplicationIds = new Set(
               response.applications.map(
@@ -247,7 +341,7 @@ export default function StudentMatchingPage({
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [dismissedOfferApplicationId]);
 
   const handleBack = () => {
     onBack?.();
@@ -412,6 +506,33 @@ export default function StudentMatchingPage({
     onTabChange?.('home');
   };
 
+  const handleOfferAction = async (action: 'accept' | 'decline') => {
+    if (
+      !offeredApplication ||
+      offeredApplication.offerId === null ||
+      offeredApplication.offerId === undefined ||
+      isOfferActionSubmitting
+    ) {
+      return;
+    }
+
+    setIsOfferActionSubmitting(true);
+
+    try {
+      const nextApplications = onOfferAction
+        ? await onOfferAction(offeredApplication.offerId, action)
+        : null;
+
+      if (!nextApplications) return;
+
+      setApplications(nextApplications);
+      setDismissedOfferApplicationId(offeredApplication.applicationId);
+      setMatchingView('result');
+    } finally {
+      setIsOfferActionSubmitting(false);
+    }
+  };
+
   const handleRecommendationRefreshConfirm = async () => {
     if (isRecommendationRefreshing) return;
 
@@ -566,6 +687,17 @@ export default function StudentMatchingPage({
         <RecommendationRefreshModal
           isSubmitting={isRecommendationRefreshing}
           onConfirm={handleRecommendationRefreshConfirm}
+        />
+      ) : null}
+      {matchingView === 'offer' && offeredJob && offeredApplication ? (
+        <MatchingOfferOverlay
+          isSubmitting={isOfferActionSubmitting}
+          job={offeredJob}
+          onAction={(action) => void handleOfferAction(action)}
+          onBack={() => {
+            setDismissedOfferApplicationId(offeredApplication.applicationId);
+            setMatchingView('result');
+          }}
         />
       ) : null}
     </main>

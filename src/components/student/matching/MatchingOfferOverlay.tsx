@@ -6,6 +6,7 @@ import type {
 } from '../../../types/studentMatching';
 
 type MatchingOfferOverlayProps = {
+  isSubmitting?: boolean;
   job: RecommendedJob;
   onAction: (action: StudentOfferAction) => void;
   onBack: () => void;
@@ -13,6 +14,7 @@ type MatchingOfferOverlayProps = {
 
 /** Offer-state overlay presented above the student matching result list. */
 export function MatchingOfferOverlay({
+  isSubmitting = false,
   job,
   onAction,
   onBack,
@@ -31,7 +33,7 @@ export function MatchingOfferOverlay({
         <img alt="" src={offerBackIcon} />
       </button>
 
-      <h1 className="absolute top-[112px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
+      <h1 className="absolute top-[118px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
         채용 제안이 도착했어요!
       </h1>
 
@@ -51,16 +53,17 @@ export function MatchingOfferOverlay({
 
       <div className="absolute top-[535px] right-6 left-6 text-center">
         <p className="m-0 text-[20px] leading-[1.5] font-semibold">
-          메가커피가 함께 일하고 싶대요.
+          {job.companyName}가 함께 일하고 싶대요.
         </p>
         <p className="mt-[7px] mb-0 text-[13px] leading-[1.5]">
-          수락 후에도 다른 지원은 그대로 유지돼요.
+          수락하면 다른 활성 지원은 자동으로 종료돼요.
         </p>
       </div>
 
       <div className="absolute top-[615px] right-[26px] left-[26px] grid h-[64px] grid-cols-[1.675fr_1fr] gap-[9px]">
         <button
           className="rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium"
+          disabled={isSubmitting}
           type="button"
           onClick={() => onAction('accept')}
         >
@@ -68,6 +71,7 @@ export function MatchingOfferOverlay({
         </button>
         <button
           className="rounded-[15px] border-0 bg-white/15 text-[20px] leading-[1.5] font-medium"
+          disabled={isSubmitting}
           type="button"
           onClick={() => onAction('decline')}
         >
