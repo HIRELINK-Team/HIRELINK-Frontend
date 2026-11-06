@@ -256,7 +256,7 @@ export function StudentApplicationCard({
       <h2 className="m-0 max-w-[190px] truncate text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
         {application.job.companyName}
       </h2>
-      <div className="absolute top-[27px] right-[23px] flex items-center gap-[7px]">
+      <div className="absolute top-[26px] right-[23px] flex items-center gap-[7px]">
         <span
           aria-hidden="true"
           className="h-2 w-2 rounded-full"
@@ -270,17 +270,17 @@ export function StudentApplicationCard({
         </span>
       </div>
 
-      <p className="mt-[10px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
+      <p className="mt-[7px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.role}
       </p>
-      <p className="mt-[6px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
+      <p className="mt-[7.5px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.commuteAndWage}
       </p>
-      <p className="mt-[6px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
+      <p className="mt-[7.5px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
         {application.job.matchDescription}
       </p>
       <button
-        className={`absolute top-[109px] right-[23px] flex h-[27px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13.636px] text-[13px] leading-[1.5] whitespace-nowrap text-[#191F28] ${
+        className={`absolute top-[108px] right-[23px] flex h-[27px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13.636px] text-[13px] leading-[1.5] whitespace-nowrap text-[#191F28] ${
           isGeneralLayout ? 'w-[72.273px]' : ''
         }`}
         type="button"
