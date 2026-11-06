@@ -792,7 +792,7 @@ function StudentMatchingRoute() {
     <StudentMatchingPage
       isRecommendationsLoading={isRecommendationsLoading}
       onApplicationSubmit={async (job, desiredStartDate) => {
-        if (job.recommendationId === undefined) {
+        if (job.jobPostingId === undefined || job.applicationStatus !== null) {
           return 'recommendation-conflict';
         }
 
@@ -800,8 +800,11 @@ function StudentMatchingRoute() {
           (recommendation) =>
             recommendation.recommendationId === job.recommendationId,
         );
-        const latestRecommendationId = latestRecommendation?.recommendationId;
-        if (latestRecommendationId === undefined) {
+        const latestJobPostingId = latestRecommendation?.jobPostingId;
+        if (
+          latestJobPostingId === undefined ||
+          latestRecommendation?.applicationStatus !== null
+        ) {
           await reloadRecommendations();
           navigate('/student/matching');
           return 'recommendation-conflict';
@@ -810,7 +813,7 @@ function StudentMatchingRoute() {
         try {
           return await createStudentApplication({
             desiredStartDate,
-            recommendationId: latestRecommendationId,
+            jobPostingId: latestJobPostingId,
           });
         } catch (error) {
           if (axios.isAxiosError(error) && error.response?.status === 409) {

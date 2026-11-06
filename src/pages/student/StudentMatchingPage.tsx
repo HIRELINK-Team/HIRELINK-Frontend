@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { getMyStudentApplications } from '../../api/student/applications';
 import backIcon from '../../assets/icons/student/matching/back.svg';
@@ -32,7 +32,7 @@ type ApplicationSubmissionResult =
 
 type RecommendationApplication = Pick<
   StudentApplication,
-  'employerResponseDeadline' | 'jobPostingId' | 'status'
+  'applicationId' | 'employerResponseDeadline' | 'jobPostingId' | 'status'
 >;
 
 function getJobPostingIdKey(jobPostingId: string | number | undefined) {
@@ -165,6 +165,7 @@ export default function StudentMatchingPage({
   >(getStoredDismissedRecommendationKeys);
   const selectedJobRef = useRef<RecommendedJob | null>(initialSelectedJob);
   const latestRecommendationIdsRef = useRef<Set<number>>(new Set());
+  const pendingApplicationIdsRef = useRef<Set<number>>(new Set());
   const recommendedJobs = recommendations
     .filter((job) => {
       const dismissalKey = getRecommendationDismissalKey(job);
@@ -203,15 +204,6 @@ export default function StudentMatchingPage({
     setSelectedJob(latestSelectedJob);
   }, [recommendations]);
 
-  const refreshApplications = useCallback(async () => {
-    try {
-      const response = await getMyStudentApplications();
-      setApplications(response.applications);
-    } catch {
-      setApplications([]);
-    }
-  }, []);
-
   useEffect(() => {
     let isActive = true;
 
@@ -219,11 +211,33 @@ export default function StudentMatchingPage({
       try {
         const response = await getMyStudentApplications();
         if (isActive) {
-          setApplications(response.applications);
+          setApplications((currentApplications) => {
+            const serverApplicationIds = new Set(
+              response.applications.map(
+                (application) => application.applicationId,
+              ),
+            );
+            serverApplicationIds.forEach((applicationId) => {
+              pendingApplicationIdsRef.current.delete(applicationId);
+            });
+
+            const pendingApplications = currentApplications.filter(
+              (application) =>
+                pendingApplicationIdsRef.current.has(
+                  application.applicationId,
+                ) && !serverApplicationIds.has(application.applicationId),
+            );
+
+            return [...response.applications, ...pendingApplications];
+          });
         }
       } catch {
         if (isActive) {
-          setApplications([]);
+          setApplications((currentApplications) =>
+            currentApplications.filter((application) =>
+              pendingApplicationIdsRef.current.has(application.applicationId),
+            ),
+          );
         }
       }
     };
@@ -358,6 +372,13 @@ export default function StudentMatchingPage({
       }
 
       if (createdApplication) {
+        pendingApplicationIdsRef.current.add(createdApplication.applicationId);
+        setSelectedJob({
+          ...latestSelectedJob,
+          applicationId: createdApplication.applicationId,
+          applicationStatus: createdApplication.status,
+          showsApplyButton: false,
+        });
         setApplications((currentApplications) => [
           createdApplication,
           ...currentApplications.filter(
@@ -366,7 +387,6 @@ export default function StudentMatchingPage({
               getJobPostingIdKey(createdApplication.jobPostingId),
           ),
         ]);
-        void refreshApplications();
         setMatchingView('complete');
         onViewChange?.('complete', latestSelectedJob);
       }

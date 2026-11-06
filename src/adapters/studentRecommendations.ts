@@ -25,6 +25,8 @@ export function mapStudentRecommendationToRecommendedJob(
   const wageLabel = formatWage(recommendation);
 
   return {
+    applicationId: recommendation.applicationId,
+    applicationStatus: recommendation.applicationStatus,
     countdownLabel: '',
     commuteAndWage: `${recommendation.workplaceAddress} · ${wageLabel}`,
     companyName: recommendation.workplaceName,
@@ -49,6 +51,6 @@ export function mapStudentRecommendationToRecommendedJob(
     rank: recommendation.rank,
     recommendationId: recommendation.recommendationId,
     role: `직무 | ${recommendation.jobTitle}`,
-    showsApplyButton: true,
+    showsApplyButton: recommendation.applicationStatus === null,
   };
 }
