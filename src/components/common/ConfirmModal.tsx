@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
 interface ConfirmModalProps {
   title: string;
@@ -7,6 +7,8 @@ interface ConfirmModalProps {
   confirmLabel: string;
   onCancel: () => void;
   onConfirm: () => void;
+  isCancelDisabled?: boolean;
+  isConfirmDisabled?: boolean;
 }
 
 function ConfirmModal({
@@ -16,6 +18,8 @@ function ConfirmModal({
   confirmLabel,
   onCancel,
   onConfirm,
+  isCancelDisabled = false,
+  isConfirmDisabled = false,
 }: ConfirmModalProps) {
   return (
     <div
@@ -33,13 +37,14 @@ function ConfirmModal({
         </h2>
         {children}
         <div
-          className={`mt-6 grid gap-3 ${cancelLabel ? "grid-cols-2" : "grid-cols-1"}`}
+          className={`mt-6 grid gap-3 ${cancelLabel ? 'grid-cols-2' : 'grid-cols-1'}`}
         >
           {cancelLabel && (
             <button
               type="button"
               onClick={onCancel}
-              className="flex h-12 cursor-pointer items-center justify-center rounded-xl border border-[rgba(112,115,124,0.32)] bg-white px-6 text-lg font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed]"
+              disabled={isCancelDisabled}
+              className="flex h-12 cursor-pointer items-center justify-center rounded-xl border border-[rgba(112,115,124,0.32)] bg-white px-6 text-lg font-medium text-[#171719] transition-colors hover:bg-[#f4f4f5] active:bg-[#e8eaed] disabled:cursor-not-allowed disabled:text-[#8b95a1]"
             >
               {cancelLabel}
             </button>
@@ -47,7 +52,8 @@ function ConfirmModal({
           <button
             type="button"
             onClick={onConfirm}
-            className="flex h-12 cursor-pointer items-center justify-center rounded-xl bg-[#00b894] px-6 text-lg font-semibold text-white transition-colors hover:bg-[#00a886] active:bg-[#00997a]"
+            disabled={isConfirmDisabled}
+            className="flex h-12 cursor-pointer items-center justify-center rounded-xl bg-[#00b894] px-6 text-lg font-semibold text-white transition-colors hover:bg-[#00a886] active:bg-[#00997a] disabled:cursor-not-allowed disabled:bg-[#c7cbd1]"
           >
             {confirmLabel}
           </button>

@@ -1,15 +1,20 @@
-import type { WeeklySchedule } from "./workSchedule";
-import type { EmployerIndustryCode } from "./employerProfile";
+import type {
+  JobPostingWageType,
+  PreferredExperience,
+  RequiredKoreanLevel,
+} from './jobPosting';
+import type { WeeklySchedule } from './workSchedule';
+import type { EmployerIndustryCode } from './employerProfile';
 
-export type SalaryType = "HOURLY" | "MONTHLY";
+export type SalaryType = JobPostingWageType;
 
-export type IndustryCode = "" | EmployerIndustryCode;
+export type IndustryCode = '' | EmployerIndustryCode;
 
-export type KoreanLevelCode =
-  "" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "NO_PREFERENCE";
+export type KoreanLevelCode = '' | RequiredKoreanLevel;
+export type PreferredExperienceCode = '' | PreferredExperience;
 
-/** 백엔드 명세 확정 전 공고 작성 화면에서만 사용하는 프론트엔드 타입입니다. */
 export interface JobFormValues {
+  workplaceId: number | null;
   jobTitle: string;
   workplace: string;
   industry: IndustryCode;
@@ -18,7 +23,7 @@ export interface JobFormValues {
   salaryType: SalaryType;
   startDate: string;
   koreanLevel: KoreanLevelCode;
-  preferredExperience: string;
+  preferredExperience: PreferredExperienceCode;
   deadline: string;
   schedule: WeeklySchedule;
   isScheduleNegotiable: boolean;

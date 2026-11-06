@@ -1,8 +1,20 @@
 import apiClient from './client';
 import type {
+  CreateEmployerProfileRequest,
+  CreateEmployerProfileResponse,
   EmployerProfileResponse,
   UpdateEmployerProfileRequest,
 } from '../types/employerProfile';
+
+async function createEmployerProfile(
+  request: CreateEmployerProfileRequest,
+): Promise<CreateEmployerProfileResponse> {
+  const { data } = await apiClient.post<CreateEmployerProfileResponse>(
+    '/employers/me/profile',
+    request,
+  );
+  return data;
+}
 
 async function getEmployerProfile(): Promise<EmployerProfileResponse> {
   const { data } = await apiClient.get<EmployerProfileResponse>(
@@ -23,4 +35,4 @@ async function updateEmployerProfile(
   return data;
 }
 
-export { getEmployerProfile, updateEmployerProfile };
+export { createEmployerProfile, getEmployerProfile, updateEmployerProfile };

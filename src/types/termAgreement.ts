@@ -23,3 +23,26 @@ export type TermAgreementResponseItem = TermAgreementRequestItem & {
 export type TermAgreementsResponse = {
   agreements: TermAgreementResponseItem[];
 };
+
+/**
+ * Employer onboarding compatibility types.
+ * The backend endpoint accepts numeric term type IDs.
+ */
+export interface TermAgreementItem {
+  termTypeId: number;
+  isAgreed: boolean;
+}
+
+export interface UpdateTermAgreementsRequest {
+  agreements: TermAgreementItem[];
+}
+
+export interface UpdateTermAgreementResponseItem {
+  termTypeId: number;
+  isAgreed: boolean;
+  agreedAt: string | null;
+}
+
+export interface UpdateTermAgreementsResponse {
+  agreements: UpdateTermAgreementResponseItem[];
+}

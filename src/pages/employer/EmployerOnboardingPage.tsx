@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SelectField from '../../components/common/SelectField';
 import EmployerAddressSearchModal from '../../components/employer/EmployerAddressSearchModal';
 import hirelinkLogo from '../../assets/hirelink-logo.svg';
+import { requestPhoneVerification, verifyPhone } from '../../api/auth';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
+import { updateTermAgreements } from '../../api/termAgreements';
 import {
   createWorkplace,
   extractBusinessRegistration,
@@ -14,7 +16,6 @@ import {
   EMPLOYEE_COUNT_OPTIONS,
   EMPLOYEE_COUNT_RANGE_BY_CODE,
   MAX_REGISTRATION_FILE_SIZE,
-  MOCK_PHONE_VERIFICATION_CODE,
   REFERRAL_SOURCE_OPTIONS,
 } from '../../data/employerOnboardingData';
 import {
@@ -29,8 +30,14 @@ import type {
   OnboardingStep,
   ReferralSourceCode,
 } from '../../types/employerOnboarding';
-import type { EmployerIndustryCode } from '../../types/employerProfile';
-import type { CreateWorkplaceRequest } from '../../types/workplace';
+import type {
+  EmployerIndustryCode,
+  EmployerProfileResponse,
+} from '../../types/employerProfile';
+import type {
+  CreateWorkplaceRequest,
+  CreateWorkplaceResponse,
+} from '../../types/workplace';
 
 type OpenSelect = 'referral' | 'industry' | 'employeeCount' | null;
 
@@ -66,6 +73,88 @@ const ALLOWED_REGISTRATION_FILE_TYPES = new Set([
   'image/png',
 ]);
 const ALLOWED_REGISTRATION_FILE_EXTENSION = /\.(pdf|jpe?g|png)$/i;
+
+const TERM_AGREEMENTS = [
+  { field: 'terms', termTypeId: 1, label: '이용약관에 동의합니다 (선택)' },
+  {
+    field: 'privacy',
+    termTypeId: 2,
+    label: '개인정보처리방침에 동의합니다 (선택)',
+  },
+  {
+    field: 'marketing',
+    termTypeId: 3,
+    label: '광고성 정보 수신에 동의합니다 (선택)',
+  },
+] as const;
+
+function formatRemainingTime(seconds: number) {
+  const minute = Math.floor(seconds / 60);
+  const second = String(seconds % 60).padStart(2, '0');
+  return `${minute}:${second}`;
+}
+
+function getPhoneRequestErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+
+  if (status === 400) return apiError?.message ?? '전화번호를 확인해 주세요.';
+  if (status === 401) return '로그인 정보를 확인하지 못했습니다.';
+  if (status === 403) return '휴대전화 인증을 요청할 수 없는 계정이에요.';
+  if (status === 429)
+    return (
+      apiError?.message ?? '요청 횟수가 초과됐어요. 잠시 후 다시 시도해 주세요.'
+    );
+  if (status && status >= 500)
+    return '인증번호를 전송하지 못했어요. 잠시 후 다시 시도해 주세요.';
+  return apiError?.message ?? '인증번호 요청을 완료하지 못했어요.';
+}
+
+function getPhoneVerificationErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+
+  if (status === 400)
+    return apiError?.message ?? '인증번호가 일치하지 않거나 만료됐어요.';
+  if (status === 401) return '로그인 정보를 확인하지 못했습니다.';
+  if (status === 409)
+    return apiError?.message ?? '이미 다른 계정에서 사용 중인 전화번호예요.';
+  if (status === 429)
+    return apiError?.message ?? '인증번호 입력 횟수가 초과됐어요.';
+  if (status && status >= 500)
+    return '인증번호를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.';
+  return apiError?.message ?? '인증번호 확인을 완료하지 못했어요.';
+}
+
+function getTermAgreementErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+
+  if (status === 400) return apiError?.message ?? '약관 동의를 확인해 주세요.';
+  if (status === 401) return '로그인 정보를 확인하지 못했습니다.';
+  if (status === 403) return '약관 동의를 저장할 권한이 없습니다.';
+  if (status === 404) return '약관 정보를 찾지 못했습니다.';
+  if (status && status >= 500)
+    return '약관 동의를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.';
+  return apiError?.message ?? '약관 동의를 저장하지 못했어요.';
+}
+
+function getProfileCreationErrorMessage(error: unknown) {
+  const status = getApiErrorStatus(error);
+  const apiError = getApiErrorResponse(error);
+
+  if (status === 400)
+    return apiError?.message ?? '담당자 정보를 다시 확인해 주세요.';
+  if (status === 401) return '로그인 정보를 확인하지 못했습니다.';
+  if (status === 403) return '사업주 프로필을 등록할 권한이 없습니다.';
+  if (status === 409 && apiError?.code === 'PHONE_NOT_VERIFIED')
+    return '휴대전화 인증을 완료한 후 다시 시도해 주세요.';
+  if (status === 409 && apiError?.code === 'DUPLICATE_EMPLOYER_PROFILE')
+    return '이미 등록된 사업주 프로필이에요.';
+  if (status && status >= 500)
+    return '사업주 프로필을 등록하지 못했어요. 잠시 후 다시 시도해 주세요.';
+  return apiError?.message ?? '사업주 프로필을 등록하지 못했어요.';
+}
 
 function getOcrErrorMessage(error: unknown) {
   const status = getApiErrorStatus(error);
@@ -260,12 +349,27 @@ function getInitialOnboardingStep(): OnboardingStep {
 function EmployerOnboardingPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { profile, updateProfile } = useEmployerProfile();
+  const serverProfileRef = useRef<EmployerProfileResponse | null>(null);
+  const { profile, createProfile, loadProfile, updateProfile } =
+    useEmployerProfile();
   const [step, setStep] = useState<OnboardingStep>(getInitialOnboardingStep);
   const [form, setForm] = useState<EmployerOnboardingForm>(INITIAL_FORM);
   const [openSelect, setOpenSelect] = useState<OpenSelect>(null);
   const [isVerificationRequested, setIsVerificationRequested] = useState(false);
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [isPhoneRequesting, setIsPhoneRequesting] = useState(false);
+  const [isPhoneVerifying, setIsPhoneVerifying] = useState(false);
+  const [verificationExpiresAt, setVerificationExpiresAt] = useState<
+    number | null
+  >(null);
+  const [verificationRemainingSeconds, setVerificationRemainingSeconds] =
+    useState(0);
+  const [phoneVerificationMessage, setPhoneVerificationMessage] = useState<
+    string | null
+  >(null);
+  const [phoneVerificationError, setPhoneVerificationError] = useState<
+    string | null
+  >(null);
   const [isRegistrationChecked, setIsRegistrationChecked] = useState(false);
   const [isOcrComplete, setIsOcrComplete] = useState(false);
   const [isOcrLoading, setIsOcrLoading] = useState(false);
@@ -282,6 +386,37 @@ function EmployerOnboardingPage() {
   );
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!verificationExpiresAt || isPhoneVerified) return;
+
+    const intervalId = window.setInterval(() => {
+      setVerificationRemainingSeconds(
+        Math.max(0, Math.ceil((verificationExpiresAt - Date.now()) / 1000)),
+      );
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [isPhoneVerified, verificationExpiresAt]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const requestedStep = new URLSearchParams(window.location.search).get(
+      'step',
+    );
+    if (requestedStep !== '2') return;
+
+    let isActive = true;
+    loadProfile()
+      .then((response) => {
+        if (isActive) serverProfileRef.current = response;
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isActive = false;
+    };
+  }, [loadProfile]);
+
   const isPhoneComplete = form.manager.phoneParts.every(
     (part, index) => part.length === (index === 0 ? 3 : 4),
   );
@@ -295,6 +430,10 @@ function EmployerOnboardingPage() {
     isPhoneVerified &&
     form.manager.referralSource,
   );
+  const isVerificationExpired =
+    isVerificationRequested &&
+    verificationRemainingSeconds <= 0 &&
+    !isPhoneVerified;
   const isStepTwoComplete = Boolean(
     form.business.name.trim() &&
     isRegistrationNumberComplete &&
@@ -343,13 +482,74 @@ function EmployerOnboardingPage() {
     updateManager('phoneParts', nextParts);
     setIsVerificationRequested(false);
     setIsPhoneVerified(false);
+    setVerificationExpiresAt(null);
+    setVerificationRemainingSeconds(0);
+    setPhoneVerificationMessage(null);
+    setPhoneVerificationError(null);
     updateManager('verificationCode', '');
   };
 
   const handleVerificationCodeChange = (value: string) => {
     const nextCode = value.replace(/\D/g, '').slice(0, 6);
     updateManager('verificationCode', nextCode);
-    setIsPhoneVerified(nextCode === MOCK_PHONE_VERIFICATION_CODE);
+    setPhoneVerificationError(null);
+  };
+
+  const getPhoneNumber = () => form.manager.phoneParts.join('-');
+
+  const handleRequestPhoneVerification = async () => {
+    if (!isPhoneComplete || isPhoneRequesting || isPhoneVerified) return;
+
+    setIsPhoneRequesting(true);
+    setPhoneVerificationError(null);
+    setPhoneVerificationMessage(null);
+    setIsPhoneVerified(false);
+
+    try {
+      const response = await requestPhoneVerification({
+        phoneNumber: getPhoneNumber(),
+      });
+      setIsVerificationRequested(true);
+      updateManager('verificationCode', '');
+      setVerificationRemainingSeconds(response.expiresIn);
+      setVerificationExpiresAt(Date.now() + response.expiresIn * 1000);
+      setPhoneVerificationMessage(response.message);
+    } catch (error: unknown) {
+      setPhoneVerificationError(getPhoneRequestErrorMessage(error));
+    } finally {
+      setIsPhoneRequesting(false);
+    }
+  };
+
+  const handleVerifyPhone = async () => {
+    if (
+      !isVerificationRequested ||
+      form.manager.verificationCode.length !== 6 ||
+      isVerificationExpired ||
+      isPhoneVerifying ||
+      isPhoneVerified
+    ) {
+      return;
+    }
+
+    setIsPhoneVerifying(true);
+    setPhoneVerificationError(null);
+
+    try {
+      const response = await verifyPhone({
+        phoneNumber: getPhoneNumber(),
+        code: form.manager.verificationCode,
+      });
+      setIsPhoneVerified(true);
+      setVerificationExpiresAt(null);
+      setVerificationRemainingSeconds(0);
+      setPhoneVerificationMessage(response.message);
+    } catch (error: unknown) {
+      setIsPhoneVerified(false);
+      setPhoneVerificationError(getPhoneVerificationErrorMessage(error));
+    } finally {
+      setIsPhoneVerifying(false);
+    }
   };
 
   const handleRegistrationNumberChange = (index: number, value: string) => {
@@ -530,10 +730,69 @@ function EmployerOnboardingPage() {
     setSubmitError(null);
 
     try {
-      const response = await createWorkplace(request);
+      try {
+        await updateTermAgreements({
+          agreements: TERM_AGREEMENTS.map(({ field, termTypeId }) => ({
+            termTypeId,
+            isAgreed: form.agreements[field],
+          })),
+        });
+      } catch (error: unknown) {
+        setSubmitError(getTermAgreementErrorMessage(error));
+        return;
+      }
+
+      if (!serverProfileRef.current) {
+        if (!form.manager.name.trim() || !form.manager.referralSource) {
+          setSubmitError('이전 단계에서 담당자 정보를 먼저 입력해 주세요.');
+          return;
+        }
+
+        try {
+          const response = await createProfile({
+            name: form.manager.name.trim(),
+            acquisitionChannel: form.manager.referralSource,
+          });
+          serverProfileRef.current = response;
+        } catch (error: unknown) {
+          const apiError = getApiErrorResponse(error);
+          if (
+            getApiErrorStatus(error) === 409 &&
+            apiError?.code === 'DUPLICATE_EMPLOYER_PROFILE'
+          ) {
+            try {
+              serverProfileRef.current = await loadProfile();
+            } catch (loadError: unknown) {
+              setSubmitError(getProfileCreationErrorMessage(loadError));
+              return;
+            }
+          } else {
+            setSubmitError(getProfileCreationErrorMessage(error));
+            return;
+          }
+        }
+      }
+
+      let response: CreateWorkplaceResponse;
+      try {
+        response = await createWorkplace(request);
+      } catch (error: unknown) {
+        setSubmitError(getWorkplaceCreationErrorMessage(error));
+        return;
+      }
+
+      const serverProfile = serverProfileRef.current;
 
       updateProfile({
         ...profile,
+        ...(serverProfile
+          ? {
+              name: serverProfile.name,
+              email: serverProfile.email,
+              phone: serverProfile.phoneNumber,
+              position: serverProfile.position,
+            }
+          : {}),
         business: {
           ...profile.business,
           name: response.workplaceName,
@@ -544,8 +803,6 @@ function EmployerOnboardingPage() {
         },
       });
       navigate('/employer/dashboard', { replace: true });
-    } catch (error: unknown) {
-      setSubmitError(getWorkplaceCreationErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -587,36 +844,76 @@ function EmployerOnboardingPage() {
                 />
                 <button
                   type="button"
-                  disabled={!isPhoneComplete || isPhoneVerified}
-                  onClick={() => setIsVerificationRequested(true)}
+                  disabled={
+                    !isPhoneComplete || isPhoneVerified || isPhoneRequesting
+                  }
+                  onClick={handleRequestPhoneVerification}
                   className="h-[58px] cursor-pointer rounded-xl bg-[#00b894] text-base font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
                 >
-                  {isPhoneVerified ? '완료' : '인증'}
+                  {isPhoneVerified
+                    ? '완료'
+                    : isPhoneRequesting
+                      ? '전송 중'
+                      : isVerificationRequested
+                        ? '재전송'
+                        : '인증'}
                 </button>
               </div>
+              {phoneVerificationError && !isVerificationRequested && (
+                <p role="alert" className="mt-1.5 text-xs text-[#e11e1e]">
+                  {phoneVerificationError}
+                </p>
+              )}
             </div>
 
             {isVerificationRequested && (
-              <label className="mt-6 block">
+              <div className="mt-6">
                 <FieldLabel>인증번호 입력</FieldLabel>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={form.manager.verificationCode}
-                  onChange={(event) =>
-                    handleVerificationCodeChange(event.target.value)
-                  }
-                  placeholder="인증번호 6자리를 입력해주세요"
-                  className={inputClassName}
-                />
+                <div className="grid grid-cols-[minmax(0,1fr)_96px] gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={form.manager.verificationCode}
+                    onChange={(event) =>
+                      handleVerificationCodeChange(event.target.value)
+                    }
+                    placeholder="인증번호 6자리를 입력해주세요"
+                    aria-label="인증번호"
+                    className={inputClassName}
+                  />
+                  <button
+                    type="button"
+                    disabled={
+                      form.manager.verificationCode.length !== 6 ||
+                      isVerificationExpired ||
+                      isPhoneVerifying ||
+                      isPhoneVerified
+                    }
+                    onClick={handleVerifyPhone}
+                    className="h-[58px] cursor-pointer rounded-xl bg-[#00b894] text-base font-semibold text-white transition-colors hover:bg-[#00a886] disabled:cursor-not-allowed disabled:bg-[#e1e2e4] disabled:text-[#8b95a1]"
+                  >
+                    {isPhoneVerified
+                      ? '확인 완료'
+                      : isPhoneVerifying
+                        ? '확인 중'
+                        : '확인'}
+                  </button>
+                </div>
                 <p
-                  className={`mt-1.5 text-xs font-medium ${isPhoneVerified ? 'text-[#007a63]' : 'text-[#70737c]'}`}
+                  className={`mt-1.5 text-xs font-medium ${isPhoneVerified ? 'text-[#007a63]' : isVerificationExpired ? 'text-[#e11e1e]' : 'text-[#70737c]'}`}
                 >
                   {isPhoneVerified
-                    ? '인증이 완료되었어요.'
-                    : `테스트 인증번호: ${MOCK_PHONE_VERIFICATION_CODE}`}
+                    ? (phoneVerificationMessage ?? '인증이 완료되었어요.')
+                    : isVerificationExpired
+                      ? '인증번호가 만료됐어요. 다시 요청해 주세요.'
+                      : `${phoneVerificationMessage ?? '인증번호가 전송되었어요.'} 남은 시간 ${formatRemainingTime(verificationRemainingSeconds)}`}
                 </p>
-              </label>
+                {phoneVerificationError && (
+                  <p role="alert" className="mt-1 text-xs text-[#e11e1e]">
+                    {phoneVerificationError}
+                  </p>
+                )}
+              </div>
             )}
 
             <div className="mt-6">
@@ -635,7 +932,9 @@ function EmployerOnboardingPage() {
             <div className="mt-10 flex justify-end">
               <button
                 type="button"
-                disabled={!isStepOneComplete}
+                disabled={
+                  !isStepOneComplete || isPhoneRequesting || isPhoneVerifying
+                }
                 onClick={() => {
                   setOpenSelect(null);
                   setStep(2);
@@ -814,27 +1113,16 @@ function EmployerOnboardingPage() {
                 모든 약관에 동의합니다
               </label>
               <div className="mt-1 rounded-[10px] border border-[#e1e2e4] px-4 py-4">
-                {[
-                  ['terms', '이용약관에 동의합니다 (선택)'],
-                  ['privacy', '개인정보처리방침에 동의합니다 (선택)'],
-                  ['marketing', '광고성 정보 수신에 동의합니다 (선택)'],
-                ].map(([field, label]) => (
+                {TERM_AGREEMENTS.map(({ field, label }) => (
                   <label
                     key={field}
                     className="flex cursor-pointer items-center gap-2.5 py-1 text-sm font-medium text-[#70737c]"
                   >
                     <AgreementCheckbox
-                      checked={
-                        form.agreements[
-                          field as keyof EmployerOnboardingForm['agreements']
-                        ]
-                      }
+                      checked={form.agreements[field]}
                       ariaLabel={label}
                       onChange={(checked) =>
-                        handleAgreementChange(
-                          field as keyof EmployerOnboardingForm['agreements'],
-                          checked,
-                        )
+                        handleAgreementChange(field, checked)
                       }
                     />
                     {label}
