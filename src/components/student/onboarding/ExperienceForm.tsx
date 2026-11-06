@@ -14,6 +14,14 @@ type ExperienceFormProps = {
   onSubmit: () => void;
 };
 
+function formatMonthInput(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 6);
+
+  return digits.length > 4
+    ? `${digits.slice(0, 4)}.${digits.slice(4)}`
+    : digits;
+}
+
 /** Collects one student work-experience entry for creation or editing. */
 export function ExperienceForm({
   draft,
@@ -62,7 +70,9 @@ export function ExperienceForm({
               inputMode="numeric"
               placeholder="2023.03"
               value={draft.startMonth}
-              onChange={(event) => onChange('startMonth', event.target.value)}
+              onChange={(event) =>
+                onChange('startMonth', formatMonthInput(event.target.value))
+              }
             />
           </label>
           <span aria-hidden="true" className="h-px w-4 bg-[#D1D6DB]" />
@@ -74,7 +84,9 @@ export function ExperienceForm({
               inputMode="numeric"
               placeholder="2023.09"
               value={draft.endMonth}
-              onChange={(event) => onChange('endMonth', event.target.value)}
+              onChange={(event) =>
+                onChange('endMonth', formatMonthInput(event.target.value))
+              }
             />
           </label>
         </div>
