@@ -45,6 +45,10 @@ function getRecommendationDismissalKey(job: RecommendedJob) {
     : `job-posting:${job.jobPostingId}`;
 }
 
+function getRecommendationKey(job: RecommendedJob) {
+  return String(job.recommendationId ?? job.id);
+}
+
 function getStoredDismissedRecommendationKeys() {
   try {
     const storedValue = localStorage.getItem(
@@ -140,6 +144,9 @@ export default function StudentMatchingPage({
   const [selectedJob, setSelectedJob] = useState<RecommendedJob | null>(
     initialSelectedJob,
   );
+  const [expandedRecommendationKey, setExpandedRecommendationKey] = useState<
+    string | null
+  >(initialSelectedJob ? getRecommendationKey(initialSelectedJob) : null);
   const [detailBackView, setDetailBackView] = useState<'complete' | 'result'>(
     'result',
   );
@@ -187,6 +194,7 @@ export default function StudentMatchingPage({
 
     if (!latestSelectedJob) {
       setSelectedJob(null);
+      setExpandedRecommendationKey(null);
       setMatchingView('result');
       setDetailBackView('result');
       return;
@@ -252,6 +260,15 @@ export default function StudentMatchingPage({
       .catch(() => undefined);
   };
 
+  const handleCardClick = (job: RecommendedJob) => {
+    const recommendationKey = getRecommendationKey(job);
+
+    setExpandedRecommendationKey((currentKey) =>
+      currentKey === recommendationKey ? null : recommendationKey,
+    );
+    setSelectedJob(job);
+  };
+
   const handleDetailClick = (job: RecommendedJob) => {
     setSelectedJob(job);
     setDetailBackView('result');
@@ -280,6 +297,7 @@ export default function StudentMatchingPage({
     });
 
     setSelectedJob(null);
+    setExpandedRecommendationKey(null);
     setDetailBackView('result');
     setMatchingView('result');
   };
@@ -321,6 +339,7 @@ export default function StudentMatchingPage({
     );
     if (!latestSelectedJob) {
       setSelectedJob(null);
+      setExpandedRecommendationKey(null);
       setMatchingView('result');
       return;
     }
@@ -492,22 +511,24 @@ export default function StudentMatchingPage({
         aria-label="추천 근무지 목록"
         className="absolute top-[248px] right-6 left-6 flex flex-col gap-2.5"
       >
-        {recommendedJobs.map((job, index) => {
+        {recommendedJobs.map((job) => {
           const application = getWaitingApplicationForRecommendation(
             applications,
             job.jobPostingId,
           );
+          const isExpanded =
+            expandedRecommendationKey === getRecommendationKey(job);
           const showApplyButton =
-            index === recommendedJobs.length - 1 &&
-            job.showsApplyButton &&
-            application === undefined;
+            job.showsApplyButton && application === undefined;
 
           return (
             <RecommendedJobCard
               application={application}
+              isExpanded={isExpanded}
               job={job}
               key={job.id}
               onApply={handleApply}
+              onCardClick={handleCardClick}
               onDetailClick={handleDetailClick}
               showApplyButton={showApplyButton}
             />
