@@ -466,9 +466,9 @@ function formatMatchingConditionWorkTime(workAvailability: WorkAvailability) {
 }
 
 function StudentSessionBootstrap() {
-  const { pathname } = useLocation();
-  const [isSessionReady, setIsSessionReady] = useState(
-    () => getAccessToken() !== null,
+  const location = useLocation();
+  const [isSessionRestored, setIsSessionRestored] = useState<boolean | null>(
+    () => (getAccessToken() ? true : null),
   );
 
   useEffect(() => {
@@ -481,10 +481,14 @@ function StudentSessionBootstrap() {
     }
 
     void refreshAccessToken()
-      .catch(() => undefined)
-      .finally(() => {
+      .then(() => {
         if (isActive) {
-          setIsSessionReady(true);
+          setIsSessionRestored(true);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setIsSessionRestored(false);
         }
       });
 
@@ -493,8 +497,20 @@ function StudentSessionBootstrap() {
     };
   }, []);
 
-  if (!isSessionReady && !PUBLIC_STUDENT_ROUTES.has(pathname)) {
+  if (isSessionRestored === null) {
     return null;
+  }
+
+  if (!isSessionRestored && !PUBLIC_STUDENT_ROUTES.has(location.pathname)) {
+    return (
+      <Navigate
+        replace
+        state={{
+          from: `${location.pathname}${location.search}${location.hash}`,
+        }}
+        to="/student/login"
+      />
+    );
   }
 
   return <Outlet />;
