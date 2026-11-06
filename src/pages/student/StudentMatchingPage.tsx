@@ -11,13 +11,21 @@ import { RecommendationRefreshModal } from '../../components/student/matching/Re
 import { WorkStartDateStep } from '../../components/student/matching/WorkStartDateStep';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import type { StudentNavigationTab } from '../../types/studentHome';
-import type { StudentApplication } from '../../types/studentApplication';
+import type {
+  CreateStudentApplicationResponse,
+  StudentApplication,
+} from '../../types/studentApplication';
 import type {
   RecommendedJob,
   StudentMatchingView,
 } from '../../types/studentMatching';
 
 const MAX_RECOMMENDED_JOBS = 3;
+
+type RecommendationApplication = Pick<
+  StudentApplication,
+  'employerResponseDeadline' | 'jobPostingId' | 'status'
+>;
 
 type StudentMatchingPageProps = {
   isBottomNavigationFixed?: boolean;
@@ -32,7 +40,7 @@ type StudentMatchingPageProps = {
   onApplicationSubmit?: (
     job: RecommendedJob,
     desiredStartDate: string,
-  ) => Promise<boolean>;
+  ) => Promise<CreateStudentApplicationResponse | null>;
   onRecommendationRefresh?: () => Promise<boolean>;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onViewChange?: (
@@ -71,7 +79,9 @@ export default function StudentMatchingPage({
   const [isApplicationSubmitting, setIsApplicationSubmitting] = useState(false);
   const [isRecommendationRefreshing, setIsRecommendationRefreshing] =
     useState(false);
-  const [applications, setApplications] = useState<StudentApplication[]>([]);
+  const [applications, setApplications] = useState<RecommendationApplication[]>(
+    [],
+  );
   const recommendedJobs = recommendations.slice(0, MAX_RECOMMENDED_JOBS);
 
   const refreshApplications = useCallback(async () => {
@@ -175,12 +185,19 @@ export default function StudentMatchingPage({
     setIsApplicationSubmitting(true);
 
     try {
-      const didSubmit = onApplicationSubmit
+      const createdApplication = onApplicationSubmit
         ? await onApplicationSubmit(selectedJob, workStartDate)
-        : true;
+        : null;
 
-      if (didSubmit) {
-        await refreshApplications();
+      if (createdApplication) {
+        setApplications((currentApplications) => [
+          createdApplication,
+          ...currentApplications.filter(
+            (application) =>
+              application.jobPostingId !== createdApplication.jobPostingId,
+          ),
+        ]);
+        void refreshApplications();
         setMatchingView('complete');
         onViewChange?.('complete', selectedJob);
       }

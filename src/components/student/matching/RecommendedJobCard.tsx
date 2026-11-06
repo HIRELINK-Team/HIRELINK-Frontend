@@ -5,7 +5,7 @@ import type { StudentApplication } from '../../../types/studentApplication';
 import timerActiveIcon from '../../../assets/icons/student/matching/timer-active.svg';
 
 type RecommendedJobCardProps = {
-  application?: StudentApplication;
+  application?: Pick<StudentApplication, 'employerResponseDeadline' | 'status'>;
   job: RecommendedJob;
   onApply?: (job: RecommendedJob) => void;
   onDetailClick?: (job: RecommendedJob) => void;
@@ -31,7 +31,7 @@ function formatRemainingTime(deadline: string, currentTime: number | null) {
 function ResponseDeadlineTimer({
   application,
 }: {
-  application?: StudentApplication;
+  application?: Pick<StudentApplication, 'employerResponseDeadline' | 'status'>;
 }) {
   const deadline =
     application?.status === 'WAITING_RESPONSE'
@@ -55,8 +55,8 @@ function ResponseDeadlineTimer({
   if (!label) return null;
 
   return (
-    <div className="flex items-center justify-end gap-1 text-[#009376]">
-      <img alt="" className="h-4 w-4" src={timerActiveIcon} />
+    <div className="flex items-center gap-[5.75px] text-[#009376]">
+      <img alt="" className="h-[18px] w-[18px]" src={timerActiveIcon} />
       <span className="text-[20px] leading-[1.5] font-semibold tabular-nums">
         {label}
       </span>
@@ -100,7 +100,7 @@ export function RecommendedJobCard({
       <span className="absolute top-[24px] right-[23px] text-[13px] leading-[1.5] font-medium text-[#8B95A1]">
         {job.matchRate}% 일치
       </span>
-      <div className="absolute top-[45px] right-[23px] min-h-5">
+      <div className="absolute top-[45px] right-[23px] flex min-h-[30px] items-center justify-end">
         <ResponseDeadlineTimer application={application} />
       </div>
       <button

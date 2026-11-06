@@ -631,18 +631,17 @@ function StudentMatchingRoute() {
       onApplicationSubmit={async (job, desiredStartDate) => {
         if (job.recommendationId === undefined) {
           window.alert('지원할 추천 정보를 확인할 수 없어요.');
-          return false;
+          return null;
         }
 
         try {
-          await createStudentApplication({
+          return await createStudentApplication({
             desiredStartDate,
             recommendationId: job.recommendationId,
           });
-          return true;
         } catch {
           window.alert('지원에 실패했어요. 잠시 후 다시 시도해주세요.');
-          return false;
+          return null;
         }
       }}
       onBack={() => navigate('/student/home')}
