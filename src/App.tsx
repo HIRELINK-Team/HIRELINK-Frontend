@@ -1196,6 +1196,26 @@ function StudentHiringCompleteRoute() {
 
 function StudentMyRoute() {
   const navigate = useNavigate();
+  const [studentProfile, setStudentProfile] =
+    useState<StudentProfileResponse | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void getStudentProfile()
+      .then((profile) => {
+        if (isActive && isStudentProfileResponse(profile)) {
+          setStudentProfile(profile);
+        }
+      })
+      .catch(() => {
+        if (isActive) setStudentProfile(null);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const handleMenuClick = (menuId: StudentMyMenuId) => {
     const menuRoutes: Record<StudentMyMenuId, string> = {
@@ -1217,6 +1237,7 @@ function StudentMyRoute() {
       onProfileEditClick={() => navigate('/student/my/profile')}
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
       onWorkConditionClick={() => navigate('/student/my/work-condition')}
+      studentProfile={studentProfile}
     />
   );
 }

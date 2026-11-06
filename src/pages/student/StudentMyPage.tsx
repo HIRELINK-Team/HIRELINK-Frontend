@@ -11,12 +11,12 @@ import workConditionIllustration from '../../assets/images/student/my/work-condi
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import {
   STUDENT_MY_PRIMARY_MENUS,
-  STUDENT_MY_PROFILE_MOCK,
   STUDENT_MY_PROGRESS_MOCK,
   STUDENT_MY_SECONDARY_MENUS,
 } from '../../mocks/studentMy';
 import type { StudentNavigationTab } from '../../types/studentHome';
 import type { StudentMyMenu, StudentMyMenuId } from '../../types/studentMy';
+import type { StudentProfileResponse } from '../../types/studentProfile';
 
 type StudentMyPageProps = {
   isBottomNavigationFixed?: boolean;
@@ -26,6 +26,7 @@ type StudentMyPageProps = {
   onProfileEditClick?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
   onWorkConditionClick?: () => void;
+  studentProfile?: StudentProfileResponse | null;
 };
 
 const PRIMARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> = {
@@ -54,7 +55,16 @@ export default function StudentMyPage({
   onProfileEditClick,
   onTabChange,
   onWorkConditionClick,
+  studentProfile,
 }: StudentMyPageProps) {
+  const profileName = studentProfile?.name || '회원';
+  const visaStatus = studentProfile?.visaCode ?? '미등록';
+  const topikLevel =
+    studentProfile?.topikLevel === null ||
+    studentProfile?.topikLevel === undefined
+      ? 'TOPIK 미등록'
+      : `TOPIK ${studentProfile.topikLevel}급`;
+
   const handleMenuClick = (menu: StudentMyMenu) => {
     if (menu.id === 'documents') {
       onDocumentManagementClick?.();
@@ -109,12 +119,12 @@ export default function StudentMyPage({
           <img alt="" className="h-[74px] w-[75px]" src={profileImage} />
           <div className="ml-[15px] min-w-0 pt-[7px]">
             <p className="m-0 text-[20px] leading-[1.5] font-semibold">
-              {STUDENT_MY_PROFILE_MOCK.name}
+              {profileName}
             </p>
             <p className="m-0 mt-[1px] flex items-center gap-[6px] text-[13px] leading-[1.5] text-[#8B95A1]">
-              <span>{STUDENT_MY_PROFILE_MOCK.visaStatus}</span>
+              <span>{visaStatus}</span>
               <span aria-hidden="true">|</span>
-              <span>{STUDENT_MY_PROFILE_MOCK.topikLevel}</span>
+              <span>{topikLevel}</span>
             </p>
           </div>
           <button
