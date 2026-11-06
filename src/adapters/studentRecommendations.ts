@@ -51,6 +51,6 @@ export function mapStudentRecommendationToRecommendedJob(
     rank: recommendation.rank,
     recommendationId: recommendation.recommendationId,
     role: `직무 | ${recommendation.jobTitle}`,
-    showsApplyButton: recommendation.applicationStatus === null,
+    showsApplyButton: true,
   };
 }

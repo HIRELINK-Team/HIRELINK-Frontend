@@ -16,12 +16,6 @@ export function RecommendedJobDetail({
   onBack,
   onRecommendationDismiss,
 }: RecommendedJobDetailProps) {
-  const applicationStatusLabel =
-    job.applicationStatus === 'WAITING_RESPONSE'
-      ? '채용 제안 대기'
-      : job.applicationStatus === 'OFFERED'
-        ? '채용 수락 대기'
-        : null;
   const companyName = job.companyName || '근무지 정보';
   const comparisonTags = (
     job.detail.comparisonTags.length > 0
@@ -149,19 +143,13 @@ export function RecommendedJobDetail({
           이 일자리는 더 이상 추천받지 않을래요!
         </label>
 
-        {applicationStatusLabel ? (
-          <div className="absolute right-6 bottom-[37px] left-6 flex h-[57px] items-center justify-center rounded-[15px] bg-[#E5E8EB] text-[20px] leading-[1.5] font-medium text-[#8B95A1]">
-            {applicationStatusLabel}
-          </div>
-        ) : (
-          <button
-            className="absolute right-6 bottom-[37px] left-6 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
-            type="button"
-            onClick={handleApply}
-          >
-            지원하기
-          </button>
-        )}
+        <button
+          className="absolute right-6 bottom-[37px] left-6 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+          type="button"
+          onClick={handleApply}
+        >
+          지원하기
+        </button>
       </section>
     </section>
   );

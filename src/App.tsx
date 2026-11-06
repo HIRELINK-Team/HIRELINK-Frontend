@@ -792,7 +792,7 @@ function StudentMatchingRoute() {
     <StudentMatchingPage
       isRecommendationsLoading={isRecommendationsLoading}
       onApplicationSubmit={async (job, desiredStartDate) => {
-        if (job.jobPostingId === undefined || job.applicationStatus !== null) {
+        if (job.jobPostingId === undefined) {
           return 'recommendation-conflict';
         }
 
@@ -801,10 +801,7 @@ function StudentMatchingRoute() {
             recommendation.recommendationId === job.recommendationId,
         );
         const latestJobPostingId = latestRecommendation?.jobPostingId;
-        if (
-          latestJobPostingId === undefined ||
-          latestRecommendation?.applicationStatus !== null
-        ) {
+        if (latestJobPostingId === undefined) {
           await reloadRecommendations();
           navigate('/student/matching');
           return 'recommendation-conflict';
