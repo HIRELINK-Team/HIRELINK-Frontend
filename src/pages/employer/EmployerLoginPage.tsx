@@ -54,7 +54,9 @@ function EmployerLoginPage() {
 
       <div className="absolute bottom-[68px] text-center text-sm font-medium leading-5 text-[#868686]">
         <p>외국인 구직자이신가요?</p>
-        <p className="underline underline-offset-2">구직자페이지 바로가기</p>
+        <Link to="/student" className="underline underline-offset-2">
+          구직자 페이지 바로가기
+        </Link>
       </div>
     </main>
   );
