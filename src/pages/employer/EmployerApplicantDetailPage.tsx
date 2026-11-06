@@ -10,12 +10,9 @@ import ApplicantActionModal, {
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
 import { useEmployerApplicants } from '../../hooks/useEmployerApplicants';
 import { useEmployerJobs } from '../../hooks/useEmployerJobs';
-import type { EmployerApplicationDetailResponse } from '../../types/application';
 import {
   formatApplicationDate,
-  formatApplicationDateTime,
   formatApplicationStatus,
-  formatApplicationWorkTimes,
   formatKoreanLevel,
 } from '../../utils/application';
 
@@ -60,48 +57,6 @@ function getApplicationErrorMessage(error: unknown) {
   if (status && status >= 500)
     return '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
   return apiError?.message ?? '지원자 정보를 불러오지 못했습니다.';
-}
-
-function CareerList({
-  careers,
-}: {
-  careers: EmployerApplicationDetailResponse['applicant']['careers'];
-}) {
-  if (careers.length === 0) {
-    return (
-      <div className="flex min-h-28 items-center justify-center text-sm text-[#70737c]">
-        등록된 경력이 없어요.
-      </div>
-    );
-  }
-
-  return (
-    <ul className="space-y-2">
-      {careers.map((career, index) => (
-        <li
-          key={`${career.careerName}-${career.startMonth}-${index}`}
-          className="rounded-xl border border-[rgba(112,115,124,0.16)] px-5 py-3"
-        >
-          <div className="flex items-center justify-between gap-4">
-            <strong className="text-base font-semibold text-[#171719]">
-              {career.careerName}
-            </strong>
-            <span className="text-sm text-[#70737c]">
-              {formatApplicationDate(career.startMonth)} -{' '}
-              {career.endMonth
-                ? formatApplicationDate(career.endMonth)
-                : '재직 중'}
-            </span>
-          </div>
-          {career.description && (
-            <p className="mt-1 text-sm leading-5 text-[#70737c]">
-              {career.description}
-            </p>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 function EmployerApplicantDetailPage() {
@@ -443,50 +398,6 @@ function EmployerApplicantDetailPage() {
           </div>
         </section>
       </div>
-
-      <section className="mt-9">
-        <h2 className="text-xl font-semibold text-[#171719]">지원 정보</h2>
-        <div className="mt-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-6 py-5 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
-          <dl className="divide-y divide-[#f2f3f5]">
-            {[
-              ['지원 일시', formatApplicationDateTime(applicant.appliedAt)],
-              [
-                '희망 시작일',
-                formatApplicationDate(applicant.desiredStartDate),
-              ],
-              [
-                '가능 근무시간',
-                formatApplicationWorkTimes(
-                  applicant.applicant.availableWorkTimes,
-                ),
-              ],
-              [
-                '공고 근무시간',
-                formatApplicationWorkTimes(applicant.jobRequirements.workTimes),
-              ],
-              [
-                '공고 급여',
-                `${applicant.jobRequirements.wageAmount.toLocaleString('ko-KR')}원`,
-              ],
-            ].map(([label, value]) => (
-              <div
-                key={label}
-                className="grid min-h-12 grid-cols-[100px_minmax(0,1fr)] items-center gap-4"
-              >
-                <dt className="text-sm font-medium text-[#70737c]">{label}</dt>
-                <dd className="text-sm font-medium text-[#171719]">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
-
-      <section className="mt-9">
-        <h2 className="text-xl font-semibold text-[#171719]">경력</h2>
-        <div className="mt-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white p-4 shadow-[0_2px_8px_-2px_rgba(23,23,25,0.1),0_1px_2px_rgba(23,23,25,0.06)]">
-          <CareerList careers={applicant.applicant.careers} />
-        </div>
-      </section>
 
       {pendingAction && (
         <ApplicantActionModal
