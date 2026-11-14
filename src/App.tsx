@@ -13,28 +13,11 @@ import {
 
 import { getAccessToken, setAccessToken } from './api/accessToken';
 import {
-  acceptStudentEmploymentOffer,
   createStudentProfile,
-  createStudentRecommendations,
-  createStudentApplication,
-  getStudentMatchingPreferences,
-  getMyStudentApplication,
-  getMyStudentApplications,
-  getEmploymentMatch,
-  getMyEmploymentMatches,
-  getStudentProfile,
-  getStudentRecommendation,
-  getStudentRecommendations,
   loginStudent,
   refreshAccessToken,
-  refreshStudentRecommendations,
-  rejectStudentEmploymentOffer,
   signupStudent,
-  updateStudentProfile,
-  updateStudentMatchingPreferences,
-  withdrawStudentApplication,
 } from './api/student';
-import { getStudentJobPosting } from './api/jobPostings';
 import { getApiErrorResponse } from './api/errors';
 import {
   mapIndustrySelectionToUpdateRequest,
@@ -58,6 +41,8 @@ import {
 } from './adapters/studentProfile';
 import { mapStudentRecommendationToRecommendedJob } from './adapters/studentRecommendations';
 import { mapStudentJobPostingToRecommendedJob } from './adapters/studentJobPostings';
+import { IS_DEMO_MODE } from './config/demoMode';
+import { studentDataSource } from './services/studentDataSource';
 import AuthProvider from './components/auth/AuthProvider';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import EmployerApplicantsProvider from './components/employer/EmployerApplicantsProvider';
@@ -469,13 +454,13 @@ function formatMatchingConditionWorkTime(workAvailability: WorkAvailability) {
 function StudentSessionBootstrap() {
   const location = useLocation();
   const [isSessionRestored, setIsSessionRestored] = useState<boolean | null>(
-    () => (getAccessToken() ? true : null),
+    () => (IS_DEMO_MODE || getAccessToken() ? true : null),
   );
 
   useEffect(() => {
     let isActive = true;
 
-    if (getAccessToken()) {
+    if (IS_DEMO_MODE || getAccessToken()) {
       return () => {
         isActive = false;
       };
@@ -549,6 +534,11 @@ function StudentLoginRoute() {
     <StudentEmailLoginPage
       onBack={() => navigate('/student/entry')}
       onLogin={async (request) => {
+        if (IS_DEMO_MODE) {
+          navigate('/student/home');
+          return;
+        }
+
         const response = await loginStudent(request);
         if (response.role !== 'STUDENT') {
           throw new Error('유학생 계정으로 로그인해 주세요.');
@@ -557,7 +547,7 @@ function StudentLoginRoute() {
         setAccessToken(response.accessToken);
 
         try {
-          await getStudentProfile();
+          await studentDataSource.getProfile();
           navigate('/student/home');
         } catch (error) {
           if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -581,6 +571,11 @@ function StudentSignupRoute() {
     <StudentEmailSignupPage
       onBack={() => navigate('/student/login')}
       onSignup={async (request) => {
+        if (IS_DEMO_MODE) {
+          navigate('/student/onboarding');
+          return;
+        }
+
         const { accessToken } = await signupStudent(request);
         setAccessToken(accessToken);
         navigate('/student/onboarding');
@@ -594,9 +589,15 @@ function StudentOnboardingRoute() {
 
   return (
     <StudentOnboardingPage
-      enableCareerApi
+      enableCareerApi={!IS_DEMO_MODE}
       onBack={() => navigate('/student/entry')}
       onComplete={async (requestBody) => {
+        if (IS_DEMO_MODE) {
+          await studentDataSource.updateProfile({ name: requestBody.name });
+          navigate('/student/home', { replace: true });
+          return;
+        }
+
         try {
           await createStudentProfile(requestBody);
         } catch (error) {
@@ -606,9 +607,9 @@ function StudentOnboardingRoute() {
             throw error;
           }
 
-          await updateStudentProfile({ name: requestBody.name });
+          await studentDataSource.updateProfile({ name: requestBody.name });
 
-          const updatedProfile = await getStudentProfile();
+          const updatedProfile = await studentDataSource.getProfile();
           if (updatedProfile.name !== requestBody.name) {
             throw new Error('Student profile name was not updated.', {
               cause: error,
@@ -629,10 +630,10 @@ function StudentHomeRoute() {
     let isActive = true;
 
     void Promise.all([
-      getStudentProfile(),
-      getStudentMatchingPreferences(),
-      getStudentRecommendations(),
-      getMyStudentApplications(),
+      studentDataSource.getProfile(),
+      studentDataSource.getMatchingPreferences(),
+      studentDataSource.getRecommendations(),
+      studentDataSource.getApplications(),
     ])
       .then(([profile, matchingPreferences, recommendations, applications]) => {
         if (!isActive) return;
@@ -677,11 +678,11 @@ function StudentMatchingLayout() {
   const initialRecommendationRequestRef = useRef<Promise<unknown> | null>(null);
 
   const loadRecommendations = useCallback(async () => {
-    let response = await getStudentRecommendations();
+    let response = await studentDataSource.getRecommendations();
 
     if (response.refreshRequired) {
-      await refreshStudentRecommendations();
-      response = await getStudentRecommendations();
+      await studentDataSource.refreshRecommendations();
+      response = await studentDataSource.getRecommendations();
     }
 
     setRecommendations(
@@ -698,7 +699,7 @@ function StudentMatchingLayout() {
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
           initialRecommendationRequestRef.current ??=
-            createStudentRecommendations();
+            studentDataSource.createRecommendations();
           await initialRecommendationRequestRef.current;
 
           if (isActive) {
@@ -731,7 +732,7 @@ function StudentMatchingLayout() {
 
   const refreshRecommendations = async () => {
     try {
-      await refreshStudentRecommendations();
+      await studentDataSource.refreshRecommendations();
       await loadRecommendations();
       return true;
     } catch (error) {
@@ -780,7 +781,8 @@ function StudentMatchingRoute() {
   useEffect(() => {
     let isActive = true;
 
-    void getStudentProfile()
+    void studentDataSource
+      .getProfile()
       .then((profile) => {
         if (isActive && isStudentProfileResponse(profile)) {
           setStudentProfile(profile);
@@ -825,7 +827,7 @@ function StudentMatchingRoute() {
         }
 
         try {
-          return await createStudentApplication({
+          return await studentDataSource.createApplication({
             desiredStartDate,
             recommendationId: latestRecommendationId,
           });
@@ -850,14 +852,14 @@ function StudentMatchingRoute() {
       onOfferAction={async (offerId, action) => {
         try {
           if (action === 'accept') {
-            await acceptStudentEmploymentOffer(offerId);
+            await studentDataSource.acceptEmploymentOffer(offerId);
           } else {
-            await rejectStudentEmploymentOffer(offerId);
+            await studentDataSource.rejectEmploymentOffer(offerId);
           }
 
           const [applicationsResponse] = await Promise.all([
-            getMyStudentApplications(),
-            getMyEmploymentMatches(),
+            studentDataSource.getApplications(),
+            studentDataSource.getMatches(),
           ]);
 
           return applicationsResponse.applications;
@@ -874,12 +876,12 @@ function StudentMatchingRoute() {
 
         try {
           const recommendation = mapStudentRecommendationToRecommendedJob(
-            await getStudentRecommendation(job.recommendationId),
+            await studentDataSource.getRecommendation(job.recommendationId),
           );
 
           if (recommendation.jobPostingId === undefined) return null;
 
-          const response = await getStudentJobPosting(
+          const response = await studentDataSource.getJobPosting(
             recommendation.jobPostingId,
           );
 
@@ -916,8 +918,8 @@ function StudentApplicationsLayout() {
 
   const fetchApplications = useCallback(async () => {
     const [applicationsResponse, matchesResponse] = await Promise.all([
-      getMyStudentApplications(),
-      getMyEmploymentMatches(),
+      studentDataSource.getApplications(),
+      studentDataSource.getMatches(),
     ]);
     const nonHiredApplications = applicationsResponse.applications
       .map(mapStudentApplicationToCardModel)
@@ -968,7 +970,7 @@ function StudentApplicationsLayout() {
     }
 
     try {
-      await withdrawStudentApplication(application.applicationId);
+      await studentDataSource.withdrawApplication(application.applicationId);
       await refreshApplications();
       return true;
     } catch (error) {
@@ -982,7 +984,7 @@ function StudentApplicationsLayout() {
 
   const acceptOffer = async (offerId: number) => {
     try {
-      await acceptStudentEmploymentOffer(offerId);
+      await studentDataSource.acceptEmploymentOffer(offerId);
       return await refreshApplications();
     } catch (error) {
       window.alert(
@@ -995,7 +997,7 @@ function StudentApplicationsLayout() {
 
   const declineOffer = async (offerId: number) => {
     try {
-      await rejectStudentEmploymentOffer(offerId);
+      await studentDataSource.rejectEmploymentOffer(offerId);
       return await refreshApplications();
     } catch (error) {
       window.alert(
@@ -1097,7 +1099,8 @@ function StudentApplicationDetailRoute() {
 
     let isActive = true;
 
-    void getMyStudentApplication(applicationId)
+    void studentDataSource
+      .getApplication(applicationId)
       .then((response) => {
         if (!isActive) return;
 
@@ -1245,7 +1248,8 @@ function StudentHiringCompleteRoute() {
 
     let isActive = true;
 
-    void getEmploymentMatch(matchId)
+    void studentDataSource
+      .getMatch(matchId)
       .then((match) => {
         if (isActive) {
           setLoadedMatchContact({ contact: match.contact, matchId });
@@ -1300,7 +1304,8 @@ function StudentMyRoute() {
   useEffect(() => {
     let isActive = true;
 
-    void getStudentProfile()
+    void studentDataSource
+      .getProfile()
       .then((profile) => {
         if (isActive && isStudentProfileResponse(profile)) {
           setStudentProfile(profile);
@@ -1478,7 +1483,8 @@ function StudentWorkConditionRoute() {
   useEffect(() => {
     let isActive = true;
 
-    void getStudentProfile()
+    void studentDataSource
+      .getProfile()
       .then((profile) => {
         if (isActive && isStudentProfileResponse(profile)) {
           setStudentProfile(profile);
@@ -1521,7 +1527,8 @@ function StudentProfileLayout() {
   useEffect(() => {
     let isActive = true;
 
-    void getStudentProfile()
+    void studentDataSource
+      .getProfile()
       .then((profile) => {
         if (!isStudentProfileResponse(profile)) {
           throw new Error('Invalid student profile response.');
@@ -1577,12 +1584,14 @@ function StudentProfileLayout() {
             if (mappingResult.status === 'unchanged') return true;
 
             try {
-              const updatedProfile = await updateStudentProfile(
+              const updatedProfile = await studentDataSource.updateProfile(
                 mappingResult.requestBody,
               );
 
               if (!isStudentProfileUpdateResponse(updatedProfile)) {
-                window.alert('프로필 수정 결과를 확인하지 못했어요. 다시 시도해 주세요.');
+                window.alert(
+                  '프로필 수정 결과를 확인하지 못했어요. 다시 시도해 주세요.',
+                );
                 return false;
               }
 
@@ -1683,7 +1692,8 @@ function StudentMatchingConditionLayout() {
   useEffect(() => {
     let isActive = true;
 
-    void getStudentMatchingPreferences()
+    void studentDataSource
+      .getMatchingPreferences()
       .then((preferences) => {
         if (!isActive) return;
 
@@ -1735,7 +1745,8 @@ function StudentMatchingConditionLayout() {
     }
 
     try {
-      const preferences = await updateStudentMatchingPreferences(requestBody);
+      const preferences =
+        await studentDataSource.updateMatchingPreferences(requestBody);
       applyMatchingPreferences(preferences);
       markSummaryUpdated('industry');
       return true;
@@ -1746,7 +1757,7 @@ function StudentMatchingConditionLayout() {
 
   const saveWorkAvailability = async (availability: WorkAvailability) => {
     try {
-      const preferences = await updateStudentMatchingPreferences(
+      const preferences = await studentDataSource.updateMatchingPreferences(
         mapWorkAvailabilityToUpdateRequest(availability),
       );
       applyMatchingPreferences(preferences);
@@ -1764,7 +1775,8 @@ function StudentMatchingConditionLayout() {
     }
 
     try {
-      const preferences = await updateStudentMatchingPreferences(requestBody);
+      const preferences =
+        await studentDataSource.updateMatchingPreferences(requestBody);
       applyMatchingPreferences(preferences);
       markSummaryUpdated('location');
       return true;
@@ -1781,7 +1793,8 @@ function StudentMatchingConditionLayout() {
     if (!requestBody) return false;
 
     try {
-      const preferences = await updateStudentMatchingPreferences(requestBody);
+      const preferences =
+        await studentDataSource.updateMatchingPreferences(requestBody);
       applyMatchingPreferences(preferences);
       return true;
     } catch {
