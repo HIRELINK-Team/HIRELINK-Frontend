@@ -10,12 +10,12 @@ import {
   createStudentCareer,
   confirmPhoneVerification,
   deleteStudentCareer,
-  getStudentProfile,
   requestPhoneVerification,
   updateStudentCareer,
-  updateStudentMatchingPreferences,
 } from '../../api/student';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
+import { IS_DEMO_MODE } from '../../config/demoMode';
+import { studentDataSource } from '../../services/studentDataSource';
 import {
   mapIndustrySelectionToUpdateRequest,
   mapPriorityOrderToUpdateRequest,
@@ -378,7 +378,8 @@ export default function StudentOnboardingPage({
 
     let isActive = true;
 
-    void getStudentProfile()
+    void studentDataSource
+      .getProfile()
       .then((profile) => {
         if (!isActive) return;
 
@@ -553,7 +554,7 @@ export default function StudentOnboardingPage({
     setIsIndustrySaving(true);
 
     try {
-      await updateStudentMatchingPreferences(requestBody);
+      await studentDataSource.updateMatchingPreferences(requestBody);
 
       if (businessTypeFlexible) {
         setSelectedIndustries([]);
@@ -630,7 +631,7 @@ export default function StudentOnboardingPage({
     setIsWorkLocationSaving(true);
 
     try {
-      await updateStudentMatchingPreferences(requestBody);
+      await studentDataSource.updateMatchingPreferences(requestBody);
       setIsWorkLocationRadiusSelectionOpen(false);
       setIsWorkLocationSubmitted(true);
       setStep('residenceQualification');
@@ -726,7 +727,7 @@ export default function StudentOnboardingPage({
     setIsProfileSubmitting(true);
 
     try {
-      await updateStudentMatchingPreferences(priorityRequest);
+      await studentDataSource.updateMatchingPreferences(priorityRequest);
       const didComplete = await onComplete(requestBody);
       if (didComplete !== false) setIsMatchingPrioritySubmitted(true);
     } catch (error) {
@@ -806,7 +807,9 @@ export default function StudentOnboardingPage({
         setStep('experienceList');
       } catch (error) {
         const serverMessage = getApiErrorResponse(error)?.message;
-        window.alert(serverMessage ?? '경력 저장에 실패했어요. 다시 시도해 주세요.');
+        window.alert(
+          serverMessage ?? '경력 저장에 실패했어요. 다시 시도해 주세요.',
+        );
       } finally {
         setIsCareerSaving(false);
       }
@@ -1402,6 +1405,14 @@ export default function StudentOnboardingPage({
     setIsPhoneVerificationPending(true);
 
     try {
+      if (IS_DEMO_MODE) {
+        setRemainingSeconds(180);
+        setPhoneError('');
+        setVerificationError('');
+        if (shouldMoveToVerification) setStep('verification');
+        return true;
+      }
+
       const response = await requestPhoneVerification({
         phoneNumber: info.phone,
       });
@@ -1451,10 +1462,12 @@ export default function StudentOnboardingPage({
       setIsPhoneVerificationPending(true);
 
       try {
-        await confirmPhoneVerification({
-          phoneNumber: info.phone,
-          code: info.verificationCode,
-        });
+        if (!IS_DEMO_MODE) {
+          await confirmPhoneVerification({
+            phoneNumber: info.phone,
+            code: info.verificationCode,
+          });
+        }
         setVerificationError('');
       } catch (error) {
         setVerificationError(getPhoneVerificationConfirmErrorMessage(error));

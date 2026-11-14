@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { getMyStudentApplications } from '../../api/student/applications';
+import { studentDataSource } from '../../services/studentDataSource';
 import backIcon from '../../assets/icons/student/matching/back.svg';
 import { MatchingEmptyState } from '../../components/student/matching/MatchingEmptyState';
 import { RecommendedJobDetail } from '../../components/student/matching/RecommendedJobDetail';
@@ -34,10 +34,7 @@ type ApplicationSubmissionResult =
 
 type RecommendationApplication = Pick<
   StudentApplication,
-  | 'applicationId'
-  | 'employerResponseDeadline'
-  | 'jobPostingId'
-  | 'status'
+  'applicationId' | 'employerResponseDeadline' | 'jobPostingId' | 'status'
 > &
   Partial<
     Pick<
@@ -305,7 +302,7 @@ export default function StudentMatchingPage({
       isApplicationsRequestInFlight = true;
 
       try {
-        const response = await getMyStudentApplications();
+        const response = await studentDataSource.getApplications();
         if (!isActive) return;
 
         const pendingOffer = response.applications.find(
@@ -324,7 +321,9 @@ export default function StudentMatchingPage({
 
         setApplications((currentApplications) => {
           const serverApplicationIds = new Set(
-            response.applications.map((application) => application.applicationId),
+            response.applications.map(
+              (application) => application.applicationId,
+            ),
           );
           serverApplicationIds.forEach((applicationId) => {
             pendingApplicationIdsRef.current.delete(applicationId);
@@ -556,8 +555,7 @@ export default function StudentMatchingPage({
       if (!nextApplications) return;
 
       setApplications(nextApplications);
-      dismissedOfferApplicationIdRef.current =
-        offeredApplication.applicationId;
+      dismissedOfferApplicationIdRef.current = offeredApplication.applicationId;
       setMatchingView('result');
     } finally {
       isOfferActionSubmittingRef.current = false;
