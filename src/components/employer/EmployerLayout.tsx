@@ -13,6 +13,7 @@ import jobsIcon from '../../assets/employer/jobs.svg';
 import mypageActiveIcon from '../../assets/employer/mypage-active.svg';
 import mypageIcon from '../../assets/employer/mypage.svg';
 import settingsIcon from '../../assets/employer/settings.svg';
+import { IS_DEMO_MODE } from '../../config/demoMode';
 import { useEmployerProfile } from '../../hooks/useEmployerProfile';
 
 const NAVIGATION_ITEMS = [
@@ -170,6 +171,11 @@ function EmployerLayout() {
           <Outlet />
         </div>
       </main>
+      {IS_DEMO_MODE && (
+        <div className="fixed right-3 bottom-3 z-50 rounded-md bg-[#171719]/80 px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-white shadow-sm">
+          DEMO MODE
+        </div>
+      )}
     </div>
   );
 }

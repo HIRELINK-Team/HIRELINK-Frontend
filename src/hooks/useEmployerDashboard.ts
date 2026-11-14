@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getApiErrorResponse, getApiErrorStatus } from '../api/errors';
 import { getMyJobPostings } from '../api/jobPostings';
+import { IS_DEMO_MODE } from '../config/demoMode';
+import { getDemoJobs } from '../mocks/employerDemoData';
 import { useEmployerApplicants } from './useEmployerApplicants';
 import type { EmployerDashboardData } from '../types/employerDashboard';
 import type { JobPostingListItem } from '../types/jobPosting';
@@ -39,7 +41,15 @@ function useEmployerDashboard() {
 
       setIsLoading(true);
       setLoadError(null);
-      const request = getMyJobPostings({ status: 'RECRUITING' })
+      const request = (
+        IS_DEMO_MODE
+          ? Promise.resolve({
+              jobPostings: getDemoJobs().filter(
+                (jobPosting) => jobPosting.status === 'RECRUITING',
+              ),
+            })
+          : getMyJobPostings({ status: 'RECRUITING' })
+      )
         .then(async ({ jobPostings }) => {
           setRecruitingJobPostings(jobPostings);
 

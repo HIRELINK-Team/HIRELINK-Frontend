@@ -13,7 +13,12 @@ import {
   getEmployerApplications,
   rejectEmployerApplication,
 } from '../../api/applications';
+import { IS_DEMO_MODE } from '../../config/demoMode';
 import { EmployerApplicantsContext } from '../../hooks/useEmployerApplicants';
+import {
+  getDemoApplicationDetail,
+  getDemoApplicationList,
+} from '../../mocks/employerDemoData';
 import type {
   CreateEmploymentOfferResponse,
   EmployerApplicationDetailResponse,
@@ -94,11 +99,28 @@ function EmployerApplicantsProvider({ children }: { children: ReactNode }) {
   const loadApplicationList = useCallback(
     (jobPostingId: number, force = false) => {
       const cached = applicationListsRef.current[jobPostingId];
-      if (!force && cached) return Promise.resolve(cached);
+      if ((!force || IS_DEMO_MODE) && cached) return Promise.resolve(cached);
       const pending = listRequestRef.current.get(jobPostingId);
       if (pending) return pending;
 
-      const request = getEmployerApplications(jobPostingId)
+      const demoList = IS_DEMO_MODE
+        ? getDemoApplicationList(jobPostingId)
+        : undefined;
+      const request = (
+        IS_DEMO_MODE
+          ? demoList
+            ? Promise.resolve(demoList)
+            : Promise.resolve({
+                jobPostingId,
+                capacity: 0,
+                occupiedCount: 0,
+                waitingResponseCount: 0,
+                offeredCount: 0,
+                completedCount: 0,
+                applications: [],
+              })
+          : getEmployerApplications(jobPostingId)
+      )
         .then((response) => {
           setApplicationList(jobPostingId, response);
           return response;
@@ -115,11 +137,20 @@ function EmployerApplicantsProvider({ children }: { children: ReactNode }) {
   const loadApplicationDetail = useCallback(
     (applicationId: number, force = false) => {
       const cached = applicationDetailsRef.current[applicationId];
-      if (!force && cached) return Promise.resolve(cached);
+      if ((!force || IS_DEMO_MODE) && cached) return Promise.resolve(cached);
       const pending = detailRequestRef.current.get(applicationId);
       if (pending) return pending;
 
-      const request = getEmployerApplicationDetail(applicationId)
+      const demoDetail = IS_DEMO_MODE
+        ? getDemoApplicationDetail(applicationId)
+        : undefined;
+      const request = (
+        IS_DEMO_MODE
+          ? demoDetail
+            ? Promise.resolve(demoDetail)
+            : Promise.reject(new Error('Demo application not found'))
+          : getEmployerApplicationDetail(applicationId)
+      )
         .then((detail) => {
           setApplicationDetail(applicationId, detail);
           return detail;
@@ -150,7 +181,16 @@ function EmployerApplicantsProvider({ children }: { children: ReactNode }) {
       if (pending) return pending;
 
       setMutationPending(applicationId, true);
-      const request = rejectEmployerApplication(applicationId)
+      const request = (
+        IS_DEMO_MODE
+          ? Promise.resolve<RejectApplicationResponse>({
+              applicationId,
+              status: 'ENDED',
+              endReason: 'EMPLOYER_REJECTED',
+              endedAt: new Date().toISOString(),
+            })
+          : rejectEmployerApplication(applicationId)
+      )
         .then((response) => {
           const currentList = applicationListsRef.current[jobPostingId];
           if (currentList) {
@@ -180,7 +220,9 @@ function EmployerApplicantsProvider({ children }: { children: ReactNode }) {
               status: response.status,
             });
           }
-          void loadApplicationList(jobPostingId, true).catch(() => undefined);
+          if (!IS_DEMO_MODE) {
+            void loadApplicationList(jobPostingId, true).catch(() => undefined);
+          }
           return response;
         })
         .finally(() => {
@@ -204,7 +246,17 @@ function EmployerApplicantsProvider({ children }: { children: ReactNode }) {
       if (pending) return pending;
 
       setMutationPending(applicationId, true);
-      const request = createEmploymentOffer(applicationId)
+      const request = (
+        IS_DEMO_MODE
+          ? Promise.resolve<CreateEmploymentOfferResponse>({
+              offerId: applicationId + 1000,
+              applicationId,
+              status: 'PENDING',
+              offeredAt: new Date().toISOString(),
+              studentResponseDeadline: '2026-12-31T23:59:59+09:00',
+            })
+          : createEmploymentOffer(applicationId)
+      )
         .then((response) => {
           const currentList = applicationListsRef.current[jobPostingId];
           if (currentList) {
@@ -236,7 +288,9 @@ function EmployerApplicantsProvider({ children }: { children: ReactNode }) {
               status: 'OFFERED',
             });
           }
-          void loadApplicationList(jobPostingId, true).catch(() => undefined);
+          if (!IS_DEMO_MODE) {
+            void loadApplicationList(jobPostingId, true).catch(() => undefined);
+          }
           return response;
         })
         .finally(() => {

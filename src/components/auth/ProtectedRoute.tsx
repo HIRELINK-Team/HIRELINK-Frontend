@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
-import type { UserRole } from "../../types/auth";
+import type { ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { IS_DEMO_MODE } from '../../config/demoMode';
+import { useAuth } from '../../hooks/useAuth';
+import type { UserRole } from '../../types/auth';
 
 function ProtectedRoute({
   children,
@@ -12,6 +13,11 @@ function ProtectedRoute({
 }) {
   const location = useLocation();
   const { currentUser, isAuthenticated, isAuthInitializing } = useAuth();
+  const canUseEmployerDemo = IS_DEMO_MODE && requiredRole === 'EMPLOYER';
+
+  if (canUseEmployerDemo) {
+    return children;
+  }
 
   if (isAuthInitializing) {
     return (
