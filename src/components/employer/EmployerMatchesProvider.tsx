@@ -8,7 +8,12 @@ import {
 } from 'react';
 import { subscribeToAuthInvalidation } from '../../api/accessToken';
 import { getEmployerMatchDetail, getEmployerMatches } from '../../api/matches';
+import { IS_DEMO_MODE } from '../../config/demoMode';
 import { EmployerMatchesContext } from '../../hooks/useEmployerMatches';
+import {
+  getDemoMatchDetail,
+  getDemoMatches,
+} from '../../mocks/employerDemoData';
 import type {
   EmployerMatchDetailResponse,
   EmployerMatchListItem,
@@ -64,7 +69,11 @@ function EmployerMatchesProvider({ children }: { children: ReactNode }) {
     const pending = listRequestRef.current.get(cacheKey);
     if (pending) return pending;
 
-    const request = getEmployerMatches({ jobPostingId })
+    const request = (
+      IS_DEMO_MODE
+        ? Promise.resolve({ matches: getDemoMatches(jobPostingId) })
+        : getEmployerMatches({ jobPostingId })
+    )
       .then((response) => {
         listCacheRef.current.set(cacheKey, response.matches);
         if (activeListKeyRef.current === cacheKey) {
@@ -85,7 +94,14 @@ function EmployerMatchesProvider({ children }: { children: ReactNode }) {
     const pending = detailRequestRef.current.get(matchId);
     if (pending) return pending;
 
-    const request = getEmployerMatchDetail(matchId)
+    const demoDetail = IS_DEMO_MODE ? getDemoMatchDetail(matchId) : undefined;
+    const request = (
+      IS_DEMO_MODE
+        ? demoDetail
+          ? Promise.resolve(demoDetail)
+          : Promise.reject(new Error('Demo match not found'))
+        : getEmployerMatchDetail(matchId)
+    )
       .then((detail) => {
         detailCacheRef.current.set(matchId, detail);
         setMatchDetails((current) => ({ ...current, [matchId]: detail }));

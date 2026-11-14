@@ -14,13 +14,37 @@ import {
   getMyJobPostings,
   updateJobPosting,
 } from '../../api/jobPostings';
+import { IS_DEMO_MODE } from '../../config/demoMode';
 import { EmployerJobsContext } from '../../hooks/useEmployerJobs';
+import {
+  getDemoJobDetail,
+  getDemoJobs,
+  getDemoWorkplaceDetail,
+} from '../../mocks/employerDemoData';
 import type {
   CreateJobPostingRequest,
   JobPostingDetailResponse,
   JobPostingListItem,
   UpdateJobPostingRequest,
 } from '../../types/jobPosting';
+
+function toJobListItem(
+  detail: JobPostingDetailResponse,
+  createdAt = new Date().toISOString(),
+): JobPostingListItem {
+  return {
+    jobPostingId: detail.jobPostingId,
+    workplaceId: detail.workplaceId,
+    workplaceName: detail.workplaceName,
+    jobRole: detail.jobRole,
+    wageType: detail.wageType,
+    wageAmount: detail.wageAmount,
+    status: detail.status,
+    applicationDeadlineDate: detail.applicationDeadlineDate,
+    workTimes: detail.workTimes,
+    createdAt,
+  };
+}
 
 function EmployerJobsProvider({ children }: { children: ReactNode }) {
   const [jobs, setJobs] = useState<JobPostingListItem[]>([]);
@@ -56,7 +80,11 @@ function EmployerJobsProvider({ children }: { children: ReactNode }) {
     }
     if (listRequestRef.current) return listRequestRef.current;
 
-    const request = getMyJobPostings({ includeDraft: true })
+    const request = (
+      IS_DEMO_MODE
+        ? Promise.resolve({ jobPostings: getDemoJobs() })
+        : getMyJobPostings({ includeDraft: true })
+    )
       .then(({ jobPostings }) => {
         jobsRef.current = jobPostings;
         isListLoadedRef.current = true;
@@ -76,7 +104,16 @@ function EmployerJobsProvider({ children }: { children: ReactNode }) {
     const pending = detailRequestRef.current.get(jobPostingId);
     if (pending) return pending;
 
-    const request = getJobPostingDetail(jobPostingId)
+    const demoDetail = IS_DEMO_MODE
+      ? getDemoJobDetail(jobPostingId)
+      : undefined;
+    const request = (
+      IS_DEMO_MODE
+        ? demoDetail
+          ? Promise.resolve(demoDetail)
+          : Promise.reject(new Error('Demo job posting not found'))
+        : getJobPostingDetail(jobPostingId)
+    )
       .then((detail) => {
         detailCacheRef.current.set(jobPostingId, detail);
         setJobDetails((current) => ({
@@ -96,6 +133,42 @@ function EmployerJobsProvider({ children }: { children: ReactNode }) {
 
   const createJob = useCallback(
     async (request: CreateJobPostingRequest) => {
+      if (IS_DEMO_MODE) {
+        const workplace = getDemoWorkplaceDetail(request.workplaceId);
+        if (!workplace) throw new Error('Demo workplace not found');
+        const jobPostingId =
+          Math.max(0, ...jobsRef.current.map((job) => job.jobPostingId)) + 1;
+        const detail: JobPostingDetailResponse = {
+          jobPostingId,
+          title: request.jobRole ?? null,
+          status: request.status,
+          workplaceId: workplace.workplaceId,
+          workplaceName: workplace.workplaceName,
+          workplaceAddress: workplace.workplaceAddress,
+          latitude: workplace.latitude,
+          longitude: workplace.longitude,
+          businessTypeId:
+            request.businessTypeId ?? workplace.businessTypeId ?? null,
+          businessTypeName: workplace.businessTypeName,
+          jobRole: request.jobRole ?? null,
+          wageType: request.wageType ?? null,
+          wageAmount: request.wageAmount ?? null,
+          recruitmentCount: request.recruitmentCount ?? null,
+          workStartDate: request.workStartDate ?? null,
+          requiredKoreanLevel: request.requiredKoreanLevel ?? null,
+          preferredExperience: request.preferredExperience ?? null,
+          workTimeNegotiable: request.workTimeNegotiable ?? null,
+          applicationDeadlineDate: request.applicationDeadlineDate ?? null,
+          workTimes: request.workTimes ?? [],
+        };
+        detailCacheRef.current.set(jobPostingId, detail);
+        setJobDetails((current) => ({ ...current, [jobPostingId]: detail }));
+        const nextJobs = [toJobListItem(detail), ...jobsRef.current];
+        jobsRef.current = nextJobs;
+        setJobs(nextJobs);
+        return detail;
+      }
+
       const detail = await createJobPosting(request);
       detailCacheRef.current.set(detail.jobPostingId, detail);
       setJobDetails((current) => ({
@@ -110,6 +183,27 @@ function EmployerJobsProvider({ children }: { children: ReactNode }) {
 
   const updateJob = useCallback(
     async (jobPostingId: number, request: UpdateJobPostingRequest) => {
+      if (IS_DEMO_MODE) {
+        const currentDetail =
+          detailCacheRef.current.get(jobPostingId) ??
+          getDemoJobDetail(jobPostingId);
+        if (!currentDetail) throw new Error('Demo job posting not found');
+        const detail: JobPostingDetailResponse = {
+          ...currentDetail,
+          ...request,
+        };
+        detailCacheRef.current.set(jobPostingId, detail);
+        setJobDetails((current) => ({ ...current, [jobPostingId]: detail }));
+        const nextJobs = jobsRef.current.map((job) =>
+          job.jobPostingId === jobPostingId
+            ? toJobListItem(detail, job.createdAt)
+            : job,
+        );
+        jobsRef.current = nextJobs;
+        setJobs(nextJobs);
+        return detail;
+      }
+
       const detail = await updateJobPosting(jobPostingId, request);
       detailCacheRef.current.set(jobPostingId, detail);
       setJobDetails((current) => ({ ...current, [jobPostingId]: detail }));
@@ -120,7 +214,13 @@ function EmployerJobsProvider({ children }: { children: ReactNode }) {
   );
 
   const closeJob = useCallback(async (jobPostingId: number) => {
-    const response = await closeJobPosting(jobPostingId);
+    const response = IS_DEMO_MODE
+      ? {
+          jobPostingId,
+          status: 'CLOSED' as const,
+          closedAt: new Date().toISOString(),
+        }
+      : await closeJobPosting(jobPostingId);
     const nextJobs = jobsRef.current.map((job) =>
       job.jobPostingId === jobPostingId
         ? { ...job, status: response.status }

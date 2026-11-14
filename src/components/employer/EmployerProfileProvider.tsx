@@ -12,8 +12,13 @@ import {
   updateEmployerProfile as requestEmployerProfileUpdate,
 } from '../../api/employers';
 import { subscribeToAuthInvalidation } from '../../api/accessToken';
+import { IS_DEMO_MODE } from '../../config/demoMode';
 import { EMPLOYER_PROFILE_MOCK } from '../../data/employerProfileData';
 import { EmployerProfileContext } from '../../hooks/useEmployerProfile';
+import {
+  getDemoEmployerProfile,
+  getDemoEmployerProfileResponse,
+} from '../../mocks/employerDemoData';
 import type {
   CreateEmployerProfileRequest,
   EmployerProfile,
@@ -40,7 +45,9 @@ function mergeProfileResponse(
 
 function EmployerProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState(() =>
-    cloneProfile(EMPLOYER_PROFILE_MOCK),
+    IS_DEMO_MODE
+      ? getDemoEmployerProfile()
+      : cloneProfile(EMPLOYER_PROFILE_MOCK),
   );
   const profileRequestRef = useRef<Promise<EmployerProfileResponse> | null>(
     null,
@@ -51,7 +58,11 @@ function EmployerProfileProvider({ children }: { children: ReactNode }) {
     const unsubscribe = subscribeToAuthInvalidation(() => {
       profileRequestRef.current = null;
       loadedProfileRef.current = null;
-      setProfile(cloneProfile(EMPLOYER_PROFILE_MOCK));
+      setProfile(
+        IS_DEMO_MODE
+          ? getDemoEmployerProfile()
+          : cloneProfile(EMPLOYER_PROFILE_MOCK),
+      );
     });
 
     return () => {
@@ -60,6 +71,13 @@ function EmployerProfileProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadProfile = useCallback(() => {
+    if (IS_DEMO_MODE) {
+      const response = getDemoEmployerProfileResponse();
+      loadedProfileRef.current = response;
+      setProfile((current) => mergeProfileResponse(current, response));
+      return Promise.resolve(response);
+    }
+
     if (loadedProfileRef.current) {
       return Promise.resolve(loadedProfileRef.current);
     }
@@ -84,6 +102,23 @@ function EmployerProfileProvider({ children }: { children: ReactNode }) {
 
   const saveProfile = useCallback(
     async (request: UpdateEmployerProfileRequest) => {
+      if (IS_DEMO_MODE) {
+        const current =
+          loadedProfileRef.current ?? getDemoEmployerProfileResponse();
+        const response: EmployerProfileResponse = {
+          ...current,
+          ...(request.name !== undefined ? { name: request.name } : {}),
+          ...(request.position !== undefined
+            ? { position: request.position }
+            : {}),
+        };
+        loadedProfileRef.current = response;
+        setProfile((profileValue) =>
+          mergeProfileResponse(profileValue, response),
+        );
+        return response;
+      }
+
       const response = await requestEmployerProfileUpdate(request);
       loadedProfileRef.current = response;
       setProfile((current) => mergeProfileResponse(current, response));
@@ -94,6 +129,17 @@ function EmployerProfileProvider({ children }: { children: ReactNode }) {
 
   const createProfile = useCallback(
     async (request: CreateEmployerProfileRequest) => {
+      if (IS_DEMO_MODE) {
+        const response = {
+          ...getDemoEmployerProfileResponse(),
+          name: request.name,
+          acquisitionChannel: request.acquisitionChannel,
+        };
+        loadedProfileRef.current = response;
+        setProfile((current) => mergeProfileResponse(current, response));
+        return response;
+      }
+
       const response = await requestEmployerProfileCreation(request);
       loadedProfileRef.current = response;
       setProfile((current) => mergeProfileResponse(current, response));

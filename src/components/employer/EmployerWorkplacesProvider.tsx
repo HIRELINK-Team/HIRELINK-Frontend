@@ -7,12 +7,17 @@ import {
   type ReactNode,
 } from 'react';
 import { subscribeToAuthInvalidation } from '../../api/accessToken';
+import { IS_DEMO_MODE } from '../../config/demoMode';
 import {
   getMyWorkplaces,
   getWorkplaceDetail,
   updateWorkplace,
 } from '../../api/workplaces';
 import { EmployerWorkplacesContext } from '../../hooks/useEmployerWorkplaces';
+import {
+  getDemoWorkplaceDetail,
+  getDemoWorkplaces,
+} from '../../mocks/employerDemoData';
 import type {
   EmployerWorkplaceListItem,
   UpdateWorkplaceRequest,
@@ -63,7 +68,11 @@ function EmployerWorkplacesProvider({ children }: { children: ReactNode }) {
       return listRequestRef.current;
     }
 
-    const request = getMyWorkplaces()
+    const request = (
+      IS_DEMO_MODE
+        ? Promise.resolve({ workplaces: getDemoWorkplaces() })
+        : getMyWorkplaces()
+    )
       .then(({ workplaces: nextWorkplaces }) => {
         workplacesRef.current = nextWorkplaces;
         isListLoadedRef.current = true;
@@ -85,7 +94,16 @@ function EmployerWorkplacesProvider({ children }: { children: ReactNode }) {
     const existingRequest = detailRequestRefs.current.get(workplaceId);
     if (existingRequest) return existingRequest;
 
-    const request = getWorkplaceDetail(workplaceId)
+    const demoDetail = IS_DEMO_MODE
+      ? getDemoWorkplaceDetail(workplaceId)
+      : undefined;
+    const request = (
+      IS_DEMO_MODE
+        ? demoDetail
+          ? Promise.resolve(demoDetail)
+          : Promise.reject(new Error('Demo workplace not found'))
+        : getWorkplaceDetail(workplaceId)
+    )
       .then((detail) => {
         detailCacheRef.current.set(workplaceId, detail);
         setWorkplaceDetails((current) => ({
@@ -104,7 +122,16 @@ function EmployerWorkplacesProvider({ children }: { children: ReactNode }) {
 
   const saveWorkplace = useCallback(
     async (workplaceId: number, request: UpdateWorkplaceRequest) => {
-      const detail = await updateWorkplace(workplaceId, request);
+      const currentDetail =
+        detailCacheRef.current.get(workplaceId) ??
+        getDemoWorkplaceDetail(workplaceId);
+      const detail = IS_DEMO_MODE
+        ? currentDetail
+          ? { ...currentDetail, ...request }
+          : await Promise.reject<WorkplaceDetailResponse>(
+              new Error('Demo workplace not found'),
+            )
+        : await updateWorkplace(workplaceId, request);
       detailCacheRef.current.set(workplaceId, detail);
       setWorkplaceDetails((current) => ({
         ...current,

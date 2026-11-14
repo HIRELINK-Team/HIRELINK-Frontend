@@ -16,6 +16,7 @@ import {
   subscribeToAuthInvalidation,
 } from '../../api/accessToken';
 import { initializeAuthSession } from '../../api/authSession';
+import { IS_DEMO_MODE } from '../../config/demoMode';
 import { AuthContext } from '../../hooks/useAuth';
 import type {
   AuthenticatedUser,
@@ -35,9 +36,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
     null,
   );
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAuthInitializing, setIsAuthInitializing] = useState(true);
+  const [isAuthInitializing, setIsAuthInitializing] = useState(!IS_DEMO_MODE);
 
   useEffect(() => {
+    if (IS_DEMO_MODE) {
+      return;
+    }
+
     let isActive = true;
 
     const unsubscribe = subscribeToAuthInvalidation(() => {
