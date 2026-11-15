@@ -51,7 +51,7 @@ const NAVIGATION_ITEMS = [
 
 function Header() {
   return (
-    <header className="fixed inset-x-0 top-0 z-20 flex h-16 items-center justify-between border-b border-[#e1e2e4] bg-white px-6">
+    <header className="fixed inset-x-0 top-0 z-20 flex h-16 min-w-[1024px] items-center justify-between border-b border-[#e1e2e4] bg-white px-6">
       <NavLink
         to="/employer/dashboard"
         aria-label="HIRELINK 사업주 대시보드"
@@ -153,6 +153,37 @@ function Sidebar() {
   );
 }
 
+function SmallScreenAccessNotice() {
+  return (
+    <div
+      className="fixed inset-0 z-[100] hidden touch-none items-center justify-center overflow-hidden bg-[#171719]/45 p-6 backdrop-blur-[2px] [@media(max-width:1023px)]:flex"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="employer-small-screen-title"
+      aria-describedby="employer-small-screen-description"
+    >
+      <section className="w-full max-w-[420px] rounded-2xl border border-[rgba(112,115,124,0.16)] bg-white px-8 py-10 text-center shadow-[0_12px_32px_rgba(23,23,25,0.18)]">
+        <h2
+          id="employer-small-screen-title"
+          className="text-2xl leading-normal font-semibold text-[#171719]"
+        >
+          더 큰 화면에서 이용해 주세요
+        </h2>
+        <p
+          id="employer-small-screen-description"
+          className="mt-3 text-base leading-6 text-[#6d7683]"
+        >
+          HIRELINK 사업주 서비스는
+          <br />
+          PC 환경에 최적화되어 있습니다.
+          <br />
+          화면 너비를 늘리거나 더 큰 화면에서 접속해 주세요.
+        </p>
+      </section>
+    </div>
+  );
+}
+
 function EmployerLayout() {
   const { loadProfile } = useEmployerProfile();
 
@@ -163,19 +194,22 @@ function EmployerLayout() {
   }, [loadProfile]);
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
-      <Sidebar />
-      <main className="min-h-screen pl-[230px] pt-16">
-        <div className="mx-auto w-full max-w-[1050px] px-6 xl:px-10">
-          <Outlet />
-        </div>
-      </main>
-      {IS_DEMO_MODE && (
-        <div className="fixed right-3 bottom-3 z-50 rounded-md bg-[#171719]/80 px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-white shadow-sm">
-          DEMO MODE
-        </div>
-      )}
+    <div className="min-h-screen overflow-x-hidden bg-white">
+      <div className="min-h-screen min-w-[1024px]">
+        <Header />
+        <Sidebar />
+        <main className="min-h-screen pl-[230px] pt-16">
+          <div className="mx-auto w-full max-w-[1050px] px-6 xl:px-10">
+            <Outlet />
+          </div>
+        </main>
+        {IS_DEMO_MODE && (
+          <div className="fixed right-3 bottom-3 z-50 rounded-md bg-[#171719]/80 px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-white shadow-sm">
+            DEMO MODE
+          </div>
+        )}
+      </div>
+      <SmallScreenAccessNotice />
     </div>
   );
 }

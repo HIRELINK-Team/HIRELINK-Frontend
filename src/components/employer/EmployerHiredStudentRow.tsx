@@ -41,7 +41,7 @@ function EmployerHiredStudentRow({
     : '-';
 
   return (
-    <article className="grid min-h-28 w-full grid-cols-[48px_minmax(180px,1.3fr)_minmax(180px,1fr)_160px_130px] items-center gap-5 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-6 py-4 shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)]">
+    <article className="grid min-h-28 w-full grid-cols-[48px_minmax(130px,1.3fr)_minmax(130px,1fr)_120px_112px] items-center gap-3 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-4 py-4 shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)] xl:grid-cols-[48px_minmax(180px,1.3fr)_minmax(180px,1fr)_160px_130px] xl:gap-5 xl:px-6">
       <ProfileImage match={match} />
 
       <div className="min-w-0">

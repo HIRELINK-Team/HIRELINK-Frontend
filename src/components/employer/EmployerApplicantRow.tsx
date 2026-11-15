@@ -11,9 +11,9 @@ interface EmployerApplicantRowProps {
 }
 
 const APPLICANT_ROW_GRID =
-  'grid-cols-[73px_104px_104px_104px_104px_104px_minmax(0,1fr)]';
+  'grid-cols-[52px_minmax(68px,1fr)_58px_58px_68px_80px_304px] xl:grid-cols-[73px_104px_104px_104px_104px_104px_minmax(0,1fr)]';
 const HIRED_APPLICANT_ROW_GRID =
-  'grid-cols-[73px_104px_104px_104px_128px_160px_minmax(0,1fr)]';
+  'grid-cols-[52px_minmax(80px,1fr)_70px_70px_104px_112px_minmax(96px,1fr)] xl:grid-cols-[73px_104px_104px_104px_128px_160px_minmax(0,1fr)]';
 
 function getMatchRateClassName(matchRate: number) {
   if (matchRate >= 80) return 'text-[#009e80]';
@@ -74,23 +74,25 @@ function EmployerApplicantRow({
   if (isCompleted) {
     return (
       <article
-        className={`grid h-24 w-full items-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-[23px] text-center shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)] ${HIRED_APPLICANT_ROW_GRID}`}
+        className={`grid h-24 w-full items-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-3 text-center shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)] xl:px-[23px] ${HIRED_APPLICANT_ROW_GRID}`}
       >
         <ProfileImage applicant={applicant} />
-        <strong className="text-lg font-semibold text-[#171719]">
+        <strong className="truncate text-base font-semibold text-[#171719] xl:text-lg">
           {applicant.applicantName}
         </strong>
-        <span className="text-base font-medium text-[#70737c]">
+        <span className="truncate text-sm font-medium text-[#70737c] xl:text-base">
           {applicant.nationality}
         </span>
-        <span className="text-base font-medium text-[#70737c]">
+        <span className="truncate text-sm font-medium text-[#70737c] xl:text-base">
           {applicant.visaType}
         </span>
-        <span className="text-base font-normal text-[#70737c]">
+        <span className="truncate text-sm font-normal text-[#70737c] xl:text-base">
           {formatApplicationDate(applicant.desiredStartDate)}
         </span>
-        <span className="text-base font-medium text-[#007a63]">채용 완료</span>
-        <div className="flex justify-start pl-6">
+        <span className="truncate text-sm font-medium text-[#007a63] xl:text-base">
+          채용 완료
+        </span>
+        <div className="flex min-w-0 justify-start xl:pl-6">
           <ActionButton onClick={() => onViewDetails(applicant)}>
             상세
           </ActionButton>
@@ -101,29 +103,34 @@ function EmployerApplicantRow({
 
   return (
     <article
-      className={`grid h-24 w-full items-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-[23px] text-center shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)] ${APPLICANT_ROW_GRID}`}
+      className={`grid h-24 w-full items-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-3 text-center shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)] xl:px-[23px] ${APPLICANT_ROW_GRID}`}
     >
       <ProfileImage applicant={applicant} />
-      <strong className="text-lg font-semibold text-[#171719]">
+      <strong className="truncate text-base font-semibold text-[#171719] xl:text-lg">
         {applicant.applicantName}
       </strong>
-      <span className="text-base font-medium text-[#70737c]">
+      <span className="truncate text-sm font-medium text-[#70737c] xl:text-base">
         {applicant.nationality}
       </span>
-      <span className="text-base font-medium text-[#70737c]">
+      <span className="truncate text-sm font-medium text-[#70737c] xl:text-base">
         {applicant.visaType}
       </span>
       <span
-        className={`text-xl font-medium ${getMatchRateClassName(applicant.matchScore)}`}
+        className={`text-lg font-medium xl:text-xl ${getMatchRateClassName(applicant.matchScore)}`}
       >
         {applicant.matchScore}%
       </span>
       {deadline ? (
-        <CountdownTimer expiresAt={deadline} />
+        <CountdownTimer
+          expiresAt={deadline}
+          sizeClassName="text-base xl:text-xl"
+        />
       ) : (
-        <span className="text-xl font-medium text-[#171719]">--:--:--</span>
+        <span className="text-base font-medium text-[#171719] xl:text-xl">
+          --:--:--
+        </span>
       )}
-      <div className="flex justify-start gap-2 pl-6">
+      <div className="flex min-w-0 justify-start gap-2 xl:pl-6">
         <ActionButton onClick={() => onViewDetails(applicant)}>
           상세
         </ActionButton>
