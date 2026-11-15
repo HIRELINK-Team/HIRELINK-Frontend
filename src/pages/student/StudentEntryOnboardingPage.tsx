@@ -1,9 +1,10 @@
 import { useState } from 'react';
 
-import entryIllustration from '../../assets/images/student/entry/entry-illustration.png';
 import googleIcon from '../../assets/images/student/entry/google.png';
-import hirelinkWordmark from '../../assets/images/student/entry/hirelink-wordmark.svg';
 import kakaoIcon from '../../assets/images/student/entry/kakao.png';
+import socialLoginIllustration from '../../assets/images/student/entry/social-login-illustration.png';
+import socialLoginSymbol from '../../assets/images/student/entry/social-login-symbol.png';
+import socialLoginWordmark from '../../assets/images/student/entry/social-login-wordmark.png';
 import { EmployerEntryNotice } from '../../components/student/onboarding/EmployerEntryNotice';
 
 type StudentEntryOnboardingPageProps = {
@@ -35,29 +36,34 @@ export default function StudentEntryOnboardingPage({
   };
 
   return (
-    <main className="relative mx-auto flex h-[min(844px,100dvh)] w-[390px] max-w-none flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[844px] w-[390px] max-w-none overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <img
         alt=""
-        className="absolute top-[min(0px,calc(100dvh-820px))] left-0 h-[844px] w-[390px] max-w-none object-cover object-bottom"
-        src={entryIllustration}
+        className="pointer-events-none absolute inset-0 h-full w-full max-w-none object-bottom"
+        src={socialLoginIllustration}
       />
 
       <img
         alt="HIRELINK"
-        className="absolute top-[clamp(40px,calc(100dvh-649px),171px)] left-1/2 z-10 h-[28px] w-[212px] -translate-x-1/2"
-        src={hirelinkWordmark}
+        className="pointer-events-none absolute top-[165px] left-[92px] z-10 h-[42px] w-[42px]"
+        src={socialLoginSymbol}
+      />
+      <img
+        alt=""
+        className="pointer-events-none absolute top-[159px] left-[134px] z-10 h-[55px] w-[163px]"
+        src={socialLoginWordmark}
       />
 
-      <section className="relative z-10 mt-auto h-[274px] rounded-t-[30px] bg-[#F5F5F5] px-6 pt-[18px] pb-[calc(11px+env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(0,0,0,0.05)]">
+      <section className="absolute top-[546px] left-0 z-10 h-[298px] w-[390px] rounded-t-[30px] bg-[#F5F5F5] shadow-[0_-6px_20px_rgba(0,0,0,0.05)]">
         <button
-          className="mx-auto block border-0 bg-transparent p-0 text-[15px] leading-normal underline"
+          className="absolute top-6 left-1/2 -translate-x-1/2 border-0 bg-transparent p-0 text-[15px] leading-normal underline"
           type="button"
           onClick={handleEmployerNoticeOpen}
         >
           사장님이신가요?
         </button>
 
-        <div className="mt-[18px] space-y-[14px]">
+        <div className="absolute top-16 right-6 left-6 space-y-[14px]">
           <button
             className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium"
             type="button"
