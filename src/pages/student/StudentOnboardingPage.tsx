@@ -38,6 +38,12 @@ import {
 } from '../../constants/studentOnboardingOptions';
 import { ExperienceCard } from '../../components/student/onboarding/ExperienceCard';
 import { ExperienceForm } from '../../components/student/onboarding/ExperienceForm';
+import {
+  AlienRegistrationEdit,
+  type AlienRegistrationField,
+  type AlienRegistrationFormValues,
+} from '../../components/student/onboarding/AlienRegistrationEdit';
+import { AlienRegistrationReview } from '../../components/student/onboarding/AlienRegistrationReview';
 import { IndustryChip } from '../../components/student/onboarding/IndustryChip';
 import { MatchingPriorityList } from '../../components/student/onboarding/MatchingPriorityList';
 import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
@@ -47,6 +53,8 @@ import { ResidenceExpiryDatePicker } from '../../components/student/onboarding/R
 import { SelectionCard } from '../../components/student/onboarding/SelectionCard';
 import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
 import { WorkLocationRadiusMap } from '../../components/student/onboarding/WorkLocationRadiusMap';
+import { AlienRegistrationCamera } from '../../components/student/documents/AlienRegistrationCamera';
+import { AlienRegistrationInformation } from '../../components/student/documents/AlienRegistrationInformation';
 import type {
   Experience,
   ExperienceDraft,
@@ -86,7 +94,16 @@ type BasicInfoStep =
 
 type BasicInfoView = BasicInfoStep | 'ageRestricted';
 
+type AlienRegistrationStep =
+  | 'alienRegistrationInformation'
+  | 'alienRegistrationCamera'
+  | 'alienRegistrationReview'
+  | 'alienRegistrationReviewRecheck'
+  | 'alienRegistrationEdit'
+  | 'alienRegistrationEditError';
+
 type OnboardingView =
+  | AlienRegistrationStep
   | BasicInfoView
   | 'experienceForm'
   | 'experienceList'
@@ -154,6 +171,23 @@ const INITIAL_INFO: BasicInfo = {
   nationality: '베트남',
   location: '',
   koreanLevel: 'beginner',
+};
+
+const INITIAL_ALIEN_REGISTRATION_VALUES: AlienRegistrationFormValues = {
+  name: 'LIN MAI',
+  nationality: '베트남',
+  residenceQualification: 'D-2',
+  registrationNumber: '*******-********',
+  issueDate: '인식된 날짜',
+  serialNumber: '인식된 번호',
+  expiryDate: '2027.09.23',
+};
+
+const ALIEN_REGISTRATION_VALIDATION_ERRORS: Partial<
+  Record<AlienRegistrationField, string>
+> = {
+  residenceQualification: '제출한 자료에 적힌 만료일이 지났어요.',
+  issueDate: '입력한 정보가 조회 결과와 일치하지 않아요.',
 };
 
 const EMPTY_EXPERIENCE_DRAFT: ExperienceDraft = {
@@ -312,7 +346,7 @@ function getPhoneVerificationConfirmErrorMessage(error: unknown) {
 
 export default function StudentOnboardingPage({
   enableCareerApi = false,
-  initialStep = 'name',
+  initialStep = 'alienRegistrationInformation',
   onBack,
   onComplete,
 }: StudentOnboardingPageProps) {
@@ -333,6 +367,8 @@ export default function StudentOnboardingPage({
     () => new Set(),
   );
   const [info, setInfo] = useState<BasicInfo>(INITIAL_INFO);
+  const [alienRegistrationValues, setAlienRegistrationValues] =
+    useState<AlienRegistrationFormValues>(INITIAL_ALIEN_REGISTRATION_VALUES);
   const [isIndustrySelectionSubmitted, setIsIndustrySelectionSubmitted] =
     useState(false);
   const [isIndustrySaving, setIsIndustrySaving] = useState(false);
@@ -441,6 +477,16 @@ export default function StudentOnboardingPage({
     value: BasicInfo[Key],
   ) => {
     setInfo((currentInfo) => ({ ...currentInfo, [key]: value }));
+  };
+
+  const updateAlienRegistrationValue = (
+    field: AlienRegistrationField,
+    value: string,
+  ) => {
+    setAlienRegistrationValues((currentValues) => ({
+      ...currentValues,
+      [field]: value,
+    }));
   };
 
   const updateExperienceDraft = <Key extends keyof ExperienceDraft>(
@@ -857,6 +903,65 @@ export default function StudentOnboardingPage({
           확인
         </button>
       </main>
+    );
+  }
+
+  if (step === 'alienRegistrationInformation') {
+    return (
+      <AlienRegistrationInformation
+        onBack={() => onBack?.()}
+        onRegister={() => setStep('alienRegistrationCamera')}
+      />
+    );
+  }
+
+  if (step === 'alienRegistrationCamera') {
+    return (
+      <AlienRegistrationCamera
+        onBack={() => setStep('alienRegistrationInformation')}
+        onCapture={() => setStep('alienRegistrationReview')}
+      />
+    );
+  }
+
+  if (step === 'alienRegistrationReview') {
+    return (
+      <AlienRegistrationReview
+        onBack={() => setStep('alienRegistrationCamera')}
+        onConfirm={() => setStep('phone')}
+        onEdit={() => setStep('alienRegistrationEdit')}
+        onRetry={() => setStep('alienRegistrationCamera')}
+        values={alienRegistrationValues}
+      />
+    );
+  }
+
+  if (step === 'alienRegistrationReviewRecheck') {
+    return (
+      <AlienRegistrationReview
+        notice="등록된 정보를 다시 확인해주세요."
+        onBack={() => setStep('alienRegistrationEdit')}
+        onConfirm={() => setStep('phone')}
+        onEdit={() => setStep('alienRegistrationEdit')}
+        onRetry={() => setStep('alienRegistrationCamera')}
+        values={alienRegistrationValues}
+      />
+    );
+  }
+
+  if (step === 'alienRegistrationEdit' || step === 'alienRegistrationEditError') {
+    return (
+      <AlienRegistrationEdit
+        errors={
+          step === 'alienRegistrationEditError'
+            ? ALIEN_REGISTRATION_VALIDATION_ERRORS
+            : undefined
+        }
+        onBack={() => setStep('alienRegistrationReview')}
+        onChange={updateAlienRegistrationValue}
+        onSubmit={() => setStep('alienRegistrationReviewRecheck')}
+        values={alienRegistrationValues}
+      />
     );
   }
 
