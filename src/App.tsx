@@ -17,6 +17,7 @@ import {
   loginStudent,
   refreshAccessToken,
   signupStudent,
+  updateMyTermAgreements,
 } from './api/student';
 import { getApiErrorResponse } from './api/errors';
 import {
@@ -87,6 +88,7 @@ import StudentProfileManagementPage, {
 } from './pages/student/StudentProfileManagementPage';
 import StudentSplashPage from './pages/student/StudentSplashPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
+import StudentTermsAgreementPage from './pages/student/StudentTermsAgreementPage';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
 import { formatWorkAvailabilityRanges } from './utils/formatWorkAvailability';
 import StudentMatchingConditionIndustryPage from './pages/student/StudentMatchingConditionIndustryPage';
@@ -572,12 +574,46 @@ function StudentSignupRoute() {
       onBack={() => navigate('/student/login')}
       onSignup={async (request) => {
         if (IS_DEMO_MODE) {
-          navigate('/student/onboarding');
+          navigate('/student/onboarding/terms');
           return;
         }
 
         const { accessToken } = await signupStudent(request);
         setAccessToken(accessToken);
+        navigate('/student/onboarding/terms');
+      }}
+    />
+  );
+}
+
+function StudentTermsAgreementRoute() {
+  const navigate = useNavigate();
+
+  return (
+    <StudentTermsAgreementPage
+      onBack={() => navigate('/student/signup')}
+      onContinue={async (agreements) => {
+        if (!IS_DEMO_MODE) {
+          await updateMyTermAgreements({
+            agreements: [
+              {
+                termTypeId: 1,
+                isAgreed: agreements.serviceTerms,
+              },
+              {
+                termTypeId: 2,
+                isAgreed:
+                  agreements.personalInformationCollection &&
+                  agreements.thirdPartyProvision,
+              },
+              {
+                termTypeId: 3,
+                isAgreed: agreements.marketing,
+              },
+            ],
+          });
+        }
+
         navigate('/student/onboarding');
       }}
     />
@@ -2135,6 +2171,10 @@ function App() {
             <Route path="/student/entry" element={<StudentEntryRoute />} />
             <Route path="/student/login" element={<StudentLoginRoute />} />
             <Route path="/student/signup" element={<StudentSignupRoute />} />
+            <Route
+              path="/student/onboarding/terms"
+              element={<StudentTermsAgreementRoute />}
+            />
             <Route
               path="/student/onboarding"
               element={<StudentOnboardingRoute />}
