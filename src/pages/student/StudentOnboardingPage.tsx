@@ -102,7 +102,7 @@ type AlienRegistrationStep =
   | 'alienRegistrationEdit'
   | 'alienRegistrationEditError';
 
-type OnboardingView =
+export type OnboardingView =
   | AlienRegistrationStep
   | BasicInfoView
   | 'experienceForm'
@@ -126,7 +126,7 @@ type StudentOnboardingPageProps = {
 };
 
 type BasicInfo = {
-  birthYear: string;
+  birthDate: string;
   koreanLevel: KoreanLevel;
   location: string;
   name: string;
@@ -167,7 +167,7 @@ const INITIAL_INFO: BasicInfo = {
   name: '',
   phone: '',
   verificationCode: '',
-  birthYear: '',
+  birthDate: '',
   nationality: '베트남',
   location: '',
   koreanLevel: 'beginner',
@@ -304,6 +304,43 @@ function isValidPhone(value: string) {
   return /^01[0-9]-\d{3,4}-\d{4}$/.test(value);
 }
 
+function isValidBirthDate(value: string) {
+  const matched = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!matched) return false;
+
+  const [, year, month, day] = matched;
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  return (
+    date.getFullYear() === Number(year) &&
+    date.getMonth() === Number(month) - 1 &&
+    date.getDate() === Number(day)
+  );
+}
+
+function isAgeEligible(birthDate: string) {
+  if (!isValidBirthDate(birthDate)) return false;
+
+  const [year, month, day] = birthDate.split('-').map(Number);
+  const eligibilityDate = new Date(year + 19, month - 1, day);
+  return new Date() >= eligibilityDate;
+}
+
+function formatBirthDate(birthDate: string) {
+  return birthDate.replaceAll('-', '.');
+}
+
+function formatBirthDateInput(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}.${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6)}`;
+}
+
+function toIsoBirthDate(value: string) {
+  const normalizedValue = value.replaceAll('.', '-');
+  return isValidBirthDate(normalizedValue) ? normalizedValue : null;
+}
+
 function getPhoneVerificationRequestErrorMessage(error: unknown) {
   const status = getApiErrorStatus(error);
   const apiError = getApiErrorResponse(error);
@@ -376,6 +413,9 @@ export default function StudentOnboardingPage({
   const [phoneError, setPhoneError] = useState('');
   const [isPhoneVerificationPending, setIsPhoneVerificationPending] =
     useState(false);
+  const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false);
+  const [birthDateInput, setBirthDateInput] = useState('');
+  const [birthDateError, setBirthDateError] = useState('');
   const [remainingSeconds, setRemainingSeconds] = useState(143);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>(
     INITIAL_SELECTED_INDUSTRIES,
@@ -883,20 +923,26 @@ export default function StudentOnboardingPage({
 
   if (step === 'ageRestricted') {
     return (
-      <main className="mx-auto flex h-[min(844px,100dvh)] w-full max-w-[390px] flex-col items-center bg-[#F5F5F5] px-6 pt-[218px] pb-[calc(37px+env(safe-area-inset-bottom))] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
-        <img alt="" className="h-auto w-[106px]" src={ageRestrictionImage} />
-        <h1 className="mt-[14px] mb-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold">
+      <main className="relative mx-auto h-[844px] w-[390px] max-w-none overflow-hidden bg-[#F5F5F5] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+        <img
+          alt=""
+          className="absolute top-[278px] left-1/2 h-[113px] w-[88px] -translate-x-1/2 object-contain drop-shadow-[1px_1px_38.7px_rgba(0,184,148,0.28)]"
+          src={ageRestrictionImage}
+        />
+        <h1 className="absolute top-[410px] left-1/2 m-0 w-full -translate-x-1/2 whitespace-pre-line text-[22px] leading-[1.5] font-semibold">
           아직은 서비스를{`\n`}이용할 수 없어요
         </h1>
-        <p className="mt-[39px] mb-0 whitespace-pre-line text-[13px] leading-[1.5] text-[#8B95A1]">
+        <p className="absolute top-[482px] left-1/2 m-0 w-full -translate-x-1/2 whitespace-pre-line text-[13px] leading-[1.5] text-[#909597]">
           하이어링크는 만 18세 이상부터 이용할 수 있어요.{`\n`}
           이용 가능 연령이 되면 다시 찾아주세요!
         </p>
         <button
-          className="mt-auto h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+          className="absolute top-[750px] left-6 h-[57px] w-[342px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
           type="button"
           onClick={() => {
-            updateInfo('birthYear', '');
+            updateInfo('birthDate', '');
+            setBirthDateInput('');
+            setBirthDateError('');
             setStep('birthYear');
           }}
         >
@@ -949,7 +995,10 @@ export default function StudentOnboardingPage({
     );
   }
 
-  if (step === 'alienRegistrationEdit' || step === 'alienRegistrationEditError') {
+  if (
+    step === 'alienRegistrationEdit' ||
+    step === 'alienRegistrationEditError'
+  ) {
     return (
       <AlienRegistrationEdit
         errors={
@@ -1583,10 +1632,17 @@ export default function StudentOnboardingPage({
     }
 
     if (step === 'birthYear') {
-      if (!/^\d{4}$/.test(info.birthYear)) return;
+      if (!isValidBirthDate(info.birthDate)) {
+        setBirthDateError('올바른 생년월일을 입력해주세요.');
+        return;
+      }
 
-      const latestEligibleBirthYear = new Date().getFullYear() - 19;
-      if (Number(info.birthYear) > latestEligibleBirthYear) {
+      if (info.birthDate > new Date().toISOString().slice(0, 10)) {
+        setBirthDateError('오늘 이후의 날짜는 입력할 수 없어요.');
+        return;
+      }
+
+      if (!isAgeEligible(info.birthDate)) {
         setStep('ageRestricted');
         return;
       }
@@ -1612,26 +1668,28 @@ export default function StudentOnboardingPage({
     isPhoneVerificationPending ||
     (step === 'name' && !info.name.trim()) ||
     (step === 'verification' && !/^\d{6}$/.test(info.verificationCode)) ||
-    (step === 'birthYear' && !/^\d{4}$/.test(info.birthYear)) ||
+    (step === 'birthYear' && !isValidBirthDate(info.birthDate)) ||
     (step === 'location' && !info.location.trim());
 
   const questions: Record<BasicInfoStep, string> = {
     name: '본인의 이름을\n적어주세요.',
     phone: '본인의 전화번호를\n입력해주세요.',
     verification: '인증 번호를\n입력해 주세요.',
-    birthYear: '본인의 나이를\n선택해주세요.',
+    birthYear: '본인의 생년월일을\n입력해주세요',
     nationality: '본인의 국적을\n선택해주세요.',
     location: '현재 거주지역을\n입력해주세요.',
     koreanLevel: '한국어 실력은\n어느 정도인가요?',
   };
 
   const ctaLabel = step === 'phone' ? '인증번호 받기' : '확인';
+  const isBasicInfoPreviewStep =
+    step === 'phone' || step === 'verification' || step === 'birthYear';
 
   return (
     <OnboardingScaffold
-      activeSubStep={BASIC_INFO_PROGRESS[step]}
+      activeSubStep={isBasicInfoPreviewStep ? 1 : BASIC_INFO_PROGRESS[step]}
       ctaLabel={ctaLabel}
-      currentStage={1}
+      currentStage={isBasicInfoPreviewStep ? 2 : 1}
       isCtaDisabled={isCtaDisabled}
       question={questions[step]}
       questionClassName={step === 'name' ? 'translate-y-[5.5px]' : undefined}
@@ -1639,7 +1697,8 @@ export default function StudentOnboardingPage({
       onCtaClick={() => void handleNext()}
       onEnter={() => void handleNext()}
       stageLabel="기본정보 입력"
-      totalSubSteps={BASIC_INFO_TOTAL_SUB_STEPS}
+      totalStages={isBasicInfoPreviewStep ? 6 : 5}
+      totalSubSteps={isBasicInfoPreviewStep ? 3 : BASIC_INFO_TOTAL_SUB_STEPS}
     >
       {step === 'name' ? (
         <OnboardingField
@@ -1656,6 +1715,15 @@ export default function StudentOnboardingPage({
           inputMode="tel"
           label="전화번호"
           placeholder="010-1234-5678"
+          trailing={
+            phoneError ? (
+              <img
+                alt=""
+                className="mr-4 size-[21px] shrink-0"
+                src={clearIcon}
+              />
+            ) : undefined
+          }
           value={info.phone}
           onChange={(event) => handlePhoneChange(event.target.value)}
         />
@@ -1669,21 +1737,29 @@ export default function StudentOnboardingPage({
           maxLength={6}
           placeholder="인증번호 6자리"
           trailing={
-            <span className="flex shrink-0 items-center gap-[7px]">
-              <span className="text-[15px] leading-[1.5] font-medium text-[#00B894]">
-                {remainingTime}
+            verificationError ? (
+              <img
+                alt=""
+                className="mr-4 size-[21px] shrink-0"
+                src={clearIcon}
+              />
+            ) : (
+              <span className="flex shrink-0 items-center gap-[7px]">
+                <span className="text-[15px] leading-[1.5] font-medium text-[#009376]">
+                  {remainingTime}
+                </span>
+                <button
+                  className="h-[34px] rounded-[44px] border-[0.7px] border-[#D3D6D7] bg-transparent px-2.5 text-[13px] leading-[1.5] text-[#55595B]"
+                  type="button"
+                  disabled={isPhoneVerificationPending}
+                  onClick={() => {
+                    void handlePhoneVerificationRequest(false);
+                  }}
+                >
+                  재요청
+                </button>
               </span>
-              <button
-                className="rounded-[44px] border-[0.7px] border-[#B0B8C1] bg-transparent px-2.5 py-1.5 text-[13px] leading-[1.5] text-[#191F28]"
-                type="button"
-                disabled={isPhoneVerificationPending}
-                onClick={() => {
-                  void handlePhoneVerificationRequest(false);
-                }}
-              >
-                재요청
-              </button>
-            </span>
+            )
           }
           value={info.verificationCode}
           onChange={(event) => {
@@ -1697,16 +1773,66 @@ export default function StudentOnboardingPage({
       ) : null}
 
       {step === 'birthYear' ? (
-        <OnboardingField
-          inputMode="numeric"
-          label="출생년도"
-          maxLength={4}
-          placeholder="2000"
-          value={info.birthYear}
-          onChange={(event) =>
-            updateInfo('birthYear', event.target.value.replace(/\D/g, ''))
-          }
-        />
+        <>
+          <div className="relative mt-[27px] flex h-[83px] w-full items-center border-b border-[#B0B8C1]">
+            <label className="flex min-w-0 flex-1 flex-col text-left">
+              <span className="block text-[17px] leading-[1.5] text-[#191F28]">
+                생년월일
+              </span>
+              <input
+                aria-invalid={Boolean(birthDateError)}
+                className="w-full border-0 bg-transparent p-0 text-[26px] leading-[1.5] font-semibold text-[#191F28] outline-none placeholder:text-[#B0B8C1]"
+                inputMode="numeric"
+                maxLength={10}
+                placeholder="YYYY.MM.DD"
+                value={birthDateInput}
+                onBlur={() => {
+                  if (birthDateInput && !isValidBirthDate(info.birthDate)) {
+                    setBirthDateError('올바른 생년월일을 입력해주세요.');
+                  }
+                }}
+                onChange={(event) => {
+                  const value = formatBirthDateInput(event.target.value);
+                  const birthDate = toIsoBirthDate(value);
+                  setBirthDateInput(value);
+                  updateInfo('birthDate', birthDate ?? '');
+                  setBirthDateError('');
+                }}
+              />
+            </label>
+            <button
+              aria-label="생년월일 선택"
+              className="ml-3 flex size-6 shrink-0 items-center justify-center border-0 bg-transparent p-0"
+              type="button"
+              onClick={() => setIsBirthDatePickerOpen(true)}
+            >
+              <img
+                alt=""
+                className="size-6"
+                src={residenceExpiryCalendarIcon}
+              />
+            </button>
+          </div>
+          {birthDateError ? (
+            <p className="mt-2 mb-0 text-[15px] leading-[1.5] text-[#E05260]">
+              {birthDateError}
+            </p>
+          ) : null}
+          {isBirthDatePickerOpen ? (
+            <ResidenceExpiryDatePicker
+              emptyInitialDate="2000-01-01"
+              initialDate={info.birthDate}
+              title="생년월일 선택"
+              onClose={() => setIsBirthDatePickerOpen(false)}
+              onConfirm={(birthDate) => {
+                updateInfo('birthDate', birthDate);
+                setBirthDateInput(formatBirthDate(birthDate));
+                setBirthDateError('');
+                setIsBirthDatePickerOpen(false);
+              }}
+            />
+          ) : null}
+        </>
       ) : null}
 
       {step === 'nationality' ? (

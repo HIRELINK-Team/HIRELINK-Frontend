@@ -20,6 +20,7 @@ type OnboardingScaffoldProps = {
   showProgress?: boolean;
   stageLabelLayout?: 'inline' | 'stacked';
   stageLabel: string;
+  totalStages?: number;
   totalSubSteps: number;
 };
 
@@ -41,6 +42,7 @@ export function OnboardingScaffold({
   showProgress = true,
   stageLabelLayout = 'stacked',
   stageLabel,
+  totalStages = 5,
   totalSubSteps,
 }: OnboardingScaffoldProps) {
   const progressStyle: CSSProperties = {
@@ -92,7 +94,7 @@ export function OnboardingScaffold({
           }`}
         >
           <strong className="text-[17px] leading-[1.5] font-bold text-[#00B894]">
-            {currentStage}/5
+            {currentStage}/{totalStages}
           </strong>
           {stageLabelLayout === 'stacked' ? (
             <span className="block">{stageLabel}</span>
