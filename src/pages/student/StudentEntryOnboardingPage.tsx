@@ -65,7 +65,7 @@ export default function StudentEntryOnboardingPage({
 
         <div className="absolute top-16 right-6 left-6 space-y-[14px]">
           <button
-            className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium"
+            className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
             type="button"
             onClick={handleStart}
           >
@@ -79,7 +79,7 @@ export default function StudentEntryOnboardingPage({
             </span>
           </button>
           <button
-            className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium"
+            className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
             type="button"
             onClick={handleStart}
           >
@@ -93,7 +93,7 @@ export default function StudentEntryOnboardingPage({
             </span>
           </button>
           <button
-            className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium"
+            className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
             type="button"
             onClick={handleEmailLogin}
           >
