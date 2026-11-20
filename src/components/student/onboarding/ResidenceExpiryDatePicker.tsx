@@ -4,6 +4,7 @@ import nextIcon from '../../../assets/icons/student/calendar-next.svg';
 import previousIcon from '../../../assets/icons/student/calendar-previous.svg';
 
 type ResidenceExpiryDatePickerProps = {
+  emptyInitialDate?: string;
   initialDate: string;
   onDateChange?: (date: string) => void;
   onClose: () => void;
@@ -41,8 +42,11 @@ function isValidIsoDate(value: string) {
   );
 }
 
-function getInitialMonth(date: string) {
-  if (!isValidIsoDate(date)) return new Date(2027, 2, 1);
+function getInitialMonth(date: string, emptyInitialDate: string) {
+  if (!isValidIsoDate(date)) {
+    const [year, month] = emptyInitialDate.split('-').map(Number);
+    return new Date(year, month - 1, 1);
+  }
 
   const [year, month] = date.split('-').map(Number);
   return new Date(year, month - 1, 1);
@@ -57,6 +61,7 @@ function toIsoDate(date: Date) {
 }
 
 export function ResidenceExpiryDatePicker({
+  emptyInitialDate = '2027-03-01',
   initialDate,
   onDateChange,
   onClose,
@@ -64,7 +69,7 @@ export function ResidenceExpiryDatePicker({
   title = '\uB9CC\uB8CC\uC77C \uC120\uD0DD',
 }: ResidenceExpiryDatePickerProps) {
   const [displayMonth, setDisplayMonth] = useState(() =>
-    getInitialMonth(initialDate),
+    getInitialMonth(initialDate, emptyInitialDate),
   );
   const [selectedDate, setSelectedDate] = useState(() =>
     isValidIsoDate(initialDate) ? initialDate : '',

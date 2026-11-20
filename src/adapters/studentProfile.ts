@@ -42,13 +42,13 @@ const ONBOARDING_KOREAN_LEVEL_CODE: Record<KoreanLevel, StudentKoreanLevel> = {
 };
 
 export function mapStudentOnboardingToCreateRequest({
-  birthYear,
+  birthDate,
   koreanLevel,
   location,
   name,
   nationality,
 }: {
-  birthYear: string;
+  birthDate: string;
   koreanLevel: KoreanLevel;
   location: string;
   name: string;
@@ -62,15 +62,14 @@ export function mapStudentOnboardingToCreateRequest({
     !trimmedName ||
     !trimmedLocation ||
     !nationalityCode ||
-    !/^\d{4}$/.test(birthYear)
+    !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)
   ) {
     return null;
   }
 
   return {
     name: trimmedName,
-    // Temporary demo conversion. Replace this when onboarding collects a full birth date.
-    birthDate: `${birthYear}-01-01`,
+    birthDate,
     nationality: nationalityCode,
     currentRegion: trimmedLocation,
     koreanLevel: ONBOARDING_KOREAN_LEVEL_CODE[koreanLevel],
