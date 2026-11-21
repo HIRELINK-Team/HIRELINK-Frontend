@@ -10,6 +10,9 @@ interface EmployerApplicantRowProps {
   onOffer: (applicant: EmployerApplicationListItem) => void;
 }
 
+const APPLICANT_INFO_GRID = 'grid-cols-[73px_104px_104px_104px_104px_104px]';
+const HIRED_APPLICANT_INFO_GRID =
+  'grid-cols-[73px_104px_104px_104px_128px_160px]';
 const APPLICANT_ROW_GRID =
   'grid-cols-[73px_104px_104px_104px_104px_104px_minmax(0,1fr)]';
 const HIRED_APPLICANT_ROW_GRID =
@@ -73,24 +76,28 @@ function EmployerApplicantRow({
 
   if (isCompleted) {
     return (
-      <article
-        className={`grid h-24 w-full items-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-[23px] text-center shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)] ${HIRED_APPLICANT_ROW_GRID}`}
-      >
-        <ProfileImage applicant={applicant} />
-        <strong className="text-lg font-semibold text-[#171719]">
-          {applicant.applicantName}
-        </strong>
-        <span className="text-base font-medium text-[#70737c]">
-          {applicant.nationality}
-        </span>
-        <span className="text-base font-medium text-[#70737c]">
-          {applicant.visaType}
-        </span>
-        <span className="text-base font-normal text-[#70737c]">
-          {formatApplicationDate(applicant.desiredStartDate)}
-        </span>
-        <span className="text-base font-medium text-[#007a63]">채용 완료</span>
-        <div className="flex justify-start pl-6">
+      <article className="flex min-h-24 w-full flex-wrap items-center gap-y-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-[23px] py-3 text-center shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)]">
+        <div
+          className={`grid w-[673px] shrink-0 items-center ${HIRED_APPLICANT_INFO_GRID}`}
+        >
+          <ProfileImage applicant={applicant} />
+          <strong className="truncate text-lg font-semibold text-[#171719]">
+            {applicant.applicantName}
+          </strong>
+          <span className="truncate text-base font-medium text-[#70737c]">
+            {applicant.nationality}
+          </span>
+          <span className="truncate text-base font-medium text-[#70737c]">
+            {applicant.visaType}
+          </span>
+          <span className="truncate text-base font-normal text-[#70737c]">
+            {formatApplicationDate(applicant.desiredStartDate)}
+          </span>
+          <span className="truncate text-base font-medium text-[#007a63]">
+            채용 완료
+          </span>
+        </div>
+        <div className="ml-auto flex shrink-0 justify-end">
           <ActionButton onClick={() => onViewDetails(applicant)}>
             상세
           </ActionButton>
@@ -100,30 +107,32 @@ function EmployerApplicantRow({
   }
 
   return (
-    <article
-      className={`grid h-24 w-full items-center rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-[23px] text-center shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)] ${APPLICANT_ROW_GRID}`}
-    >
-      <ProfileImage applicant={applicant} />
-      <strong className="text-lg font-semibold text-[#171719]">
-        {applicant.applicantName}
-      </strong>
-      <span className="text-base font-medium text-[#70737c]">
-        {applicant.nationality}
-      </span>
-      <span className="text-base font-medium text-[#70737c]">
-        {applicant.visaType}
-      </span>
-      <span
-        className={`text-xl font-medium ${getMatchRateClassName(applicant.matchScore)}`}
+    <article className="flex min-h-24 w-full flex-wrap items-center gap-y-2 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-[23px] py-3 text-center shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)]">
+      <div
+        className={`grid w-[593px] shrink-0 items-center ${APPLICANT_INFO_GRID}`}
       >
-        {applicant.matchScore}%
-      </span>
-      {deadline ? (
-        <CountdownTimer expiresAt={deadline} />
-      ) : (
-        <span className="text-xl font-medium text-[#171719]">--:--:--</span>
-      )}
-      <div className="flex justify-start gap-2 pl-6">
+        <ProfileImage applicant={applicant} />
+        <strong className="truncate text-lg font-semibold text-[#171719]">
+          {applicant.applicantName}
+        </strong>
+        <span className="truncate text-base font-medium text-[#70737c]">
+          {applicant.nationality}
+        </span>
+        <span className="truncate text-base font-medium text-[#70737c]">
+          {applicant.visaType}
+        </span>
+        <span
+          className={`text-xl font-medium ${getMatchRateClassName(applicant.matchScore)}`}
+        >
+          {applicant.matchScore}%
+        </span>
+        {deadline ? (
+          <CountdownTimer expiresAt={deadline} />
+        ) : (
+          <span className="text-xl font-medium text-[#171719]">--:--:--</span>
+        )}
+      </div>
+      <div className="ml-auto flex shrink-0 justify-end gap-2">
         <ActionButton onClick={() => onViewDetails(applicant)}>
           상세
         </ActionButton>

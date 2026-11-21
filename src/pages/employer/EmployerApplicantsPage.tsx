@@ -69,7 +69,7 @@ function ApplicantTableHeader({ isCompleted }: { isCompleted: boolean }) {
       {labels.map((label, index) => (
         <span
           key={`${label}-${index}`}
-          className={index === labels.length - 1 ? 'pl-6 text-left' : ''}
+          className={index === labels.length - 1 ? 'text-center' : 'truncate'}
         >
           {label}
         </span>
