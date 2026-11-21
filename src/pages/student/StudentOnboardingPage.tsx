@@ -36,12 +36,14 @@ import {
 } from '../../constants/studentOnboardingOptions';
 import { ExperienceCard } from '../../components/student/onboarding/ExperienceCard';
 import { ExperienceForm } from '../../components/student/onboarding/ExperienceForm';
+import type { AlienRegistrationFormValues } from '../../components/student/onboarding/AlienRegistrationEdit';
+import { AlienRegistrationA } from '../../components/student/onboarding/AlienRegistrationA';
+import { AlienRegistrationFrontComplete } from '../../components/student/onboarding/AlienRegistrationFrontComplete';
+import { AlienRegistrationFrontInfo } from '../../components/student/onboarding/AlienRegistrationFrontInfo';
 import {
-  AlienRegistrationEdit,
-  type AlienRegistrationField,
-  type AlienRegistrationFormValues,
-} from '../../components/student/onboarding/AlienRegistrationEdit';
-import { AlienRegistrationReview } from '../../components/student/onboarding/AlienRegistrationReview';
+  AlienRegistrationResidencePeriod,
+  type ResidencePeriodMethod,
+} from '../../components/student/onboarding/AlienRegistrationResidencePeriod';
 import { IndustryChip } from '../../components/student/onboarding/IndustryChip';
 import { MatchingPriorityList } from '../../components/student/onboarding/MatchingPriorityList';
 import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
@@ -95,10 +97,10 @@ type BasicInfoView = BasicInfoStep | 'ageRestricted';
 type AlienRegistrationStep =
   | 'alienRegistrationInformation'
   | 'alienRegistrationCamera'
-  | 'alienRegistrationReview'
-  | 'alienRegistrationReviewRecheck'
-  | 'alienRegistrationEdit'
-  | 'alienRegistrationEditError';
+  | 'alienRegistrationFrontInfo'
+  | 'alienRegistrationFrontComplete'
+  | 'alienRegistrationResidencePeriod'
+  | 'alienRegistrationA';
 
 export type OnboardingView =
   | AlienRegistrationStep
@@ -177,13 +179,6 @@ const INITIAL_ALIEN_REGISTRATION_VALUES: AlienRegistrationFormValues = {
   issueDate: '인식된 날짜',
   serialNumber: '인식된 번호',
   expiryDate: '2027.09.23',
-};
-
-const ALIEN_REGISTRATION_VALIDATION_ERRORS: Partial<
-  Record<AlienRegistrationField, string>
-> = {
-  residenceQualification: '제출한 자료에 적힌 만료일이 지났어요.',
-  issueDate: '입력한 정보가 조회 결과와 일치하지 않아요.',
 };
 
 const EMPTY_EXPERIENCE_DRAFT: ExperienceDraft = {
@@ -400,8 +395,9 @@ export default function StudentOnboardingPage({
     () => new Set(),
   );
   const [info, setInfo] = useState<BasicInfo>(INITIAL_INFO);
-  const [alienRegistrationValues, setAlienRegistrationValues] =
-    useState<AlienRegistrationFormValues>(INITIAL_ALIEN_REGISTRATION_VALUES);
+  const [alienRegistrationValues] = useState<AlienRegistrationFormValues>(
+    INITIAL_ALIEN_REGISTRATION_VALUES,
+  );
   const [isIndustrySelectionSubmitted, setIsIndustrySelectionSubmitted] =
     useState(false);
   const [isIndustrySaving, setIsIndustrySaving] = useState(false);
@@ -518,14 +514,10 @@ export default function StudentOnboardingPage({
     setInfo((currentInfo) => ({ ...currentInfo, [key]: value }));
   };
 
-  const updateAlienRegistrationValue = (
-    field: AlienRegistrationField,
-    value: string,
-  ) => {
-    setAlienRegistrationValues((currentValues) => ({
-      ...currentValues,
-      [field]: value,
-    }));
+  const handleResidencePeriodConfirm = (method: ResidencePeriodMethod) => {
+    if (method === 'cardBack') {
+      setStep('alienRegistrationA');
+    }
   };
 
   const updateExperienceDraft = <Key extends keyof ExperienceDraft>(
@@ -964,51 +956,44 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationCamera
         onBack={() => setStep('alienRegistrationInformation')}
-        onCapture={() => setStep('alienRegistrationReview')}
+        onCapture={() => setStep('alienRegistrationFrontInfo')}
       />
     );
   }
 
-  if (step === 'alienRegistrationReview') {
+  if (step === 'alienRegistrationFrontInfo') {
     return (
-      <AlienRegistrationReview
+      <AlienRegistrationFrontInfo
         onBack={() => setStep('alienRegistrationCamera')}
-        onConfirm={() => setStep('phone')}
-        onEdit={() => setStep('alienRegistrationEdit')}
+        onConfirm={() => setStep('alienRegistrationFrontComplete')}
         onRetry={() => setStep('alienRegistrationCamera')}
         values={alienRegistrationValues}
       />
     );
   }
 
-  if (step === 'alienRegistrationReviewRecheck') {
+  if (step === 'alienRegistrationFrontComplete') {
     return (
-      <AlienRegistrationReview
-        notice="등록된 정보를 다시 확인해주세요."
-        onBack={() => setStep('alienRegistrationEdit')}
-        onConfirm={() => setStep('phone')}
-        onEdit={() => setStep('alienRegistrationEdit')}
-        onRetry={() => setStep('alienRegistrationCamera')}
-        values={alienRegistrationValues}
+      <AlienRegistrationFrontComplete
+        onBack={() => setStep('alienRegistrationFrontInfo')}
+        onConfirm={() => setStep('alienRegistrationResidencePeriod')}
       />
     );
   }
 
-  if (
-    step === 'alienRegistrationEdit' ||
-    step === 'alienRegistrationEditError'
-  ) {
+  if (step === 'alienRegistrationResidencePeriod') {
     return (
-      <AlienRegistrationEdit
-        errors={
-          step === 'alienRegistrationEditError'
-            ? ALIEN_REGISTRATION_VALIDATION_ERRORS
-            : undefined
-        }
-        onBack={() => setStep('alienRegistrationReview')}
-        onChange={updateAlienRegistrationValue}
-        onSubmit={() => setStep('alienRegistrationReviewRecheck')}
-        values={alienRegistrationValues}
+      <AlienRegistrationResidencePeriod
+        onBack={() => setStep('alienRegistrationFrontComplete')}
+        onConfirm={handleResidencePeriodConfirm}
+      />
+    );
+  }
+
+  if (step === 'alienRegistrationA') {
+    return (
+      <AlienRegistrationA
+        onBack={() => setStep('alienRegistrationResidencePeriod')}
       />
     );
   }
