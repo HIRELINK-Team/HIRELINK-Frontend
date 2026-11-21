@@ -28,10 +28,8 @@ import {
   mapExperienceDraftToUpdateRequest,
   mapStudentCareerToExperience,
 } from '../../adapters/studentExperience';
-import { COUNTRY_ICON_BY_NAME } from '../../constants/studentCountryIcons';
 import {
   ACADEMIC_STATUS_OPTIONS,
-  COUNTRY_OPTIONS,
   KOREAN_LEVELS,
   RESIDENCE_QUALIFICATION_OPTIONS,
   TOPIK_LEVEL_OPTIONS,
@@ -89,7 +87,6 @@ type BasicInfoStep =
   | 'phone'
   | 'verification'
   | 'birthYear'
-  | 'nationality'
   | 'location'
   | 'koreanLevel';
 
@@ -141,7 +138,6 @@ const STEP_ORDER: BasicInfoStep[] = [
   'phone',
   'verification',
   'birthYear',
-  'nationality',
   'location',
   'koreanLevel',
 ];
@@ -151,9 +147,8 @@ const BASIC_INFO_PROGRESS: Record<BasicInfoStep, number> = {
   phone: 2,
   verification: 2,
   birthYear: 3,
-  nationality: 4,
-  location: 5,
-  koreanLevel: 6,
+  location: 4,
+  koreanLevel: 5,
 };
 
 const BASIC_INFO_TOTAL_SUB_STEPS = Math.max(
@@ -1680,7 +1675,6 @@ export default function StudentOnboardingPage({
     phone: '본인의 전화번호를\n입력해주세요.',
     verification: '인증 번호를\n입력해 주세요.',
     birthYear: '본인의 생년월일을\n입력해주세요',
-    nationality: '본인의 국적을\n선택해주세요.',
     location: '현재 거주지역을\n입력해주세요.',
     koreanLevel: '한국어 실력은\n어느 정도인가요?',
   };
@@ -1854,30 +1848,6 @@ export default function StudentOnboardingPage({
             />
           ) : null}
         </>
-      ) : null}
-
-      {step === 'nationality' ? (
-        <label className="relative mt-[27px] block">
-          <span className="block text-[17px] leading-[1.5] text-[#191F28]">
-            국적
-          </span>
-          <img
-            alt=""
-            className="pointer-events-none absolute top-[41px] left-0 h-[23px] w-[23px] object-contain"
-            src={COUNTRY_ICON_BY_NAME[info.nationality]}
-          />
-          <select
-            className="h-[57px] w-full appearance-auto border-0 border-b border-[#B0B8C1] bg-transparent py-0 pr-0 pl-[37px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28] outline-none"
-            value={info.nationality}
-            onChange={(event) =>
-              updateInfo('nationality', event.target.value as CountryOption)
-            }
-          >
-            {COUNTRY_OPTIONS.map((country) => (
-              <option key={country}>{country}</option>
-            ))}
-          </select>
-        </label>
       ) : null}
 
       {step === 'location' ? (
