@@ -63,15 +63,13 @@ function ApplicantTableHeader({ isCompleted }: { isCompleted: boolean }) {
 
   return (
     <div
-      className={`grid h-8 w-full items-center rounded-lg bg-[#f7f7f8] px-3 text-center text-xs font-semibold text-[#171719] xl:px-[23px] xl:text-sm ${isCompleted ? HIRED_APPLICANT_ROW_GRID : APPLICANT_ROW_GRID}`}
+      className={`grid h-8 w-full items-center rounded-lg bg-[#f7f7f8] px-[23px] text-center text-sm font-semibold text-[#171719] ${isCompleted ? HIRED_APPLICANT_ROW_GRID : APPLICANT_ROW_GRID}`}
       role="row"
     >
       {labels.map((label, index) => (
         <span
           key={`${label}-${index}`}
-          className={
-            index === labels.length - 1 ? 'text-left xl:pl-6' : 'truncate'
-          }
+          className={index === labels.length - 1 ? 'text-center' : 'truncate'}
         >
           {label}
         </span>

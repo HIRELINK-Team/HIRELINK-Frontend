@@ -41,41 +41,44 @@ function EmployerHiredStudentRow({
     : '-';
 
   return (
-    <article className="grid min-h-28 w-full grid-cols-[48px_minmax(130px,1.3fr)_minmax(130px,1fr)_120px_112px] items-center gap-3 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-4 py-4 shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)] xl:grid-cols-[48px_minmax(180px,1.3fr)_minmax(180px,1fr)_160px_130px] xl:gap-5 xl:px-6">
-      <ProfileImage match={match} />
+    <article className="flex min-h-28 w-full flex-wrap items-center gap-x-5 gap-y-3 rounded-xl border border-[rgba(112,115,124,0.16)] bg-white px-6 py-4 shadow-[0_2px_4px_rgba(23,23,25,0.1),0_1px_1px_rgba(23,23,25,0.06)]">
+      <div className="grid min-w-[628px] flex-1 basis-[628px] grid-cols-[48px_minmax(180px,1.3fr)_minmax(180px,1fr)_160px] items-center gap-5">
+        <ProfileImage match={match} />
 
-      <div className="min-w-0">
-        <h2 className="truncate text-xl font-semibold text-[#171719]">
-          {studentName}
-        </h2>
-        <p className="mt-1 truncate text-sm font-medium text-[#70737c]">
-          {studentSummary}
-        </p>
-      </div>
+        <div className="min-w-0">
+          <h2 className="truncate text-xl font-semibold text-[#171719]">
+            {studentName}
+          </h2>
+          <p className="mt-1 truncate text-sm font-medium text-[#70737c]">
+            {studentSummary}
+          </p>
+        </div>
 
-      <div className="min-w-0">
-        <p className="truncate text-base font-semibold text-[#171719]">
-          {match.jobTitle}
-        </p>
-        <p className="mt-1 truncate text-sm font-medium text-[#70737c]">
-          {match.workplaceName} · {formatWage(match.wageType, match.wageAmount)}
-        </p>
-      </div>
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold text-[#171719]">
+            {match.jobTitle}
+          </p>
+          <p className="mt-1 truncate text-sm font-medium text-[#70737c]">
+            {match.workplaceName} ·{' '}
+            {formatWage(match.wageType, match.wageAmount)}
+          </p>
+        </div>
 
-      <div className="min-w-0">
-        <p className="text-[13px] text-[#70737c]">희망 근무 시작일</p>
-        <p className="mt-0.5 text-sm font-semibold text-[#171719]">
-          {formatApplicationDate(match.desiredStartDate)}
-        </p>
-        <p className="mt-1 truncate text-xs text-[#8b95a1]">
-          채용 완료 {formatApplicationDateTime(match.matchedAt)}
-        </p>
+        <div className="min-w-0">
+          <p className="text-[13px] text-[#70737c]">희망 근무 시작일</p>
+          <p className="mt-0.5 text-sm font-semibold text-[#171719]">
+            {formatApplicationDate(match.desiredStartDate)}
+          </p>
+          <p className="mt-1 truncate text-xs text-[#8b95a1]">
+            채용 완료 {formatApplicationDateTime(match.matchedAt)}
+          </p>
+        </div>
       </div>
 
       <button
         type="button"
         onClick={() => onViewDetails(match.matchId)}
-        className="flex h-8 w-[104px] cursor-pointer items-center justify-center justify-self-end rounded-lg border border-[rgba(112,115,124,0.32)] bg-white text-sm font-medium whitespace-nowrap text-[#171719] transition-colors hover:bg-[#f4f4f5]"
+        className="ml-auto flex h-8 w-[104px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[rgba(112,115,124,0.32)] bg-white text-sm font-medium whitespace-nowrap text-[#171719] transition-colors hover:bg-[#f4f4f5]"
       >
         유학생 상세
       </button>
