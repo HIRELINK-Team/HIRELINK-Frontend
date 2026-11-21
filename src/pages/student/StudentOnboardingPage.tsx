@@ -1131,11 +1131,14 @@ export default function StudentOnboardingPage({
       <OnboardingScaffold
         activeSubStep={0}
         ctaLabel="확인"
-        ctaContainerClassName="mt-auto shrink-0 pt-8 mb-[30px]"
-        contentClassName="mt-2"
-        currentStage={2}
+        ctaContainerClassName="mt-auto shrink-0 pt-8"
+        contentClassName="mt-[28px]"
+        currentStage={3}
+        isPageScrollable
         question={'이전에 해본 아르바이트나\n근무경험을 알려주세요.'}
         showProgress={false}
+        responsive
+        totalStages={6}
         stageLabel="경력 입력"
         totalSubSteps={1}
         onBack={() => setStep('koreanLevel')}
