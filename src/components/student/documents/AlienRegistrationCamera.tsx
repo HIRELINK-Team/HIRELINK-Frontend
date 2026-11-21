@@ -13,10 +13,10 @@ export function AlienRegistrationCamera({
   onCapture,
 }: AlienRegistrationCameraProps) {
   return (
-    <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#3F3F3F] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#F5F5F5]">
+    <main className="relative mx-auto h-[844px] w-[390px] max-w-none overflow-hidden bg-[#3F3F3F] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#F5F5F5]">
       <button
-        aria-label="뒤로가기"
-        className="absolute top-[61px] left-4 grid size-8 place-items-center border-0 bg-transparent p-0"
+        aria-label="뒤로 가기"
+        className="absolute top-[61px] left-[18px] grid size-8 place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
       >
@@ -27,11 +27,11 @@ export function AlienRegistrationCamera({
         <br />
         자동으로 촬영돼요.
       </p>
-      <div className="absolute top-[198px] right-6 left-6 h-[190px] rounded-[10px] border border-[#F5F5F5]" />
+      <div className="absolute top-[222px] right-6 left-6 h-[208px] rounded-[10px] border border-[#F5F5F5]" />
 
       <section
         aria-label="촬영 가이드"
-        className="absolute top-[442px] right-6 left-6 grid grid-cols-3"
+        className="absolute top-[497px] right-6 left-6 grid grid-cols-3"
       >
         <div className="flex flex-col items-center">
           <img alt="" className="h-[50px] w-[50px]" src={bulbIcon} />
@@ -59,9 +59,11 @@ export function AlienRegistrationCamera({
         </div>
       </section>
 
-      <div className="absolute right-6 bottom-[37px] left-6 flex gap-[7px]">
-        <label className="flex h-[57px] flex-1 cursor-pointer items-center justify-center rounded-[15px] bg-white/15 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]">
-          파일업로드
+      <div className="absolute top-[694px] left-[25px] flex items-center gap-[7px]">
+        <label className="relative h-[57px] w-[165px] cursor-pointer overflow-hidden rounded-[15px] bg-white/15">
+          <span className="absolute top-[14px] left-1/2 -translate-x-1/2 whitespace-nowrap text-[20px] leading-[1.5] font-medium tracking-[-0.02em] text-[#F5F5F5]">
+            파일업로드
+          </span>
           <input
             accept="application/pdf,image/*"
             className="sr-only"
@@ -72,11 +74,13 @@ export function AlienRegistrationCamera({
           />
         </label>
         <button
-          className="h-[58px] flex-[1.024] rounded-[15px] border-0 bg-[#F5F5F5] p-0 text-[20px] leading-[1.5] text-[#191F28]"
+          className="relative h-[58px] w-[169px] overflow-hidden rounded-[15px] border-0 bg-[#F5F5F5] p-0"
           type="button"
           onClick={onCapture}
         >
-          등록하기
+          <span className="absolute top-[14px] left-1/2 -translate-x-1/2 whitespace-nowrap text-[20px] leading-[1.5] font-normal tracking-[-0.02em] text-[#1D1F20]">
+            등록하기
+          </span>
         </button>
       </div>
     </main>
