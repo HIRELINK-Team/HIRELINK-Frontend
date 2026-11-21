@@ -1882,22 +1882,23 @@ export default function StudentOnboardingPage({
 
       {step === 'location' ? (
         <div>
-          <OnboardingField
-            autoComplete="street-address"
-            label="주소"
-            name="currentRegion"
-            placeholder="주소 검색"
-            trailing={
-              <img
-                alt=""
-                className="h-[22px] w-[22px] shrink-0"
-                src={searchIcon}
+          <label className="mt-[35px] block">
+            <span className="block text-[17px] leading-[1.5] text-[#1D1F20]">
+              주소
+            </span>
+            <span className="flex h-[57px] items-center border-b border-[#B3B8B9]">
+              <img alt="" className="size-[22px] shrink-0" src={searchIcon} />
+              <input
+                autoComplete="street-address"
+                className="h-full min-w-0 flex-1 border-0 bg-transparent pl-[14px] text-[26px] leading-[1.5] font-normal tracking-[-0.02em] text-[#1D1F20] outline-none placeholder:text-[#B3B8B9]"
+                name="currentRegion"
+                placeholder="주소 검색"
+                type="text"
+                value={info.location}
+                onChange={(event) => updateInfo('location', event.target.value)}
               />
-            }
-            value={info.location}
-            type="text"
-            onChange={(event) => updateInfo('location', event.target.value)}
-          />
+            </span>
+          </label>
           <button
             className="mx-auto mt-[15px] flex h-[54px] w-[340px] items-center gap-4 rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-[23px] text-left text-[17px] leading-[1.5] text-[#1D1F20]"
             type="button"
