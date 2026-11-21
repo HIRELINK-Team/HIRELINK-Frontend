@@ -28,10 +28,8 @@ import {
   mapExperienceDraftToUpdateRequest,
   mapStudentCareerToExperience,
 } from '../../adapters/studentExperience';
-import { COUNTRY_ICON_BY_NAME } from '../../constants/studentCountryIcons';
 import {
   ACADEMIC_STATUS_OPTIONS,
-  COUNTRY_OPTIONS,
   KOREAN_LEVELS,
   RESIDENCE_QUALIFICATION_OPTIONS,
   TOPIK_LEVEL_OPTIONS,
@@ -49,6 +47,7 @@ import { MatchingPriorityList } from '../../components/student/onboarding/Matchi
 import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
 import { OnboardingField } from '../../components/student/onboarding/OnboardingField';
 import { OnboardingScaffold } from '../../components/student/onboarding/OnboardingScaffold';
+import { LocationServiceTermsPage } from '../../components/student/onboarding/LocationServiceTermsPage';
 import { ResidenceExpiryDatePicker } from '../../components/student/onboarding/ResidenceExpiryDatePicker';
 import { SelectionCard } from '../../components/student/onboarding/SelectionCard';
 import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
@@ -88,7 +87,6 @@ type BasicInfoStep =
   | 'phone'
   | 'verification'
   | 'birthYear'
-  | 'nationality'
   | 'location'
   | 'koreanLevel';
 
@@ -140,7 +138,6 @@ const STEP_ORDER: BasicInfoStep[] = [
   'phone',
   'verification',
   'birthYear',
-  'nationality',
   'location',
   'koreanLevel',
 ];
@@ -150,9 +147,8 @@ const BASIC_INFO_PROGRESS: Record<BasicInfoStep, number> = {
   phone: 2,
   verification: 2,
   birthYear: 3,
-  nationality: 4,
-  location: 5,
-  koreanLevel: 6,
+  location: 4,
+  koreanLevel: 5,
 };
 
 const BASIC_INFO_TOTAL_SUB_STEPS = Math.max(
@@ -416,6 +412,9 @@ export default function StudentOnboardingPage({
   const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false);
   const [birthDateInput, setBirthDateInput] = useState('');
   const [birthDateError, setBirthDateError] = useState('');
+  const [isLocationConsentOpen, setIsLocationConsentOpen] = useState(false);
+  const [isLocationServiceAgreed, setIsLocationServiceAgreed] = useState(false);
+  const [isLocationTermsOpen, setIsLocationTermsOpen] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(143);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>(
     INITIAL_SELECTED_INDUSTRIES,
@@ -1676,21 +1675,37 @@ export default function StudentOnboardingPage({
     phone: '본인의 전화번호를\n입력해주세요.',
     verification: '인증 번호를\n입력해 주세요.',
     birthYear: '본인의 생년월일을\n입력해주세요',
-    nationality: '본인의 국적을\n선택해주세요.',
     location: '현재 거주지역을\n입력해주세요.',
     koreanLevel: '한국어 실력은\n어느 정도인가요?',
   };
 
+  if (isLocationTermsOpen) {
+    return (
+      <LocationServiceTermsPage
+        onBack={() => setIsLocationTermsOpen(false)}
+      />
+    );
+  }
+
   const ctaLabel = step === 'phone' ? '인증번호 받기' : '확인';
   const isBasicInfoPreviewStep =
-    step === 'phone' || step === 'verification' || step === 'birthYear';
+    step === 'phone' ||
+    step === 'verification' ||
+    step === 'birthYear' ||
+    step === 'location' ||
+    step === 'koreanLevel';
+  const activeSubStep =
+    step === 'location' ? 2 : step === 'koreanLevel' ? 3 : 1;
 
   return (
     <OnboardingScaffold
-      activeSubStep={isBasicInfoPreviewStep ? 1 : BASIC_INFO_PROGRESS[step]}
+      activeSubStep={
+        isBasicInfoPreviewStep ? activeSubStep : BASIC_INFO_PROGRESS[step]
+      }
       ctaLabel={ctaLabel}
       currentStage={isBasicInfoPreviewStep ? 2 : 1}
       isCtaDisabled={isCtaDisabled}
+      isPageScrollable={step === 'location' || step === 'koreanLevel'}
       question={questions[step]}
       questionClassName={step === 'name' ? 'translate-y-[5.5px]' : undefined}
       onBack={handleBack}
@@ -1835,61 +1850,104 @@ export default function StudentOnboardingPage({
         </>
       ) : null}
 
-      {step === 'nationality' ? (
-        <label className="relative mt-[27px] block">
-          <span className="block text-[17px] leading-[1.5] text-[#191F28]">
-            국적
-          </span>
-          <img
-            alt=""
-            className="pointer-events-none absolute top-[41px] left-0 h-[23px] w-[23px] object-contain"
-            src={COUNTRY_ICON_BY_NAME[info.nationality]}
-          />
-          <select
-            className="h-[57px] w-full appearance-auto border-0 border-b border-[#B0B8C1] bg-transparent py-0 pr-0 pl-[37px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28] outline-none"
-            value={info.nationality}
-            onChange={(event) =>
-              updateInfo('nationality', event.target.value as CountryOption)
-            }
-          >
-            {COUNTRY_OPTIONS.map((country) => (
-              <option key={country}>{country}</option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-
       {step === 'location' ? (
         <div>
-          <OnboardingField
-            autoComplete="street-address"
-            label="주소"
-            name="currentRegion"
-            placeholder="주소 검색"
-            trailing={
-              <img
-                alt=""
-                className="h-[22px] w-[22px] shrink-0"
-                src={searchIcon}
+          <label className="mt-[35px] block">
+            <span className="block text-[17px] leading-[1.5] text-[#1D1F20]">
+              주소
+            </span>
+            <span className="flex h-[57px] items-center border-b border-[#B3B8B9]">
+              <img alt="" className="size-[22px] shrink-0" src={searchIcon} />
+              <input
+                autoComplete="street-address"
+                className="h-full min-w-0 flex-1 border-0 bg-transparent pl-[14px] text-[26px] leading-[1.5] font-normal tracking-[-0.02em] text-[#1D1F20] outline-none placeholder:text-[#B3B8B9]"
+                name="currentRegion"
+                placeholder="주소 검색"
+                type="text"
+                value={info.location}
+                onChange={(event) => updateInfo('location', event.target.value)}
               />
-            }
-            value={info.location}
-            type="text"
-            onChange={(event) => updateInfo('location', event.target.value)}
-          />
+            </span>
+          </label>
           <button
-            className="mt-[15px] flex h-[54px] w-full items-center gap-4 rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[23px] text-left text-[17px] leading-[1.5] text-[#191F28]"
+            className="mx-auto mt-[15px] flex h-[54px] w-[340px] items-center gap-4 rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-[23px] text-left text-[17px] leading-[1.5] text-[#1D1F20]"
             type="button"
-            onClick={() => updateInfo('location', '서울특별시 동작구 상도동')}
+            onClick={() => setIsLocationConsentOpen(true)}
           >
             <img alt="" className="h-[14px] w-[14px]" src={locationIcon} />
             현재 위치로 찾기
           </button>
+          {isLocationConsentOpen ? (
+            <>
+              <div aria-hidden="true" className="absolute inset-0 z-20 bg-black/50" />
+              <section
+                aria-label="위치기반 서비스 이용약관 동의"
+                className="absolute bottom-0 left-0 z-30 min-h-[368px] w-[390px] rounded-t-[20px] bg-[#F5F5F5] px-6 pt-7"
+              >
+                <h2 className="m-0 text-[20px] leading-[1.5] font-semibold text-[#1D1F20]">
+                  위치기반 서비스 이용약관 동의
+                </h2>
+                <p className="mt-[22px] mb-0 whitespace-pre-line text-[15px] leading-[1.5] text-[#55595B]">
+                  내 주변 일자리를 찾기 위해 현재 위치(GPS)를 사용해요.{`\n`}
+                  위치 정보는 검색에만 이용하며 계속 추적하지 않아요.{`\n`}
+                  동의하지 않아도 주소를 직접 선택해 이용할 수 있어요.
+                </p>
+                <div className="mt-[11px] flex h-[23px] items-center gap-3">
+                  <button
+                    aria-pressed={isLocationServiceAgreed}
+                    aria-label="위치기반 서비스 이용약관 동의"
+                    className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${
+                      isLocationServiceAgreed
+                        ? 'border-[#00B894] bg-[#00B894] text-white'
+                        : 'border-[rgba(112,115,124,0.32)] bg-white'
+                    }`}
+                    type="button"
+                    onClick={() => setIsLocationServiceAgreed((current) => !current)}
+                  >
+                    {isLocationServiceAgreed ? '✓' : ''}
+                  </button>
+                  <button
+                    className="min-w-0 flex-1 p-0 text-left text-[15px] leading-[1.5] text-[#1D1F20]"
+                    type="button"
+                    onClick={() => setIsLocationTermsOpen(true)}
+                  >
+                    [필수] 위치기반 서비스 이용약관 동의
+                  </button>
+                  <button
+                    aria-label="위치기반 서비스 이용약관 보기"
+                    className="flex size-[18px] shrink-0 items-center justify-center p-0 text-[#55595B]"
+                    type="button"
+                    onClick={() => setIsLocationTermsOpen(true)}
+                  >
+                    ›
+                  </button>
+                </div>
+                <button
+                  className="mt-[23px] h-[54px] w-full rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5] disabled:bg-[#B0B8C1]"
+                  disabled={!isLocationServiceAgreed}
+                  type="button"
+                  onClick={() => {
+                    updateInfo('location', '서울특별시 동작구 상도동');
+                    setIsLocationConsentOpen(false);
+                  }}
+                >
+                  동의하고 현재 위치 찾기
+                </button>
+                <button
+                  className="mt-2.5 h-[54px] w-full rounded-[15px] border-0 bg-[#B8EBDD] text-[17px] leading-[1.5] font-medium text-[#006E59]"
+                  type="button"
+                  onClick={() => setIsLocationConsentOpen(false)}
+                >
+                  직접 선택할래요
+                </button>
+              </section>
+            </>
+          ) : null}
         </div>
       ) : null}
 
       {step === 'koreanLevel' ? (
-        <div className="mt-[27px] space-y-2.5">
+        <div className="mt-[46px] space-y-2.5">
           {KOREAN_LEVELS.map((level) => (
             <SelectionCard
               description={level.description}
