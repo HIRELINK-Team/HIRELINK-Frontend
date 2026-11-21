@@ -1183,7 +1183,9 @@ export default function StudentOnboardingPage({
       <OnboardingScaffold
         activeSubStep={1}
         ctaLabel="확인"
-        currentStage={3}
+        currentStage={4}
+        isPageScrollable
+        responsive
         footer={
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -1204,13 +1206,14 @@ export default function StudentOnboardingPage({
         }
         question={'원하는 업종을\n선택해주세요.'}
         stageLabel="구직조건 입력"
+        totalStages={6}
         totalSubSteps={3}
         onBack={() => setStep('experienceList')}
         onCtaClick={handleIndustryConfirm}
       >
         <div className="mt-[27px] space-y-[5px]">
           {INDUSTRY_ROWS.map((industryRow) => (
-            <div className="flex items-center gap-2" key={industryRow[0].id}>
+            <div className="flex flex-wrap items-center gap-2" key={industryRow[0].id}>
               {industryRow.map((industry) => (
                 <IndustryChip
                   isSelected={selectedIndustries.includes(industry.id)}
@@ -1266,10 +1269,12 @@ export default function StudentOnboardingPage({
       <OnboardingScaffold
         activeSubStep={2}
         ctaLabel="확인"
-        currentStage={3}
+        currentStage={4}
         isPageScrollable
+        responsive
         question={'원하는 근무시간대를\n선택해주세요.'}
         stageLabel="구직조건 입력"
+        totalStages={6}
         totalSubSteps={3}
         onBack={() => setStep('industrySelection')}
         onCtaClick={handleWorkTimeConfirm}
@@ -1311,10 +1316,13 @@ export default function StudentOnboardingPage({
       <OnboardingScaffold
         activeSubStep={3}
         ctaLabel="확인"
-        currentStage={3}
+        currentStage={4}
         isCtaDisabled={!workLocation.address.trim()}
+        isPageScrollable
         question={'원하는 근무 희망위치를\n입력해주세요.'}
         stageLabel="구직조건 입력"
+        responsive
+        totalStages={6}
         totalSubSteps={3}
         onBack={() => setStep('workTimeSelection')}
         onCtaClick={handleWorkLocationConfirm}

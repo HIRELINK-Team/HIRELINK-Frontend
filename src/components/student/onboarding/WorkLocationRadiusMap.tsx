@@ -1,6 +1,4 @@
 import backIcon from '../../../assets/icons/student/back.svg';
-import mapPinIcon from '../../../assets/icons/student/matching/detail-map-pin.svg';
-import locationIcon from '../../../assets/icons/student/location.svg';
 import detailMapImage from '../../../assets/images/student/matching/detail-map.png';
 import type { WorkLocationRadius } from '../../../types/workLocation';
 
@@ -16,9 +14,15 @@ type WorkLocationRadiusMapProps = {
 };
 
 const RADIUS_CIRCLE_SIZE_BY_METERS: Record<number, number> = {
-  100: 112,
+  100: 276,
   500: 196,
-  1000: 278,
+  1000: 276,
+};
+
+const RADIUS_SLIDER_POSITION_BY_METERS: Record<number, number> = {
+  100: 17,
+  500: 50,
+  1000: 100,
 };
 
 export function WorkLocationRadiusMap({
@@ -33,94 +37,105 @@ export function WorkLocationRadiusMap({
 }: WorkLocationRadiusMapProps) {
   const selectedRadiusIndex = radiusOptions.indexOf(radius);
   const circleSize = RADIUS_CIRCLE_SIZE_BY_METERS[radius] ?? 196;
+  const sliderPosition = RADIUS_SLIDER_POSITION_BY_METERS[radius] ?? 50;
 
   return (
-    <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[100dvh] min-h-0 w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <img
         alt=""
-        className="absolute top-0 left-1/2 h-full w-[620px] max-w-none -translate-x-1/2 object-cover"
+        className="absolute top-0 left-[-22.56%] h-[103.55%] w-[142.82%] max-w-none object-cover"
         src={detailMapImage}
       />
-      <div className="absolute inset-0 bg-[#F5F5F5]/20" />
-
-      <header className="absolute top-0 right-0 left-0 z-10 flex items-center gap-3 px-6 pt-[calc(28px+env(safe-area-inset-top))]">
+      <header className="absolute top-0 right-0 left-0 z-10 h-[241px] overflow-hidden rounded-b-[20px] bg-[#F5F5F5] shadow-[2px_2px_5px_rgba(0,0,0,0.14)]">
         <button
           aria-label="희망 근무 위치 입력으로 돌아가기"
-          className="grid size-10 shrink-0 place-items-center rounded-full border-0 bg-white p-0 shadow-[0_1px_4px_rgba(25,31,40,0.18)]"
+          className="absolute top-[60px] left-[13px] grid size-[34px] place-items-center border-0 bg-transparent p-0"
           type="button"
           onClick={onBack}
         >
           <img alt="" className="h-4 w-2" src={backIcon} />
         </button>
-        <span className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-4 text-[14px] leading-[1.5] font-medium shadow-[0_1px_4px_rgba(25,31,40,0.18)]">
-          <img alt="" className="size-[14px] shrink-0" src={locationIcon} />
+
+        <span className="absolute top-[57px] left-[15.64%] flex h-[41px] w-[43.33%] items-center gap-[5px] rounded-[50px] bg-[#E6E8E9] px-5 text-[15px] leading-[1.5] text-[#1D1F28]">
+          <svg
+            aria-hidden="true"
+            className="size-[18px] shrink-0"
+            fill="none"
+            viewBox="0 0 18 18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9 1.5C5.69175 1.5 3 4.19175 3 7.49625C2.97825 12.33 8.772 16.338 9 16.5C9 16.5 15.02175 12.33 15 7.5C15 4.19175 12.30825 1.5 9 1.5ZM9 10.5C7.3425 10.5 6 9.1575 6 7.5C6 5.8425 7.3425 4.5 9 4.5C10.6575 4.5 12 5.8425 12 7.5C12 9.1575 10.6575 10.5 9 10.5Z"
+              fill="#1D1F20"
+            />
+          </svg>
           <span className="truncate">{address}</span>
         </span>
+
+        <section className="absolute top-[125px] right-[6.41%] left-[5.9%]">
+          <h1 className="m-0 text-[17px] leading-[1.5] font-medium">
+            반경 선택하기
+          </h1>
+          <div className="relative mt-[25px] h-[19px] w-full">
+            <span
+              aria-hidden="true"
+              className="absolute top-[9px] right-0 left-0 h-[3px] bg-[#D3D6D7]"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute top-[9px] left-0 h-[3px] bg-[#00B894]"
+              style={{ width: `${sliderPosition}%` }}
+            />
+            <span
+              aria-hidden="true"
+              className="absolute top-0 size-[19px] rounded-full border border-[#B0B8C1] bg-[#F5F5F5] shadow-[0_1px_2px_rgba(0,0,0,0.16)]"
+              style={{ left: `calc(${sliderPosition}% - 9.5px)` }}
+            />
+            <input
+              aria-label="희망 근무 반경"
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              max={radiusOptions.length - 1}
+              min="0"
+              step="1"
+              type="range"
+              value={selectedRadiusIndex < 0 ? 0 : selectedRadiusIndex}
+              onChange={(event) =>
+                onRadiusChange(radiusOptions[Number(event.target.value)])
+              }
+            />
+          </div>
+          <div className="mt-[2px] flex justify-between text-[15px] leading-[1.5] font-medium text-[#909597]">
+            {radiusOptions.map((option) => (
+              <span key={option}>
+                {option >= 1000 ? `${option / 1000}km` : `${option}m`}
+              </span>
+            ))}
+          </div>
+        </section>
       </header>
 
-      <div className="absolute top-[43%] left-1/2 -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute top-[58.18%] left-[44.36%] -translate-x-1/2 -translate-y-1/2">
         <span
           aria-hidden="true"
           className="absolute top-1/2 left-1/2 rounded-full border-2 border-[#00B894] bg-[#00B894]/20 -translate-x-1/2 -translate-y-1/2 transition-[width,height] duration-200"
           style={{ height: circleSize, width: circleSize }}
         />
-        <span className="relative grid size-[46px] place-items-center rounded-full border-4 border-white bg-[#00B894] shadow-[0_2px_7px_rgba(25,31,40,0.32)]">
-          <img
-            alt=""
-            className="size-[22px] brightness-0 invert"
-            src={mapPinIcon}
-          />
-        </span>
       </div>
 
-      <section className="absolute right-0 bottom-0 left-0 z-10 rounded-t-[28px] bg-[#F5F5F5] px-6 pt-6 pb-[calc(28px+env(safe-area-inset-bottom))] shadow-[0_-4px_18px_rgba(25,31,40,0.18)]">
-        <h1 className="m-0 text-[22px] leading-[1.5] font-semibold">
-          이동 가능 반경을 선택해주세요.
-        </h1>
-        <p className="m-0 mt-1 text-[14px] leading-[1.5] text-[#6B7684]">
-          선택한 위치를 중심으로 일할 곳을 추천해드려요.
+      {errorMessage ? (
+        <p aria-live="polite" className="absolute right-6 bottom-[106px] left-6 z-10 m-0 text-[14px] text-[#E05260]">
+          {errorMessage}
         </p>
+      ) : null}
 
-        <input
-          aria-label="이동 가능 반경"
-          className="mt-7 h-1.5 w-full cursor-pointer accent-[#00B894]"
-          max={radiusOptions.length - 1}
-          min="0"
-          step="1"
-          type="range"
-          value={selectedRadiusIndex < 0 ? 0 : selectedRadiusIndex}
-          onChange={(event) =>
-            onRadiusChange(radiusOptions[Number(event.target.value)])
-          }
-        />
-        <div className="mt-3 flex justify-between text-[14px] leading-[1.5] text-[#6B7684]">
-          {radiusOptions.map((option) => (
-            <span
-              className={
-                option === radius ? 'font-semibold text-[#00B894]' : ''
-              }
-              key={option}
-            >
-              {option >= 1000 ? `${option / 1000}km` : `${option}m`}
-            </span>
-          ))}
-        </div>
-
-        {errorMessage ? (
-          <p aria-live="polite" className="mt-4 text-[14px] text-[#E05260]">
-            {errorMessage}
-          </p>
-        ) : null}
-
-        <button
-          className="mt-6 h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
-          disabled={isConfirming}
-          type="button"
-          onClick={onConfirm}
-        >
-          확인
-        </button>
-      </section>
+      <button
+        className="absolute right-6 bottom-[calc(37px+env(safe-area-inset-bottom))] left-6 z-10 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] shadow-[2px_2px_5px_rgba(0,0,0,0.14)] active:bg-[#009376]"
+        disabled={isConfirming}
+        type="button"
+        onClick={onConfirm}
+      >
+        확인
+      </button>
     </main>
   );
 }

@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 
-import removeIcon from '../../../assets/icons/student/work-time-remove.svg';
 import type {
   Weekday,
   WeekdayAvailability,
@@ -12,12 +11,6 @@ type WorkTimeGridProps = {
   selectedSlots: WeekdayAvailability;
   onModeChange: (mode: WorkTimeMode) => void;
   onSlotsChange: (day: Weekday, slots: number[]) => void;
-};
-
-type TimeRange = {
-  day: Weekday;
-  endSlot: number;
-  startSlot: number;
 };
 
 const WEEKDAYS: Array<{ id: Weekday; label: string }> = [
@@ -41,16 +34,16 @@ const TIME_CONFIG: Record<
   }
 > = {
   daytime: {
-    startHour: 6,
-    slotCount: 32,
-    slotOffset: -6,
-    rowHeight: 8,
+    startHour: 9,
+    slotCount: 28,
+    slotOffset: 0,
+    rowHeight: 10,
     labels: [
-      { label: '6', position: 0 },
-      { label: '10', position: 8 },
-      { label: '14', position: 16 },
-      { label: '18', position: 24 },
-      { label: '22', position: 32 },
+      { label: '9', position: 0 },
+      { label: '12', position: 6 },
+      { label: '15', position: 12 },
+      { label: '18', position: 18 },
+      { label: '21', position: 24 },
     ],
   },
   nighttime: {
@@ -60,7 +53,7 @@ const TIME_CONFIG: Record<
     rowHeight: 10,
     labels: [
       { label: '22', position: 0 },
-      { label: '0', position: 4 },
+      { label: '12', position: 4 },
       { label: '2', position: 8 },
       { label: '4', position: 12 },
       { label: '6', position: 16 },
@@ -68,80 +61,9 @@ const TIME_CONFIG: Record<
   },
 };
 
-function getSelectedRanges(selectedSlots: WeekdayAvailability): TimeRange[] {
-  return WEEKDAYS.flatMap(({ id: day }) => {
-    const slots = [...selectedSlots[day]].sort(
-      (first, second) => first - second,
-    );
-    const ranges: TimeRange[] = [];
-    let startSlot: number | null = null;
-    let previousSlot: number | null = null;
-
-    slots.forEach((slot) => {
-      if (
-        startSlot === null ||
-        previousSlot === null ||
-        slot !== previousSlot + 1
-      ) {
-        if (startSlot !== null && previousSlot !== null) {
-          ranges.push({ day, startSlot, endSlot: previousSlot });
-        }
-        startSlot = slot;
-      }
-      previousSlot = slot;
-    });
-
-    if (startSlot !== null && previousSlot !== null) {
-      ranges.push({ day, startSlot, endSlot: previousSlot });
-    }
-
-    return ranges;
-  });
-}
-
 function getHourLabel(hour: number) {
   const normalizedHour = hour % 24;
   return normalizedHour === 0 ? '0' : String(normalizedHour);
-}
-
-function formatTimeLabel(hour: number) {
-  const normalizedHour = ((hour % 24) + 24) % 24;
-  const wholeHour = Math.floor(normalizedHour);
-  const minutes = Math.round((normalizedHour - wholeHour) * 60);
-
-  return minutes === 0
-    ? `${wholeHour}시`
-    : `${wholeHour}시 ${minutes}분`;
-}
-
-function getRangeLabel(range: TimeRange, mode: WorkTimeMode) {
-  const config = TIME_CONFIG[mode];
-  const dayLabel = WEEKDAYS.find(({ id }) => id === range.day)?.label;
-
-  if (
-    mode === 'nighttime' &&
-    range.day === 'mon' &&
-    range.startSlot === 0 &&
-    range.endSlot === 7
-  ) {
-    return '월 22시 - 1시';
-  }
-
-  if (
-    mode === 'nighttime' &&
-    range.day === 'wed' &&
-    range.startSlot === 10 &&
-    range.endSlot === 15
-  ) {
-    return '수 3시 - 6시';
-  }
-
-  const startHour =
-    config.startHour + (range.startSlot - config.slotOffset) / 2;
-  const endHour =
-    config.startHour + (range.endSlot - config.slotOffset + 1) / 2;
-
-  return `${dayLabel} ${formatTimeLabel(startHour)} - ${formatTimeLabel(endHour)}`;
 }
 
 export function WorkTimeGrid({
@@ -153,7 +75,6 @@ export function WorkTimeGrid({
   const dragSelection = useRef<boolean | null>(null);
   const config = TIME_CONFIG[mode];
   const gridHeight = config.slotCount * config.rowHeight;
-  const selectedRanges = getSelectedRanges(selectedSlots);
 
   useEffect(() => {
     const handlePointerUp = () => {
@@ -194,13 +115,6 @@ export function WorkTimeGrid({
     updateSlotSelection(day, slot, dragSelection.current);
   };
 
-  const handleRangeRemove = (range: TimeRange) => {
-    const nextSlots = selectedSlots[range.day].filter(
-      (slot) => slot < range.startSlot || slot > range.endSlot,
-    );
-    onSlotsChange(range.day, nextSlots);
-  };
-
   return (
     <div className="mt-4">
       <div className="flex gap-[5px]">
@@ -227,7 +141,7 @@ export function WorkTimeGrid({
       </div>
 
       <div className="mt-2.5">
-        <div className="ml-5 grid w-[321px] grid-cols-7 gap-x-2">
+        <div className="ml-5 grid w-[calc(100%-20px)] grid-cols-7 gap-x-2">
           {WEEKDAYS.map(({ id, label }) => (
             <span
               className="text-center text-[12px] leading-[17px] text-[#8B95A1]"
@@ -238,7 +152,7 @@ export function WorkTimeGrid({
           ))}
         </div>
 
-        <div className="mt-1 flex gap-2">
+        <div className="mt-1 flex min-w-0 gap-2">
           <div
             className="relative w-3 shrink-0 text-[12px] leading-[17px] text-[#8B95A1]"
             style={{ height: `${gridHeight}px` }}
@@ -254,7 +168,7 @@ export function WorkTimeGrid({
             ))}
           </div>
 
-          <div className="grid w-[321px] grid-cols-7 gap-x-2">
+          <div className="grid min-w-0 flex-1 grid-cols-7 gap-x-2">
             {WEEKDAYS.map(({ id: day }) => (
               <div
                 className="grid"
@@ -298,21 +212,6 @@ export function WorkTimeGrid({
         </div>
       </div>
 
-      {selectedRanges.length > 0 ? (
-        <div className="mt-[15px] flex flex-wrap gap-2">
-          {selectedRanges.map((range) => (
-            <button
-              className="flex h-[33px] items-center gap-[5px] rounded-[50px] bg-[#E5E8EB] px-3 text-[13px] leading-[1.5] text-[#191F28]"
-              key={`${range.day}-${range.startSlot}-${range.endSlot}`}
-              type="button"
-              onClick={() => handleRangeRemove(range)}
-            >
-              <img alt="" src={removeIcon} />
-              {getRangeLabel(range, mode)}
-            </button>
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }
