@@ -1695,14 +1695,23 @@ export default function StudentOnboardingPage({
 
   const ctaLabel = step === 'phone' ? '인증번호 받기' : '확인';
   const isBasicInfoPreviewStep =
-    step === 'phone' || step === 'verification' || step === 'birthYear';
+    step === 'phone' ||
+    step === 'verification' ||
+    step === 'birthYear' ||
+    step === 'location' ||
+    step === 'koreanLevel';
+  const activeSubStep =
+    step === 'location' ? 2 : step === 'koreanLevel' ? 3 : 1;
 
   return (
     <OnboardingScaffold
-      activeSubStep={isBasicInfoPreviewStep ? 1 : BASIC_INFO_PROGRESS[step]}
+      activeSubStep={
+        isBasicInfoPreviewStep ? activeSubStep : BASIC_INFO_PROGRESS[step]
+      }
       ctaLabel={ctaLabel}
       currentStage={isBasicInfoPreviewStep ? 2 : 1}
       isCtaDisabled={isCtaDisabled}
+      isPageScrollable={step === 'location' || step === 'koreanLevel'}
       question={questions[step]}
       questionClassName={step === 'name' ? 'translate-y-[5.5px]' : undefined}
       onBack={handleBack}
@@ -1967,7 +1976,7 @@ export default function StudentOnboardingPage({
       ) : null}
 
       {step === 'koreanLevel' ? (
-        <div className="mt-[27px] space-y-2.5">
+        <div className="mt-[46px] space-y-2.5">
           {KOREAN_LEVELS.map((level) => (
             <SelectionCard
               description={level.description}
