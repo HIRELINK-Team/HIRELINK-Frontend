@@ -17,6 +17,7 @@ type OnboardingScaffoldProps = {
   onEnter?: () => void;
   question: string;
   questionClassName?: string;
+  responsive?: boolean;
   showProgress?: boolean;
   stageLabelLayout?: 'inline' | 'stacked';
   stageLabel: string;
@@ -39,6 +40,7 @@ export function OnboardingScaffold({
   onEnter,
   question,
   questionClassName,
+  responsive = false,
   showProgress = true,
   stageLabelLayout = 'stacked',
   stageLabel,
@@ -69,7 +71,7 @@ export function OnboardingScaffold({
   return (
     <main
       aria-labelledby="onboarding-question"
-      className={`relative mx-auto flex h-[min(844px,100dvh)] w-[390px] max-w-none flex-col bg-[#F5F5F5] px-6 pt-[65px] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28] ${
+      className={`relative mx-auto flex ${responsive ? 'min-h-[100dvh] w-full max-w-[430px]' : 'h-[min(844px,100dvh)] w-[390px] max-w-none'} flex-col bg-[#F5F5F5] px-6 pt-[65px] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28] ${
         isPageScrollable
           ? 'overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
           : 'overflow-hidden'
