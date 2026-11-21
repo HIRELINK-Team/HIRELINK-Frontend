@@ -1043,7 +1043,7 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationBackInfo
         onBack={() => setStep('alienRegistrationBackCamera')}
-        onConfirm={() => undefined}
+        onConfirm={() => setStep('alienRegistrationResidenceComplete')}
         onRetry={() => setStep('alienRegistrationBackCamera')}
         values={alienRegistrationBackValues}
       />
