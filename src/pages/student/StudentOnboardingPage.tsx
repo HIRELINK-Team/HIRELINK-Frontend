@@ -49,6 +49,7 @@ import { MatchingPriorityList } from '../../components/student/onboarding/Matchi
 import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
 import { OnboardingField } from '../../components/student/onboarding/OnboardingField';
 import { OnboardingScaffold } from '../../components/student/onboarding/OnboardingScaffold';
+import { LocationServiceTermsPage } from '../../components/student/onboarding/LocationServiceTermsPage';
 import { ResidenceExpiryDatePicker } from '../../components/student/onboarding/ResidenceExpiryDatePicker';
 import { SelectionCard } from '../../components/student/onboarding/SelectionCard';
 import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
@@ -416,6 +417,9 @@ export default function StudentOnboardingPage({
   const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false);
   const [birthDateInput, setBirthDateInput] = useState('');
   const [birthDateError, setBirthDateError] = useState('');
+  const [isLocationConsentOpen, setIsLocationConsentOpen] = useState(false);
+  const [isLocationServiceAgreed, setIsLocationServiceAgreed] = useState(false);
+  const [isLocationTermsOpen, setIsLocationTermsOpen] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(143);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>(
     INITIAL_SELECTED_INDUSTRIES,
@@ -1681,6 +1685,14 @@ export default function StudentOnboardingPage({
     koreanLevel: '한국어 실력은\n어느 정도인가요?',
   };
 
+  if (isLocationTermsOpen) {
+    return (
+      <LocationServiceTermsPage
+        onBack={() => setIsLocationTermsOpen(false)}
+      />
+    );
+  }
+
   const ctaLabel = step === 'phone' ? '인증번호 받기' : '확인';
   const isBasicInfoPreviewStep =
     step === 'phone' || step === 'verification' || step === 'birthYear';
@@ -1878,13 +1890,79 @@ export default function StudentOnboardingPage({
             onChange={(event) => updateInfo('location', event.target.value)}
           />
           <button
-            className="mt-[15px] flex h-[54px] w-full items-center gap-4 rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent px-[23px] text-left text-[17px] leading-[1.5] text-[#191F28]"
+            className="mx-auto mt-[15px] flex h-[54px] w-[340px] items-center gap-4 rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-[23px] text-left text-[17px] leading-[1.5] text-[#1D1F20]"
             type="button"
-            onClick={() => updateInfo('location', '서울특별시 동작구 상도동')}
+            onClick={() => setIsLocationConsentOpen(true)}
           >
             <img alt="" className="h-[14px] w-[14px]" src={locationIcon} />
             현재 위치로 찾기
           </button>
+          {isLocationConsentOpen ? (
+            <>
+              <div aria-hidden="true" className="absolute inset-0 z-20 bg-black/50" />
+              <section
+                aria-label="위치기반 서비스 이용약관 동의"
+                className="absolute bottom-0 left-0 z-30 min-h-[368px] w-[390px] rounded-t-[20px] bg-[#F5F5F5] px-6 pt-7"
+              >
+                <h2 className="m-0 text-[20px] leading-[1.5] font-semibold text-[#1D1F20]">
+                  위치기반 서비스 이용약관 동의
+                </h2>
+                <p className="mt-[22px] mb-0 whitespace-pre-line text-[15px] leading-[1.5] text-[#55595B]">
+                  내 주변 일자리를 찾기 위해 현재 위치(GPS)를 사용해요.{`\n`}
+                  위치 정보는 검색에만 이용하며 계속 추적하지 않아요.{`\n`}
+                  동의하지 않아도 주소를 직접 선택해 이용할 수 있어요.
+                </p>
+                <div className="mt-[11px] flex h-[23px] items-center gap-3">
+                  <button
+                    aria-pressed={isLocationServiceAgreed}
+                    aria-label="위치기반 서비스 이용약관 동의"
+                    className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${
+                      isLocationServiceAgreed
+                        ? 'border-[#00B894] bg-[#00B894] text-white'
+                        : 'border-[rgba(112,115,124,0.32)] bg-white'
+                    }`}
+                    type="button"
+                    onClick={() => setIsLocationServiceAgreed((current) => !current)}
+                  >
+                    {isLocationServiceAgreed ? '✓' : ''}
+                  </button>
+                  <button
+                    className="min-w-0 flex-1 p-0 text-left text-[15px] leading-[1.5] text-[#1D1F20]"
+                    type="button"
+                    onClick={() => setIsLocationTermsOpen(true)}
+                  >
+                    [필수] 위치기반 서비스 이용약관 동의
+                  </button>
+                  <button
+                    aria-label="위치기반 서비스 이용약관 보기"
+                    className="flex size-[18px] shrink-0 items-center justify-center p-0 text-[#55595B]"
+                    type="button"
+                    onClick={() => setIsLocationTermsOpen(true)}
+                  >
+                    ›
+                  </button>
+                </div>
+                <button
+                  className="mt-[23px] h-[54px] w-full rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5] disabled:bg-[#B0B8C1]"
+                  disabled={!isLocationServiceAgreed}
+                  type="button"
+                  onClick={() => {
+                    updateInfo('location', '서울특별시 동작구 상도동');
+                    setIsLocationConsentOpen(false);
+                  }}
+                >
+                  동의하고 현재 위치 찾기
+                </button>
+                <button
+                  className="mt-2.5 h-[54px] w-full rounded-[15px] border-0 bg-[#B8EBDD] text-[17px] leading-[1.5] font-medium text-[#006E59]"
+                  type="button"
+                  onClick={() => setIsLocationConsentOpen(false)}
+                >
+                  직접 선택할래요
+                </button>
+              </section>
+            </>
+          ) : null}
         </div>
       ) : null}
 
