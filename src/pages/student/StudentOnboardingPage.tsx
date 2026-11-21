@@ -43,6 +43,8 @@ import {
   type AlienRegistrationBackInfoValues,
 } from '../../components/student/onboarding/AlienRegistrationBackInfo';
 import { AlienRegistrationBackGuide } from '../../components/student/onboarding/AlienRegistrationBackGuide';
+import { AlienRegistrationBUpload } from '../../components/student/onboarding/AlienRegistrationBUpload';
+import { AlienRegistrationBUploadComplete } from '../../components/student/onboarding/AlienRegistrationBUploadComplete';
 import { AlienRegistrationFrontComplete } from '../../components/student/onboarding/AlienRegistrationFrontComplete';
 import { AlienRegistrationFrontInfo } from '../../components/student/onboarding/AlienRegistrationFrontInfo';
 import {
@@ -50,6 +52,7 @@ import {
   type ResidencePeriodMethod,
 } from '../../components/student/onboarding/AlienRegistrationResidencePeriod';
 import { AlienRegistrationValidationModal } from '../../components/student/onboarding/AlienRegistrationValidationModal';
+import { AlienRegistrationResidenceComplete } from '../../components/student/onboarding/AlienRegistrationResidenceComplete';
 import { IndustryChip } from '../../components/student/onboarding/IndustryChip';
 import { MatchingPriorityList } from '../../components/student/onboarding/MatchingPriorityList';
 import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
@@ -110,7 +113,11 @@ type AlienRegistrationStep =
   | 'alienRegistrationBackCamera'
   | 'alienRegistrationBackInfo'
   | 'alienRegistrationBackInfoExpired'
-  | 'alienRegistrationBackInfoInvalid';
+  | 'alienRegistrationBackInfoInvalid'
+  | 'alienRegistrationBUpload'
+  | 'alienRegistrationBUploadComplete'
+  | 'alienRegistrationBBackInfo'
+  | 'alienRegistrationResidenceComplete';
 
 export type OnboardingView =
   | AlienRegistrationStep
@@ -147,9 +154,9 @@ type BasicInfo = {
 
 const STEP_ORDER: BasicInfoStep[] = [
   'name',
+  'birthYear',
   'phone',
   'verification',
-  'birthYear',
   'location',
   'koreanLevel',
 ];
@@ -538,7 +545,10 @@ export default function StudentOnboardingPage({
   const handleResidencePeriodConfirm = (method: ResidencePeriodMethod) => {
     if (method === 'cardBack') {
       setStep('alienRegistrationA');
+      return;
     }
+
+    setStep('alienRegistrationBUpload');
   };
 
   const updateExperienceDraft = <Key extends keyof ExperienceDraft>(
@@ -1033,7 +1043,7 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationBackInfo
         onBack={() => setStep('alienRegistrationBackCamera')}
-        onConfirm={() => undefined}
+        onConfirm={() => setStep('alienRegistrationResidenceComplete')}
         onRetry={() => setStep('alienRegistrationBackCamera')}
         values={alienRegistrationBackValues}
       />
@@ -1055,10 +1065,51 @@ export default function StudentOnboardingPage({
           values={alienRegistrationBackValues}
         />
         <AlienRegistrationValidationModal
+          onUploadPdf={
+            isExpired ? () => setStep('alienRegistrationBUpload') : undefined
+          }
           type={isExpired ? 'expired' : 'invalid'}
           onRetry={() => setStep('alienRegistrationBackCamera')}
         />
       </>
+    );
+  }
+
+  if (step === 'alienRegistrationBUpload') {
+    return (
+      <AlienRegistrationBUpload
+        onBack={() => setStep('alienRegistrationResidencePeriod')}
+        onUpload={() => setStep('alienRegistrationBUploadComplete')}
+      />
+    );
+  }
+
+  if (step === 'alienRegistrationBUploadComplete') {
+    return (
+      <AlienRegistrationBUploadComplete
+        onBack={() => setStep('alienRegistrationBUpload')}
+        onConfirm={() => setStep('alienRegistrationBBackInfo')}
+      />
+    );
+  }
+
+  if (step === 'alienRegistrationBBackInfo') {
+    return (
+      <AlienRegistrationBackInfo
+        onBack={() => setStep('alienRegistrationBUploadComplete')}
+        onConfirm={() => setStep('alienRegistrationResidenceComplete')}
+        onRetry={() => setStep('alienRegistrationBUpload')}
+        values={alienRegistrationBackValues}
+      />
+    );
+  }
+
+  if (step === 'alienRegistrationResidenceComplete') {
+    return (
+      <AlienRegistrationResidenceComplete
+        onBack={() => setStep('alienRegistrationBBackInfo')}
+        onConfirm={() => setStep('birthYear')}
+      />
     );
   }
 
@@ -1737,22 +1788,21 @@ export default function StudentOnboardingPage({
   }
 
   const ctaLabel = step === 'phone' ? '인증번호 받기' : '확인';
-  const isBasicInfoPreviewStep =
-    step === 'phone' ||
-    step === 'verification' ||
-    step === 'birthYear' ||
-    step === 'location' ||
-    step === 'koreanLevel';
-  const activeSubStep =
-    step === 'location' ? 2 : step === 'koreanLevel' ? 3 : 1;
+  const basicInfoProgressByStep: Partial<Record<BasicInfoStep, number>> = {
+    birthYear: 1,
+    phone: 2,
+    verification: 2,
+    location: 3,
+    koreanLevel: 4,
+  };
+  const basicInfoProgress = basicInfoProgressByStep[step];
+  const isBasicInfoFigmaStep = basicInfoProgress !== undefined;
 
   return (
     <OnboardingScaffold
-      activeSubStep={
-        isBasicInfoPreviewStep ? activeSubStep : BASIC_INFO_PROGRESS[step]
-      }
+      activeSubStep={basicInfoProgress ?? BASIC_INFO_PROGRESS[step]}
       ctaLabel={ctaLabel}
-      currentStage={isBasicInfoPreviewStep ? 2 : 1}
+      currentStage={isBasicInfoFigmaStep ? 2 : 1}
       isCtaDisabled={isCtaDisabled}
       isPageScrollable={step === 'location' || step === 'koreanLevel'}
       question={questions[step]}
@@ -1761,8 +1811,8 @@ export default function StudentOnboardingPage({
       onCtaClick={() => void handleNext()}
       onEnter={() => void handleNext()}
       stageLabel="기본정보 입력"
-      totalStages={isBasicInfoPreviewStep ? 6 : 5}
-      totalSubSteps={isBasicInfoPreviewStep ? 3 : BASIC_INFO_TOTAL_SUB_STEPS}
+      totalStages={isBasicInfoFigmaStep ? 6 : 5}
+      totalSubSteps={isBasicInfoFigmaStep ? 4 : BASIC_INFO_TOTAL_SUB_STEPS}
     >
       {step === 'name' ? (
         <OnboardingField

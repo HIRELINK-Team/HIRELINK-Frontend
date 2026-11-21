@@ -1,11 +1,13 @@
 import warningIcon from '../../../assets/icons/student/documents/alien-registration/verification-warning.svg';
 
 type AlienRegistrationValidationModalProps = {
+  onUploadPdf?: () => void;
   type: 'expired' | 'invalid';
   onRetry: () => void;
 };
 
 export function AlienRegistrationValidationModal({
+  onUploadPdf,
   type,
   onRetry,
 }: AlienRegistrationValidationModalProps) {
@@ -28,7 +30,7 @@ export function AlienRegistrationValidationModal({
           </p>
         ) : null}
         {isExpired ? (
-          <button className="mt-6 h-[46px] w-full rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5]" type="button" disabled>
+          <button className="mt-6 h-[46px] w-full rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5]" type="button" onClick={onUploadPdf}>
             PDF로 인증하기
           </button>
         ) : null}

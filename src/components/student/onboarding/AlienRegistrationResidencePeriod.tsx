@@ -30,7 +30,7 @@ export function AlienRegistrationResidencePeriod({
   onBack,
   onConfirm,
 }: AlienRegistrationResidencePeriodProps) {
-  const [method, setMethod] = useState<ResidencePeriodMethod>('cardBack');
+  const [method, setMethod] = useState<ResidencePeriodMethod | null>(null);
 
   return (
     <main className="mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col overflow-y-auto bg-[#F5F5F5] px-6 pt-[calc(61px+env(safe-area-inset-top))] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -47,9 +47,9 @@ export function AlienRegistrationResidencePeriod({
         <strong className="block text-[17px] leading-[1.5] font-semibold text-[#00B894]">1/6</strong>
         <span className="block text-[15px] leading-[1.5] text-[#909597]">정보 확인</span>
       </div>
-      <div aria-hidden="true" className="mt-[11px] grid grid-cols-6 gap-[5px]">
-        {Array.from({ length: 6 }, (_, index) => (
-          <span className={index === 0 ? 'h-0.5 bg-[#00B894]' : 'h-0.5 bg-[#B0B8C1]'} key={index} />
+      <div aria-hidden="true" className="mt-[11px] grid grid-cols-2 gap-[5px]">
+        {Array.from({ length: 2 }, (_, index) => (
+          <span className="h-0.5 bg-[#00B894]" key={index} />
         ))}
       </div>
 
@@ -94,9 +94,11 @@ export function AlienRegistrationResidencePeriod({
       <div className="mt-auto pt-10">
         <button
           className="min-h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] px-3 text-[20px] leading-[1.5] font-medium text-[#F5F5F5] disabled:bg-[#B0B8C1]"
-          disabled={method !== 'cardBack'}
+          disabled={!method}
           type="button"
-          onClick={() => onConfirm(method)}
+          onClick={() => {
+            if (method) onConfirm(method);
+          }}
         >
           확인
         </button>
