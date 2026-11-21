@@ -30,7 +30,7 @@ export function AlienRegistrationResidencePeriod({
   onBack,
   onConfirm,
 }: AlienRegistrationResidencePeriodProps) {
-  const [method, setMethod] = useState<ResidencePeriodMethod>('cardBack');
+  const [method, setMethod] = useState<ResidencePeriodMethod | null>(null);
 
   return (
     <main className="mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col overflow-y-auto bg-[#F5F5F5] px-6 pt-[calc(61px+env(safe-area-inset-top))] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -94,9 +94,11 @@ export function AlienRegistrationResidencePeriod({
       <div className="mt-auto pt-10">
         <button
           className="min-h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] px-3 text-[20px] leading-[1.5] font-medium text-[#F5F5F5] disabled:bg-[#B0B8C1]"
-          disabled={method !== 'cardBack'}
+          disabled={!method}
           type="button"
-          onClick={() => onConfirm(method)}
+          onClick={() => {
+            if (method) onConfirm(method);
+          }}
         >
           확인
         </button>
