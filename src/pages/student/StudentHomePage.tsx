@@ -183,7 +183,6 @@ export default function StudentHomePage({
           매칭하러 가기 →
         </button>
         <StudentBottomNavigation
-          activeBackgroundClassName="bg-[#E5E8EB]/20"
           activeTab="home"
           isFixed={isBottomNavigationFixed}
           onTabChange={onTabChange}

@@ -5,12 +5,13 @@ import chevronRightIcon from '../../assets/icons/student/my/chevron-right.svg';
 import headerBellIcon from '../../assets/icons/student/my/header-bell.svg';
 import headerSettingsIcon from '../../assets/icons/student/my/header-settings.svg';
 import badgeImage from '../../assets/images/student/documents/verification/badge-issued.png';
-import customerCenterMenuIcon from '../../assets/images/student/my/customer-center-menu.png';
-import documentMenuIcon from '../../assets/images/student/my/document-menu.png';
-import matchingConditionMenuIcon from '../../assets/images/student/my/matching-condition-menu.png';
-import notificationMenuIcon from '../../assets/images/student/my/notification-menu.png';
+import customerCenterMenuIcon from '../../assets/images/student/my/customer-center-menu-figma.png';
+import documentMenuIcon from '../../assets/images/student/my/document-menu-figma.png';
+import inquiryMenuIcon from '../../assets/images/student/my/inquiry-menu-figma.png';
+import matchingConditionMenuIcon from '../../assets/images/student/my/matching-condition-menu-figma.png';
 import profileImage from '../../assets/images/student/my/profile.png';
-import termsMenuIcon from '../../assets/images/student/my/terms-menu.png';
+import profileMenuIcon from '../../assets/images/student/my/profile-menu-figma.png';
+import termsMenuIcon from '../../assets/images/student/my/terms-menu-figma.png';
 import verifiedWorkConditionIllustration from '../../assets/images/student/my/verified-work-condition.png';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import {
@@ -60,10 +61,10 @@ const INITIAL_WORK_AVAILABILITY: WorkAvailability = {
 
 const VERIFIED_PRIMARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> =
   {
-    'personal-info': profileImage,
+    'personal-info': profileMenuIcon,
     documents: documentMenuIcon,
     'matching-conditions': matchingConditionMenuIcon,
-    notifications: undefined,
+    inquiry: undefined,
     'customer-center': undefined,
     terms: undefined,
   };
@@ -75,22 +76,22 @@ const VERIFIED_SECONDARY_MENU_ICONS: Record<
   'personal-info': undefined,
   documents: undefined,
   'matching-conditions': undefined,
-  notifications: notificationMenuIcon,
+  inquiry: inquiryMenuIcon,
   'customer-center': customerCenterMenuIcon,
   terms: termsMenuIcon,
 };
 
 function VerifiedMyPage({
   onCustomerCenterClick,
+  onInquiryClick,
   onMatchingConditionClick,
-  onNotificationSettingsClick,
   onProfileManagementClick,
   onTermsPrivacyClick,
   onWorkConditionClick,
 }: {
   onCustomerCenterClick: () => void;
+  onInquiryClick: () => void;
   onMatchingConditionClick: () => void;
-  onNotificationSettingsClick: () => void;
   onProfileManagementClick: () => void;
   onTermsPrivacyClick: () => void;
   onWorkConditionClick: () => void;
@@ -274,8 +275,8 @@ function VerifiedMyPage({
             key={menu.id}
             type="button"
             onClick={
-              menu.id === 'notifications'
-                ? onNotificationSettingsClick
+              menu.id === 'inquiry'
+                ? onInquiryClick
                 : menu.id === 'customer-center'
                   ? onCustomerCenterClick
                   : menu.id === 'terms'
@@ -299,11 +300,7 @@ function VerifiedMyPage({
           </button>
         ))}
       </section>
-      <StudentBottomNavigation
-        activeBackgroundClassName="bg-[#E5E8EB]/90"
-        activeTab="my"
-        bottomOffsetClassName="bottom-7"
-      />
+      <StudentBottomNavigation activeTab="my" bottomOffset={28} />
     </main>
   );
 }
@@ -594,8 +591,8 @@ export default function StudentDocumentVerificationPreviewPage() {
   return (
     <VerifiedMyPage
       onCustomerCenterClick={() => setView('customer-center')}
+      onInquiryClick={() => setView('customer-center')}
       onMatchingConditionClick={() => setView('matching-condition-management')}
-      onNotificationSettingsClick={() => setView('notification-settings')}
       onProfileManagementClick={() => setView('profile-management')}
       onTermsPrivacyClick={() => setView('terms-privacy')}
       onWorkConditionClick={() => setView('work-condition')}

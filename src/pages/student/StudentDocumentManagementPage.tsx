@@ -379,11 +379,9 @@ export default function StudentDocumentManagementPage({
         </div>
       </div>
       <StudentBottomNavigation
-        activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="my"
-        bottomOffsetClassName="bottom-[27px]"
+        bottomOffset={27}
         onTabChange={onTabChange}
-        widthClassName="w-[calc(100%_-_22px)] max-w-[367px]"
       />
     </main>
   );

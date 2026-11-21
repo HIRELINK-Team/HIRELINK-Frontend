@@ -246,9 +246,7 @@ export default function StudentMyPage({
 
       <StudentBottomNavigation
         activeTab="my"
-        bottomOffsetClassName={
-          isBottomNavigationFixed ? 'bottom-9' : 'bottom-[22px]'
-        }
+        bottomOffset={isBottomNavigationFixed ? 36 : 22}
         isFixed={false}
         onTabChange={onTabChange}
       />
