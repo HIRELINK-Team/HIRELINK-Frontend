@@ -154,9 +154,9 @@ type BasicInfo = {
 
 const STEP_ORDER: BasicInfoStep[] = [
   'name',
+  'birthYear',
   'phone',
   'verification',
-  'birthYear',
   'location',
   'koreanLevel',
 ];
