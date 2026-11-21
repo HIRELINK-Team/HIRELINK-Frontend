@@ -1,5 +1,10 @@
-import matchingIllustration from '../../assets/images/student/home/matching-illustration.png';
-import chevronRightIcon from '../../assets/icons/student/home/chevron-right.svg';
+import airplaneImage from '../../assets/images/student/home/figma/airplane.png';
+import cloudImage from '../../assets/images/student/home/figma/cloud.png';
+import ellipseShadowLeft from '../../assets/images/student/home/figma/ellipse-shadow-left.svg';
+import ellipseShadowRight from '../../assets/images/student/home/figma/ellipse-shadow-right.svg';
+import homeBackgroundImage from '../../assets/images/student/home/figma/home-background.png';
+import luggageImage from '../../assets/images/student/home/figma/luggage.png';
+import travelerImage from '../../assets/images/student/home/figma/traveler.png';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import { STUDENT_HOME_MOCK } from '../../mocks/studentHome';
 import type {
@@ -7,20 +12,32 @@ import type {
   StudentNavigationTab,
 } from '../../types/studentHome';
 
-type SummaryCardProps = {
+type ApplicationStatusItemProps = {
+  className: string;
   label: string;
   value: number;
 };
 
-function SummaryCard({ label, value }: SummaryCardProps) {
+function ApplicationStatusItem({
+  className,
+  label,
+  value,
+}: ApplicationStatusItemProps) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col items-center justify-center rounded-[10px] bg-[#E5E8EB] px-2.5 py-[13px]">
-      <strong className="text-[22px] leading-[1.5] font-semibold text-[#191F28]">
-        {value}
-      </strong>
-      <span className="mt-[5px] whitespace-nowrap text-[15px] leading-[1.5] text-[#6B7684]">
+    <div
+      className={`absolute top-[45px] flex h-[47px] w-[37px] flex-col items-center gap-[3px] text-center ${className}`}
+    >
+      <span className="whitespace-nowrap text-[13px] leading-[1.5] font-normal text-[#707577]">
         {label}
       </span>
+      <p className="m-0 leading-[1.5] whitespace-nowrap">
+        <strong className="text-[20px] font-bold text-[#707577]">
+          {value}
+        </strong>
+        <span className="ml-[2px] text-[13px] font-normal text-[#909597]">
+          곳
+        </span>
+      </p>
     </div>
   );
 }
@@ -28,140 +45,148 @@ function SummaryCard({ label, value }: SummaryCardProps) {
 type StudentHomePageProps = {
   homeSummary?: StudentHomeSummary;
   isBottomNavigationFixed?: boolean;
-  onEditMatchingCondition?: () => void;
   onMatchingClick?: () => void;
   onTabChange?: (tab: StudentNavigationTab) => void;
-  onViewApplications?: () => void;
 };
 
 export default function StudentHomePage({
   homeSummary = STUDENT_HOME_MOCK,
   isBottomNavigationFixed = false,
-  onEditMatchingCondition,
   onMatchingClick,
   onTabChange,
-  onViewApplications,
 }: StudentHomePageProps) {
-  const { applications, conditions, greetingName, recommendedJobCount } =
-    homeSummary;
-
-  const handleTabChange = (tab: StudentNavigationTab) => {
-    onTabChange?.(tab);
-  };
+  const { applications, greetingName } = homeSummary;
 
   return (
-    <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-[68px] pb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <h1 className="m-0 text-[26px] leading-[1.5] font-semibold">
-          {'\uC548\uB155\uD558\uC138\uC694, '}
-          {greetingName}
-          {'\uB2D8!'}
-        </h1>
-        <p className="mt-[3px] text-[15px] leading-[1.5] text-[#B0B8C1]">
-          {
-            '\uC624\uB298\uB3C4 \uC88B\uC740 \uC77C\uC790\uB9AC\uB97C \uCC3E\uC544\uBCFC\uAE4C\uC694?'
-          }
-        </p>
+    <main className="relative mx-auto h-[844px] min-h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
+      <img
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute top-[-1px] left-0 h-[845px] w-[390px] max-w-none object-cover"
+        src={homeBackgroundImage}
+      />
 
-        <section className="relative mt-[21px] h-[230px] overflow-hidden rounded-[20px] bg-white">
-          <p className="absolute top-7 left-6 text-[13px] leading-[1.5] font-bold text-[#00B894]">
-            {'\uB098\uC758 \uC77C\uC790\uB9AC \uCC3E\uAE30'}
-          </p>
-          <h2 className="absolute top-[51px] left-6 m-0 w-[195px] text-[20px] leading-[1.5] font-semibold text-[#191F28]">
-            {'\uB098\uC5D0\uAC8C \uB9DE\uB294 \uC77C\uC790\uB9AC'}
-            <br />
-            {recommendedJobCount}
-            {'\uACF3\uC744 \uCD94\uCC9C\uD574\uB4DC\uB824\uC694!'}
-          </h2>
+      <header className="absolute top-[96px] right-6 left-6 z-30">
+        <h1 className="m-0 text-[26px] leading-[1.5] font-semibold">
+          안녕하세요, {greetingName}님!
+        </h1>
+        <p className="mt-[3px] text-[15px] leading-[1.5] font-normal text-[#B3B8B9]">
+          오늘도 좋은 일자리를 찾아볼까요?
+        </p>
+      </header>
+
+      <section
+        aria-label="지원 현황"
+        className="absolute top-[181px] left-6 z-30 h-[121px] w-[342px] overflow-hidden rounded-[20px] bg-white/10"
+      >
+        <h2 className="absolute top-[18px] left-6 m-0 text-[17px] leading-[1.5] font-semibold">
+          지원현황
+        </h2>
+        <p className="absolute top-[37px] left-6 m-0 flex h-[84px] items-baseline leading-[1.5]">
+          <strong className="text-[50px] font-bold tracking-[0.038em] text-[#00B894]">
+            {applications.total}
+          </strong>
+          <span className="ml-[2px] text-[20px] font-medium tracking-[0.05em] text-[#909597]">
+            곳
+          </span>
+        </p>
+        <ApplicationStatusItem
+          className="left-[133px]"
+          label="검토 중"
+          value={applications.reviewing}
+        />
+        <ApplicationStatusItem
+          className="left-[205px]"
+          label="채용완료"
+          value={applications.completed}
+        />
+        <ApplicationStatusItem
+          className="left-[277px]"
+          label="채용제안"
+          value={applications.offer}
+        />
+      </section>
+
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <img
+          alt=""
+          className="absolute top-[211px] left-[353px] z-10 h-8 w-[68px] max-w-none object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+          src={cloudImage}
+        />
+        <img
+          alt=""
+          className="absolute top-[302px] left-[-23px] z-10 h-8 w-[68px] max-w-none object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+          src={cloudImage}
+        />
+        <img
+          alt=""
+          className="absolute top-[308px] left-[239px] z-10 h-[26px] w-14 max-w-none object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+          src={cloudImage}
+        />
+        <img
+          alt=""
+          className="absolute top-[340px] left-[272px] z-10 h-[65px] w-[139px] max-w-none object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+          src={cloudImage}
+        />
+        <img
+          alt=""
+          className="absolute top-[377.45px] left-[-19px] z-20 h-[51px] w-[110px] max-w-none object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+          src={cloudImage}
+        />
+        <div className="absolute top-[296px] left-2 z-20 flex h-[142.002px] w-[205.588px] items-center justify-center">
           <img
             alt=""
-            className="absolute top-[42px] right-[31px] h-[122px] w-[107px] object-contain"
-            src={matchingIllustration}
+            className="h-[112.615px] w-[189.791px] max-w-none rotate-[9.37deg] object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+            src={airplaneImage}
           />
-          <button
-            className="absolute right-6 bottom-5 left-6 h-[54px] rounded-[42px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5]"
-            type="button"
-            onClick={onMatchingClick}
-          >
-            {'\uB9E4\uCE6D\uD558\uB7EC \uAC00\uAE30'}
-          </button>
-        </section>
-
-        <section className="mt-[19px]">
-          <div className="flex items-center justify-between">
-            <h2 className="m-0 text-[20px] leading-[1.5] font-semibold text-black">
-              {'\uB0B4 \uC9C0\uC6D0 \uD604\uD669'}
-            </h2>
-            <button
-              className="flex items-center gap-2 border-0 bg-transparent p-0 text-[13px] leading-[1.5] text-[#8B95A1]"
-              onClick={onViewApplications}
-              type="button"
-            >
-              {'\uC804\uCCB4\uBCF4\uAE30'}
-              <img
-                alt=""
-                className="block -scale-x-100"
-                src={chevronRightIcon}
-              />
-            </button>
-          </div>
-          <div className="mt-[12px] flex gap-[9px]">
-            <SummaryCard label={'\uC804\uCCB4'} value={applications.total} />
-            <SummaryCard
-              label={'\uAC80\uD1A0 \uC911'}
-              value={applications.reviewing}
-            />
-            <SummaryCard
-              label={'\uCC44\uC6A9 \uC81C\uC548'}
-              value={applications.offer}
-            />
-            <SummaryCard
-              label={'\uCC44\uC6A9 \uC644\uB8CC'}
-              value={applications.completed}
+        </div>
+        <div className="absolute top-[531.69px] left-10 z-10 flex h-[82.144px] w-[157.263px] items-center justify-center">
+          <div className="relative h-[28.625px] w-[157.25px] rotate-[20.61deg]">
+            <img
+              alt=""
+              className="absolute top-[-25px] left-[-25px] block h-[78.6255px] w-[207.25px] max-w-none"
+              src={ellipseShadowLeft}
             />
           </div>
-        </section>
-
-        <section className="mt-[17px]">
-          <div className="flex items-center justify-between">
-            <h2 className="m-0 text-[20px] leading-[1.5] font-semibold text-black">
-              {'\uB0B4 \uB9E4\uCE6D \uC870\uAC74'}
-            </h2>
-            <button
-              className="flex items-center gap-2 border-0 bg-transparent p-0 text-[13px] leading-[1.5] text-[#8B95A1]"
-              onClick={onEditMatchingCondition}
-              type="button"
-            >
-              {'\uC218\uC815\uD558\uAE30'}
-              <img
-                alt=""
-                className="block -scale-x-100"
-                src={chevronRightIcon}
-              />
-            </button>
+        </div>
+        <div className="absolute top-[546px] left-[180px] z-10 flex h-[48.635px] w-[93.83px] items-center justify-center">
+          <div className="relative h-[23.401px] w-[90.946px] rotate-[16.76deg]">
+            <img
+              alt=""
+              className="absolute top-[-25px] left-[-25px] block h-[73.4012px] w-[140.946px] max-w-none"
+              src={ellipseShadowRight}
+            />
           </div>
-          <dl className="m-0 mt-[12px] space-y-2.5">
-            {conditions.map((condition) => (
-              <div
-                className="flex items-center gap-[15px]"
-                key={condition.label}
-              >
-                <dt className="flex h-8 w-[73px] shrink-0 items-center justify-center rounded-[20px] bg-[#E5E8EB] text-[13px] leading-[1.5] font-medium text-[#191F28]">
-                  {condition.label}
-                </dt>
-                <dd className="m-0 text-[13px] leading-[1.5] text-[#191F28]">
-                  {condition.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </section>
+        </div>
+        <div className="absolute top-[398px] left-[120.266px] z-20 h-[204.843px] w-[75.868px] overflow-hidden shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]">
+          <img
+            alt=""
+            className="absolute top-0 left-[-37.07%] h-[99.96%] w-[179.93%] max-w-none"
+            src={travelerImage}
+          />
+        </div>
+        <div className="absolute top-[505.64px] left-[209.859px] z-20 h-[93.8px] w-[76.154px] overflow-hidden shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]">
+          <img
+            alt=""
+            className="absolute top-[0.31%] left-[0.14%] h-[99.66%] w-[99.58%] max-w-none"
+            src={luggageImage}
+          />
+        </div>
       </div>
-      <div className="relative h-[106px] shrink-0">
+
+      <div className="absolute right-0 bottom-0 left-0 z-30 h-[213px] rounded-t-[20px] bg-[#F5F5F5] shadow-[0_-6px_20px_rgba(0,0,0,0.05)]">
+        <button
+          className="absolute top-[21px] right-6 left-6 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#009376]"
+          type="button"
+          onClick={onMatchingClick}
+        >
+          매칭하러 가기 →
+        </button>
         <StudentBottomNavigation
+          activeBackgroundClassName="bg-[#E5E8EB]/20"
           activeTab="home"
           isFixed={isBottomNavigationFixed}
-          onTabChange={handleTabChange}
+          onTabChange={onTabChange}
         />
       </div>
     </main>

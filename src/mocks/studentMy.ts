@@ -39,7 +39,7 @@ export const STUDENT_MY_PRIMARY_MENUS: readonly StudentMyMenu[] = [
 ];
 
 export const STUDENT_MY_SECONDARY_MENUS: readonly StudentMyMenu[] = [
-  { id: 'notifications', title: '알림설정' },
+  { id: 'inquiry', title: '1:1 문의하기' },
   { id: 'customer-center', title: '고객센터' },
   { id: 'terms', title: '약관 및 개인정보' },
 ];

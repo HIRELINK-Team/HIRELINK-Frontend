@@ -699,10 +699,8 @@ function StudentHomeRoute() {
   return (
     <StudentHomePage
       homeSummary={homeSummary}
-      onEditMatchingCondition={() => navigate('/student/my/matching-condition')}
       onMatchingClick={() => navigate('/student/matching')}
       onTabChange={handleTabChange}
-      onViewApplications={() => navigate('/student/applications')}
     />
   );
 }
@@ -1360,8 +1358,8 @@ function StudentMyRoute() {
     const menuRoutes: Record<StudentMyMenuId, string> = {
       'customer-center': '/student/my/customer-center',
       documents: '/student/my/documents',
+      inquiry: '/student/my/customer-center',
       'matching-conditions': '/student/my/matching-condition',
-      notifications: '/student/my/notifications',
       'personal-info': '/student/my/profile',
       terms: '/student/my/terms',
     };

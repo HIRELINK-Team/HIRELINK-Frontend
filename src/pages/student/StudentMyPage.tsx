@@ -1,12 +1,13 @@
 import chevronRightIcon from '../../assets/icons/student/my/chevron-right.svg';
 import headerBellIcon from '../../assets/icons/student/my/header-bell.svg';
 import headerSettingsIcon from '../../assets/icons/student/my/header-settings.svg';
-import customerCenterMenuIcon from '../../assets/images/student/my/customer-center-menu.png';
-import documentMenuIcon from '../../assets/images/student/my/document-menu.png';
-import matchingConditionMenuIcon from '../../assets/images/student/my/matching-condition-menu.png';
-import notificationMenuIcon from '../../assets/images/student/my/notification-menu.png';
+import customerCenterMenuIcon from '../../assets/images/student/my/customer-center-menu-figma.png';
+import documentMenuIcon from '../../assets/images/student/my/document-menu-figma.png';
+import inquiryMenuIcon from '../../assets/images/student/my/inquiry-menu-figma.png';
+import matchingConditionMenuIcon from '../../assets/images/student/my/matching-condition-menu-figma.png';
 import profileImage from '../../assets/images/student/my/profile.png';
-import termsMenuIcon from '../../assets/images/student/my/terms-menu.png';
+import profileMenuIcon from '../../assets/images/student/my/profile-menu-figma.png';
+import termsMenuIcon from '../../assets/images/student/my/terms-menu-figma.png';
 import workConditionIllustration from '../../assets/images/student/my/work-condition-illustration.png';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import {
@@ -32,10 +33,10 @@ type StudentMyPageProps = {
 };
 
 const PRIMARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> = {
-  'personal-info': profileImage,
+  'personal-info': profileMenuIcon,
   documents: documentMenuIcon,
   'matching-conditions': matchingConditionMenuIcon,
-  notifications: undefined,
+  inquiry: undefined,
   'customer-center': undefined,
   terms: undefined,
 };
@@ -44,7 +45,7 @@ const SECONDARY_MENU_ICONS: Record<StudentMyMenuId, string | undefined> = {
   'personal-info': undefined,
   documents: undefined,
   'matching-conditions': undefined,
-  notifications: notificationMenuIcon,
+  inquiry: inquiryMenuIcon,
   'customer-center': customerCenterMenuIcon,
   terms: termsMenuIcon,
 };
