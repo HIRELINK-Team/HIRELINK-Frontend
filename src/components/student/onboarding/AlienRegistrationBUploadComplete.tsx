@@ -25,9 +25,9 @@ export function AlienRegistrationBUploadComplete({
         <strong className="block text-[17px] leading-[1.5] font-semibold text-[#00B894]">1/6</strong>
         <span className="block text-[15px] leading-[1.5] text-[#909597]">정보 확인</span>
       </div>
-      <div aria-hidden="true" className="mt-[11px] grid grid-cols-6 gap-[5px]">
-        {Array.from({ length: 6 }, (_, index) => (
-          <span className={index === 0 ? 'h-0.5 bg-[#00B894]' : 'h-0.5 bg-[#B0B8C1]'} key={index} />
+      <div aria-hidden="true" className="mt-[11px] grid grid-cols-2 gap-[5px]">
+        {Array.from({ length: 2 }, (_, index) => (
+          <span className="h-0.5 bg-[#00B894]" key={index} />
         ))}
       </div>
 

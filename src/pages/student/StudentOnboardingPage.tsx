@@ -1788,22 +1788,21 @@ export default function StudentOnboardingPage({
   }
 
   const ctaLabel = step === 'phone' ? '인증번호 받기' : '확인';
-  const isBasicInfoPreviewStep =
-    step === 'phone' ||
-    step === 'verification' ||
-    step === 'birthYear' ||
-    step === 'location' ||
-    step === 'koreanLevel';
-  const activeSubStep =
-    step === 'location' ? 2 : step === 'koreanLevel' ? 3 : 1;
+  const basicInfoProgressByStep: Partial<Record<BasicInfoStep, number>> = {
+    birthYear: 1,
+    phone: 2,
+    verification: 2,
+    location: 3,
+    koreanLevel: 4,
+  };
+  const basicInfoProgress = basicInfoProgressByStep[step];
+  const isBasicInfoFigmaStep = basicInfoProgress !== undefined;
 
   return (
     <OnboardingScaffold
-      activeSubStep={
-        isBasicInfoPreviewStep ? activeSubStep : BASIC_INFO_PROGRESS[step]
-      }
+      activeSubStep={basicInfoProgress ?? BASIC_INFO_PROGRESS[step]}
       ctaLabel={ctaLabel}
-      currentStage={isBasicInfoPreviewStep ? 2 : 1}
+      currentStage={isBasicInfoFigmaStep ? 2 : 1}
       isCtaDisabled={isCtaDisabled}
       isPageScrollable={step === 'location' || step === 'koreanLevel'}
       question={questions[step]}
@@ -1812,8 +1811,8 @@ export default function StudentOnboardingPage({
       onCtaClick={() => void handleNext()}
       onEnter={() => void handleNext()}
       stageLabel="기본정보 입력"
-      totalStages={isBasicInfoPreviewStep ? 6 : 5}
-      totalSubSteps={isBasicInfoPreviewStep ? 3 : BASIC_INFO_TOTAL_SUB_STEPS}
+      totalStages={isBasicInfoFigmaStep ? 6 : 5}
+      totalSubSteps={isBasicInfoFigmaStep ? 4 : BASIC_INFO_TOTAL_SUB_STEPS}
     >
       {step === 'name' ? (
         <OnboardingField
