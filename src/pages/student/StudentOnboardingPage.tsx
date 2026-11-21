@@ -1108,7 +1108,7 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationResidenceComplete
         onBack={() => setStep('alienRegistrationBBackInfo')}
-        onConfirm={() => setStep('phone')}
+        onConfirm={() => setStep('birthYear')}
       />
     );
   }
