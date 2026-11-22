@@ -1,28 +1,39 @@
-import type { ChangeEventHandler, InputHTMLAttributes, ReactNode } from 'react'
+import type { ChangeEventHandler, InputHTMLAttributes, ReactNode } from 'react';
 
-type OnboardingFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange'> & {
-  errorMessage?: string
-  label: string
-  onChange: ChangeEventHandler<HTMLInputElement>
-  trailing?: ReactNode
-}
+type OnboardingFieldProps = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'className' | 'onChange'
+> & {
+  errorMessage?: string;
+  label: string;
+  onChange: ChangeEventHandler<HTMLInputElement>;
+  status?: 'success';
+  trailing?: ReactNode;
+};
 
 export function OnboardingField({
   errorMessage,
   label,
   onChange,
+  status,
   trailing,
   ...inputProps
 }: OnboardingFieldProps) {
-  const hasError = Boolean(errorMessage)
+  const hasError = Boolean(errorMessage);
   const borderColor = hasError
     ? 'border-[#E05260]'
-    : 'border-[#B0B8C1] focus-within:border-[#00B894]'
+    : status === 'success'
+      ? 'border-[#00B894]'
+      : 'border-[#B0B8C1] focus-within:border-[#00B894]';
 
   return (
     <label className="mt-[27px] block">
-      <span className="block text-[17px] leading-[1.5] text-[#191F28]">{label}</span>
-      <span className={`flex min-h-[57px] items-center gap-3 border-b ${borderColor}`}>
+      <span className="block text-[17px] leading-[1.5] text-[#191F28]">
+        {label}
+      </span>
+      <span
+        className={`flex min-h-[57px] items-center gap-3 border-b ${borderColor}`}
+      >
         <input
           {...inputProps}
           aria-invalid={hasError}
@@ -37,5 +48,5 @@ export function OnboardingField({
         </span>
       ) : null}
     </label>
-  )
+  );
 }

@@ -81,7 +81,9 @@ import StudentMatchingPage from './pages/student/StudentMatchingPage';
 import StudentMatchingConditionManagementPage from './pages/student/StudentMatchingConditionManagementPage';
 import StudentMyPage from './pages/student/StudentMyPage';
 import StudentNotificationSettingsPage from './pages/student/StudentNotificationSettingsPage';
-import StudentOnboardingPage from './pages/student/StudentOnboardingPage';
+import StudentOnboardingPage, {
+  type PhoneVerificationPreview,
+} from './pages/student/StudentOnboardingPage';
 import StudentProfileManagementPage, {
   type ProfileDetailView,
   type StudentProfileValues,
@@ -621,12 +623,21 @@ function StudentTermsAgreementRoute() {
   );
 }
 
-function StudentOnboardingRoute() {
+type StudentOnboardingRouteProps = {
+  initialStep?: 'verification';
+  phoneVerificationPreview?: PhoneVerificationPreview;
+};
+
+function StudentOnboardingRoute({
+  initialStep,
+  phoneVerificationPreview,
+}: StudentOnboardingRouteProps) {
   const navigate = useNavigate();
 
   return (
     <StudentOnboardingPage
       enableCareerApi={!IS_DEMO_MODE}
+      initialStep={initialStep}
       onBack={() => navigate('/student/entry')}
       onComplete={async (requestBody) => {
         if (IS_DEMO_MODE) {
@@ -655,6 +666,7 @@ function StudentOnboardingRoute() {
         }
         navigate('/student/home', { replace: true });
       }}
+      phoneVerificationPreview={phoneVerificationPreview}
     />
   );
 }
@@ -2179,6 +2191,28 @@ function App() {
             <Route
               path="/student/onboarding"
               element={<StudentOnboardingRoute />}
+            />
+            <Route
+              path="/student/onboarding/phone/verification"
+              element={<StudentOnboardingRoute initialStep="verification" />}
+            />
+            <Route
+              path="/student/onboarding/phone/verification/error"
+              element={
+                <StudentOnboardingRoute
+                  initialStep="verification"
+                  phoneVerificationPreview="error"
+                />
+              }
+            />
+            <Route
+              path="/student/onboarding/phone/verification/success"
+              element={
+                <StudentOnboardingRoute
+                  initialStep="verification"
+                  phoneVerificationPreview="success"
+                />
+              }
             />
             <Route path="/student/home" element={<StudentHomeRoute />} />
             <Route path="/student/matching" element={<StudentMatchingLayout />}>
