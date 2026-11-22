@@ -129,6 +129,7 @@ export type PhoneVerificationPreview = 'default' | 'error' | 'success';
 type StudentOnboardingPageProps = {
   enableCareerApi?: boolean;
   initialStep?: OnboardingView;
+  initialWorkRadiusOpen?: boolean;
   phoneVerificationPreview?: PhoneVerificationPreview;
   onBack?: () => void;
   onComplete?: (
@@ -410,6 +411,7 @@ function getPhoneVerificationConfirmErrorMessage(error: unknown) {
 export default function StudentOnboardingPage({
   enableCareerApi = false,
   initialStep = 'alienRegistrationInformation',
+  initialWorkRadiusOpen = false,
   onBack,
   onComplete,
   phoneVerificationPreview = 'default',
@@ -478,7 +480,7 @@ export default function StudentOnboardingPage({
   const [
     isWorkLocationRadiusSelectionOpen,
     setIsWorkLocationRadiusSelectionOpen,
-  ] = useState(false);
+  ] = useState(initialWorkRadiusOpen);
   const [isWorkLocationSubmitted, setIsWorkLocationSubmitted] = useState(false);
   const [isWorkLocationSaving, setIsWorkLocationSaving] = useState(false);
   const [
@@ -777,8 +779,7 @@ export default function StudentOnboardingPage({
       await studentDataSource.updateMatchingPreferences(requestBody);
       setIsWorkLocationRadiusSelectionOpen(false);
       setIsWorkLocationSubmitted(true);
-      setResidenceQualificationBackStep('workLocationSelection');
-      setStep('residenceQualification');
+      setStep('matchingPriority');
     } catch (error) {
       window.alert(
         getApiErrorResponse(error)?.message ??
@@ -1237,7 +1238,7 @@ export default function StudentOnboardingPage({
         footer={
           <div className="grid grid-cols-2 gap-3">
             <button
-              className="h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
+              className="order-2 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
               type="button"
               onClick={handleIndustryConfirm}
             >
@@ -1254,7 +1255,7 @@ export default function StudentOnboardingPage({
         }
         question={'원하는 업종을\n선택해주세요.'}
         stageLabel="구직조건 입력"
-        totalStages={6}
+        totalStages={5}
         totalSubSteps={3}
         onBack={() => setStep('experienceList')}
         onCtaClick={handleIndustryConfirm}
@@ -1325,7 +1326,7 @@ export default function StudentOnboardingPage({
         responsive
         question={'원하는 근무시간대를\n선택해주세요.'}
         stageLabel="구직조건 입력"
-        totalStages={6}
+        totalStages={5}
         totalSubSteps={3}
         onBack={() => setStep('industrySelection')}
         onCtaClick={handleWorkTimeConfirm}
@@ -1373,7 +1374,7 @@ export default function StudentOnboardingPage({
         question={'원하는 근무 희망위치를\n입력해주세요.'}
         stageLabel="구직조건 입력"
         responsive
-        totalStages={6}
+        totalStages={5}
         totalSubSteps={3}
         onBack={() => setStep('workTimeSelection')}
         onCtaClick={handleWorkLocationConfirm}
@@ -1681,10 +1682,15 @@ export default function StudentOnboardingPage({
           '\uC6B0\uC120\uC21C\uC704\uB97C \uC815\uD574\uC8FC\uC138\uC694.'
         }
         showProgress={false}
+        responsive
+        isPageScrollable
         stageLabel={'\uC6B0\uC120\uC21C\uC704 \uC120\uD0DD'}
         stageLabelLayout="stacked"
         totalSubSteps={1}
-        onBack={() => setStep('residenceExpiry')}
+        onBack={() => {
+          setStep('workLocationSelection');
+          setIsWorkLocationRadiusSelectionOpen(true);
+        }}
         onCtaClick={handleMatchingPrioritySubmit}
       >
         <p className="mt-2 text-[15px] leading-[1.5] text-[#B0B8C1]">
