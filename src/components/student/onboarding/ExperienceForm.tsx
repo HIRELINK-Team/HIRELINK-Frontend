@@ -50,7 +50,9 @@ export function ExperienceForm({
       </h1>
 
       <label className="mt-[39px] block">
-        <span className="text-[15px] leading-[1.5] font-semibold text-[#009376]">알바명</span>
+        <span className="block text-[15px] leading-[1.5] font-semibold text-[#009376]">
+          알바명
+        </span>
         <input
           className="mt-2 h-[56px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-6 text-[17px] leading-[1.5] outline-none placeholder:text-[#8B95A1] focus:border-[1.5px] focus:border-[#00B894]"
           placeholder="근무처 또는 업체명"
@@ -59,14 +61,16 @@ export function ExperienceForm({
         />
       </label>
 
-      <fieldset className="mt-[15px] min-w-0 border-0 p-0">
-        <legend className="text-[15px] leading-[1.5] font-semibold">근무기간</legend>
+      <fieldset className="mt-[10px] min-w-0 border-0 p-0">
+        <legend className="text-[15px] leading-[1.5] font-semibold">
+          근무기간
+        </legend>
         <div className="mt-2 flex items-center gap-[7px]">
-          <label className="relative flex h-[56px] min-w-0 flex-1 items-center rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent pl-8 focus-within:border-[1.5px] focus-within:border-[#00B894]">
-            <img alt="" src={calendarIcon} />
+          <label className="relative flex h-[56px] min-w-0 flex-1 items-center justify-center rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-2 focus-within:border-[1.5px] focus-within:border-[#00B894]">
+            <img alt="" className="shrink-0" src={calendarIcon} />
             <input
               aria-label="근무 시작 월"
-              className="min-w-0 flex-1 bg-transparent pl-2 text-[17px] leading-[1.5] outline-none placeholder:text-[#8B95A1]"
+              className="w-[71px] min-w-0 bg-transparent pl-2 text-[17px] leading-[1.5] outline-none placeholder:text-[#8B95A1]"
               inputMode="numeric"
               placeholder="2023.03"
               value={draft.startMonth}
@@ -75,12 +79,12 @@ export function ExperienceForm({
               }
             />
           </label>
-          <span aria-hidden="true" className="h-px w-4 bg-[#D1D6DB]" />
-          <label className="relative flex h-[56px] min-w-0 flex-1 items-center rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent pl-8 focus-within:border-[1.5px] focus-within:border-[#00B894]">
-            <img alt="" src={calendarIcon} />
+          <span aria-hidden="true" className="h-px w-4 shrink-0 bg-[#D1D6DB]" />
+          <label className="relative flex h-[56px] min-w-0 flex-1 items-center justify-center rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-2 focus-within:border-[1.5px] focus-within:border-[#00B894]">
+            <img alt="" className="shrink-0" src={calendarIcon} />
             <input
               aria-label="근무 종료 월"
-              className="min-w-0 flex-1 bg-transparent pl-2 text-[17px] leading-[1.5] outline-none placeholder:text-[#8B95A1]"
+              className="w-[71px] min-w-0 bg-transparent pl-2 text-[17px] leading-[1.5] outline-none placeholder:text-[#8B95A1]"
               inputMode="numeric"
               placeholder="2023.09"
               value={draft.endMonth}
@@ -92,8 +96,10 @@ export function ExperienceForm({
         </div>
       </fieldset>
 
-      <label className="mt-[15px] block">
-        <span className="text-[15px] leading-[1.5] font-semibold">근무 내용</span>
+      <label className="mt-[10px] block">
+        <span className="block text-[15px] leading-[1.5] font-semibold">
+          근무 내용
+        </span>
         <input
           className="mt-2 h-[56px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-6 text-[17px] leading-[1.5] outline-none placeholder:text-[#8B95A1] focus:border-[1.5px] focus:border-[#00B894]"
           placeholder="담당 업무를 입력해주세요"
@@ -102,14 +108,16 @@ export function ExperienceForm({
         />
       </label>
 
-      <button
-        className="mt-auto min-h-[57px] w-full shrink-0 rounded-[15px] border-[0.7px] border-[#191F28] bg-transparent text-[20px] leading-[1.5] font-medium disabled:border-[#B0B8C1] disabled:text-[#8B95A1]"
-        disabled={isSubmitDisabled}
-        type="button"
-        onClick={onSubmit}
-      >
-        {submitLabel}
-      </button>
+      <div className="mt-auto shrink-0 pt-8">
+        <button
+          className="min-h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] disabled:bg-[#B0B8C1]"
+          disabled={isSubmitDisabled}
+          type="button"
+          onClick={onSubmit}
+        >
+          {submitLabel}
+        </button>
+      </div>
     </main>
   );
 }
