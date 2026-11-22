@@ -90,7 +90,7 @@ import type {
 } from '../../types/workLocation';
 
 type BasicInfoStep =
-  'name' | 'phone' | 'verification' | 'birthYear' | 'location' | 'koreanLevel';
+  'phone' | 'verification' | 'birthYear' | 'location' | 'koreanLevel';
 
 type BasicInfoView = BasicInfoStep | 'ageRestricted';
 
@@ -124,9 +124,12 @@ export type OnboardingView =
   | 'residenceExpiry'
   | 'matchingPriority';
 
+export type PhoneVerificationPreview = 'default' | 'error' | 'success';
+
 type StudentOnboardingPageProps = {
   enableCareerApi?: boolean;
   initialStep?: OnboardingView;
+  phoneVerificationPreview?: PhoneVerificationPreview;
   onBack?: () => void;
   onComplete?: (
     requestBody: StudentProfileCreateRequest,
@@ -144,16 +147,14 @@ type BasicInfo = {
 };
 
 const STEP_ORDER: BasicInfoStep[] = [
-  'name',
-  'birthYear',
   'phone',
   'verification',
+  'birthYear',
   'location',
   'koreanLevel',
 ];
 
 const BASIC_INFO_PROGRESS: Record<BasicInfoStep, number> = {
-  name: 1,
   phone: 2,
   verification: 2,
   birthYear: 3,
@@ -170,7 +171,7 @@ function isBasicInfoStep(step: OnboardingView): step is BasicInfoStep {
 }
 
 const INITIAL_INFO: BasicInfo = {
-  name: '',
+  name: 'LIN MAI',
   phone: '',
   verificationCode: '',
   birthDate: '',
@@ -411,6 +412,7 @@ export default function StudentOnboardingPage({
   initialStep = 'alienRegistrationInformation',
   onBack,
   onComplete,
+  phoneVerificationPreview = 'default',
 }: StudentOnboardingPageProps) {
   const [experienceDraft, setExperienceDraft] = useState<ExperienceDraft>(
     EMPTY_EXPERIENCE_DRAFT,
@@ -428,7 +430,12 @@ export default function StudentOnboardingPage({
   const [deletingCareerIds, setDeletingCareerIds] = useState<Set<string>>(
     () => new Set(),
   );
-  const [info, setInfo] = useState<BasicInfo>(INITIAL_INFO);
+  const [info, setInfo] = useState<BasicInfo>(() => ({
+    ...INITIAL_INFO,
+    phone:
+      initialStep === 'verification' ? '010-1234-5678' : INITIAL_INFO.phone,
+    verificationCode: phoneVerificationPreview === 'default' ? '' : '123456',
+  }));
   const [alienRegistrationValues] = useState<AlienRegistrationFormValues>(
     INITIAL_ALIEN_REGISTRATION_VALUES,
   );
@@ -454,7 +461,14 @@ export default function StudentOnboardingPage({
     INITIAL_SELECTED_INDUSTRIES,
   );
   const [step, setStep] = useState<OnboardingView>(initialStep);
-  const [verificationError, setVerificationError] = useState('');
+  const [verificationError, setVerificationError] = useState(
+    phoneVerificationPreview === 'error'
+      ? '인증번호가 틀렸어요. 다시 입력해주세요.'
+      : '',
+  );
+  const [phoneBackStep, setPhoneBackStep] = useState<
+    'alienRegistrationFrontComplete' | 'alienRegistrationResidenceComplete'
+  >('alienRegistrationFrontComplete');
   const [workAvailability, setWorkAvailability] = useState<WorkAvailability>(
     INITIAL_WORK_AVAILABILITY,
   );
@@ -1026,7 +1040,10 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationFrontComplete
         onBack={() => setStep('alienRegistrationBackInfo')}
-        onConfirm={() => setStep('phone')}
+        onConfirm={() => {
+          setPhoneBackStep('alienRegistrationFrontComplete');
+          setStep('phone');
+        }}
       />
     );
   }
@@ -1133,7 +1150,10 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationResidenceComplete
         onBack={() => setStep('alienRegistrationBUploadComplete')}
-        onConfirm={() => setStep('phone')}
+        onConfirm={() => {
+          setPhoneBackStep('alienRegistrationResidenceComplete');
+          setStep('phone');
+        }}
       />
     );
   }
@@ -1679,6 +1699,11 @@ export default function StudentOnboardingPage({
   }
 
   const handleBack = () => {
+    if (step === 'phone') {
+      setStep(phoneBackStep);
+      return;
+    }
+
     if (currentIndex === 0) {
       onBack?.();
       return;
@@ -1804,13 +1829,10 @@ export default function StudentOnboardingPage({
 
   const isCtaDisabled =
     isPhoneVerificationPending ||
-    (step === 'name' && !info.name.trim()) ||
-    (step === 'verification' && !/^\d{6}$/.test(info.verificationCode)) ||
     (step === 'birthYear' && !isValidBirthDate(info.birthDate)) ||
     (step === 'location' && !info.location.trim());
 
   const questions: Record<BasicInfoStep, string> = {
-    name: '본인의 이름을\n적어주세요.',
     phone: '본인의 전화번호를\n입력해주세요.',
     verification: '인증 번호를\n입력해 주세요.',
     birthYear: '본인의 생년월일을\n입력해주세요',
@@ -1825,56 +1847,30 @@ export default function StudentOnboardingPage({
   }
 
   const ctaLabel = step === 'phone' ? '인증번호 받기' : '확인';
-  const basicInfoProgressByStep: Partial<Record<BasicInfoStep, number>> = {
-    birthYear: 1,
-    phone: 2,
-    verification: 2,
-    location: 3,
-    koreanLevel: 4,
-  };
-  const basicInfoProgress = basicInfoProgressByStep[step];
-  const isBasicInfoFigmaStep = basicInfoProgress !== undefined;
+  const isPhoneVerificationStep = step === 'phone' || step === 'verification';
 
   return (
     <OnboardingScaffold
-      activeSubStep={basicInfoProgress ?? BASIC_INFO_PROGRESS[step]}
+      activeSubStep={isPhoneVerificationStep ? 1 : BASIC_INFO_PROGRESS[step]}
       ctaLabel={ctaLabel}
-      currentStage={isBasicInfoFigmaStep ? 2 : 1}
+      currentStage={isPhoneVerificationStep ? 2 : 1}
       isCtaDisabled={isCtaDisabled}
       isPageScrollable={step === 'location' || step === 'koreanLevel'}
-      question={questions[step]}
-      questionClassName={step === 'name' ? 'translate-y-[5.5px]' : undefined}
+      question={isPhoneVerificationStep ? questions.phone : questions[step]}
+      responsive
       onBack={handleBack}
       onCtaClick={() => void handleNext()}
       onEnter={() => void handleNext()}
       stageLabel="기본정보 입력"
-      totalStages={isBasicInfoFigmaStep ? 6 : 5}
-      totalSubSteps={isBasicInfoFigmaStep ? 4 : BASIC_INFO_TOTAL_SUB_STEPS}
+      totalStages={isPhoneVerificationStep ? 6 : 5}
+      totalSubSteps={isPhoneVerificationStep ? 3 : BASIC_INFO_TOTAL_SUB_STEPS}
     >
-      {step === 'name' ? (
-        <OnboardingField
-          label="이름"
-          placeholder="이름 입력"
-          value={info.name}
-          onChange={(event) => updateInfo('name', event.target.value)}
-        />
-      ) : null}
-
-      {step === 'phone' ? (
+      {isPhoneVerificationStep ? (
         <OnboardingField
           errorMessage={phoneError}
           inputMode="tel"
           label="전화번호"
           placeholder="010-1234-5678"
-          trailing={
-            phoneError ? (
-              <img
-                alt=""
-                className="mr-4 size-[21px] shrink-0"
-                src={clearIcon}
-              />
-            ) : undefined
-          }
           value={info.phone}
           onChange={(event) => handlePhoneChange(event.target.value)}
         />
@@ -1888,29 +1884,21 @@ export default function StudentOnboardingPage({
           maxLength={6}
           placeholder="인증번호 6자리"
           trailing={
-            verificationError ? (
-              <img
-                alt=""
-                className="mr-4 size-[21px] shrink-0"
-                src={clearIcon}
-              />
-            ) : (
-              <span className="flex shrink-0 items-center gap-[7px]">
-                <span className="text-[15px] leading-[1.5] font-medium text-[#009376]">
-                  {remainingTime}
-                </span>
-                <button
-                  className="h-[34px] rounded-[44px] border-[0.7px] border-[#D3D6D7] bg-transparent px-2.5 text-[13px] leading-[1.5] text-[#55595B]"
-                  type="button"
-                  disabled={isPhoneVerificationPending}
-                  onClick={() => {
-                    void handlePhoneVerificationRequest(false);
-                  }}
-                >
-                  재요청
-                </button>
+            <span className="flex shrink-0 items-center gap-[7px]">
+              <span className="text-[15px] leading-[1.5] font-medium text-[#009376]">
+                {remainingTime}
               </span>
-            )
+              <button
+                className="h-[34px] rounded-[44px] border-[0.7px] border-[#D3D6D7] bg-transparent px-2.5 text-[13px] leading-[1.5] text-[#55595B]"
+                type="button"
+                disabled={isPhoneVerificationPending}
+                onClick={() => {
+                  void handlePhoneVerificationRequest(false);
+                }}
+              >
+                재요청
+              </button>
+            </span>
           }
           value={info.verificationCode}
           onChange={(event) => {
