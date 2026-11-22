@@ -1,5 +1,7 @@
 import type { ChangeEventHandler, InputHTMLAttributes, ReactNode } from 'react';
 
+import errorIcon from '../../../assets/icons/student/documents/alien-registration/review-error.svg';
+
 type OnboardingFieldProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'className' | 'onChange'
@@ -8,6 +10,7 @@ type OnboardingFieldProps = Omit<
   label: string;
   onChange: ChangeEventHandler<HTMLInputElement>;
   status?: 'success';
+  spacing?: 'first' | 'next';
   trailing?: ReactNode;
 };
 
@@ -16,6 +19,7 @@ export function OnboardingField({
   label,
   onChange,
   status,
+  spacing,
   trailing,
   ...inputProps
 }: OnboardingFieldProps) {
@@ -27,7 +31,9 @@ export function OnboardingField({
       : 'border-[#B0B8C1] focus-within:border-[#00B894]';
 
   return (
-    <label className="mt-[27px] block">
+    <label
+      className={`block ${spacing === 'first' ? 'mt-[35px]' : spacing === 'next' ? 'mt-[19px]' : 'mt-[27px]'}`}
+    >
       <span className="block text-[17px] leading-[1.5] text-[#191F28]">
         {label}
       </span>
@@ -43,7 +49,8 @@ export function OnboardingField({
         {trailing}
       </span>
       {errorMessage ? (
-        <span className="relative mt-2 block pl-5 text-[15px] leading-[1.5] text-[#E05260] before:absolute before:top-px before:left-0 before:text-[14px] before:font-bold before:content-['×']">
+        <span className="mt-[10px] flex items-center gap-[7px] text-[15px] leading-[1.5] text-[#E05260]">
+          <img alt="" className="size-[11px] shrink-0" src={errorIcon} />
           {errorMessage}
         </span>
       ) : null}

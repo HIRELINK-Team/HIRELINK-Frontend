@@ -4,6 +4,7 @@ import backIcon from '../../assets/icons/student/terms-privacy-back.svg';
 import chevronIcon from '../../assets/icons/student/terms-privacy-chevron.svg';
 
 export type StudentOnboardingTermAgreements = {
+  uniqueIdentification: boolean;
   marketing: boolean;
   personalInformationCollection: boolean;
   serviceTerms: boolean;
@@ -26,6 +27,7 @@ type DetailContent = {
 };
 
 const INITIAL_AGREEMENTS: StudentOnboardingTermAgreements = {
+  uniqueIdentification: false,
   serviceTerms: false,
   personalInformationCollection: false,
   thirdPartyProvision: false,
@@ -33,6 +35,7 @@ const INITIAL_AGREEMENTS: StudentOnboardingTermAgreements = {
 };
 
 const REQUIRED_AGREEMENT_IDS: readonly AgreementId[] = [
+  'uniqueIdentification',
   'serviceTerms',
   'personalInformationCollection',
   'thirdPartyProvision',
@@ -59,6 +62,11 @@ const AGREEMENT_ROWS: readonly {
     required: true,
   },
   {
+    id: 'uniqueIdentification',
+    label: '[필수] 고유식별정보 수집·이용 동의',
+    required: true,
+  },
+  {
     id: 'marketing',
     label: '[선택] 마케팅 정보 수신 동의',
     required: false,
@@ -66,6 +74,41 @@ const AGREEMENT_ROWS: readonly {
 ];
 
 const DETAIL_CONTENT: Record<DetailId, DetailContent> = {
+  uniqueIdentification: {
+    title: '고유식별정보 수집·이용 동의',
+    contentTop: 175,
+    contentHeight: 562,
+    sections: [
+      {
+        title: 'Hirelink 고유식별정보 수집·이용 동의',
+        body: [
+          'Hirelink 운영팀은 외국인 유학생 회원가입 과정에서 외국인등록증 진위 확인을 위해 다음과 같이 고유식별정보를 수집·이용합니다.',
+        ],
+      },
+      { title: '1. 수집·이용 항목', body: ['• 외국인등록번호'] },
+      {
+        title: '2. 수집·이용 목적',
+        body: [
+          '• 외국인 유학생 회원가입을 위한 외국인등록증 진위 확인',
+          '• 외국인등록증 기재 정보의 일치 여부 확인',
+        ],
+      },
+      {
+        title: '3. 보유 및 이용기간',
+        body: [
+          '• 인증 목적 달성 시 지체 없이 파기합니다.',
+          '• 회원가입을 중단한 경우 가입 진행정보의 유효기간인 30분이 만료된 후 정리 절차에 따라 파기합니다.',
+          '• 관계 법령에 따라 별도 보존이 필요한 경우 해당 법령에서 정한 기간 동안 보존합니다.',
+        ],
+      },
+      {
+        title: '4. 동의 거부 권리 및 불이익',
+        body: [
+          '이용자는 고유식별정보 수집·이용에 관한 동의를 거부할 권리가 있습니다. 다만 동의를 거부할 경우 외국인등록증 인증이 필요한 유학생 회원가입을 진행할 수 없습니다.',
+        ],
+      },
+    ],
+  },
   serviceTerms: {
     title: '서비스 이용약관',
     contentTop: 175,
@@ -978,6 +1021,7 @@ export default function StudentTermsAgreementPage({
   const handleToggleAll = () => {
     setErrorMessage(null);
     setAgreements({
+      uniqueIdentification: !isAllAgreed,
       serviceTerms: !isAllAgreed,
       personalInformationCollection: !isAllAgreed,
       thirdPartyProvision: !isAllAgreed,
