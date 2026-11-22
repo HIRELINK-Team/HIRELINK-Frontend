@@ -138,9 +138,8 @@ export default function StudentWorkConditionPage({
       </div>
 
       <StudentBottomNavigation
-        activeBackgroundClassName="bg-[#E5E8EB]/90"
         activeTab="my"
-        bottomOffsetClassName="bottom-[23px]"
+        bottomOffset={23}
         onTabChange={onTabChange}
       />
     </main>

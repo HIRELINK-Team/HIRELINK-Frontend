@@ -709,7 +709,7 @@ export default function StudentMatchingPage({
 
       <StudentBottomNavigation
         activeTab="matching"
-        bottomOffsetClassName="bottom-[31px]"
+        bottomOffset={31}
         isFixed={isBottomNavigationFixed}
         onTabChange={handleTabChange}
       />

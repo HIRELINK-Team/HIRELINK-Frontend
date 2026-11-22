@@ -2,7 +2,7 @@ export type StudentMyMenuId =
   | 'personal-info'
   | 'documents'
   | 'matching-conditions'
-  | 'notifications'
+  | 'inquiry'
   | 'customer-center'
   | 'terms';
 
