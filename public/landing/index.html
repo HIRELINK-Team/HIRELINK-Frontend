@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#009376">
+  <meta name="description" content="외국인 유학생 채용, 더 쉽고 빠르게. 고민은 줄이고 기다림은 24시간까지만. 하이어링크에서 시작하세요.">
+  <title>HIRELINK — 외국인 유학생 채용, 더 쉽고 빠르게</title>
+  <link rel="icon" href="assets/brand/brand-symbol-gray.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/PretendardVariable.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="assets/images/hero-background.png" as="image">
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="dashboard.css">
+  <script src="config.js" defer></script><script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">본문 바로가기</a>
+<main id="main">
+  <section class="hero" id="home" aria-labelledby="hero-title">
+    <div class="hero-background" aria-hidden="true"></div>
+    <header class="header">
+      <a class="brand" href="#home" aria-label="하이어링크 홈"><img src="assets/brand/brand-symbol-white.svg" alt=""><span class="wordmark"><img src="assets/brand/wordmark-white.svg" alt="HIRELINK"></span></a>
+      <nav class="nav" aria-label="주요 메뉴"><a href="#hiring">24시간 채용</a><a href="#students">유학생</a><a href="#employers">사장님</a><button type="button" id="language-toggle" aria-expanded="false" aria-controls="language-menu">언어설정</button>
+        <div class="language-menu" id="language-menu" hidden><span lang="ko">한국어 <span aria-hidden="true">✓</span></span><p>다른 언어는 준비 중이에요.</p></div>
+      </nav>
+    </header>
+    <div class="hero-copy"><span class="hero-label">HIRELINK</span><h1 id="hero-title">외국인 유학생 채용, 더 쉽고 빠르게</h1><p>고민은 줄이고 기다림은 24시간까지만</p><div class="button-row"><a class="button button-white" href="/student/entry" target="_top">유학생이에요<img src="assets/icons/arrow-dark.svg" alt=""></a><a class="button button-glass" href="/employer/entry" target="_top">사장님이에요<img src="assets/icons/arrow-white.svg" alt=""></a></div></div>
+  </section>
+
+  <div class="intro-gradient">
+    <section class="scroll-story" id="waiting" data-story="waiting" data-steps="3" aria-labelledby="waiting-title">
+      <div class="sticky-scene"><div class="waiting-stage">
+        <div class="waiting-copy"><p class="eyebrow">유학생들이 가장 답답했던 순간</p><h2 id="waiting-title">지원은 했는데, 언제까지<br>기다려야 할까요?</h2><p class="body-copy">사장님은 여러 지원자를 비교하느라 결정이 길어지고,<br class="desktop-break"> 지원자는 답이 올지 안 올지 모른 채 다른 공고도 망설이게 돼요.</p>
+          <div class="waiting-steps" aria-label="지원 과정">
+            <div class="waiting-step is-active"><button type="button" data-step="0" aria-expanded="true" aria-controls="waiting-panel-0">지원 전</button><div class="step-detail" id="waiting-panel-0"><p>어디가 나한테 맞는 지 공고를 하나하나 비교해요.</p></div></div>
+            <div class="waiting-step"><button type="button" data-step="1" aria-expanded="false" aria-controls="waiting-panel-1">지원 후</button><div class="step-detail" id="waiting-panel-1" inert><p>연락이 언제 올 지 몰라 계속 기다려요.</p></div></div>
+            <div class="waiting-step"><button type="button" data-step="2" aria-expanded="false" aria-controls="waiting-panel-2">그 사이</button><div class="step-detail" id="waiting-panel-2" inert><p>다른 공고에 지원할지 말지 고민하며 망설여요.</p></div></div>
+          </div>
+        </div>
+        <div class="waiting-art" aria-hidden="true">
+          <div class="glass-card glass-wait"><span>WAITING</span><strong>24:00</strong></div><div class="glass-card glass-match">MATCHING</div><div class="glass-card glass-response">RESPONSE</div>
+          <div class="particles"></div>
+          <div class="character character-before is-active"><img src="assets/illustrations/student-states.png" alt=""></div>
+          <div class="character character-after"><img src="assets/illustrations/student-states.png" alt=""></div>
+          <div class="character character-between"><img src="assets/illustrations/student-states.png" alt=""></div>
+        </div>
+      </div></div>
+    </section>
+
+    <section class="hiring section" id="hiring" aria-labelledby="hiring-title"><div class="container">
+      <div class="section-heading centered"><p class="eyebrow">하이어링크의 24시간 채용</p><h2 id="hiring-title">답을 기다리는 시간, 24시간이면 끝나요.</h2><p class="body-copy">지원자는 기다림의 끝을 알 수 있고, 사장님은 한 공고에<br> 최대 5명씩 집중해서 검토해요. 서로의 시간을 아끼는 방식이에요.</p></div>
+      <div class="hiring-cards">
+        <article class="hiring-card"><span class="number"><img src="assets/icons/step-number-glow.svg" alt=""><span>1</span></span><h3>지원하면 바로<br>24시간 타이머 시작</h3><p>내가 지원한 순간부터 사장님의 응답 기한이 정해져요.<br>남은 시간은 지원내역에서<br>언제든 확인할 수 있어요.</p></article>
+        <article class="hiring-card"><span class="number"><img src="assets/icons/step-number-glow.svg" alt=""><span>2</span></span><h3>사장님은 기한 안에<br>제안 또는 거절</h3><p>공고당 동시에 검토하는 지원은 최대 5건이에요. 지원자 조건을 공고와 비교하고 기한 안에 결정해요.</p></article>
+        <article class="hiring-card"><span class="number"><img src="assets/icons/step-number-glow.svg" alt=""><span>3</span></span><h3>답이 없으면 자동 종료,<br>다음 추천으로</h3><p>24시간 안에 답이 없으면 지원이 자동으로 종료되고, 내 우선순위에 맞는 새 공고를 다시 추천해 드려요.</p></article>
+      </div>
+    </div></section>
+
+    <section class="priorities section" aria-labelledby="priorities-title"><div class="container priority-layout">
+      <div class="priority-copy"><p class="eyebrow">고민 시간을 줄이는 맞춤 추천</p><h2 id="priorities-title">공고를 하나하나 비교하지 마세요.<br>우선순위만 정하면 돼요.</h2><p class="body-copy">나에게 중요한 순서를 정하고 그 순서에 맞춰 지원해 볼 만한<br class="desktop-break"> 일자리를 최대 3곳까지 추천해요. 우선순위는 언제든 바꿀 수 있어요.</p></div>
+      <div class="priority-character" aria-hidden="true"><img src="assets/illustrations/student-thumbs-up.png" alt=""></div>
+      <ol class="priority-list" aria-label="일자리 추천 우선순위. 항목을 드래그하거나 Alt와 방향키로 순서를 바꿀 수 있습니다.">
+        <li draggable="true" tabindex="0"><span class="priority-number">1</span><span class="priority-name">근무시간</span><img src="assets/icons/drag-handle.svg" alt="순서 변경"></li>
+        <li draggable="true" tabindex="0"><span class="priority-number">2</span><span class="priority-name">급여</span><img src="assets/icons/drag-handle.svg" alt="순서 변경"></li>
+        <li draggable="true" tabindex="0"><span class="priority-number">3</span><span class="priority-name">거리</span><img src="assets/icons/drag-handle.svg" alt="순서 변경"></li>
+        <li draggable="true" tabindex="0"><span class="priority-number">4</span><span class="priority-name">업종</span><img src="assets/icons/drag-handle.svg" alt="순서 변경"></li>
+      </ol>
+    </div></section>
+  </div>
+
+  <section class="student-section" id="students" aria-labelledby="student-title"><div class="student-background" aria-hidden="true"></div><div class="student-heading"><h2 id="student-title">유학생은 이렇게 써요.</h2><p class="body-copy">유학생은 추천 이유 확인, 프로필로 간편 지원, 지원 상태 확인, 근무조건 확인 후 수락,<br class="desktop-break"> 수락 후 연락처 교환, 시간제취업 준비 안내 등의 도움을 받을 수 있어요.</p></div>
+    <div class="student-cards" id="student-cards" tabindex="0" role="region" aria-label="유학생 이용 방법" aria-describedby="student-scroll-hint">
+      <article><p class="eyebrow">추천 이유 확인</p><h3>왜 나에게 맞는지,<br>지원 전에 알 수 있어요.</h3><p>근무시간, 급여, 거리, 업종 중 어떤 조건이 맞고 어떤 조건이 다른지 한눈에 확인하세요.</p></article>
+      <article><p class="eyebrow">프로필로 간편 지원</p><h3>내 정보는 한 번만,<br>다음 지원은 더 간편하게.</h3><p>근무 가능 시간과 내 정보를 한 번 등록해 두면, 다음 공고에 지원할 때도 같은 프로필을 쓸 수 있어요.</p></article>
+      <article><p class="eyebrow">지원 상태 확인</p><h3>내가 지원한 곳,<br>지금 어디까지 진행됐을까요?</h3><p>어디에 지원했는지, 답을 기다리는 중인지, 채용 제안이 왔는지 지원내역에서 확인할 수 있어요.</p></article>
+      <article><p class="eyebrow">근무조건 확인 후 수락</p><h3>요일, 시간, 급여. 확인하고<br>나서 “네”라고 답하세요.</h3><p>채용 제안이 오면 근무 요일, 시간, 급여, 업무, 시작일을 확인하고 직접 수락할 수 있어요.</p></article>
+    </div>
+    <div class="student-carousel-controls" hidden>
+      <p id="student-scroll-hint">좌우로 밀거나 화살표를 눌러 확인하세요.</p>
+      <div class="student-carousel-navigation">
+        <button type="button" data-carousel="previous" aria-label="이전 안내 카드" aria-controls="student-cards">←</button>
+        <span class="student-carousel-count" aria-live="polite" aria-atomic="true">1 / 4</span>
+        <button type="button" data-carousel="next" aria-label="다음 안내 카드" aria-controls="student-cards">→</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="lower-gradient">
+    <section class="documents section" aria-labelledby="documents-title"><div class="container documents-layout"><div class="documents-copy"><p class="eyebrow">증빙 서류 관리 · 서류 확인 배지</p><h2 id="documents-title">준비한 서류와 아직 필요한 서류를 한눈에.</h2><p class="body-copy">재학증명서나 TOPIK 성적증명서 등 필요한 서류를 등록하고 한곳에서 확인하세요.<br>등록한 서류가 확인되면 하이어링크 인증 배지가 표시되고, 사장님은 지원자를 검토할 때 서류 확인 상태를 볼 수 있어요.</p><button class="button button-mint" data-start="student">유학생으로 시작하기<img src="assets/icons/arrow-white.svg" alt=""></button></div>
+      <div class="phones" role="img" aria-label="하이어링크 앱의 서류 관리 화면과 시간제취업 준비 안내 화면"><div class="phone phone-back"><img src="assets/images/phone-documents.png" alt=""></div><div class="phone phone-front"><img src="assets/images/phone-guide.png" alt=""></div><img class="phone-shadow" src="assets/illustrations/phone-shadow.svg" alt=""></div>
+    </div></section>
+
+    <section class="employers" id="employers" aria-labelledby="employer-title">
+      <div class="container employer-heading"><p class="eyebrow">사장님을 위한 HIRELINK</p><h2 id="employer-title">외국인 유학생 채용,<br>복잡한 절차도 막막하지 않게.</h2><p class="body-copy">외국인 유학생 채용에 필요한 체류자격, 근무 가능시간, 증빙서류와 취업 허가 절차까지.<br>하이어링크에서 확인해야 할 사항을 한눈에 파악하고, 필요한 인재를 더 쉽고 편리하게 채용하세요.</p><button class="button button-dark" data-start="employer">사장님으로 시작하기<img src="assets/icons/arrow-white.svg" alt=""></button></div>
+      <div class="scroll-story employer-story" data-story="employer" data-steps="4"><div class="sticky-scene"><div class="employer-stage">
+        <div class="dashboard-window" role="img" aria-label="지원자의 증빙 서류 상태, 공고 일치율, 근무 조건과 응답까지 남은 시간을 한눈에 확인하는 하이어링크 사장님 화면"><div class="dashboard-scale" inert><div class="db-0" data-node-id="56:423" data-name="5_지원자_지원자 상세">
+          <div class="db-1" data-node-id="56:424" data-name="Shell/Header">
+            <div class="db-2" data-node-id="I56:424;69:2209" ></div>
+            <div class="db-3" data-node-id="I56:424;69:2228">
+              <div class="db-4" data-node-id="I56:424;69:2227">
+                <img alt="" class="db-5" src="assets/brand/brand-symbol-gray.svg" />
+              </div>
+              <p class="db-6" data-node-id="I56:424;69:2219"><img src="assets/brand/wordmark-dashboard.svg" alt="HIRELINK"></p>
+            </div>
+            <div class="db-7" data-node-id="I56:424;76:31" data-name="Header actions">
+              <div class="db-8" data-node-id="I56:424;76:32" data-name="알림 버튼">
+                <div class="db-9" data-node-id="I56:424;76:33" data-name="Icon/header-bell">
+                  <img alt="" class="db-10" src="assets/icons/dashboard-bell.svg" />
+                </div>
+              </div>
+              <div class="db-11" data-node-id="I56:424;76:36" data-name="설정 버튼">
+                <div class="db-12" data-node-id="I56:424;76:37" data-name="Icon/header-settings">
+                  <img alt="" class="db-13" src="assets/icons/dashboard-settings.svg" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="db-14" data-node-id="56:425" data-name="Shell/Sidebar">
+            <div class="db-15" data-node-id="I56:425;69:2210" ></div>
+            <div class="db-16" data-node-id="I56:425;69:2613">
+              <button class="db-17" data-node-id="I56:425;69:2376">
+                <div class="db-18" data-node-id="I56:425;69:2376;69:2346">
+                  <div class="db-19" data-node-id="I56:425;69:2376;69:2340" data-name="Icon/sidebar-dashboard">
+                    <img alt="" class="db-20" src="assets/icons/dashboard-overview.svg" />
+                  </div>
+                  <p class="db-21" data-node-id="I56:425;69:2376;69:2345">
+                    대시보드
+                  </p>
+                </div>
+              </button>
+              <div class="db-22" data-node-id="I56:425;69:2487">
+                <div class="db-23" data-node-id="I56:425;69:2487;69:2394">
+                  <div class="db-24" data-node-id="I56:425;69:2487;69:2425" data-name="Icon/sidebar-jobs">
+                    <img alt="" class="db-25" src="assets/icons/dashboard-jobs.svg" />
+                  </div>
+                  <p class="db-26" data-node-id="I56:425;69:2487;69:2396">
+                    채용 공고
+                  </p>
+                </div>
+              </div>
+              <div class="db-27" data-node-id="I56:425;69:2493">
+                <div class="db-28" data-node-id="I56:425;69:2493;69:2452">
+                  <div class="db-29" data-node-id="I56:425;69:2493;69:2469" data-name="Icon/sidebar-applicants">
+                    <img alt="" class="db-30" src="assets/icons/dashboard-applicants.svg" />
+                  </div>
+                  <p class="db-31" data-node-id="I56:425;69:2493;69:2454">
+                    지원자
+                  </p>
+                </div>
+              </div>
+              <div class="db-32" data-node-id="I56:425;69:2600">
+                <div class="db-33" data-node-id="I56:425;69:2600;69:2528">
+                  <div class="db-34" data-node-id="I56:425;69:2600;69:2551" data-name="Icon/sidebar-hired-students">
+                    <img alt="" class="db-35" src="assets/icons/dashboard-hired.svg" />
+                  </div>
+                  <p class="db-36" data-node-id="I56:425;69:2600;69:2530">
+                    채용 유학생
+                  </p>
+                </div>
+              </div>
+              <div class="db-37" data-node-id="I56:425;69:2606">
+                <div class="db-38" data-node-id="I56:425;69:2606;69:2565">
+                  <div class="db-39" data-node-id="I56:425;69:2606;69:2582" data-name="Icon/sidebar-mypage">
+                    <img alt="" class="db-40" src="assets/icons/dashboard-profile.svg" />
+                  </div>
+                  <p class="db-41" data-node-id="I56:425;69:2606;69:2567">
+                    마이페이지
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="db-42" data-node-id="56:426" data-name="Card/공고 일치율" ></div>
+          <div class="db-43" data-node-id="56:427">
+            <p class="db-44" data-node-id="56:428">
+              공고 일치율
+            </p>
+            <p class="db-45" data-node-id="56:429">
+              3/4 일치
+            </p>
+          </div>
+          <p class="db-46" data-node-id="56:430">
+            80%
+          </p>
+          <div class="db-47" data-node-id="56:431" data-name="막대/배경" ></div>
+          <div class="db-48" data-node-id="56:432" data-name="막대/채움" ></div>
+          <div class="db-49" data-node-id="56:433">
+            <img alt="" class="db-50" src="assets/icons/condition-check.svg" />
+          </div>
+          <p class="db-51" data-node-id="56:436">
+            근무 요일
+          </p>
+          <p class="db-52" data-node-id="56:437">
+            월·수·금
+          </p>
+          <p class="db-53" data-node-id="56:438">
+            →
+          </p>
+          <p class="db-54" data-node-id="56:439">
+            월·수·금
+          </p>
+          <div class="db-55" data-node-id="56:440" data-name="구분선" ></div>
+          <div class="db-56" data-node-id="56:441">
+            <img alt="" class="db-57" src="assets/icons/condition-negotiable.svg" />
+          </div>
+          <p class="db-58" data-node-id="56:444">
+            근무 시간
+          </p>
+          <p class="db-59" data-node-id="56:445">
+            16-22
+          </p>
+          <p class="db-60" data-node-id="56:446">
+            →
+          </p>
+          <p class="db-61" data-node-id="56:447">
+            16-21
+          </p>
+          <div class="db-62" data-node-id="56:448" data-name="뱃지/협의 가능">
+            <p class="db-63" data-node-id="56:449">
+              협의 가능
+            </p>
+          </div>
+          <div class="db-64" data-node-id="56:450" data-name="구분선" ></div>
+          <div class="db-65" data-node-id="56:451">
+            <img alt="" class="db-66" src="assets/icons/condition-location.svg" />
+          </div>
+          <p class="db-67" data-node-id="56:454">
+            근무 지역
+          </p>
+          <p class="db-68" data-node-id="56:455">
+            마포구
+          </p>
+          <p class="db-69" data-node-id="56:456">
+            →
+          </p>
+          <p class="db-70" data-node-id="56:457">
+            마포구
+          </p>
+          <div class="db-71" data-node-id="56:458" data-name="구분선" ></div>
+          <div class="db-72" data-node-id="56:459">
+            <img alt="" class="db-73" src="assets/icons/condition-job.svg" />
+          </div>
+          <p class="db-74" data-node-id="56:462">
+            업무
+          </p>
+          <p class="db-75" data-node-id="56:463">
+            바리스타
+          </p>
+          <p class="db-76" data-node-id="56:464">
+            →
+          </p>
+          <p class="db-77" data-node-id="56:465">
+            카페 경력 8개월
+          </p>
+          <div class="db-78" data-node-id="56:466" ></div>
+          <div class="db-79" data-node-id="56:467">
+            <p class="db-80" data-node-id="56:468">
+              증빙 서류 상태
+            </p>
+            <p class="db-81" data-node-id="56:469">
+              4개 중 4개 등록
+            </p>
+          </div>
+          <div class="db-82" data-node-id="56:470">
+            <div class="db-83" data-node-id="56:471">
+              <div class="db-84" data-node-id="56:472">
+                <div class="db-85" data-node-id="56:473">
+                  <p class="db-86" data-node-id="56:474">
+                    외국인등록증
+                  </p>
+                  <p class="db-87" data-node-id="56:475">
+                    제출 2026.09.02
+                  </p>
+                </div>
+                <div class="db-88" data-node-id="56:476">
+                  <div class="db-89" data-node-id="56:477">
+                    <p class="db-90" data-node-id="56:478">
+                      만료일
+                    </p>
+                    <p class="db-91" data-node-id="56:479">
+                      2027.01.09
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="db-92" data-node-id="56:480">
+              <div class="db-93" data-node-id="56:481">
+                <div class="db-94" data-node-id="56:482">
+                  <p class="db-95" data-node-id="56:483">
+                    재학증명서
+                  </p>
+                  <p class="db-96" data-node-id="56:484">
+                    제출 2026.09.02
+                  </p>
+                </div>
+                <div class="db-97" data-node-id="56:485">
+                  <div class="db-98" data-node-id="56:486">
+                    <p class="db-99" data-node-id="56:487">
+                      만료일
+                    </p>
+                    <p class="db-100" data-node-id="56:488">
+                      2027.01.09
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="db-101" data-node-id="56:489">
+              <div class="db-102" data-node-id="56:490">
+                <div class="db-103" data-node-id="56:491">
+                  <p class="db-104" data-node-id="56:492">
+                    성적증명서
+                  </p>
+                  <p class="db-105" data-node-id="56:493">
+                    제출 2026.09.02
+                  </p>
+                </div>
+                <div class="db-106" data-node-id="56:494">
+                  <div class="db-107" data-node-id="56:495">
+                    <p class="db-108" data-node-id="56:496">
+                      만료일
+                    </p>
+                    <p class="db-109" data-node-id="56:497">
+                      2026.10.25
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="db-110" data-node-id="56:498">
+              <div class="db-111" data-node-id="56:499">
+                <div class="db-112" data-node-id="56:500">
+                  <p class="db-113" data-node-id="56:501">
+                    성적증명서
+                  </p>
+                  <p class="db-114" data-node-id="56:502">
+                    제출 2026.09.02
+                  </p>
+                </div>
+                <div class="db-115" data-node-id="56:503">
+                  <div class="db-116" data-node-id="56:504">
+                    <p class="db-117" data-node-id="56:505">
+                      만료일
+                    </p>
+                    <p class="db-118" data-node-id="56:506">
+                      2027.01.09
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="db-119" data-node-id="56:507" data-name="Card/지원자 정보" ></div>
+          <div class="db-120" data-node-id="56:508" data-name="프로필" ></div>
+          <div class="db-121" data-node-id="56:509">
+            <p class="db-122" data-node-id="56:510">
+              응답까지 남은 시간
+            </p>
+            <p class="db-123" data-node-id="56:511">
+              22:22:22
+            </p>
+          </div>
+          <p class="db-124" data-node-id="56:512">
+            민지
+          </p>
+          <div class="db-125" data-node-id="56:513">
+            <div class="db-126" data-node-id="56:514">
+              <p class="db-127" data-node-id="56:515">
+                지원 공고
+              </p>
+              <p class="db-128" data-node-id="56:516">
+                바리스타 · 13,000원 · 월수금 16-22
+              </p>
+            </div>
+          </div>
+          <p class="db-129" data-node-id="56:517">
+            근무 시작 가능 날짜
+          </p>
+          <p class="db-130" data-node-id="56:518">
+            2025.12.12
+          </p>
+          <p class="db-131" data-node-id="56:519">
+            생년월일
+          </p>
+          <p class="db-132" data-node-id="56:520">
+            2024.12.12 (만 21세)
+          </p>
+          <p class="db-133" data-node-id="56:521">
+            국적
+          </p>
+          <p class="db-134" data-node-id="56:522">
+            베트남
+          </p>
+          <p class="db-135" data-node-id="56:523">
+            비자
+          </p>
+          <p class="db-136" data-node-id="56:524">
+            D2
+          </p>
+          <p class="db-137" data-node-id="56:525">
+            TOPIK
+          </p>
+          <p class="db-138" data-node-id="56:526">
+            3급
+          </p>
+          <div class="db-139" data-node-id="56:527">
+            <div class="db-140" data-node-id="56:528">
+              <p class="db-141" data-node-id="56:529">
+                지원자 상세
+              </p>
+              <p class="db-142" data-node-id="56:530">
+                공고 조건과 지원자 조건을 비교하고 채용을 제안하세요
+              </p>
+            </div>
+            <div class="db-143" data-node-id="56:531">
+              <div class="db-144" data-node-id="56:532" data-name="Btn/채용 거절">
+                <p class="db-145" data-node-id="I56:532;141:912">
+                  채용 거절
+                </p>
+              </div>
+              <div class="db-146" data-node-id="56:533" data-name="Btn/채용 제안">
+                <p class="db-147" data-node-id="I56:533;141:928">
+                  채용 제안
+                </p>
+              </div>
+            </div>
+          </div>
+        </div></div></div>
+        <div class="employer-steps" aria-label="사장님을 위한 기능">
+          <div class="employer-step is-active"><button data-step="0" aria-expanded="true" aria-controls="employer-panel-0">서류 확인 뱃지</button><div class="employer-detail" id="employer-panel-0"><h3>필수 서류를 갖춘 유학생, 뱃지로 바로 알아보세요.</h3><p>채용에 필요한 서류 4가지를 모두 등록한 유학생에게 뱃지가 표시돼요. 불법채용을 예방할 수 있어요.</p></div></div>
+          <div class="employer-step"><button data-step="1" aria-expanded="false" aria-controls="employer-panel-1">외국인 채용 절차 안내</button><div class="employer-detail" id="employer-panel-1" inert><h3>처음 하는 유학생 채용도, 순서대로 따라오면 돼요.</h3><p>채용 전 확인부터 채용 후 신고까지 쉬운 말로 안내해 드려요. 따로 알아보는 시간을 줄이고 절차를 빠뜨리지 않을 수 있어요.</p></div></div>
+          <div class="employer-step"><button data-step="2" aria-expanded="false" aria-controls="employer-panel-2">지원자 조건 비교</button><div class="employer-detail" id="employer-panel-2" inert><h3>지원자의 근무 조건과 우리 공고조건를 나란히</h3><p>근무 가능 시간, 경력, 한국어 수준, 시작 가능일을 공고 조건과 비교해 보세요. 매장에 맞는 사람을 더 빨리 고를 수 있어요.</p></div></div>
+          <div class="employer-step"><button data-step="3" aria-expanded="false" aria-controls="employer-panel-3">채용 전 확인 안내</button><div class="employer-detail" id="employer-panel-3" inert><h3>지원부터 응답까지, 기다림은 24시간까지만</h3><p>지원마다 응답 기한이 정해져 있어 채용이 길게 늘어지지 않아요. 일손이 급할 때도 빠르게 사람을 구할 수 있어요.</p></div></div>
+        </div>
+      </div></div></div>
+    </section>
+
+    <section class="closing" aria-labelledby="closing-title"><p class="eyebrow">하이어링크의 24시간 채용</p><h2 id="closing-title">고민은 줄이고, 기다림은 24시간까지만<br>하이어링크에서 시작하세요.</h2><div class="button-row"><button class="button button-mint" data-start="student">유학생으로 시작하기</button><button class="button button-dark" data-start="employer">사장님으로 시작하기</button></div></section>
+    <footer class="footer" aria-label="하이어링크"><div class="footer-wordmark" aria-hidden="true"><img src="assets/brand/wordmark-footer.svg" alt=""></div></footer>
+  </div>
+</main>
+<dialog class="start-dialog" aria-labelledby="dialog-title"><button class="dialog-close" aria-label="닫기" autofocus>×</button><p class="eyebrow">HIRELINK</p><h2 id="dialog-title">곧 만나요!</h2><p id="dialog-description">서비스 연결을 준비하고 있어요.</p><button class="button button-mint dialog-confirm">확인</button></dialog>
+<div class="sr-only" id="announcement" role="status" aria-live="polite"></div>
+</body>
+</html>

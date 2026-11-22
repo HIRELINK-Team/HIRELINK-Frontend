@@ -1,0 +1,233 @@
+{
+  "source": "https://www.figma.com/design/MANG90pfRzhdaXfWKU3vjz?node-id=56-1549",
+  "assets": [
+    {
+      "file": "assets/illustrations/student-states.png",
+      "figmaSourceFrame": "56:1206",
+      "originalAsset": "7f79a.png",
+      "sha256": "2c3c6d122a8637668a9b312f1287e1c0b3394db71a4513b69c3f96bb280fe671"
+    },
+    {
+      "file": "assets/icons/arrow-white.svg",
+      "figmaSourceFrame": "56:219",
+      "originalAsset": "0f552.svg",
+      "sha256": "3a6c7775e389d6ab59e94047485a0e611ea8f3797eaaa9b4d872cb0236e63aac"
+    },
+    {
+      "file": "assets/icons/arrow-dark.svg",
+      "figmaSourceFrame": "56:219",
+      "originalAsset": "27585.svg",
+      "sha256": "0ef6a6ab7bb29817f1d21532c481587be21a34d7664c35800f75c544360421d9"
+    },
+    {
+      "file": "assets/brand/brand-symbol-white.svg",
+      "figmaSourceFrame": "56:219",
+      "originalAsset": "6e9a1.svg",
+      "sha256": "8e16c696519b708414ca7841e79c044453b66ab00e9e74566f26e4d948206694"
+    },
+    {
+      "file": "assets/images/hero-background.png",
+      "figmaSourceFrame": "56:219",
+      "originalAsset": "6fee7.png",
+      "sha256": "4574bba6f6a1f1c92cadb1de776af25e01e27e6415e536401f3844075a9e3907"
+    },
+    {
+      "file": "assets/illustrations/student-thumbs-up.png",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "2f502.png",
+      "sha256": "a8eaedaea8db130ab39d41a91012a91e55e2d814ac5ef9c586ab500815d4a3ef"
+    },
+    {
+      "file": "assets/illustrations/particles/6169a.png",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "6169a.png",
+      "sha256": "591a478ef49f7d7a1f57e213ad7176c0122eca9bd9d044b2b96d2310ba222476"
+    },
+    {
+      "file": "assets/illustrations/student-states.png",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "7f79a.png",
+      "sha256": "2c3c6d122a8637668a9b312f1287e1c0b3394db71a4513b69c3f96bb280fe671"
+    },
+    {
+      "file": "assets/icons/step-number-glow.svg",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "88cb3.svg",
+      "sha256": "a85a8ee96c440dd58c9762b0b138185b697ec7344687f66e9e2f061155b7f18c"
+    },
+    {
+      "file": "assets/illustrations/particles/8eb18.png",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "8eb18.png",
+      "sha256": "b16bcecf7e7cf75936296ba569eedf830364d38f632fe8f169a9f7b1e6ba7429"
+    },
+    {
+      "file": "assets/illustrations/particles/93e57.png",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "93e57.png",
+      "sha256": "941fe9fe3601668e6893d825274b4dde3ff04b39d9894c2fd9ae3be8ed236b99"
+    },
+    {
+      "file": "assets/icons/priority-number.svg",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "9b0e8.svg",
+      "sha256": "bc963f5becd2a7c705c37b783f09d7642048b80390365b605725643656c2144e"
+    },
+    {
+      "file": "assets/images/mint-gradient.png",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "9fad3.png",
+      "sha256": "114fcf9eacf2ffc5b644dbce61a2ee058d4667765a42da1b52347a6f358c6790"
+    },
+    {
+      "file": "assets/icons/drag-handle.svg",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "a8f6d.svg",
+      "sha256": "9cf638434b3bd227b435e59f227c1f978050825d560a2af82b0b7752b96e7b31"
+    },
+    {
+      "file": "assets/illustrations/particles/ac2b1.png",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "ac2b1.png",
+      "sha256": "46fb740e02a86ee704a1d4c9f6cfd30d878e1ae3681f06ead3730cf1480c1b8b"
+    },
+    {
+      "file": "assets/illustrations/particles/d3011.png",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "d3011.png",
+      "sha256": "3f02c990c9d5022e53e88c0b8b66069bd0e48f1d322d9d7574271f7ce775666a"
+    },
+    {
+      "file": "assets/illustrations/particles/f788f.png",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "f788f.png",
+      "sha256": "598e5ea53d71024118f26e93303f53ad177b719d650b11f5134b72f6f143d3bc"
+    },
+    {
+      "file": "assets/illustrations/particles/fb7e6.png",
+      "figmaSourceFrame": "56:251",
+      "originalAsset": "fb7e6.png",
+      "sha256": "8783087d6832bbf94ecbf89cb875fbd10251749d58be68062a66186e000a4c07"
+    },
+    {
+      "file": "assets/illustrations/student-states.png",
+      "figmaSourceFrame": "56:346",
+      "originalAsset": "7f79a.png",
+      "sha256": "2c3c6d122a8637668a9b312f1287e1c0b3394db71a4513b69c3f96bb280fe671"
+    },
+    {
+      "file": "assets/icons/arrow-white.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "0bd12.svg",
+      "sha256": "3a6c7775e389d6ab59e94047485a0e611ea8f3797eaaa9b4d872cb0236e63aac"
+    },
+    {
+      "file": "assets/icons/dashboard-jobs.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "248b2.svg",
+      "sha256": "e623fa0fb45b815492b110e413b1357bd33ff6c41178a82e422c0315e1246494"
+    },
+    {
+      "file": "assets/icons/dashboard-bell.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "5c323.svg",
+      "sha256": "2629dbd7b501ff90ccd905d3996a826421fa670b84a72403c4223dbd2532561e"
+    },
+    {
+      "file": "assets/icons/dashboard-profile.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "5db9b.svg",
+      "sha256": "68fa2d0b86879a35623479d1f195eefd6ce519d129b62e0ebf6f0d6bd40ecc89"
+    },
+    {
+      "file": "assets/brand/brand-symbol-gray.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "62a3b.svg",
+      "sha256": "2c6d358e8eb0161fbe2a7782ce6be62df875709031b75c773e2338a8cdafb8ab"
+    },
+    {
+      "file": "assets/images/student-background.png",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "64be2.png",
+      "sha256": "86839a7e5c939f6abdfb0ae4f59f8449bae02dea5521305efa17f815dd1832ff"
+    },
+    {
+      "file": "assets/icons/dashboard-applicants.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "6a84d.svg",
+      "sha256": "1b6c1b7a075cb84d8ce4d699592b4c7b131cd320bd77b6332a37458778b7f1fe"
+    },
+    {
+      "file": "assets/icons/dashboard-settings.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "6d2fe.svg",
+      "sha256": "4cb922fddd0ff6c18674e06ec9fc06309b6f531b49599486e410be255a818c82"
+    },
+    {
+      "file": "assets/icons/condition-location.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "7fb42.svg",
+      "sha256": "c1b90c3f59aa52853dbf530838070d91bd51ea36aac3a106568ebbb026172e30"
+    },
+    {
+      "file": "assets/images/phone-documents.png",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "9d78c.png",
+      "sha256": "317cef4fb94d6a89d9bf0497e8dfa7f083d8e418e7ebfd692c8bc8b1efdebed1"
+    },
+    {
+      "file": "assets/images/mint-gradient.png",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "9fad3.png",
+      "sha256": "114fcf9eacf2ffc5b644dbce61a2ee058d4667765a42da1b52347a6f358c6790"
+    },
+    {
+      "file": "assets/icons/dashboard-overview.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "a9633.svg",
+      "sha256": "ed1a7ccd657f06e052dfc18ff44d2b18fd6cfededff8b3d89ae3deda3a41849b"
+    },
+    {
+      "file": "assets/icons/condition-check.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "b8424.svg",
+      "sha256": "379d60077008091b4346bb0631a9ddac60c25534c275d536f8e7a2ba856bb269"
+    },
+    {
+      "file": "assets/icons/condition-job.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "b9148.svg",
+      "sha256": "8b29d70d6217258b43efe8e42364711c3d2c2b352b31d7f5f2b7c10f3cbc492e"
+    },
+    {
+      "file": "assets/icons/condition-negotiable.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "c5bcc.svg",
+      "sha256": "5f2feddb70c54aae05fef064694a5fedde71aeaaa64b9655f85b3f9fd1414f6a"
+    },
+    {
+      "file": "assets/illustrations/phone-shadow.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "e7d2a.svg",
+      "sha256": "27ebb102c4ff9bdd3d25bad2b2071ed4375e2ba180a5fb753fca4f096c60885e"
+    },
+    {
+      "file": "assets/icons/dashboard-hired.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "eb679.svg",
+      "sha256": "80040e9e4d6b03abd5bbc58714117be8d71882a9aa1814ba61a119eab3d83f41"
+    },
+    {
+      "file": "assets/icons/arrow-white.svg",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "edb1a.svg",
+      "sha256": "3a6c7775e389d6ab59e94047485a0e611ea8f3797eaaa9b4d872cb0236e63aac"
+    },
+    {
+      "file": "assets/images/phone-guide.png",
+      "figmaSourceFrame": "56:383",
+      "originalAsset": "f4454.png",
+      "sha256": "a2317c0526804ddcb610d7c211a06c417259e15a278eae957a2eece04c778a7e"
+    }
+  ]
+}

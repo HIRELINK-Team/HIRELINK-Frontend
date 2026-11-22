@@ -12,6 +12,7 @@ import {
 } from 'react-router-dom';
 
 import { getAccessToken, setAccessToken } from './api/accessToken';
+import LandingPage from './pages/LandingPage';
 import {
   createStudentProfile,
   loginStudent,
@@ -2121,8 +2122,9 @@ function App() {
     <EmployerProfileProvider>
       <EmployerWorkplacesProvider>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route element={<EmployerAuthRoute />}>
-            <Route path="/" element={<EmployerLoginPage />} />
+            <Route path="/employer/entry" element={<EmployerLoginPage />} />
             <Route
               path="/employer/login"
               element={<EmployerEmailLoginPage />}
