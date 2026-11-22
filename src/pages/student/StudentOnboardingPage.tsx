@@ -527,6 +527,8 @@ export default function StudentOnboardingPage({
     useState<ResidenceQualification>(
       INITIAL_RESIDENCE_INFO.residenceQualification,
     );
+  const [residenceQualificationBackStep, setResidenceQualificationBackStep] =
+    useState<'birthYear' | 'workLocationSelection'>('birthYear');
   const [academicStatusDraft, setAcademicStatusDraft] =
     useState<AcademicStatus>(INITIAL_RESIDENCE_INFO.academicStatus);
   const [topikLevelDraft, setTopikLevelDraft] = useState<TopikLevel>(
@@ -775,6 +777,7 @@ export default function StudentOnboardingPage({
       await studentDataSource.updateMatchingPreferences(requestBody);
       setIsWorkLocationRadiusSelectionOpen(false);
       setIsWorkLocationSubmitted(true);
+      setResidenceQualificationBackStep('workLocationSelection');
       setStep('residenceQualification');
     } catch (error) {
       window.alert(
@@ -801,7 +804,7 @@ export default function StudentOnboardingPage({
   };
 
   const handleResidenceQualificationNext = () => {
-    setStep('academicStatus');
+    setStep('location');
   };
 
   const handleAcademicStatusConfirm = () => {
@@ -978,25 +981,25 @@ export default function StudentOnboardingPage({
 
   if (step === 'ageRestricted') {
     return (
-      <main className="relative mx-auto h-[844px] w-[390px] max-w-none overflow-hidden bg-[#F5F5F5] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
-        <img
-          alt=""
-          className="absolute top-[278px] left-1/2 h-[113px] w-[88px] -translate-x-1/2 object-contain drop-shadow-[1px_1px_38.7px_rgba(0,184,148,0.28)]"
-          src={ageRestrictionImage}
-        />
-        <h1 className="absolute top-[410px] left-1/2 m-0 w-full -translate-x-1/2 whitespace-pre-line text-[22px] leading-[1.5] font-semibold">
-          아직은 서비스를{`\n`}이용할 수 없어요
-        </h1>
-        <p className="absolute top-[482px] left-1/2 m-0 w-full -translate-x-1/2 whitespace-pre-line text-[13px] leading-[1.5] text-[#909597]">
-          하이어링크는 만 18세 이상부터 이용할 수 있어요.{`\n`}
-          이용 가능 연령이 되면 다시 찾아주세요!
-        </p>
+      <main className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-[#F5F5F5] px-6 pt-[calc(7.2dvh+env(safe-area-inset-top))] pb-[calc(4.4dvh+env(safe-area-inset-bottom))] text-center font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+        <section className="flex min-h-0 flex-1 flex-col items-center justify-center pb-8">
+          <img
+            alt=""
+            className="h-[113px] w-[88px] shrink-0 object-contain drop-shadow-[1px_1px_38.7px_rgba(0,184,148,0.28)]"
+            src={ageRestrictionImage}
+          />
+          <h1 className="mt-[19px] whitespace-pre-line text-[22px] leading-[1.5] font-semibold">
+            아직은 서비스를{`\n`}이용할 수 없어요
+          </h1>
+          <p className="mt-[6px] whitespace-pre-line text-[13px] leading-[1.5] text-[#909597]">
+            하이어링크는 만 18세 이상부터 이용할 수 있어요.{`\n`}
+            이용 가능 연령이 되면 다시 찾아주세요!
+          </p>
+        </section>
         <button
-          className="absolute top-[750px] left-6 h-[57px] w-[342px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+          className="mt-auto h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
           type="button"
           onClick={() => {
-            updateInfo('birthDate', '');
-            setBirthDateInput('');
             setBirthDateError('');
             setStep('birthYear');
           }}
@@ -1422,11 +1425,12 @@ export default function StudentOnboardingPage({
       <OnboardingScaffold
         activeSubStep={1}
         ctaLabel="확인"
-        currentStage={4}
+        currentStage={2}
         question={'현재 체류자격이\n무엇인가요?'}
         stageLabel="체류자격 입력"
-        totalSubSteps={4}
-        onBack={() => setStep('workLocationSelection')}
+        totalSubSteps={5}
+        responsive
+        onBack={() => setStep(residenceQualificationBackStep)}
         onCtaClick={handleResidenceQualificationNext}
       >
         <button
@@ -1699,6 +1703,10 @@ export default function StudentOnboardingPage({
   }
 
   const handleBack = () => {
+    if (step === 'location') {
+      setStep('residenceQualification');
+      return;
+    }
     if (step === 'phone') {
       setStep(phoneBackStep);
       return;
@@ -1809,6 +1817,10 @@ export default function StudentOnboardingPage({
         setStep('ageRestricted');
         return;
       }
+
+      setResidenceQualificationBackStep('birthYear');
+      setStep('residenceQualification');
+      return;
     }
     if (step === 'location' && !info.location.trim()) return;
 
@@ -1853,7 +1865,7 @@ export default function StudentOnboardingPage({
     <OnboardingScaffold
       activeSubStep={isPhoneVerificationStep ? 1 : BASIC_INFO_PROGRESS[step]}
       ctaLabel={ctaLabel}
-      currentStage={isPhoneVerificationStep ? 2 : 1}
+      currentStage={isPhoneVerificationStep || step === 'birthYear' ? 2 : 1}
       isCtaDisabled={isCtaDisabled}
       isPageScrollable={step === 'location' || step === 'koreanLevel'}
       question={isPhoneVerificationStep ? questions.phone : questions[step]}
