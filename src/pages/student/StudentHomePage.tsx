@@ -49,6 +49,10 @@ type StudentHomePageProps = {
   onTabChange?: (tab: StudentNavigationTab) => void;
 };
 
+const ILLUSTRATION_DROP_SHADOW = {
+  filter: 'drop-shadow(1px 1px 38.7px rgba(0, 184, 148, 0.28))',
+} as const;
+
 export default function StudentHomePage({
   homeSummary = STUDENT_HOME_MOCK,
   isBottomNavigationFixed = false,
@@ -77,7 +81,7 @@ export default function StudentHomePage({
 
       <section
         aria-label="지원 현황"
-        className="absolute top-[181px] left-6 z-30 h-[121px] w-[342px] overflow-hidden rounded-[20px] bg-white/10"
+        className="absolute top-[181px] left-6 z-30 h-[121px] w-[342px] overflow-hidden rounded-[20px] bg-white/10 backdrop-blur-[13px]"
       >
         <h2 className="absolute top-[18px] left-6 m-0 text-[17px] leading-[1.5] font-semibold">
           지원현황
@@ -110,34 +114,40 @@ export default function StudentHomePage({
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <img
           alt=""
-          className="absolute top-[211px] left-[353px] z-10 h-8 w-[68px] max-w-none object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+          className="absolute top-[211px] left-[353px] z-10 h-8 w-[68px] max-w-none object-cover"
           src={cloudImage}
+          style={ILLUSTRATION_DROP_SHADOW}
         />
         <img
           alt=""
-          className="absolute top-[302px] left-[-23px] z-10 h-8 w-[68px] max-w-none object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+          className="absolute top-[302px] left-[-23px] z-10 h-8 w-[68px] max-w-none object-cover"
           src={cloudImage}
+          style={ILLUSTRATION_DROP_SHADOW}
         />
         <img
           alt=""
-          className="absolute top-[308px] left-[239px] z-10 h-[26px] w-14 max-w-none object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+          className="absolute top-[308px] left-[239px] z-10 h-[26px] w-14 max-w-none object-cover"
           src={cloudImage}
+          style={ILLUSTRATION_DROP_SHADOW}
         />
         <img
           alt=""
-          className="absolute top-[340px] left-[272px] z-10 h-[65px] w-[139px] max-w-none object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+          className="absolute top-[340px] left-[272px] z-10 h-[65px] w-[139px] max-w-none object-cover"
           src={cloudImage}
+          style={ILLUSTRATION_DROP_SHADOW}
         />
         <img
           alt=""
-          className="absolute top-[377.45px] left-[-19px] z-20 h-[51px] w-[110px] max-w-none object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+          className="absolute top-[377.45px] left-[-19px] z-20 h-[51px] w-[110px] max-w-none object-cover"
           src={cloudImage}
+          style={ILLUSTRATION_DROP_SHADOW}
         />
         <div className="absolute top-[296px] left-2 z-20 flex h-[142.002px] w-[205.588px] items-center justify-center">
           <img
             alt=""
-            className="h-[112.615px] w-[189.791px] max-w-none rotate-[9.37deg] object-cover shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]"
+            className="h-[112.615px] w-[189.791px] max-w-none rotate-[9.37deg] object-cover"
             src={airplaneImage}
+            style={ILLUSTRATION_DROP_SHADOW}
           />
         </div>
         <div className="absolute top-[531.69px] left-10 z-10 flex h-[82.144px] w-[157.263px] items-center justify-center">
@@ -158,14 +168,20 @@ export default function StudentHomePage({
             />
           </div>
         </div>
-        <div className="absolute top-[398px] left-[120.266px] z-20 h-[204.843px] w-[75.868px] overflow-hidden shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]">
+        <div
+          className="absolute top-[398px] left-[120.266px] z-20 h-[204.843px] w-[75.868px] overflow-hidden"
+          style={ILLUSTRATION_DROP_SHADOW}
+        >
           <img
             alt=""
             className="absolute top-0 left-[-37.07%] h-[99.96%] w-[179.93%] max-w-none"
             src={travelerImage}
           />
         </div>
-        <div className="absolute top-[505.64px] left-[209.859px] z-20 h-[93.8px] w-[76.154px] overflow-hidden shadow-[1px_1px_77.4px_rgba(0,184,148,0.28)]">
+        <div
+          className="absolute top-[505.64px] left-[209.859px] z-20 h-[93.8px] w-[76.154px] overflow-hidden"
+          style={ILLUSTRATION_DROP_SHADOW}
+        >
           <img
             alt=""
             className="absolute top-[0.31%] left-[0.14%] h-[99.66%] w-[99.58%] max-w-none"
