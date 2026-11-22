@@ -6,6 +6,10 @@ import detailBackIcon from '../../../assets/icons/student/matching/detail-back.s
 import detailMapPinIcon from '../../../assets/icons/student/matching/detail-map-pin.svg';
 import detailMapImage from '../../../assets/images/student/matching/detail-map.png';
 import type { RecommendedJob } from '../../../types/studentMatching';
+import {
+  formatDistrictAndWalkingTime,
+  formatMatchingComparisonTags,
+} from '../../../utils/studentMatchingDisplay';
 
 type RecommendedJobDetailProps = {
   job: RecommendedJob;
@@ -53,7 +57,7 @@ export function RecommendedJobDetail({
 }: RecommendedJobDetailProps) {
   const applicationStatusLabel =
     job.applicationStatus === 'WAITING_RESPONSE'
-      ? '채용 제안 대기'
+      ? '지원 완료'
       : job.applicationStatus === 'OFFERED'
         ? '채용 제안 확인 중'
         : null;
@@ -61,7 +65,13 @@ export function RecommendedJobDetail({
     job.detail.metrics.find((metric) => metric.label === '급여')?.value ??
     '급여 정보 없음';
   const { dayLabel, timeLabel } = getWorkTimeSummary(job);
-  const comparisonTags = job.detail.comparisonTags.slice(0, 2);
+  const comparisonTags = formatMatchingComparisonTags(
+    job.detail.comparisonTags,
+  ).slice(0, 2);
+  const locationLabel = formatDistrictAndWalkingTime(
+    job.detail.locationAndDistance,
+    job.detail.walkingTimeMinutes,
+  );
 
   return (
     <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
@@ -91,24 +101,24 @@ export function RecommendedJobDetail({
           {job.companyName || '근무지 정보'}
         </h1>
         <p className="mt-[-1px] mb-0 truncate text-[13px] leading-[1.5] text-[#909597]">
-          {job.detail.locationAndDistance || '위치 정보 없음'}
+          {locationLabel}
         </p>
 
-        <div className="mt-[17px] flex min-w-0 items-center justify-between gap-3">
+        <div className="mt-[17px] grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <div className="flex min-w-0 gap-[5px] overflow-hidden">
             {comparisonTags.map((tag) => (
               <span
-                className="shrink-0 rounded-[30px] bg-[#E6E8E9] px-[14px] py-[7px] text-[13px] leading-[1.5] font-medium"
+                className="flex h-[34px] shrink-0 items-center justify-center rounded-[30px] bg-[#E6E8E9] px-[13.636px] text-[13px] leading-[1.5] font-medium whitespace-nowrap"
                 key={tag}
               >
                 {tag}
               </span>
             ))}
           </div>
-          <p className="m-0 shrink-0 whitespace-nowrap">
+          <p className="m-0 flex shrink-0 items-baseline gap-1 whitespace-nowrap">
             <span className="text-[26px] leading-[1.5] font-semibold text-[#009376]">
               {job.detail.matchRate}%
-            </span>{' '}
+            </span>
             <span className="text-[13px] leading-[1.5] text-[#909597]">
               적합
             </span>
@@ -137,12 +147,14 @@ export function RecommendedJobDetail({
 
         <div className="absolute right-0 bottom-0 left-0 h-[115px] bg-[#F5F5F5] px-6 pt-[21px] shadow-[0_-6px_20px_rgba(0,0,0,0.05)]">
           <button
-            className="h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] disabled:cursor-default disabled:bg-[#B3B8B9]"
+            className="h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[#F5F5F5] disabled:cursor-default disabled:bg-[#B3B8B9]"
             disabled={applicationStatusLabel !== null}
             type="button"
             onClick={() => onApply?.(job)}
           >
-            {applicationStatusLabel ?? '지원하기'}
+            <span className="text-[20px] leading-[1.5] font-medium">
+              {applicationStatusLabel ?? '지원하기'}
+            </span>
           </button>
         </div>
       </section>

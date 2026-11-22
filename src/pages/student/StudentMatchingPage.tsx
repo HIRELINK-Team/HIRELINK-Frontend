@@ -21,6 +21,7 @@ import type {
   StudentMatchingView,
 } from '../../types/studentMatching';
 import type { StudentProfileResponse } from '../../types/studentProfile';
+import { formatMatchingSummary } from '../../utils/studentMatchingDisplay';
 
 const MAX_RECOMMENDED_JOBS = 3;
 const APPLICATIONS_POLLING_INTERVAL_MS = 10_000;
@@ -128,7 +129,10 @@ function mapOfferApplicationToRecommendedJob(
     id: `offer:${application.applicationId}`,
     isCountdownActive: false,
     jobPostingId: application.jobPostingId,
-    matchDescription: application.recommendationReasons.join(' · '),
+    matchDescription: formatMatchingSummary(
+      application.recommendationReasons,
+      application.recommendationReasons.join(' · '),
+    ),
     matchRate: recommendation?.matchRate ?? 0,
     recommendationId: recommendation?.recommendationId,
     role: `직무 | ${application.jobTitle}`,

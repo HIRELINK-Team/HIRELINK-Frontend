@@ -3,6 +3,10 @@ import type {
   StudentRecommendationWorkTime,
 } from '../types/studentRecommendation';
 import type { RecommendedJob } from '../types/studentMatching';
+import {
+  formatMatchingComparisonTags,
+  formatMatchingSummary,
+} from '../utils/studentMatchingDisplay';
 import { DAY_LABELS } from '../utils/workSchedule';
 
 const WAGE_TYPE_LABELS: Record<StudentRecommendation['wageType'], string> = {
@@ -23,6 +27,11 @@ export function mapStudentRecommendationToRecommendedJob(
 ): RecommendedJob {
   const workTimeLabels = recommendation.workTimes.map(formatWorkTime);
   const wageLabel = formatWage(recommendation);
+  const walkingTimeMinutes =
+    'walkingTimeMinutes' in recommendation &&
+    typeof recommendation.walkingTimeMinutes === 'number'
+      ? recommendation.walkingTimeMinutes
+      : null;
 
   return {
     applicationId: recommendation.applicationId,
@@ -32,7 +41,9 @@ export function mapStudentRecommendationToRecommendedJob(
     companyName: recommendation.workplaceName,
     detail: {
       announcement: null,
-      comparisonTags: recommendation.recommendationReasons,
+      comparisonTags: formatMatchingComparisonTags(
+        recommendation.recommendationReasons,
+      ),
       locationAndDistance: recommendation.workplaceAddress,
       matchRate: recommendation.matchScore,
       metrics: [
@@ -43,11 +54,15 @@ export function mapStudentRecommendationToRecommendedJob(
         })),
       ],
       tags: workTimeLabels,
+      walkingTimeMinutes,
     },
     id: String(recommendation.recommendationId),
     isCountdownActive: false,
     jobPostingId: recommendation.jobPostingId,
-    matchDescription: recommendation.recommendationReasons.join(' · '),
+    matchDescription: formatMatchingSummary(
+      recommendation.recommendationReasons,
+      recommendation.recommendationReasons.join(' · '),
+    ),
     matchRate: recommendation.matchScore,
     rank: recommendation.rank,
     recommendationId: recommendation.recommendationId,

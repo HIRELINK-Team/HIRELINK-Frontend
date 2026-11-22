@@ -10,6 +10,7 @@ export type RecommendedJobDetail = {
   matchRate: number;
   metrics: RecommendedJobDetailMetric[];
   tags: string[];
+  walkingTimeMinutes?: number | null;
 };
 
 export type RecommendedJob = {

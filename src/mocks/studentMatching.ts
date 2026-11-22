@@ -17,6 +17,7 @@ const RECOMMENDED_JOB_DETAIL: RecommendedJobDetail = {
     { label: '시간', value: '9-18시' },
   ],
   comparisonTags: ['근무 시간 일치', '희망 거리'],
+  walkingTimeMinutes: 12,
 };
 
 export const STUDENT_RECOMMENDED_JOBS: RecommendedJob[] = [
