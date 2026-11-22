@@ -1,7 +1,8 @@
-import backIcon from '../../../assets/icons/student/documents/alien-registration/camera-back.svg';
-import bulbIcon from '../../../assets/icons/student/documents/alien-registration/camera-bulb.svg';
-import clarityIcon from '../../../assets/icons/student/documents/alien-registration/camera-clarity.svg';
-import landscapeIcon from '../../../assets/icons/student/documents/alien-registration/camera-landscape.svg';
+import backIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-back.svg';
+import bulbIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-bulb.svg';
+import clarityIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-clarity.svg';
+import landscapeIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-landscape.svg';
+import { AlienRegistrationOnboardingLayout } from '../onboarding/AlienRegistrationOnboardingLayout';
 
 type AlienRegistrationCameraProps = {
   onBack: () => void;
@@ -13,45 +14,51 @@ export function AlienRegistrationCamera({
   onCapture,
 }: AlienRegistrationCameraProps) {
   return (
-    <main className="relative mx-auto h-[844px] w-[390px] max-w-none overflow-hidden bg-[#3F3F3F] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#F5F5F5]">
+    <AlienRegistrationOnboardingLayout variant="camera">
       <button
-        aria-label="뒤로 가기"
-        className="absolute top-[61px] left-[18px] grid size-8 place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
+        aria-label="뒤로가기"
+        className="flex h-6 w-6 shrink-0 items-center justify-center"
       >
-        <img alt="" src={backIcon} />
+        <img src={backIcon} alt="" />
       </button>
-      <p className="absolute top-[112px] right-6 left-6 m-0 text-center text-[15px] leading-[1.4]">
-        영역 안에 신분증이 꽉 차도록 조절하면
+
+      <p className="mt-[19px] shrink-0 text-center text-[15px] leading-[1.4] font-normal text-[#F5F5F5]">
+        영역 안에 등록증이 꽉 차도록 조절하면
         <br />
         자동으로 촬영돼요.
       </p>
-      <div className="absolute top-[222px] right-6 left-6 h-[208px] rounded-[10px] border border-[#F5F5F5]" />
 
-      <section
-        aria-label="촬영 가이드"
-        className="absolute top-[497px] right-6 left-6 grid grid-cols-3"
-      >
+      <div
+        aria-label="외국인등록증 앞면 촬영 영역"
+        className="mt-[8dvh] aspect-[342/207] w-full max-w-[360px] shrink-0 self-center rounded-[10px] border border-white/90 [@media(max-height:700px)]:mt-[4dvh]"
+      />
+
+      <section className="mt-[8dvh] grid shrink-0 grid-cols-3 gap-2 text-center text-[15px] leading-[1.5] font-normal text-[#F5F5F5]/50 [@media(max-height:700px)]:mt-[4dvh]">
         <div className="flex flex-col items-center">
-          <img alt="" className="h-[50px] w-[50px]" src={bulbIcon} />
-          <p className="m-0 mt-[20px] text-center text-[15px] leading-[1.5] text-[#F5F5F5]/50">
+          <img src={bulbIcon} alt="" className="h-[50px] w-[50px]" />
+          <p className="mt-4">
             빛 반사가 없도록
             <br />
             촬영해주세요
           </p>
         </div>
-        <div className="flex flex-col items-center pt-1">
-          <img alt="" className="h-[46px] w-[46px]" src={clarityIcon} />
-          <p className="m-0 mt-[20px] text-center text-[15px] leading-[1.5] text-[#F5F5F5]/50">
+        <div className="flex flex-col items-center">
+          <img src={clarityIcon} alt="" className="h-[46px] w-[46px]" />
+          <p className="mt-5">
             정보를 선명하게
             <br />
             보여주세요
           </p>
         </div>
-        <div className="flex flex-col items-center pt-2">
-          <img alt="" className="h-[35px] w-[35px]" src={landscapeIcon} />
-          <p className="m-0 mt-[27px] text-center text-[15px] leading-[1.5] text-[#F5F5F5]/50">
+        <div className="flex flex-col items-center">
+          <img
+            src={landscapeIcon}
+            alt=""
+            className="mt-[7px] h-[35px] w-[35px]"
+          />
+          <p className="mt-6">
             가로 방향으로
             <br />
             촬영해주세요
@@ -59,30 +66,26 @@ export function AlienRegistrationCamera({
         </div>
       </section>
 
-      <div className="absolute top-[694px] left-[25px] flex items-center gap-[7px]">
-        <label className="relative h-[57px] w-[165px] cursor-pointer overflow-hidden rounded-[15px] bg-white/15">
-          <span className="absolute top-[14px] left-1/2 -translate-x-1/2 whitespace-nowrap text-[20px] leading-[1.5] font-medium tracking-[-0.02em] text-[#F5F5F5]">
-            파일업로드
-          </span>
+      <div className="mt-auto grid shrink-0 grid-cols-[165fr_169fr] gap-[7px] pt-4">
+        <label className="flex h-[57px] cursor-pointer items-center justify-center rounded-[15px] bg-white/15 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]">
+          파일업로드
           <input
-            accept="application/pdf,image/*"
-            className="sr-only"
             type="file"
+            accept="image/*"
+            className="sr-only"
             onChange={(event) => {
-              if (event.currentTarget.files?.length) onCapture();
+              if (event.target.files?.[0]) onCapture();
             }}
           />
         </label>
         <button
-          className="relative h-[58px] w-[169px] overflow-hidden rounded-[15px] border-0 bg-[#F5F5F5] p-0"
           type="button"
           onClick={onCapture}
+          className="h-[58px] rounded-[15px] bg-[#F5F5F5] text-[20px] leading-[1.5] font-normal text-[#1D1F20]"
         >
-          <span className="absolute top-[14px] left-1/2 -translate-x-1/2 whitespace-nowrap text-[20px] leading-[1.5] font-normal tracking-[-0.02em] text-[#1D1F20]">
-            등록하기
-          </span>
+          등록하기
         </button>
       </div>
-    </main>
+    </AlienRegistrationOnboardingLayout>
   );
 }

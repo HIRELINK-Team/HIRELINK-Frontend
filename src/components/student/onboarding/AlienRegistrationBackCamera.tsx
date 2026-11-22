@@ -1,73 +1,91 @@
-import backIcon from '../../../assets/icons/student/documents/alien-registration/camera-back.svg';
-import bulbIcon from '../../../assets/icons/student/documents/alien-registration/camera-bulb.svg';
-import clarityIcon from '../../../assets/icons/student/documents/alien-registration/camera-clarity.svg';
-import landscapeIcon from '../../../assets/icons/student/documents/alien-registration/camera-landscape.svg';
+import backIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-back.svg';
+import bulbIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-bulb.svg';
+import clarityIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-clarity.svg';
+import landscapeIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-landscape.svg';
+import { AlienRegistrationOnboardingLayout } from './AlienRegistrationOnboardingLayout';
 
 type AlienRegistrationBackCameraProps = {
   onBack: () => void;
   onCapture: () => void;
 };
 
-const CAMERA_GUIDES = [
-  { icon: bulbIcon, label: '빛 반사가 없도록\n촬영해주세요', size: 'size-[50px]' },
-  { icon: clarityIcon, label: '정보를 선명하게\n보여주세요', size: 'size-[46px]' },
-  { icon: landscapeIcon, label: '가로 방향으로\n촬영해주세요', size: 'size-[35px]' },
-] as const;
-
 export function AlienRegistrationBackCamera({
   onBack,
   onCapture,
 }: AlienRegistrationBackCameraProps) {
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col overflow-y-auto bg-[#3F3F3F] px-6 pt-[calc(61px+env(safe-area-inset-top))] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#F5F5F5] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <AlienRegistrationOnboardingLayout variant="camera">
       <button
-        aria-label="이전 단계로 이동"
-        className="-ml-1 grid size-8 shrink-0 place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
+        aria-label="뒤로가기"
+        className="flex h-6 w-6 shrink-0 items-center justify-center"
       >
-        <img alt="" src={backIcon} />
+        <img src={backIcon} alt="" />
       </button>
 
-      <p className="mt-8 text-center text-[15px] leading-[1.4]">
+      <p className="mt-[19px] shrink-0 text-center text-[15px] leading-[1.4] font-normal text-[#F5F5F5]">
         영역 안에 등록증이 꽉 차도록 조절하면
         <br />
         자동으로 촬영돼요.
       </p>
 
-      <div className="mt-[62px] aspect-[342/207] w-full rounded-[10px] border border-[#F5F5F5]" />
+      <div
+        aria-label="외국인등록증 뒷면 촬영 영역"
+        className="mt-[8dvh] aspect-[342/207] w-full max-w-[360px] shrink-0 self-center rounded-[10px] border border-white/90 [@media(max-height:700px)]:mt-[4dvh]"
+      />
 
-      <section aria-label="촬영 가이드" className="mt-[66px] grid grid-cols-3 gap-2">
-        {CAMERA_GUIDES.map(({ icon, label, size }) => (
-          <div className="flex min-w-0 flex-col items-center" key={label}>
-            <img alt="" className={size} src={icon} />
-            <p className="mt-5 whitespace-pre-line text-center text-[15px] leading-[1.5] text-[#F5F5F5]/50">
-              {label}
-            </p>
-          </div>
-        ))}
+      <section className="mt-[8dvh] grid shrink-0 grid-cols-3 gap-2 text-center text-[15px] leading-[1.5] font-normal text-[#F5F5F5]/50 [@media(max-height:700px)]:mt-[4dvh]">
+        <div className="flex flex-col items-center">
+          <img src={bulbIcon} alt="" className="h-[50px] w-[50px]" />
+          <p className="mt-4">
+            빛 반사가 없도록
+            <br />
+            촬영해주세요
+          </p>
+        </div>
+        <div className="flex flex-col items-center">
+          <img src={clarityIcon} alt="" className="h-[46px] w-[46px]" />
+          <p className="mt-5">
+            정보를 선명하게
+            <br />
+            보여주세요
+          </p>
+        </div>
+        <div className="flex flex-col items-center">
+          <img
+            src={landscapeIcon}
+            alt=""
+            className="mt-[7px] h-[35px] w-[35px]"
+          />
+          <p className="mt-6">
+            가로 방향으로
+            <br />
+            촬영해주세요
+          </p>
+        </div>
       </section>
 
-      <div className="mt-auto grid grid-cols-2 gap-[7px] pt-10">
-        <label className="flex min-h-[57px] cursor-pointer items-center justify-center rounded-[15px] bg-white/15 px-3 text-[20px] leading-[1.5] font-medium">
+      <div className="mt-auto grid shrink-0 grid-cols-[165fr_169fr] gap-[7px] pt-4">
+        <label className="flex h-[57px] cursor-pointer items-center justify-center rounded-[15px] bg-white/15 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]">
           파일업로드
           <input
-            accept="application/pdf,image/*"
-            className="sr-only"
             type="file"
+            accept="image/*"
+            className="sr-only"
             onChange={(event) => {
-              if (event.currentTarget.files?.length) onCapture();
+              if (event.target.files?.[0]) onCapture();
             }}
           />
         </label>
         <button
-          className="min-h-[58px] rounded-[15px] border-0 bg-[#F5F5F5] px-3 text-[20px] leading-[1.5] text-[#1D1F20]"
           type="button"
           onClick={onCapture}
+          className="h-[58px] rounded-[15px] bg-[#F5F5F5] text-[20px] leading-[1.5] font-normal text-[#1D1F20]"
         >
           등록하기
         </button>
       </div>
-    </main>
+    </AlienRegistrationOnboardingLayout>
   );
 }

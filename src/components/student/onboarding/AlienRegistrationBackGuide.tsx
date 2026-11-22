@@ -1,5 +1,6 @@
-import backIcon from '../../../assets/icons/student/documents/alien-registration/information-back.svg';
-import rearCaptureGuide from '../../../assets/images/student/documents/alien-registration/rear-capture-guide.png';
+import backIcon from '../../../assets/icons/student/documents/alien-registration/issue46-information-back.svg';
+import backGuideImage from '../../../assets/images/student/documents/alien-registration/issue46-back-guide.png';
+import { AlienRegistrationOnboardingLayout } from './AlienRegistrationOnboardingLayout';
 
 type AlienRegistrationBackGuideProps = {
   onBack: () => void;
@@ -11,28 +12,34 @@ export function AlienRegistrationBackGuide({
   onConfirm,
 }: AlienRegistrationBackGuideProps) {
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col overflow-y-auto bg-[#F5F5F5] px-6 pt-[calc(61px+env(safe-area-inset-top))] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <AlienRegistrationOnboardingLayout>
       <button
         aria-label="이전 단계로 이동"
-        className="-ml-1 grid size-8 shrink-0 place-items-center border-0 bg-transparent p-0"
+        className="flex h-6 w-6 shrink-0 items-center justify-center"
         type="button"
         onClick={onBack}
       >
-        <img alt="" className="h-4 w-2" src={backIcon} />
+        <img alt="" src={backIcon} />
       </button>
 
-      <div className="mt-9">
-        <strong className="block text-[17px] leading-[1.5] font-semibold text-[#00B894]">1/6</strong>
-        <span className="block text-[15px] leading-[1.5] text-[#909597]">정보 확인</span>
+      <div className="mt-[9px] shrink-0">
+        <strong className="block text-[17px] leading-[1.5] font-semibold text-[#00B894]">
+          1/6
+        </strong>
+        <span className="block text-[15px] leading-[1.5] text-[#909597]">
+          정보 확인
+        </span>
       </div>
-      <div aria-hidden="true" className="mt-[11px] grid grid-cols-2 gap-[5px]">
-        {Array.from({ length: 2 }, (_, index) => (
-          <span className="h-0.5 bg-[#00B894]" key={index} />
-        ))}
+      <div
+        aria-hidden="true"
+        className="mt-[11px] grid shrink-0 grid-cols-2 gap-[5px]"
+      >
+        <span className="h-0.5 bg-[#00B894]" />
+        <span className="h-0.5 bg-[#00B894]" />
       </div>
 
-      <section className="mt-[39px]">
-        <h1 className="m-0 text-[26px] leading-[1.5] font-semibold">
+      <section className="mt-[4.6dvh] shrink-0">
+        <h1 className="text-[26px] leading-[1.5] font-semibold">
           외국인 등록증
           <br />
           뒷면을 촬영해주세요.
@@ -40,20 +47,23 @@ export function AlienRegistrationBackGuide({
         <p className="mt-[10px] text-[15px] leading-[1.5] text-[#939393]">
           최신 만료일과 주소를 확인해요.
         </p>
-        <img
-          alt="외국인등록증 뒷면 촬영 안내"
-          className="mx-auto mt-[78px] block w-full max-w-[263px] object-contain"
-          src={rearCaptureGuide}
-        />
       </section>
 
+      <div className="flex min-h-0 flex-1 items-center justify-center py-4">
+        <img
+          alt="외국인등록증 뒷면 촬영 안내"
+          className="block h-auto w-[59.4%] max-w-[225px] object-contain"
+          src={backGuideImage}
+        />
+      </div>
+
       <button
-        className="mt-auto min-h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] px-3 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className="h-[57px] w-full shrink-0 rounded-[15px] bg-[#00B894] px-3 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
         onClick={onConfirm}
       >
         확인
       </button>
-    </main>
+    </AlienRegistrationOnboardingLayout>
   );
 }
