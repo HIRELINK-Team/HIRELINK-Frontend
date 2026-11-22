@@ -6,7 +6,7 @@ import { AlienRegistrationOnboardingLayout } from '../onboarding/AlienRegistrati
 
 type AlienRegistrationCameraProps = {
   onBack: () => void;
-  onCapture: () => void;
+  onCapture: (image: File) => void;
   side?: 'front' | 'back';
 };
 
@@ -15,6 +15,105 @@ export function AlienRegistrationCamera({
   onCapture,
   side = 'front',
 }: AlienRegistrationCameraProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isActiveRef = useRef(false);
+  const [cameraError, setCameraError] = useState('');
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    let isActive = true;
+    isActiveRef.current = true;
+
+    const startCamera = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setCameraError('카메라를 사용할 수 없어요. 이미지를 업로드해주세요.');
+        return;
+      }
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false,
+        });
+        if (!isActive) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        if (videoRef.current) videoRef.current.srcObject = stream;
+      } catch (error) {
+        if (!isActive) return;
+        setCameraError(
+          error instanceof DOMException &&
+            (error.name === 'NotAllowedError' || error.name === 'SecurityError')
+            ? '카메라 권한이 거부되었어요. 권한을 허용하거나 이미지를 업로드해주세요.'
+            : '카메라에 접근할 수 없어요. 이미지를 업로드해주세요.',
+        );
+      }
+    };
+
+    void startCamera();
+    return () => {
+      isActive = false;
+      isActiveRef.current = false;
+      stream?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
+
+  const handleCapture = () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth || !video.videoHeight || isCapturing)
+      return;
+    const canvas = document.createElement('canvas');
+    const targetRatio = 342 / 207;
+    const videoRatio = video.videoWidth / video.videoHeight;
+    const width =
+      videoRatio > targetRatio
+        ? video.videoHeight * targetRatio
+        : video.videoWidth;
+    const height =
+      videoRatio > targetRatio
+        ? video.videoHeight
+        : video.videoWidth / targetRatio;
+    canvas.width = Math.round(width);
+    canvas.height = Math.round(height);
+    const context = canvas.getContext('2d');
+    if (!context) {
+      setCameraError('이미지를 캡처하지 못했어요. 다시 시도해주세요.');
+      return;
+    }
+    context.drawImage(
+      video,
+      (video.videoWidth - width) / 2,
+      (video.videoHeight - height) / 2,
+      width,
+      height,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+    setIsCapturing(true);
+    canvas.toBlob(
+      (blob) => {
+        if (!isActiveRef.current) return;
+        setIsCapturing(false);
+        if (!blob) {
+          setCameraError('이미지를 캡처하지 못했어요. 다시 시도해주세요.');
+          return;
+        }
+        onCapture(
+          new File([blob], `alien-registration-${side}.jpg`, {
+            type: 'image/jpeg',
+          }),
+        );
+      },
+      'image/jpeg',
+      0.92,
+    );
+  };
+
   return (
     <AlienRegistrationOnboardingLayout variant="camera">
       <button
@@ -34,8 +133,25 @@ export function AlienRegistrationCamera({
 
       <div
         aria-label={`외국인등록증 ${side === 'front' ? '앞면' : '뒷면'} 촬영 영역`}
-        className="mt-[8dvh] aspect-[342/207] w-full max-w-[min(100%,45dvh)] shrink-0 self-center rounded-[10px] border border-white/90 [@media(max-height:700px)]:mt-[4dvh] [@media(max-height:600px)]:max-w-[min(100%,36dvh)]"
-      />
+        className="relative mt-[8dvh] aspect-[342/207] w-full max-w-[min(100%,45dvh)] shrink-0 self-center overflow-hidden rounded-[10px] border border-white/90 [@media(max-height:700px)]:mt-[4dvh] [@media(max-height:600px)]:max-w-[min(100%,36dvh)]"
+      >
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          onCanPlay={() => setIsCameraReady(true)}
+          className="h-full w-full object-cover"
+        />
+        {cameraError ? (
+          <p
+            role="alert"
+            className="absolute inset-0 flex items-center justify-center px-4 text-center text-[14px] leading-[1.5] text-white"
+          >
+            {cameraError}
+          </p>
+        ) : null}
+      </div>
 
       <section className="mt-[8dvh] grid shrink-0 grid-cols-3 gap-1 text-center text-[clamp(12px,3.85vw,15px)] leading-[1.5] font-normal text-[#F5F5F5]/50 [@media(max-height:700px)]:mt-[4dvh]">
         <div className="flex flex-col items-center">
@@ -76,13 +192,16 @@ export function AlienRegistrationCamera({
             accept="image/*"
             className="sr-only"
             onChange={(event) => {
-              if (event.target.files?.[0]) onCapture();
+              const file = event.target.files?.[0];
+              if (file && file.type.startsWith('image/')) onCapture(file);
+              else if (file) setCameraError('이미지 파일을 선택해주세요.');
             }}
           />
         </label>
         <button
           type="button"
-          onClick={onCapture}
+          onClick={handleCapture}
+          disabled={!isCameraReady || isCapturing || Boolean(cameraError)}
           className="h-[58px] rounded-[15px] bg-[#F5F5F5] !text-[20px] !leading-[1.5] !font-normal text-[#1D1F20]"
         >
           등록하기
@@ -91,3 +210,4 @@ export function AlienRegistrationCamera({
     </AlienRegistrationOnboardingLayout>
   );
 }
+import { useEffect, useRef, useState } from 'react';

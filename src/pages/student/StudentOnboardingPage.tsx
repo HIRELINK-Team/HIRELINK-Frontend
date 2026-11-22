@@ -441,6 +441,10 @@ export default function StudentOnboardingPage({
   const [alienRegistrationValues] = useState<AlienRegistrationFormValues>(
     INITIAL_ALIEN_REGISTRATION_VALUES,
   );
+  const [, setAlienRegistrationImages] = useState<{
+    front: File | null;
+    back: File | null;
+  }>({ front: null, back: null });
   const [alienRegistrationBackValues] =
     useState<AlienRegistrationBackInfoValues>(
       INITIAL_ALIEN_REGISTRATION_BACK_VALUES,
@@ -1024,7 +1028,13 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationCamera
         onBack={() => setStep('alienRegistrationInformation')}
-        onCapture={() => setStep('alienRegistrationFrontInfo')}
+        onCapture={(image) => {
+          setAlienRegistrationImages((current) => ({
+            ...current,
+            front: image,
+          }));
+          setStep('alienRegistrationFrontInfo');
+        }}
       />
     );
   }
@@ -1065,7 +1075,13 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationBackCamera
         onBack={() => setStep('alienRegistrationA')}
-        onCapture={() => setStep('alienRegistrationBackInfo')}
+        onCapture={(image) => {
+          setAlienRegistrationImages((current) => ({
+            ...current,
+            back: image,
+          }));
+          setStep('alienRegistrationBackInfo');
+        }}
       />
     );
   }
@@ -1074,7 +1090,13 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationBackCamera
         onBack={() => setStep('alienRegistrationBackInfoExpired')}
-        onCapture={() => setStep('alienRegistrationBackInfoRetake')}
+        onCapture={(image) => {
+          setAlienRegistrationImages((current) => ({
+            ...current,
+            back: image,
+          }));
+          setStep('alienRegistrationBackInfoRetake');
+        }}
       />
     );
   }
