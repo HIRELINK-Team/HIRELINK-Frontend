@@ -624,12 +624,19 @@ function StudentTermsAgreementRoute() {
 }
 
 type StudentOnboardingRouteProps = {
-  initialStep?: 'verification';
+  initialStep?:
+    | 'verification'
+    | 'industrySelection'
+    | 'workTimeSelection'
+    | 'workLocationSelection'
+    | 'matchingPriority';
+  initialWorkRadiusOpen?: boolean;
   phoneVerificationPreview?: PhoneVerificationPreview;
 };
 
 function StudentOnboardingRoute({
   initialStep,
+  initialWorkRadiusOpen,
   phoneVerificationPreview,
 }: StudentOnboardingRouteProps) {
   const navigate = useNavigate();
@@ -638,6 +645,7 @@ function StudentOnboardingRoute({
     <StudentOnboardingPage
       enableCareerApi={!IS_DEMO_MODE}
       initialStep={initialStep}
+      initialWorkRadiusOpen={initialWorkRadiusOpen}
       onBack={() => navigate('/student/entry')}
       onComplete={async (requestBody) => {
         if (IS_DEMO_MODE) {
@@ -2189,6 +2197,39 @@ function App() {
             <Route
               path="/student/onboarding"
               element={<StudentOnboardingRoute />}
+            />
+            <Route
+              path="/student/onboarding/job-category"
+              element={
+                <StudentOnboardingRoute initialStep="industrySelection" />
+              }
+            />
+            <Route
+              path="/student/onboarding/work-time"
+              element={
+                <StudentOnboardingRoute initialStep="workTimeSelection" />
+              }
+            />
+            <Route
+              path="/student/onboarding/work-location"
+              element={
+                <StudentOnboardingRoute initialStep="workLocationSelection" />
+              }
+            />
+            <Route
+              path="/student/onboarding/work-radius"
+              element={
+                <StudentOnboardingRoute
+                  initialStep="workLocationSelection"
+                  initialWorkRadiusOpen
+                />
+              }
+            />
+            <Route
+              path="/student/onboarding/priority"
+              element={
+                <StudentOnboardingRoute initialStep="matchingPriority" />
+              }
             />
             <Route
               path="/student/onboarding/phone/verification"

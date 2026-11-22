@@ -54,6 +54,8 @@ export function MatchingPriorityList({
   const layoutAnimationFrameRef = useRef<number | null>(null);
   const [draggedPriorityId, setDraggedPriorityId] =
     useState<MatchingPriorityId | null>(null);
+  const [selectedPriorityId, setSelectedPriorityId] =
+    useState<MatchingPriorityId | null>(priorities[0]?.id ?? null);
   const [draggedCardBaseTop, setDraggedCardBaseTop] = useState<number | null>(
     null,
   );
@@ -123,6 +125,7 @@ export function MatchingPriorityList({
     if (!event.isPrimary) return;
 
     event.preventDefault();
+    setSelectedPriorityId(priorityId);
     event.currentTarget.setPointerCapture(event.pointerId);
     const cardElement = cardElementsRef.current.get(priorityId);
     const cardTop = cardElement?.getBoundingClientRect().top;
@@ -168,7 +171,7 @@ export function MatchingPriorityList({
   };
 
   return (
-    <ul className="m-0 mt-4 list-none space-y-2 p-0" role="list">
+    <ul className="m-0 mt-6 list-none space-y-2.5 p-0" role="list">
       {priorities.map((priority) => {
         const isDragging = draggedPriorityId === priority.id;
         const dragOffset =
@@ -186,7 +189,7 @@ export function MatchingPriorityList({
 
         return (
           <li
-            className="relative h-[76px]"
+            className="relative h-[89px]"
             key={priority.id}
             ref={(element) => {
               if (element) {
@@ -198,7 +201,7 @@ export function MatchingPriorityList({
             }}
           >
             <div
-              className={`relative size-full rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-[#F5F5F5] ${
+              className={`relative size-full rounded-[20px] shadow-[1px_1px_20px_rgba(0,0,0,0.04)] ${selectedPriorityId === priority.id ? 'border-[1.5px] border-[#00B894] bg-[#E5F8F3]' : 'border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5]'} ${
                 isDragging
                   ? 'z-10 opacity-95 shadow-[0_8px_20px_rgba(25,31,40,0.18)] transition-none'
                   : flipOffset
@@ -207,16 +210,25 @@ export function MatchingPriorityList({
               }`}
               style={{ transform }}
             >
-              <strong className="absolute top-[13px] left-5 text-[16px] leading-[1.5] font-bold text-[#191F28]">
+              <button
+                type="button"
+                aria-pressed={selectedPriorityId === priority.id}
+                aria-label={`${priority.label} 선택`}
+                onClick={() => setSelectedPriorityId(priority.id)}
+                className="absolute inset-0 w-full rounded-[20px] border-0 bg-transparent"
+              />
+              <strong
+                className={`pointer-events-none absolute top-[19px] left-[23px] text-[17px] leading-[1.5] font-semibold ${selectedPriorityId === priority.id ? 'text-[#009376]' : 'text-[#1D1F20]'}`}
+              >
                 {priority.label}
               </strong>
-              <p className="absolute top-[38px] left-5 text-[13px] leading-[1.5] text-[#8B95A1]">
+              <p className="pointer-events-none absolute top-[47px] left-[23px] text-[13px] leading-[1.5] text-[#909597]">
                 {priority.description}
               </p>
               <button
                 aria-label={`${priority.label} 우선순위 이동`}
                 aria-pressed={isDragging}
-                className="absolute top-[15px] right-4 flex size-11 touch-none cursor-grab items-center justify-center border-0 bg-transparent p-0 active:cursor-grabbing"
+                className="absolute top-1/2 right-3 flex size-11 -translate-y-1/2 touch-none cursor-grab items-center justify-center border-0 bg-transparent p-0 active:cursor-grabbing"
                 type="button"
                 onPointerCancel={handlePointerEnd}
                 onPointerDown={(event) => handlePointerDown(event, priority.id)}
