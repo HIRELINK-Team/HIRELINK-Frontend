@@ -1,5 +1,6 @@
 import backIcon from '../../../assets/icons/student/documents/alien-registration/information-back.svg';
 import completeIllustration from '../../../assets/images/student/documents/alien-registration/residence-verification-complete.png';
+import { AlienRegistrationOnboardingLayout } from './AlienRegistrationOnboardingLayout';
 
 type AlienRegistrationResidenceCompleteProps = {
   onBack: () => void;
@@ -11,7 +12,7 @@ export function AlienRegistrationResidenceComplete({
   onConfirm,
 }: AlienRegistrationResidenceCompleteProps) {
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col overflow-y-auto bg-[#F5F5F5] px-6 pt-[calc(61px+env(safe-area-inset-top))] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <AlienRegistrationOnboardingLayout>
       <button
         aria-label="이전 단계로 이동"
         className="-ml-1 grid size-8 shrink-0 place-items-center border-0 bg-transparent p-0"
@@ -41,6 +42,6 @@ export function AlienRegistrationResidenceComplete({
       >
         확인
       </button>
-    </main>
+    </AlienRegistrationOnboardingLayout>
   );
 }
