@@ -1,16 +1,28 @@
 import { useEffect, useState } from 'react';
 
-import type { RecommendedJob } from '../../../types/studentMatching';
-import type { StudentApplication } from '../../../types/studentApplication';
 import timerActiveIcon from '../../../assets/icons/student/matching/timer-active.svg';
+import type { StudentApplication } from '../../../types/studentApplication';
+import type {
+  RecommendedJob,
+  StudentOfferAction,
+} from '../../../types/studentMatching';
+
+type RecommendationApplication = Pick<
+  StudentApplication,
+  'employerResponseDeadline' | 'status'
+> &
+  Partial<Pick<StudentApplication, 'studentResponseDeadline'>>;
 
 type RecommendedJobCardProps = {
-  application?: Pick<StudentApplication, 'employerResponseDeadline' | 'status'>;
-  isExpanded?: boolean;
+  application?: RecommendationApplication;
+  isOffer?: boolean;
+  isSelected?: boolean;
+  isSubmitting?: boolean;
   job: RecommendedJob;
   onApply?: (job: RecommendedJob) => void;
   onCardClick?: (job: RecommendedJob) => void;
   onDetailClick?: (job: RecommendedJob) => void;
+  onOfferAction?: (action: StudentOfferAction) => void;
   showApplyButton?: boolean;
 };
 
@@ -33,24 +45,24 @@ function formatRemainingTime(deadline: string, currentTime: number | null) {
 function ResponseDeadlineTimer({
   application,
 }: {
-  application?: Pick<StudentApplication, 'employerResponseDeadline' | 'status'>;
+  application?: RecommendationApplication;
 }) {
   const deadline =
     application?.status === 'WAITING_RESPONSE'
       ? application.employerResponseDeadline
-      : null;
+      : application?.status === 'OFFERED'
+        ? application.studentResponseDeadline
+        : null;
   const [currentTime, setCurrentTime] = useState<number | null>(null);
 
   useEffect(() => {
     if (!deadline) return undefined;
 
     const updateCurrentTime = () => setCurrentTime(Date.now());
-    const timeoutId = window.setTimeout(updateCurrentTime, 0);
+    updateCurrentTime();
     const intervalId = window.setInterval(updateCurrentTime, 1_000);
-    return () => {
-      window.clearTimeout(timeoutId);
-      window.clearInterval(intervalId);
-    };
+
+    return () => window.clearInterval(intervalId);
   }, [deadline]);
 
   const label = deadline ? formatRemainingTime(deadline, currentTime) : null;
@@ -63,7 +75,7 @@ function ResponseDeadlineTimer({
         className="block h-[19px] w-[19px] shrink-0"
         src={timerActiveIcon}
       />
-      <span className="block text-[20px] leading-none font-semibold tabular-nums">
+      <span className="text-[20px] leading-[1.5] font-semibold tabular-nums">
         {label}
       </span>
     </div>
@@ -72,82 +84,89 @@ function ResponseDeadlineTimer({
 
 export function RecommendedJobCard({
   application,
-  isExpanded = false,
+  isOffer = false,
+  isSelected = false,
+  isSubmitting = false,
   job,
   onApply,
   onCardClick,
   onDetailClick,
+  onOfferAction,
   showApplyButton = false,
 }: RecommendedJobCardProps) {
-  const applicationStatus = job.applicationStatus ?? application?.status;
-  const applicationStatusLabel =
-    applicationStatus === 'WAITING_RESPONSE'
-      ? '채용 제안 대기'
-      : applicationStatus === 'OFFERED'
-        ? '채용 수락 대기'
-        : null;
-
-  const handleApply = () => {
-    onApply?.(job);
-  };
-
-  const handleCardClick = () => {
-    onCardClick?.(job);
-  };
-
-  const handleDetailClick = () => {
-    onDetailClick?.(job);
-  };
+  const isExpanded = isSelected || isOffer;
 
   return (
     <article
-      className={`relative cursor-pointer overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1] bg-transparent transition-[height] duration-200 ease-out ${
-        isExpanded ? 'h-[206px]' : 'h-[140px]'
-      }`}
-      onClick={handleCardClick}
+      aria-pressed={isSelected}
+      className={`relative w-full overflow-hidden rounded-[20px] bg-white px-6 pt-[21px] pb-4 text-[#1D1F20] shadow-[1px_1px_20px_rgba(0,0,0,0.04)] transition-[height,border-color] duration-150 ${
+        isExpanded ? 'h-[198px]' : 'h-[132px]'
+      } ${
+        isSelected
+          ? 'border-[1.5px] border-[#00B894] px-[22.5px] pt-[19.5px]'
+          : 'border border-transparent'
+      } ${isOffer ? 'cursor-default' : 'cursor-pointer'}`}
+      onClick={() => {
+        if (!isOffer) onCardClick?.(job);
+      }}
     >
-      <h2 className="absolute top-[17px] left-[19px] m-0 max-w-[190px] truncate text-[18px] leading-[1.5] font-semibold text-[#191F28]">
-        {job.companyName}
-      </h2>
-      <p className="absolute top-[47px] left-[19px] max-w-[190px] truncate text-[13px] leading-[1.5] text-[#8B95A1]">
-        {job.role}
-      </p>
-      <p className="absolute top-[70px] left-[19px] max-w-[190px] truncate text-[13px] leading-[1.5] text-[#8B95A1]">
-        {job.commuteAndWage}
-      </p>
-      <p className="absolute top-[93px] left-[19px] max-w-[190px] truncate text-[13px] leading-[1.5] text-[#8B95A1]">
-        {job.matchDescription}
-      </p>
-      <span className="absolute top-[20px] right-[19px] text-[13px] leading-[1.5] font-medium text-[#8B95A1]">
-        {job.matchRate}% 일치
-      </span>
-      <div className="absolute top-[39px] right-[19px] z-10 flex h-[30px] items-center justify-end">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <h2 className="m-0 min-w-0 truncate text-[20px] leading-[1.5] font-semibold tracking-[-0.02em]">
+          {job.companyName}
+        </h2>
         <ResponseDeadlineTimer application={application} />
       </div>
-      <button
-        aria-expanded={isExpanded}
-        className="absolute top-[99px] right-[19px] h-[25px] rounded-[30px] border-0 bg-[#E5E8EB] px-[11px] text-[12px] leading-[1.5] text-[#191F28]"
-        type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          handleDetailClick();
-        }}
-      >
-        상세보기
-      </button>
 
-      {isExpanded && (showApplyButton || applicationStatusLabel) ? (
+      <p className="mt-[1px] mb-0 text-[15px] leading-[1.5] whitespace-nowrap">
+        <span className="font-semibold text-[#009376]">{job.matchRate}% </span>
+        <span className="text-[#909597]">일치</span>
+      </p>
+
+      <div className="mt-[3px] flex min-w-0 items-center justify-between gap-3">
+        <p className="m-0 min-w-0 truncate text-[15px] leading-[1.5] text-[#909597]">
+          {job.matchDescription || '추천 조건을 확인해 보세요.'}
+        </p>
         <button
-          className="absolute right-[19px] bottom-[16px] left-[19px] flex h-[42px] items-center justify-center rounded-[13px] border-0 bg-[#00B894] text-[16px] leading-[1.5] font-medium text-[#F5F5F5] disabled:cursor-default"
-          disabled={applicationStatusLabel !== null}
+          className="h-[27px] shrink-0 rounded-[30px] border-[0.7px] border-[#D3D6D7] bg-white px-[14px] text-[13px] leading-[1.5] text-[#55595B]"
           type="button"
           onClick={(event) => {
             event.stopPropagation();
-            if (applicationStatusLabel) return;
-            handleApply();
+            onDetailClick?.(job);
           }}
         >
-          {applicationStatusLabel ?? '지원하기'}
+          상세보기
+        </button>
+      </div>
+
+      {isOffer ? (
+        <div className="absolute right-[23px] bottom-[19px] left-[23px] grid h-[50px] grid-cols-2 gap-[7px]">
+          <button
+            className="rounded-[15px] border-0 bg-[#B8EBDD] text-[17px] leading-[1.5] font-medium text-[#006E59] disabled:opacity-60"
+            disabled={isSubmitting}
+            type="button"
+            onClick={() => onOfferAction?.('decline')}
+          >
+            거절
+          </button>
+          <button
+            className="rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5] disabled:opacity-60"
+            disabled={isSubmitting}
+            type="button"
+            onClick={() => onOfferAction?.('accept')}
+          >
+            수락
+          </button>
+        </div>
+      ) : isSelected && showApplyButton ? (
+        <button
+          className="absolute right-[22.5px] bottom-[16.5px] left-[22.5px] h-[51px] rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5]"
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onApply?.(job);
+          }}
+        >
+          지원하기
         </button>
       ) : null}
     </article>

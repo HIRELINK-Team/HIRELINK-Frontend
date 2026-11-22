@@ -958,6 +958,9 @@ function StudentMatchingRoute() {
         }
       }}
       onRecommendationRefresh={refreshRecommendations}
+      onResidenceUpdate={() =>
+        navigate('/student/my/documents/alien-registration')
+      }
       onTabChange={(tab) => navigate(STUDENT_TAB_ROUTES[tab])}
       recommendations={recommendations}
       studentProfile={studentProfile}

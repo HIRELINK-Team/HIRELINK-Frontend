@@ -17,7 +17,6 @@ export function ApplicationCompleteStep({
   onHome,
 }: ApplicationCompleteStepProps) {
   const companyName = job.companyName || '근무지 정보';
-  const commuteAndWage = job.commuteAndWage || '근무 조건 정보';
   const matchDescription = job.matchDescription || '지원 정보가 접수되었어요.';
 
   return (
@@ -43,18 +42,24 @@ export function ApplicationCompleteStep({
         지원이 완료되었어요!
       </h1>
 
-      <section className="absolute top-[clamp(387px,56.1dvh,473px)] right-6 left-6 h-[clamp(108px,15.6dvh,132px)] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
+      <section className="absolute top-[clamp(387px,56.1dvh,473px)] right-6 left-6 h-[clamp(108px,15.6dvh,132px)] overflow-hidden rounded-[20px] bg-white shadow-[1px_1px_20px_rgba(0,0,0,0.04)]">
         <h2 className="absolute top-[16px] right-[95px] left-[23px] m-0 truncate text-[17px] leading-[1.5] font-semibold">
           {companyName}
         </h2>
-        <p className="absolute top-[45px] right-[23px] left-[23px] m-0 truncate text-[13px] leading-[1.5] text-[#8B95A1]">
-          {commuteAndWage}
+        <p className="absolute top-[45px] right-[23px] left-[23px] m-0 truncate text-[15px] leading-[1.5]">
+          <span className="font-semibold text-[#009376]">
+            {job.matchRate}%{' '}
+          </span>
+          <span className="text-[#909597]">일치</span>
         </p>
         <p className="absolute top-[68px] right-[23px] left-[23px] m-0 truncate text-[13px] leading-[1.5] text-[#8B95A1]">
           {matchDescription}
         </p>
+        <span className="absolute top-[25px] right-[27px] flex size-[26px] items-center justify-center rounded-full bg-[#E2F8F3] text-[16px] font-semibold text-[#00B894]">
+          ✓
+        </span>
         <button
-          className="absolute top-[16px] right-[23px] h-[22px] rounded-[30px] border-0 bg-[#E5E8EB] px-[11px] text-[11px] leading-[1.5]"
+          className="absolute right-[27px] bottom-[20px] h-[27px] rounded-[30px] border-[0.7px] border-[#D3D6D7] bg-white px-[14px] text-[13px] leading-[1.5] text-[#55595B]"
           type="button"
           onClick={onDetail}
         >
@@ -63,7 +68,7 @@ export function ApplicationCompleteStep({
       </section>
 
       <button
-        className="absolute top-[clamp(517px,75dvh,633px)] right-6 left-6 h-[clamp(49px,6.75dvh,57px)] rounded-[15px] border border-[#191F28] bg-transparent text-[16px] leading-[1.5] font-medium"
+        className="absolute top-[clamp(517px,75dvh,633px)] right-6 left-6 h-[clamp(49px,6.75dvh,57px)] rounded-[15px] border-0 bg-[#B8EBDD] text-[20px] leading-[1.5] font-medium text-[#006E59]"
         type="button"
         onClick={onHome}
       >

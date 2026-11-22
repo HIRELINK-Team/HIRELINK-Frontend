@@ -1,3 +1,7 @@
+import calendarIcon from '../../../assets/icons/student/matching/job-calendar.svg';
+import roleIcon from '../../../assets/icons/student/matching/job-role.svg';
+import timeIcon from '../../../assets/icons/student/matching/job-time.svg';
+import wageIcon from '../../../assets/icons/student/matching/job-wage.svg';
 import detailBackIcon from '../../../assets/icons/student/matching/detail-back.svg';
 import detailMapPinIcon from '../../../assets/icons/student/matching/detail-map-pin.svg';
 import detailMapImage from '../../../assets/images/student/matching/detail-map.png';
@@ -7,57 +11,63 @@ type RecommendedJobDetailProps = {
   job: RecommendedJob;
   onApply?: (job: RecommendedJob) => void;
   onBack?: () => void;
-  onRecommendationDismiss?: (job: RecommendedJob) => void;
 };
+
+function getRoleLabel(role: string) {
+  return role.replace(/^직무\s*\|\s*/, '') || '직무 정보 없음';
+}
+
+function getWorkTimeSummary(job: RecommendedJob) {
+  const values = job.detail.metrics
+    .filter((metric) => metric.label.startsWith('근무'))
+    .map((metric) => metric.value);
+  const days = values.map((value) => value.split(' ')[0]).filter(Boolean);
+  const times = values
+    .map((value) => value.split(' ').slice(1).join(' '))
+    .filter(Boolean);
+
+  return {
+    dayLabel: days.length > 0 ? days.join(' · ') : '근무 요일 정보 없음',
+    timeLabel:
+      times.length > 0 ? [...new Set(times)].join(', ') : '근무 시간 정보 없음',
+  };
+}
+
+function JobInformationRow({ icon, value }: { icon: string; value: string }) {
+  return (
+    <div className="flex min-w-0 items-center gap-[22px]">
+      <span className="flex size-4 shrink-0 items-center justify-center">
+        <img alt="" className="block max-h-4 max-w-4" src={icon} />
+      </span>
+      <span className="min-w-0 truncate text-[15px] leading-[1.5]">
+        {value}
+      </span>
+    </div>
+  );
+}
 
 export function RecommendedJobDetail({
   job,
   onApply,
   onBack,
-  onRecommendationDismiss,
 }: RecommendedJobDetailProps) {
   const applicationStatusLabel =
     job.applicationStatus === 'WAITING_RESPONSE'
       ? '채용 제안 대기'
       : job.applicationStatus === 'OFFERED'
-        ? '채용 수락 대기'
+        ? '채용 제안 확인 중'
         : null;
-  const companyName = job.companyName || '근무지 정보';
-  const comparisonTags = (
-    job.detail.comparisonTags.length > 0
-      ? job.detail.comparisonTags
-      : job.detail.tags
-  ).slice(0, 2);
-  const detailMetrics = job.detail.metrics.slice(0, 4);
-  const detailTags = job.detail.tags.slice(0, 2);
-  const metricGridClassName =
-    detailMetrics.length === 1
-      ? 'grid-cols-1'
-      : detailMetrics.length === 2
-        ? 'grid-cols-2'
-        : detailMetrics.length === 3
-          ? 'grid-cols-3'
-          : 'grid-cols-4';
-  const locationAndDistance =
-    job.detail.locationAndDistance || '위치 정보 없음';
-
-  const handleApply = () => {
-    onApply?.(job);
-  };
-
-  const handleBack = () => {
-    onBack?.();
-  };
-
-  const handleRecommendationDisabledChange = () => {
-    onRecommendationDismiss?.(job);
-  };
+  const wageLabel =
+    job.detail.metrics.find((metric) => metric.label === '급여')?.value ??
+    '급여 정보 없음';
+  const { dayLabel, timeLabel } = getWorkTimeSummary(job);
+  const comparisonTags = job.detail.comparisonTags.slice(0, 2);
 
   return (
-    <section className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
       <div className="absolute top-0 h-[282px] w-full overflow-hidden">
         <img
-          alt=""
+          alt="근무지 주변 지도"
           className="absolute top-0 left-[-88px] h-[874px] w-[557px] max-w-none"
           src={detailMapImage}
         />
@@ -65,99 +75,77 @@ export function RecommendedJobDetail({
 
       <button
         aria-label="추천 목록으로 돌아가기"
-        className="absolute top-9 left-6 z-10 flex h-[44px] w-[42px] items-center justify-center rounded-[33px] border-0 bg-[#F5F5F5] p-0 shadow-[0px_1px_3.25px_rgba(0,0,0,0.25)]"
+        className="absolute top-[45px] left-6 z-10 flex size-[44px] items-center justify-center rounded-full border-0 bg-[#F5F5F5] p-0 shadow-[0_1px_3.25px_rgba(0,0,0,0.25)]"
         type="button"
-        onClick={handleBack}
+        onClick={onBack}
       >
         <img alt="" src={detailBackIcon} />
       </button>
-      <span className="absolute top-[37px] left-[85px] z-10 flex h-[42px] items-center gap-[5px] rounded-[30px] bg-[#F5F5F5] px-[15px] py-2.5 shadow-[0px_1px_3.25px_rgba(0,0,0,0.25)]">
+      <span className="absolute top-[46px] right-6 z-10 flex h-[42px] items-center gap-[5px] rounded-[30px] bg-[#F5F5F5] px-[15px] text-[15px] leading-[1.5] font-medium shadow-[0_1px_3.25px_rgba(0,0,0,0.25)]">
         <img alt="" src={detailMapPinIcon} />
-        <span className="text-[15px] leading-[1.5] font-medium">길찾기</span>
+        지도보기
       </span>
 
-      <section className="absolute top-[282px] right-0 bottom-0 left-0 rounded-t-[30px] bg-[#F5F5F5] shadow-[0px_-3px_35px_rgba(0,0,0,0.15)]">
-        <h1 className="absolute top-[26px] right-6 left-6 m-0 truncate text-[26px] leading-[1.5] font-semibold">
-          {companyName}
+      <section className="absolute top-[282px] right-0 bottom-0 left-0 rounded-t-[30px] bg-[#F5F5F5] px-6 pt-[26px] shadow-[0_-3px_35px_rgba(0,0,0,0.15)]">
+        <h1 className="m-0 truncate text-[26px] leading-[1.5] font-semibold">
+          {job.companyName || '근무지 정보'}
         </h1>
-        <p className="absolute top-[69px] right-6 left-6 m-0 truncate text-[13px] leading-[1.5] text-[#8B95A1]">
-          {locationAndDistance}
+        <p className="mt-[-1px] mb-0 truncate text-[13px] leading-[1.5] text-[#909597]">
+          {job.detail.locationAndDistance || '위치 정보 없음'}
         </p>
 
-        <div className="absolute top-[106px] right-[146px] left-6 flex gap-[2px] overflow-hidden whitespace-nowrap">
-          {detailTags.map((tag) => (
-            <span
-              className="shrink-0 rounded-[30px] bg-[#E5E8EB] px-[13.636px] py-[6.818px] text-[13px] leading-[1.5] font-medium"
-              key={tag}
-            >
-              {tag}
+        <div className="mt-[17px] flex min-w-0 items-center justify-between gap-3">
+          <div className="flex min-w-0 gap-[5px] overflow-hidden">
+            {comparisonTags.map((tag) => (
+              <span
+                className="shrink-0 rounded-[30px] bg-[#E6E8E9] px-[14px] py-[7px] text-[13px] leading-[1.5] font-medium"
+                key={tag}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <p className="m-0 shrink-0 whitespace-nowrap">
+            <span className="text-[26px] leading-[1.5] font-semibold text-[#009376]">
+              {job.detail.matchRate}%
+            </span>{' '}
+            <span className="text-[13px] leading-[1.5] text-[#909597]">
+              적합
             </span>
-          ))}
-        </div>
-        <div className="absolute top-[103px] right-6 flex items-end gap-2">
-          <span className="text-[26px] leading-[1.5] font-semibold text-[#009376]">
-            {job.detail.matchRate}%
-          </span>
-          <span className="mb-1 text-[13px] leading-[1.5] text-[#8B95A1]">
-            적합
-          </span>
-        </div>
-        <div className="absolute top-[163px] right-6 left-6 border-t-[0.7px] border-[#B0B8C1]" />
-
-        <div
-          className={`absolute top-[192px] right-[47px] left-[47px] grid items-start ${metricGridClassName}`}
-        >
-          {detailMetrics.map((metric, index) => (
-            <div
-              className="flex min-w-0 flex-col items-center gap-[7px]"
-              key={`${metric.label}-${index}`}
-            >
-              <span className="flex h-[51px] w-[51px] shrink-0 items-center justify-center truncate rounded-[25.5px] bg-[#E5E8EB] px-1 text-[13px] leading-[1.5] font-medium">
-                {metric.label}
-              </span>
-              <span className="w-full truncate text-center text-[13px] leading-[1.5] font-medium">
-                {metric.value}
-              </span>
-            </div>
-          ))}
+          </p>
         </div>
 
-        <h2 className="absolute top-[298px] left-6 m-0 text-[20px] leading-[1.5] font-semibold">
-          나와의 조건 비교
+        <div className="mt-[19px] border-t-[0.7px] border-[#D3D6D7]" />
+
+        <h2 className="mt-[17px] mb-0 text-[17px] leading-[1.5] font-semibold">
+          가게 정보
         </h2>
-        <div className="absolute top-[339px] right-6 left-6 flex gap-2 overflow-hidden whitespace-nowrap">
-          {comparisonTags.map((tag) => (
-            <span
-              className="shrink-0 rounded-[30px] border-[0.7px] border-[#B0B8C1] px-[13.636px] py-[6.818px] text-[13px] leading-[1.5]"
-              key={tag}
-            >
-              {tag}
-            </span>
-          ))}
+        <div className="mt-[13px] flex flex-col gap-1">
+          <JobInformationRow icon={roleIcon} value={getRoleLabel(job.role)} />
+          <JobInformationRow icon={wageIcon} value={wageLabel} />
+          <JobInformationRow icon={calendarIcon} value={dayLabel} />
+          <JobInformationRow icon={timeIcon} value={timeLabel} />
         </div>
 
-        <label className="absolute top-[409px] left-6 flex cursor-pointer items-center gap-2.5 text-[15px] leading-[1.5]">
-          <input
-            className="peer sr-only"
-            type="checkbox"
-            onChange={handleRecommendationDisabledChange}
-          />
-          <span
-            aria-hidden="true"
-            className="flex size-[21px] shrink-0 items-center justify-center rounded-[5px] border border-[#191F28] bg-transparent text-[13px] text-white peer-checked:border-[#00B894] peer-checked:bg-[#00B894]"
-          ></span>
-          이 일자리는 더 이상 추천받지 않을래요!
-        </label>
+        <h2 className="mt-[18px] mb-0 text-[17px] leading-[1.5] font-semibold">
+          공고
+        </h2>
+        <p className="mt-[9px] mb-0 line-clamp-3 text-[15px] leading-[1.5]">
+          {job.detail.announcement ??
+            '사업주가 등록한 상세 공고 내용이 없습니다.'}
+        </p>
 
-        <button
-          className="absolute right-6 bottom-[37px] left-6 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] disabled:cursor-default"
-          disabled={applicationStatusLabel !== null}
-          type="button"
-          onClick={applicationStatusLabel ? undefined : handleApply}
-        >
-          {applicationStatusLabel ?? '지원하기'}
-        </button>
+        <div className="absolute right-0 bottom-0 left-0 h-[115px] bg-[#F5F5F5] px-6 pt-[21px] shadow-[0_-6px_20px_rgba(0,0,0,0.05)]">
+          <button
+            className="h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] disabled:cursor-default disabled:bg-[#B3B8B9]"
+            disabled={applicationStatusLabel !== null}
+            type="button"
+            onClick={() => onApply?.(job)}
+          >
+            {applicationStatusLabel ?? '지원하기'}
+          </button>
+        </div>
       </section>
-    </section>
+    </main>
   );
 }

@@ -12,7 +12,6 @@ type ApplicationConfirmationStepProps = {
   isSubmitting?: boolean;
   job: RecommendedJob;
   studentProfile?: StudentProfileResponse | null;
-  workStartDate: string;
   onBack: () => void;
   onConfirm: () => void;
 };
@@ -22,10 +21,6 @@ type InformationCardProps = {
   image: string;
   title: string;
 };
-
-function formatWorkStartDate(date: string) {
-  return date.replaceAll('-', '.');
-}
 
 function getAge(birthDate: string, today: Date) {
   const birthDateValue = new Date(`${birthDate}T00:00:00`);
@@ -43,9 +38,30 @@ function getAge(birthDate: string, today: Date) {
   return age;
 }
 
+function getCareerSummary(studentProfile: StudentProfileResponse | null) {
+  const careers = studentProfile?.careers ?? [];
+  const firstCareer = careers[0];
+  if (!firstCareer) return '등록된 경력이 없어요.';
+
+  const [startYear, startMonth] = firstCareer.startMonth.split('-').map(Number);
+  const [endYear, endMonth] = firstCareer.endMonth.split('-').map(Number);
+  const durationMonths =
+    Number.isFinite(startYear) &&
+    Number.isFinite(startMonth) &&
+    Number.isFinite(endYear) &&
+    Number.isFinite(endMonth)
+      ? Math.max(1, (endYear - startYear) * 12 + endMonth - startMonth + 1)
+      : null;
+  const durationLabel = durationMonths ? ` ${durationMonths}개월` : '';
+  const additionalCareerLabel =
+    careers.length > 1 ? ` 외 ${careers.length - 1}건` : '';
+
+  return `${firstCareer.careerName}${durationLabel}${additionalCareerLabel}이에요.`;
+}
+
 function InformationCard({ description, image, title }: InformationCardProps) {
   return (
-    <article className="relative flex h-[clamp(72px,9.8dvh,83px)] items-center rounded-[20px] border border-[#D9D9D9]">
+    <article className="relative flex h-[clamp(72px,9.8dvh,83px)] items-center rounded-[20px] border-[0.7px] border-[#B3B8B9]">
       <img
         alt=""
         className="ml-[23px] h-[clamp(44px,6.2dvh,52px)] w-[clamp(45px,6.3dvh,53px)] shrink-0 object-cover"
@@ -66,7 +82,6 @@ export function ApplicationConfirmationStep({
   isSubmitting = false,
   job,
   studentProfile = null,
-  workStartDate,
   onBack,
   onConfirm,
 }: ApplicationConfirmationStepProps) {
@@ -108,7 +123,7 @@ export function ApplicationConfirmationStep({
           {profileSummary || '프로필 정보를 불러오지 못했어요.'}
         </p>
         <p className="absolute top-[79px] left-[23px] m-0 text-left text-[15px] leading-[1.5] text-[#8B95A1]">
-          {job.companyName} | {formatWorkStartDate(workStartDate)}부터
+          {job.companyName}
         </p>
       </section>
 
@@ -123,12 +138,12 @@ export function ApplicationConfirmationStep({
             title="기본 프로필"
           />
           <InformationCard
-            description="카페 8개월 외 1건이에요."
+            description={getCareerSummary(studentProfile)}
             image={experienceImage}
             title="경력"
           />
           <InformationCard
-            description="시간, 급여, 직종 내용이에요."
+            description="시간, 급여, 직종 정보예요."
             image={checklistImage}
             title="구직조건"
           />

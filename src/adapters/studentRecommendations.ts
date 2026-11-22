@@ -31,6 +31,7 @@ export function mapStudentRecommendationToRecommendedJob(
     commuteAndWage: `${recommendation.workplaceAddress} · ${wageLabel}`,
     companyName: recommendation.workplaceName,
     detail: {
+      announcement: null,
       comparisonTags: recommendation.recommendationReasons,
       locationAndDistance: recommendation.workplaceAddress,
       matchRate: recommendation.matchScore,
