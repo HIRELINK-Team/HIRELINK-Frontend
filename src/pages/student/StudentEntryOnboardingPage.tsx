@@ -1,111 +1,208 @@
 import { useState } from 'react';
 
-import googleIcon from '../../assets/images/student/entry/google.png';
-import kakaoIcon from '../../assets/images/student/entry/kakao.png';
-import socialLoginIllustration from '../../assets/images/student/entry/social-login-illustration.png';
-import socialLoginSymbol from '../../assets/images/student/entry/social-login-symbol.png';
-import socialLoginWordmark from '../../assets/images/student/entry/social-login-wordmark.png';
+import backIcon from '../../assets/icons/student/terms-privacy-back.svg';
+import socialLoginIllustration from '../../assets/images/student/entry/figma-social-background.png';
+import googleIcon from '../../assets/images/student/entry/figma-social-google.png';
+import kakaoIcon from '../../assets/images/student/entry/figma-social-kakao.png';
+import socialLoginSymbol from '../../assets/images/student/entry/figma-social-symbol.png';
+import socialLoginWordmark from '../../assets/images/student/entry/figma-social-wordmark.png';
+import hirelinkLogoMint from '../../assets/images/student/entry/hirelink-logo-mint.svg';
+import hirelinkWordmark from '../../assets/images/student/entry/hirelink-wordmark.svg';
 import { EmployerEntryNotice } from '../../components/student/onboarding/EmployerEntryNotice';
+
+type EntryStep = 'start' | 'language' | 'socialLogin';
+type Language = 'en' | 'ko';
 
 type StudentEntryOnboardingPageProps = {
   onEmailLogin?: () => void;
   onStart?: () => void;
 };
 
-/** Renders pre-profile student entry choices. */
+const COPY = {
+  en: {
+    email: 'Continue with email',
+    employer: 'Are you an employer?',
+    google: 'Continue with Google',
+    kakao: 'Continue with Kakao',
+    language: 'Language',
+  },
+  ko: {
+    email: '이메일 로그인·회원가입',
+    employer: '사장님이신가요?',
+    google: '구글로 계속하기',
+    kakao: '카카오로 계속하기',
+    language: '언어 선택',
+  },
+} as const;
+
+/** Renders the Student onboarding entry, language selection, and social login flow. */
 export default function StudentEntryOnboardingPage({
   onEmailLogin,
   onStart,
 }: StudentEntryOnboardingPageProps) {
+  const [entryStep, setEntryStep] = useState<EntryStep>('start');
+  const [language, setLanguage] = useState<Language>('ko');
   const [isEmployerNoticeOpen, setIsEmployerNoticeOpen] = useState(false);
 
+  const copy = COPY[language];
+
   const handleStart = () => {
-    onStart?.();
+    setEntryStep('language');
   };
 
-  const handleEmailLogin = () => {
-    onEmailLogin?.();
+  const handleLanguageSelect = (nextLanguage: Language) => {
+    setLanguage(nextLanguage);
+    setEntryStep('socialLogin');
   };
 
-  const handleEmployerNoticeOpen = () => {
-    setIsEmployerNoticeOpen(true);
-  };
+  if (entryStep === 'start') {
+    return (
+      <main
+        className="mx-auto flex h-dvh w-full max-w-[430px] items-center justify-center overflow-hidden bg-[#F5F5F5] px-6 pb-[7.5dvh] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif]"
+        onClick={handleStart}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleStart();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+      >
+        <button
+          aria-label="온보딩 시작"
+          className="border-0 bg-transparent p-4"
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleStart();
+          }}
+        >
+          <img
+            alt="HIRELINK"
+            className="h-6 w-[183px] max-w-full filter-[brightness(0)_saturate(100%)_invert(48%)_sepia(86%)_saturate(576%)_hue-rotate(120deg)_brightness(93%)_contrast(101%)]"
+            src={hirelinkWordmark}
+          />
+        </button>
+      </main>
+    );
+  }
 
-  const handleEmployerNoticeClose = () => {
-    setIsEmployerNoticeOpen(false);
-  };
+  if (entryStep === 'language') {
+    return (
+      <main className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-[#F5F5F5] px-6 pt-[max(3.75rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
+        <button
+          aria-label="이전 화면으로"
+          className="absolute top-[calc(max(3.75rem,env(safe-area-inset-top))+0.5rem)] left-[18px] z-10 grid size-8 place-items-center border-0 bg-transparent p-0"
+          type="button"
+          onClick={() => setEntryStep('start')}
+        >
+          <img alt="" className="h-4 w-2" src={backIcon} />
+        </button>
+        <div className="mt-[clamp(4.25rem,15.2dvh,8rem)] flex items-center justify-center gap-[7px]">
+          <img alt="" className="h-[31px] w-[33px]" src={hirelinkLogoMint} />
+          <img
+            alt="HIRELINK"
+            className="h-auto w-[158px] filter-[brightness(0)_saturate(100%)_invert(48%)_sepia(86%)_saturate(576%)_hue-rotate(120deg)_brightness(93%)_contrast(101%)]"
+            src={hirelinkWordmark}
+          />
+        </div>
+        <section className="mt-auto mb-[clamp(3.5rem,28.8dvh,15.2rem)]">
+          <h1 className="m-0 text-[16px] leading-6 font-medium">
+            {copy.language}
+          </h1>
+          <div className="mt-[11px] grid gap-5">
+            <button
+              className="h-16 rounded-[15px] bg-[#B8EBDD] text-[20px] leading-[30px] font-medium text-[#1D1F20]"
+              type="button"
+              onClick={() => handleLanguageSelect('en')}
+            >
+              ENGLISH
+            </button>
+            <button
+              className="h-16 rounded-[15px] bg-[#B8EBDD] text-[20px] leading-[30px] font-medium text-[#1D1F20]"
+              type="button"
+              onClick={() => handleLanguageSelect('ko')}
+            >
+              한국어
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
-    <main className="relative mx-auto h-[844px] w-[390px] max-w-none overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
+    <main className="relative mx-auto flex h-dvh w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <img
         alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full max-w-none object-bottom"
+        className="pointer-events-none absolute inset-0 h-full w-full max-w-none"
         src={socialLoginIllustration}
       />
 
       <img
-        alt="HIRELINK"
-        className="pointer-events-none absolute top-[165px] left-[92px] z-10 h-[42px] w-[42px]"
+        alt=""
+        className="pointer-events-none absolute top-[clamp(110px,19.55dvh,165px)] left-[calc(50%-103px)] z-10 size-[42px]"
         src={socialLoginSymbol}
       />
       <img
-        alt=""
-        className="pointer-events-none absolute top-[159px] left-[134px] z-10 h-[55px] w-[163px]"
+        alt="HIRELINK"
+        className="pointer-events-none absolute top-[clamp(104px,18.84dvh,159px)] left-[calc(50%-61px)] z-10 h-[55px] w-[163px]"
         src={socialLoginWordmark}
       />
 
-      <section className="absolute top-[546px] left-0 z-10 h-[298px] w-[390px] rounded-t-[30px] bg-[#F5F5F5] shadow-[0_-6px_20px_rgba(0,0,0,0.05)]">
+      <section className="absolute right-0 bottom-0 left-0 z-10 h-[298px] overflow-hidden rounded-t-[30px] bg-[#F5F5F5] px-6 pt-6 shadow-[0_-6px_20px_rgba(0,0,0,0.05)]">
         <button
-          className="absolute top-6 left-1/2 -translate-x-1/2 border-0 bg-transparent p-0 text-[15px] leading-normal underline"
+          className="mx-auto block border-0 bg-transparent p-0 text-[15px] leading-normal underline"
           type="button"
-          onClick={handleEmployerNoticeOpen}
+          onClick={() => setIsEmployerNoticeOpen(true)}
         >
-          사장님이신가요?
+          {copy.employer}
         </button>
 
-        <div className="absolute top-16 right-6 left-6 space-y-[14px]">
+        <div className="mt-5 grid gap-[14px]">
           <button
-            className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
+            className="relative h-[57px] overflow-hidden rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
             type="button"
-            onClick={handleStart}
+            onClick={onStart}
           >
-            <img
-              alt=""
-              className="absolute top-[19.3px] left-[calc(50%-68.7px)] size-[19px]"
-              src={googleIcon}
-            />
-            <span className="absolute top-[15.3px] left-[calc(50%+14.8px)] -translate-x-1/2 whitespace-nowrap">
-              구글로 계속하기
+            <span className="absolute top-[15.3px] left-[54.33%] -translate-x-1/2 whitespace-nowrap">
+              {copy.google}
+            </span>
+            <span className="pointer-events-none absolute top-[19.3px] left-[29.91%] size-[19px] overflow-hidden">
+              <img
+                alt=""
+                className="absolute -top-[25.12%] -left-[25.11%] size-[150.23%] max-w-none"
+                src={googleIcon}
+              />
             </span>
           </button>
           <button
-            className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
+            className="relative h-[57px] overflow-hidden rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
             type="button"
-            onClick={handleStart}
+            onClick={onStart}
           >
+            <span className="absolute top-[15.3px] left-[54.91%] -translate-x-1/2 whitespace-nowrap">
+              {copy.kakao}
+            </span>
             <img
               alt=""
-              className="absolute top-[18.3px] left-[calc(50%-77.7px)] size-[21px]"
+              className="pointer-events-none absolute top-[18.3px] left-[27.28%] size-[21px]"
               src={kakaoIcon}
             />
-            <span className="absolute top-[15.3px] left-[calc(50%+16.8px)] -translate-x-1/2 whitespace-nowrap">
-              카카오로 계속하기
-            </span>
           </button>
           <button
-            className="relative h-[57px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
+            className="h-[57px] rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
             type="button"
-            onClick={handleEmailLogin}
+            onClick={onEmailLogin}
           >
-            <span className="absolute top-[15.3px] left-[calc(50%-0.7px)] -translate-x-1/2 whitespace-nowrap">
-              이메일 로그인·회원가입
-            </span>
+            {copy.email}
           </button>
         </div>
       </section>
 
       {isEmployerNoticeOpen ? (
-        <EmployerEntryNotice onClose={handleEmployerNoticeClose} />
+        <EmployerEntryNotice onClose={() => setIsEmployerNoticeOpen(false)} />
       ) : null}
     </main>
   );

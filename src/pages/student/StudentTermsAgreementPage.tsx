@@ -1010,143 +1010,158 @@ export default function StudentTermsAgreementPage({
     const detail = DETAIL_CONTENT[detailId];
 
     return (
-      <main className="relative mx-auto h-[844px] w-[390px] max-w-none overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
+      <main className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
         <button
           aria-label="이전 화면으로"
-          className="absolute top-[61px] left-[18px] z-10 grid size-8 place-items-center border-0 bg-transparent p-0"
+          className="absolute top-[calc(61px+env(safe-area-inset-top))] left-[18px] z-10 grid size-8 place-items-center border-0 bg-transparent p-0"
           type="button"
           onClick={handleDetailBack}
         >
           <img alt="" className="h-4 w-2" src={backIcon} />
         </button>
 
-        <h1 className="absolute top-[106px] left-6 m-0 w-[342px] text-[26px] leading-[1.5] font-semibold">
-          {detail.title}
-        </h1>
+        <div className="flex min-h-0 flex-1 flex-col px-6 pt-[calc(112px+env(safe-area-inset-top))]">
+          <h1 className="m-0 shrink-0 text-[26px] leading-[1.5] font-semibold">
+            {detail.title}
+          </h1>
 
-        <section
-          className="absolute left-6 w-[342px] overflow-y-auto pr-1 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          style={{
-            height: detail.contentHeight,
-            top: detail.contentTop,
-          }}
-        >
-          <div className="flex flex-col gap-4">
-            {detail.sections.map((section, index) => (
-              <section className={index > 0 ? 'pt-4' : ''} key={section.title}>
-                <h2
-                  className={`m-0 leading-[1.5] ${
-                    index === 0
-                      ? 'text-[20px] font-semibold'
-                      : 'text-[17px] font-medium'
-                  }`}
+          <section
+            className={`min-h-0 flex-1 overflow-y-auto pr-1 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+              detailId === 'marketing' ? 'mt-5' : 'mt-6'
+            }`}
+          >
+            <div className="flex flex-col gap-4">
+              {detail.sections.map((section, index) => (
+                <section
+                  className={index > 0 ? 'pt-4' : ''}
+                  key={section.title}
                 >
-                  {section.title}
-                </h2>
-                {section.body.length > 0 ? (
-                  <div className="text-[15px] leading-[1.5] text-[#55595B]">
-                    <TermSectionBody body={section.body} />
-                  </div>
-                ) : null}
-              </section>
-            ))}
-          </div>
-        </section>
+                  <h2
+                    className={`m-0 leading-[1.5] ${
+                      index === 0
+                        ? 'text-[20px] font-semibold'
+                        : 'text-[17px] font-medium'
+                    }`}
+                  >
+                    {section.title}
+                  </h2>
+                  {section.body.length > 0 ? (
+                    <div className="text-[15px] leading-[1.5] text-[#55595B]">
+                      <TermSectionBody body={section.body} />
+                    </div>
+                  ) : null}
+                </section>
+              ))}
+            </div>
+          </section>
+        </div>
 
-        <button
-          className="absolute top-[750px] left-6 h-[57px] w-[342px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-white"
-          type="button"
-          onClick={handleDetailBack}
-        >
-          확인
-        </button>
+        <footer className="shrink-0 px-6 pt-3 pb-[max(2.25rem,env(safe-area-inset-bottom))]">
+          <button
+            className="h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-white"
+            type="button"
+            onClick={handleDetailBack}
+          >
+            확인
+          </button>
+        </footer>
       </main>
     );
   }
 
   return (
-    <main className="relative mx-auto h-[844px] w-[390px] max-w-none overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
+    <main className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
       <button
         aria-label="이전 화면으로"
-        className="absolute top-[61px] left-[18px] z-10 grid size-8 place-items-center border-0 bg-transparent p-0"
+        className="absolute top-[calc(61px+env(safe-area-inset-top))] left-[18px] z-10 grid size-8 place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
       >
         <img alt="" className="h-4 w-2" src={backIcon} />
       </button>
 
-      <h1 className="absolute top-[106px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
-        서비스 이용을 위해
-        <br />
-        약관에 동의해주세요.
-      </h1>
+      <div className="shrink-0 px-6 pt-[calc(110px+env(safe-area-inset-top))]">
+        <h1 className="m-0 text-[26px] leading-[1.5] font-semibold">
+          서비스 이용을 위해
+          <br />
+          약관에 동의해주세요.
+        </h1>
 
-      <button
-        className="absolute top-[250px] left-6 flex h-[59px] w-[342px] items-center gap-3 rounded-[15px] bg-white px-5 py-[18px] text-left shadow-[1px_1px_20px_rgba(0,0,0,0.04)]"
-        type="button"
-        onClick={handleToggleAll}
-      >
-        <Checkbox checked={isAllAgreed} />
-        <span className="text-[15px] leading-[1.5] font-semibold">
-          전체 동의하기
-        </span>
-      </button>
+        <div className="mt-[clamp(2.75rem,7.35dvh,3.875rem)]">
+          <button
+            className="flex h-[59px] w-full items-center gap-3 rounded-[15px] bg-white px-5 py-[18px] text-left shadow-[1px_1px_20px_rgba(0,0,0,0.04)]"
+            type="button"
+            onClick={handleToggleAll}
+          >
+            <Checkbox checked={isAllAgreed} />
+            <span className="text-[15px] leading-[1.5] font-semibold">
+              전체 동의하기
+            </span>
+          </button>
 
-      <section className="absolute top-[321px] left-6 w-[342px] rounded-[15px] bg-white p-5 shadow-[1px_1px_20px_rgba(0,0,0,0.04)]">
-        <div className="flex flex-col gap-5">
-          {AGREEMENT_ROWS.map((row) => (
-            <div className="flex h-[23px] items-center gap-3" key={row.id}>
+          <section className="mt-3 rounded-[15px] bg-white p-5 shadow-[1px_1px_20px_rgba(0,0,0,0.04)]">
+            <div className="flex flex-col gap-5">
+              {AGREEMENT_ROWS.map((row) => (
+                <div className="flex h-[23px] items-center gap-3" key={row.id}>
+                  <button
+                    aria-label={row.label}
+                    className="flex size-5 shrink-0 items-center justify-center border-0 bg-transparent p-0"
+                    type="button"
+                    onClick={() => handleToggleAgreement(row.id)}
+                  >
+                    <Checkbox checked={agreements[row.id]} />
+                  </button>
+                  <button
+                    className="flex min-w-0 flex-1 items-center justify-between border-0 bg-transparent p-0 text-left"
+                    type="button"
+                    onClick={() => setDetailId(row.id)}
+                  >
+                    <span className="truncate text-[15px] leading-[1.5]">
+                      {row.label}
+                    </span>
+                    <img
+                      alt=""
+                      className="size-[18px] rotate-180 brightness-0"
+                      src={chevronIcon}
+                    />
+                  </button>
+                </div>
+              ))}
+              <div className="h-px w-full bg-[#F3F4F4]" />
               <button
-                aria-label={row.label}
-                className="flex size-5 shrink-0 items-center justify-center border-0 bg-transparent p-0"
+                className="flex h-5 w-full items-center justify-between border-0 bg-transparent p-0 text-left"
                 type="button"
-                onClick={() => handleToggleAgreement(row.id)}
+                onClick={() => setDetailId('privacyPolicy')}
               >
-                <Checkbox checked={agreements[row.id]} />
-              </button>
-              <button
-                className="flex min-w-0 flex-1 items-center justify-between border-0 bg-transparent p-0 text-left"
-                type="button"
-                onClick={() => setDetailId(row.id)}
-              >
-                <span className="truncate text-[15px] leading-[1.5]">
-                  {row.label}
+                <span className="text-[13px] leading-[1.5] text-[#707577]">
+                  개인정보 처리방침
                 </span>
                 <img
                   alt=""
-                  className="size-[18px] rotate-180 brightness-0"
+                  className="size-[18px] rotate-180"
                   src={chevronIcon}
                 />
               </button>
             </div>
-          ))}
-          <div className="h-px w-full bg-[#F3F4F4]" />
-          <button
-            className="flex h-5 w-full items-center justify-between border-0 bg-transparent p-0 text-left"
-            type="button"
-            onClick={() => setDetailId('privacyPolicy')}
-          >
-            <span className="text-[13px] leading-[1.5] text-[#707577]">
-              개인정보 처리방침
-            </span>
-            <img alt="" className="size-[18px] rotate-180" src={chevronIcon} />
-          </button>
+          </section>
         </div>
-      </section>
+      </div>
 
-      <button
-        className={`absolute top-[750px] left-6 h-[57px] w-[342px] rounded-[15px] border-0 text-[20px] leading-[1.5] font-medium text-[#F5F5F5] ${
-          isRequiredAgreed && !isSubmitting ? 'bg-[#00B894]' : 'bg-[#B3B8B9]'
-        }`}
-        disabled={!isRequiredAgreed || isSubmitting}
-        type="button"
-        onClick={handleContinue}
-      >
-        {isSubmitting ? '저장 중...' : '동의하고 계속하기'}
-      </button>
+      <footer className="mt-auto shrink-0 px-6 pt-3 pb-[max(2.25rem,env(safe-area-inset-bottom))]">
+        <button
+          className={`h-[57px] w-full rounded-[15px] border-0 text-[20px] leading-[1.5] font-medium text-[#F5F5F5] ${
+            isRequiredAgreed && !isSubmitting ? 'bg-[#00B894]' : 'bg-[#B3B8B9]'
+          }`}
+          disabled={!isRequiredAgreed || isSubmitting}
+          type="button"
+          onClick={handleContinue}
+        >
+          {isSubmitting ? '저장 중...' : '동의하고 계속하기'}
+        </button>
+      </footer>
       {errorMessage ? (
         <p
-          className="absolute top-[812px] left-6 m-0 w-[342px] text-center text-[13px] leading-[1.5] text-[#E05260]"
+          className="absolute right-6 bottom-3 left-6 m-0 text-center text-[13px] leading-[1.5] text-[#E05260]"
           role="alert"
         >
           {errorMessage}
