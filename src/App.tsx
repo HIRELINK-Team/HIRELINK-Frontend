@@ -86,7 +86,6 @@ import StudentProfileManagementPage, {
   type ProfileDetailView,
   type StudentProfileValues,
 } from './pages/student/StudentProfileManagementPage';
-import StudentSplashPage from './pages/student/StudentSplashPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
 import StudentTermsAgreementPage from './pages/student/StudentTermsAgreementPage';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
@@ -116,7 +115,6 @@ import type {
 import type { WorkAvailability } from './types/workAvailability';
 import type { WorkLocation } from './types/workLocation';
 
-const SPLASH_DURATION_MS = 1800;
 const STUDENT_DOCUMENT_GUIDE_SESSION_STORAGE_KEY =
   'hirelink.student.documents.guideAcknowledged';
 const STUDENT_DOCUMENT_COMPLETION_SESSION_STORAGE_KEY =
@@ -505,17 +503,7 @@ function StudentSessionBootstrap() {
 }
 
 function StudentSplashRoute() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      navigate('/student/entry', { replace: true });
-    }, SPLASH_DURATION_MS);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [navigate]);
-
-  return <StudentSplashPage />;
+  return <Navigate replace to="/student/entry" />;
 }
 
 function StudentEntryRoute() {
@@ -524,7 +512,11 @@ function StudentEntryRoute() {
   return (
     <StudentEntryOnboardingPage
       onEmailLogin={() => navigate('/student/login')}
-      onStart={() => navigate('/student/onboarding')}
+      onStart={() =>
+        navigate('/student/onboarding/terms', {
+          state: { fromStudentEntry: true },
+        })
+      }
     />
   );
 }
@@ -588,10 +580,19 @@ function StudentSignupRoute() {
 
 function StudentTermsAgreementRoute() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const cameFromStudentEntry =
+    typeof location.state === 'object' &&
+    location.state !== null &&
+    'fromStudentEntry' in location.state &&
+    location.state.fromStudentEntry === true;
 
   return (
     <StudentTermsAgreementPage
-      onBack={() => navigate('/student/signup')}
+      onBack={() =>
+        navigate(cameFromStudentEntry ? '/student/entry' : '/student/signup')
+      }
       onContinue={async (agreements) => {
         if (!IS_DEMO_MODE) {
           await updateMyTermAgreements({
