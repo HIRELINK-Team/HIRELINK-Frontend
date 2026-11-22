@@ -2,7 +2,7 @@ import { AlienRegistrationCamera } from '../documents/AlienRegistrationCamera';
 
 type AlienRegistrationBackCameraProps = {
   onBack: () => void;
-  onCapture: () => void;
+  onCapture: (image: File) => void;
 };
 
 export function AlienRegistrationBackCamera({
