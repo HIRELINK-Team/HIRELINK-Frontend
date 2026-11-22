@@ -15,7 +15,7 @@ export function AlienRegistrationBUploadComplete({
     <AlienRegistrationOnboardingLayout>
       <button
         aria-label="이전 단계로 이동"
-        className="-ml-1 grid size-8 shrink-0 place-items-center border-0 bg-transparent p-0"
+        className="flex h-6 w-6 shrink-0 items-center justify-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
       >
@@ -24,7 +24,7 @@ export function AlienRegistrationBUploadComplete({
 
       <div className="mt-[9px] shrink-0">
         <strong className="block text-[17px] leading-[1.5] font-semibold text-[#00B894]">
-          1/6
+          1/5
         </strong>
         <span className="block text-[15px] leading-[1.5] text-[#909597]">
           정보 확인
@@ -39,7 +39,7 @@ export function AlienRegistrationBUploadComplete({
         ))}
       </div>
 
-      <section className="mt-[4.6dvh] shrink-0 text-center">
+      <section className="mt-[4.6dvh] min-h-0 shrink text-center">
         <h1 className="text-left text-[26px] leading-[1.5] font-semibold">
           최신 만료일이 담긴
           <br />
@@ -49,11 +49,13 @@ export function AlienRegistrationBUploadComplete({
           정보가 다르면 다시 촬영해주세요.
         </p>
 
-        <img
-          alt="PDF 업로드 완료"
-          className="mx-auto mt-[62px] block aspect-[178/214] w-full max-w-[178px] drop-shadow-[1px_1px_28px_rgba(0,184,148,0.45)]"
-          src={uploadCompleteIllustration}
-        />
+        <div className="relative mx-auto mt-[min(62px,7.35dvh)] aspect-[178/214] w-[min(178px,21.1dvh)]">
+          <img
+            alt="PDF 업로드 완료"
+            className="absolute top-[-22.38%] left-[-26.91%] h-[145.7%] w-[154.94%] max-w-none"
+            src={uploadCompleteIllustration}
+          />
+        </div>
         <p className="mt-4 text-[15px] leading-[1.5] text-[#8B95A1]">
           클릭해서 하이코리아 또는
           <br />
@@ -62,7 +64,7 @@ export function AlienRegistrationBUploadComplete({
       </section>
 
       <button
-        className="mt-auto min-h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] px-3 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className="mt-auto min-h-[57px] w-full shrink-0 rounded-[15px] border-0 bg-[#00B894] px-3 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
         onClick={onConfirm}
       >

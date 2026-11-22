@@ -158,7 +158,7 @@ const STEP_ORDER: BasicInfoStep[] = [
 const BASIC_INFO_PROGRESS: Record<BasicInfoStep, number> = {
   phone: 2,
   verification: 2,
-  birthYear: 3,
+  birthYear: 2,
   location: 4,
   koreanLevel: 5,
 };
@@ -1883,14 +1883,15 @@ export default function StudentOnboardingPage({
       onCtaClick={() => void handleNext()}
       onEnter={() => void handleNext()}
       stageLabel="기본정보 입력"
-      totalStages={isPhoneVerificationStep ? 6 : 5}
-      totalSubSteps={isPhoneVerificationStep ? 3 : BASIC_INFO_TOTAL_SUB_STEPS}
+      totalStages={5}
+      totalSubSteps={BASIC_INFO_TOTAL_SUB_STEPS}
     >
       {isPhoneVerificationStep ? (
         <OnboardingField
           errorMessage={phoneError}
           inputMode="tel"
           label="전화번호"
+          spacing="first"
           placeholder="010-1234-5678"
           value={info.phone}
           onChange={(event) => handlePhoneChange(event.target.value)}
@@ -1901,7 +1902,8 @@ export default function StudentOnboardingPage({
         <OnboardingField
           errorMessage={verificationError}
           inputMode="numeric"
-          label="인증번호"
+          label="인증번호:"
+          spacing="next"
           maxLength={6}
           placeholder="인증번호 6자리"
           trailing={
@@ -1910,7 +1912,7 @@ export default function StudentOnboardingPage({
                 {remainingTime}
               </span>
               <button
-                className="h-[34px] rounded-[44px] border-[0.7px] border-[#D3D6D7] bg-transparent px-2.5 text-[13px] leading-[1.5] text-[#55595B]"
+                className="h-[34px] w-[69px] rounded-[44px] border-[0.7px] border-[#D3D6D7] bg-transparent text-[13px] leading-[1.5] text-[#55595B]"
                 type="button"
                 disabled={isPhoneVerificationPending}
                 onClick={() => {
