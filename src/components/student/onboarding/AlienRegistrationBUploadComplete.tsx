@@ -1,5 +1,6 @@
 import backIcon from '../../../assets/icons/student/documents/alien-registration/information-back.svg';
 import uploadCompleteIllustration from '../../../assets/images/student/documents/alien-registration/pdf-upload-complete.svg';
+import { AlienRegistrationOnboardingLayout } from './AlienRegistrationOnboardingLayout';
 
 type AlienRegistrationBUploadCompleteProps = {
   onBack: () => void;
@@ -11,7 +12,7 @@ export function AlienRegistrationBUploadComplete({
   onConfirm,
 }: AlienRegistrationBUploadCompleteProps) {
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col overflow-y-auto bg-[#F5F5F5] px-6 pt-[calc(61px+env(safe-area-inset-top))] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <AlienRegistrationOnboardingLayout>
       <button
         aria-label="이전 단계로 이동"
         className="-ml-1 grid size-8 shrink-0 place-items-center border-0 bg-transparent p-0"
@@ -21,17 +22,24 @@ export function AlienRegistrationBUploadComplete({
         <img alt="" className="h-4 w-2" src={backIcon} />
       </button>
 
-      <div className="mt-9">
-        <strong className="block text-[17px] leading-[1.5] font-semibold text-[#00B894]">1/6</strong>
-        <span className="block text-[15px] leading-[1.5] text-[#909597]">정보 확인</span>
+      <div className="mt-[9px] shrink-0">
+        <strong className="block text-[17px] leading-[1.5] font-semibold text-[#00B894]">
+          1/6
+        </strong>
+        <span className="block text-[15px] leading-[1.5] text-[#909597]">
+          정보 확인
+        </span>
       </div>
-      <div aria-hidden="true" className="mt-[11px] grid grid-cols-2 gap-[5px]">
+      <div
+        aria-hidden="true"
+        className="mt-[11px] grid shrink-0 grid-cols-2 gap-[5px]"
+      >
         {Array.from({ length: 2 }, (_, index) => (
           <span className="h-0.5 bg-[#00B894]" key={index} />
         ))}
       </div>
 
-      <section className="mt-[39px] text-center">
+      <section className="mt-[4.6dvh] shrink-0 text-center">
         <h1 className="text-left text-[26px] leading-[1.5] font-semibold">
           최신 만료일이 담긴
           <br />
@@ -60,6 +68,6 @@ export function AlienRegistrationBUploadComplete({
       >
         확인
       </button>
-    </main>
+    </AlienRegistrationOnboardingLayout>
   );
 }

@@ -47,10 +47,6 @@ import { AlienRegistrationBUpload } from '../../components/student/onboarding/Al
 import { AlienRegistrationBUploadComplete } from '../../components/student/onboarding/AlienRegistrationBUploadComplete';
 import { AlienRegistrationFrontComplete } from '../../components/student/onboarding/AlienRegistrationFrontComplete';
 import { AlienRegistrationFrontInfo } from '../../components/student/onboarding/AlienRegistrationFrontInfo';
-import {
-  AlienRegistrationResidencePeriod,
-  type ResidencePeriodMethod,
-} from '../../components/student/onboarding/AlienRegistrationResidencePeriod';
 import { AlienRegistrationValidationModal } from '../../components/student/onboarding/AlienRegistrationValidationModal';
 import { AlienRegistrationResidenceComplete } from '../../components/student/onboarding/AlienRegistrationResidenceComplete';
 import { IndustryChip } from '../../components/student/onboarding/IndustryChip';
@@ -94,12 +90,7 @@ import type {
 } from '../../types/workLocation';
 
 type BasicInfoStep =
-  | 'name'
-  | 'phone'
-  | 'verification'
-  | 'birthYear'
-  | 'location'
-  | 'koreanLevel';
+  'name' | 'phone' | 'verification' | 'birthYear' | 'location' | 'koreanLevel';
 
 type BasicInfoView = BasicInfoStep | 'ageRestricted';
 
@@ -108,15 +99,15 @@ type AlienRegistrationStep =
   | 'alienRegistrationCamera'
   | 'alienRegistrationFrontInfo'
   | 'alienRegistrationFrontComplete'
-  | 'alienRegistrationResidencePeriod'
   | 'alienRegistrationA'
   | 'alienRegistrationBackCamera'
   | 'alienRegistrationBackInfo'
+  | 'alienRegistrationBackCameraRetake'
+  | 'alienRegistrationBackInfoRetake'
   | 'alienRegistrationBackInfoExpired'
   | 'alienRegistrationBackInfoInvalid'
   | 'alienRegistrationBUpload'
   | 'alienRegistrationBUploadComplete'
-  | 'alienRegistrationBBackInfo'
   | 'alienRegistrationResidenceComplete';
 
 export type OnboardingView =
@@ -198,12 +189,31 @@ const INITIAL_ALIEN_REGISTRATION_VALUES: AlienRegistrationFormValues = {
   expiryDate: '2027.09.23',
 };
 
-const INITIAL_ALIEN_REGISTRATION_BACK_VALUES: AlienRegistrationBackInfoValues = {
-  permissionDate: '2022.05.25',
-  expirationDate: '2023.05.11',
-  reportDate: '2021.04.23',
-  serialNumber: '인식된 일련번호',
-};
+const INITIAL_ALIEN_REGISTRATION_BACK_VALUES: AlienRegistrationBackInfoValues =
+  {
+    permissionDate: '2022.05.25',
+    expirationDate: '2023.05.11',
+    reportDate: '2021.04.23',
+    serialNumber: '인식된 일련번호',
+  };
+
+type AlienRegistrationValidationResult = 'expired' | 'invalid' | 'valid';
+
+function getAlienRegistrationValidationResult(
+  values: AlienRegistrationBackInfoValues,
+): AlienRegistrationValidationResult {
+  if (Object.values(values).some((value) => !value.trim())) {
+    return 'invalid';
+  }
+
+  const expirationDate = new Date(values.expirationDate.replaceAll('.', '-'));
+
+  if (Number.isNaN(expirationDate.getTime())) {
+    return 'invalid';
+  }
+
+  return expirationDate < new Date() ? 'expired' : 'valid';
+}
 
 const EMPTY_EXPERIENCE_DRAFT: ExperienceDraft = {
   workplace: '',
@@ -542,13 +552,22 @@ export default function StudentOnboardingPage({
     setInfo((currentInfo) => ({ ...currentInfo, [key]: value }));
   };
 
-  const handleResidencePeriodConfirm = (method: ResidencePeriodMethod) => {
-    if (method === 'cardBack') {
-      setStep('alienRegistrationA');
+  const handleBackInfoConfirm = () => {
+    const validationResult = getAlienRegistrationValidationResult(
+      alienRegistrationBackValues,
+    );
+
+    if (validationResult === 'invalid') {
+      setStep('alienRegistrationBackInfoInvalid');
       return;
     }
 
-    setStep('alienRegistrationBUpload');
+    if (validationResult === 'expired') {
+      setStep('alienRegistrationBackInfoExpired');
+      return;
+    }
+
+    setStep('alienRegistrationFrontComplete');
   };
 
   const updateExperienceDraft = <Key extends keyof ExperienceDraft>(
@@ -996,7 +1015,7 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationFrontInfo
         onBack={() => setStep('alienRegistrationCamera')}
-        onConfirm={() => setStep('alienRegistrationFrontComplete')}
+        onConfirm={() => setStep('alienRegistrationA')}
         onRetry={() => setStep('alienRegistrationCamera')}
         values={alienRegistrationValues}
       />
@@ -1006,17 +1025,8 @@ export default function StudentOnboardingPage({
   if (step === 'alienRegistrationFrontComplete') {
     return (
       <AlienRegistrationFrontComplete
-        onBack={() => setStep('alienRegistrationFrontInfo')}
-        onConfirm={() => setStep('alienRegistrationResidencePeriod')}
-      />
-    );
-  }
-
-  if (step === 'alienRegistrationResidencePeriod') {
-    return (
-      <AlienRegistrationResidencePeriod
-        onBack={() => setStep('alienRegistrationFrontComplete')}
-        onConfirm={handleResidencePeriodConfirm}
+        onBack={() => setStep('alienRegistrationBackInfo')}
+        onConfirm={() => setStep('phone')}
       />
     );
   }
@@ -1024,7 +1034,7 @@ export default function StudentOnboardingPage({
   if (step === 'alienRegistrationA') {
     return (
       <AlienRegistrationBackGuide
-        onBack={() => setStep('alienRegistrationResidencePeriod')}
+        onBack={() => setStep('alienRegistrationFrontInfo')}
         onConfirm={() => setStep('alienRegistrationBackCamera')}
       />
     );
@@ -1039,12 +1049,32 @@ export default function StudentOnboardingPage({
     );
   }
 
+  if (step === 'alienRegistrationBackCameraRetake') {
+    return (
+      <AlienRegistrationBackCamera
+        onBack={() => setStep('alienRegistrationBackInfoExpired')}
+        onCapture={() => setStep('alienRegistrationBackInfoRetake')}
+      />
+    );
+  }
+
   if (step === 'alienRegistrationBackInfo') {
     return (
       <AlienRegistrationBackInfo
         onBack={() => setStep('alienRegistrationBackCamera')}
-        onConfirm={() => setStep('alienRegistrationResidenceComplete')}
+        onConfirm={handleBackInfoConfirm}
         onRetry={() => setStep('alienRegistrationBackCamera')}
+        values={alienRegistrationBackValues}
+      />
+    );
+  }
+
+  if (step === 'alienRegistrationBackInfoRetake') {
+    return (
+      <AlienRegistrationBackInfo
+        onBack={() => setStep('alienRegistrationBackCameraRetake')}
+        onConfirm={() => setStep('alienRegistrationResidenceComplete')}
+        onRetry={() => setStep('alienRegistrationBackCameraRetake')}
         values={alienRegistrationBackValues}
       />
     );
@@ -1069,7 +1099,13 @@ export default function StudentOnboardingPage({
             isExpired ? () => setStep('alienRegistrationBUpload') : undefined
           }
           type={isExpired ? 'expired' : 'invalid'}
-          onRetry={() => setStep('alienRegistrationBackCamera')}
+          onRetry={() =>
+            setStep(
+              isExpired
+                ? 'alienRegistrationBackCameraRetake'
+                : 'alienRegistrationBackCamera',
+            )
+          }
         />
       </>
     );
@@ -1078,7 +1114,7 @@ export default function StudentOnboardingPage({
   if (step === 'alienRegistrationBUpload') {
     return (
       <AlienRegistrationBUpload
-        onBack={() => setStep('alienRegistrationResidencePeriod')}
+        onBack={() => setStep('alienRegistrationBackInfoExpired')}
         onUpload={() => setStep('alienRegistrationBUploadComplete')}
       />
     );
@@ -1088,18 +1124,7 @@ export default function StudentOnboardingPage({
     return (
       <AlienRegistrationBUploadComplete
         onBack={() => setStep('alienRegistrationBUpload')}
-        onConfirm={() => setStep('alienRegistrationBBackInfo')}
-      />
-    );
-  }
-
-  if (step === 'alienRegistrationBBackInfo') {
-    return (
-      <AlienRegistrationBackInfo
-        onBack={() => setStep('alienRegistrationBUploadComplete')}
         onConfirm={() => setStep('alienRegistrationResidenceComplete')}
-        onRetry={() => setStep('alienRegistrationBUpload')}
-        values={alienRegistrationBackValues}
       />
     );
   }
@@ -1107,8 +1132,8 @@ export default function StudentOnboardingPage({
   if (step === 'alienRegistrationResidenceComplete') {
     return (
       <AlienRegistrationResidenceComplete
-        onBack={() => setStep('alienRegistrationBBackInfo')}
-        onConfirm={() => setStep('birthYear')}
+        onBack={() => setStep('alienRegistrationBUploadComplete')}
+        onConfirm={() => setStep('phone')}
       />
     );
   }
@@ -1213,7 +1238,10 @@ export default function StudentOnboardingPage({
       >
         <div className="mt-[27px] space-y-[5px]">
           {INDUSTRY_ROWS.map((industryRow) => (
-            <div className="flex flex-wrap items-center gap-2" key={industryRow[0].id}>
+            <div
+              className="flex flex-wrap items-center gap-2"
+              key={industryRow[0].id}
+            >
               {industryRow.map((industry) => (
                 <IndustryChip
                   isSelected={selectedIndustries.includes(industry.id)}
@@ -1792,9 +1820,7 @@ export default function StudentOnboardingPage({
 
   if (isLocationTermsOpen) {
     return (
-      <LocationServiceTermsPage
-        onBack={() => setIsLocationTermsOpen(false)}
-      />
+      <LocationServiceTermsPage onBack={() => setIsLocationTermsOpen(false)} />
     );
   }
 
@@ -1989,7 +2015,10 @@ export default function StudentOnboardingPage({
           </button>
           {isLocationConsentOpen ? (
             <>
-              <div aria-hidden="true" className="absolute inset-0 z-20 bg-black/50" />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 z-20 bg-black/50"
+              />
               <section
                 aria-label="위치기반 서비스 이용약관 동의"
                 className="absolute bottom-0 left-0 z-30 min-h-[368px] w-[390px] rounded-t-[20px] bg-[#F5F5F5] px-6 pt-7"
@@ -2012,7 +2041,9 @@ export default function StudentOnboardingPage({
                         : 'border-[rgba(112,115,124,0.32)] bg-white'
                     }`}
                     type="button"
-                    onClick={() => setIsLocationServiceAgreed((current) => !current)}
+                    onClick={() =>
+                      setIsLocationServiceAgreed((current) => !current)
+                    }
                   >
                     {isLocationServiceAgreed ? '✓' : ''}
                   </button>
