@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+
 type OnboardingBottomSheetOption<T extends string> = {
   label: string;
   value: T;
@@ -10,6 +12,7 @@ type OnboardingBottomSheetProps<T extends string> = {
   options: OnboardingBottomSheetOption<T>[];
   selectedValue: T;
   title: string;
+  variant?: 'default' | 'residence';
 };
 
 export function OnboardingBottomSheet<T extends string>({
@@ -19,7 +22,22 @@ export function OnboardingBottomSheet<T extends string>({
   options,
   selectedValue,
   title,
+  variant = 'default',
 }: OnboardingBottomSheetProps<T>) {
+  const listRef = useRef<HTMLDivElement>(null);
+  const isResidence = variant === 'residence';
+
+  useEffect(() => {
+    if (!isResidence || !listRef.current) return;
+    const selectedIndex = options.findIndex(
+      (option) => option.value === selectedValue,
+    );
+    listRef.current.scrollTo({
+      top: Math.max(0, selectedIndex * 35),
+      behavior: 'smooth',
+    });
+  }, [isResidence, options, selectedValue]);
+
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-black/50">
       <button
@@ -30,10 +48,17 @@ export function OnboardingBottomSheet<T extends string>({
       />
       <section
         aria-label={title}
-        className="h-[407px] rounded-t-[20px] bg-[#F5F5F5] px-6 pt-[34px]"
+        className={`rounded-t-[20px] bg-[#F5F5F5] px-6 ${isResidence ? 'h-[364px] pt-[26px]' : 'h-[407px] pt-[34px]'}`}
       >
         <h2 className="m-0 text-[20px] leading-[1.5] font-semibold">{title}</h2>
-        <div className="mt-[18px] max-h-[205px] space-y-0.5 overflow-y-auto px-0.5 py-1">
+        <div
+          ref={listRef}
+          className={
+            isResidence
+              ? 'mt-[12px] h-[175px] space-y-0.5 overflow-y-auto py-[70px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+              : 'mt-[18px] max-h-[205px] space-y-0.5 overflow-y-auto px-0.5 py-1'
+          }
+        >
           {options.map((option) => {
             const isSelected = option.value === selectedValue;
 
@@ -42,7 +67,7 @@ export function OnboardingBottomSheet<T extends string>({
                 aria-pressed={isSelected}
                 className={`flex h-[33px] w-full items-center justify-center rounded-[5px] text-[20px] leading-[1.5] ${
                   isSelected
-                    ? 'bg-[#E5E8EB] font-medium text-[#191F28]'
+                    ? 'bg-[#E6E8E9] font-medium text-[#191F28]'
                     : 'font-normal text-[#8B95A1]'
                 }`}
                 key={option.value}
@@ -55,7 +80,7 @@ export function OnboardingBottomSheet<T extends string>({
           })}
         </div>
         <button
-          className="mt-[26px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]"
+          className={`${isResidence ? 'mt-[27px]' : 'mt-[26px]'} h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376]`}
           type="button"
           onClick={onConfirm}
         >

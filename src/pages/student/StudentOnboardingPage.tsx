@@ -1186,7 +1186,7 @@ export default function StudentOnboardingPage({
         question={'이전에 해본 아르바이트나\n근무경험을 알려주세요.'}
         showProgress={false}
         responsive
-        totalStages={6}
+        totalStages={5}
         stageLabel="경력 입력"
         totalSubSteps={1}
         onBack={() => setStep('koreanLevel')}
@@ -1423,7 +1423,7 @@ export default function StudentOnboardingPage({
 
     return (
       <OnboardingScaffold
-        activeSubStep={1}
+        activeSubStep={3}
         ctaLabel="확인"
         currentStage={2}
         question={'현재 체류자격이\n무엇인가요?'}
@@ -1435,7 +1435,7 @@ export default function StudentOnboardingPage({
       >
         <button
           aria-haspopup="dialog"
-          className="mt-[27px] flex h-[68px] w-full items-center border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
+          className="mt-[35px] flex h-[83px] w-full items-center border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
           type="button"
           onClick={() => {
             setResidenceQualificationDraft(
@@ -1445,8 +1445,8 @@ export default function StudentOnboardingPage({
           }}
         >
           <span>
-            <span className="block text-[15px] leading-[1.2]">체류자격</span>
-            <span className="mt-1 block text-[26px] leading-[1.2] font-semibold">
+            <span className="block text-[17px] leading-[1.5]">체류자격</span>
+            <span className="mt-[7px] block text-[26px] leading-[1.5] font-semibold">
               {residenceQualificationLabel}
             </span>
           </span>
@@ -1456,16 +1456,19 @@ export default function StudentOnboardingPage({
           >
             <img
               alt=""
-              className="h-[17px] w-[8.5px] -rotate-90"
+              className={`h-[17px] w-[8.5px] ${isResidenceQualificationSheetOpen ? 'rotate-90' : '-rotate-90'}`}
               src={academicStatusChevronIcon}
             />
           </span>
         </button>
         {isResidenceQualificationSheetOpen ? (
           <OnboardingBottomSheet
-            options={RESIDENCE_QUALIFICATION_OPTIONS}
+            options={RESIDENCE_QUALIFICATION_OPTIONS.filter((option) =>
+              ['D2_1', 'D2_2', 'D2_3', 'D2_4', 'D2_6'].includes(option.value),
+            )}
             selectedValue={residenceQualificationDraft}
             title="체류자격 선택"
+            variant="residence"
             onClose={() => setIsResidenceQualificationSheetOpen(false)}
             onConfirm={handleResidenceQualificationConfirm}
             onSelect={setResidenceQualificationDraft}
@@ -1865,7 +1868,7 @@ export default function StudentOnboardingPage({
     <OnboardingScaffold
       activeSubStep={isPhoneVerificationStep ? 1 : BASIC_INFO_PROGRESS[step]}
       ctaLabel={ctaLabel}
-      currentStage={isPhoneVerificationStep || step === 'birthYear' ? 2 : 1}
+      currentStage={2}
       isCtaDisabled={isCtaDisabled}
       isPageScrollable={step === 'location' || step === 'koreanLevel'}
       question={isPhoneVerificationStep ? questions.phone : questions[step]}
@@ -2006,7 +2009,7 @@ export default function StudentOnboardingPage({
             </span>
           </label>
           <button
-            className="mx-auto mt-[15px] flex h-[54px] w-[340px] items-center gap-4 rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-[23px] text-left text-[17px] leading-[1.5] text-[#1D1F20]"
+            className="mx-auto mt-[15px] flex h-[54px] w-full items-center gap-4 rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-[23px] text-left text-[17px] leading-[1.5] text-[#1D1F20]"
             type="button"
             onClick={() => setIsLocationConsentOpen(true)}
           >
@@ -2021,7 +2024,7 @@ export default function StudentOnboardingPage({
               />
               <section
                 aria-label="위치기반 서비스 이용약관 동의"
-                className="absolute bottom-0 left-0 z-30 min-h-[368px] w-[390px] rounded-t-[20px] bg-[#F5F5F5] px-6 pt-7"
+                className="absolute bottom-0 left-0 z-30 w-full rounded-t-[20px] bg-[#F5F5F5] px-6 pt-7 pb-[max(31px,env(safe-area-inset-bottom))]"
               >
                 <h2 className="m-0 text-[20px] leading-[1.5] font-semibold text-[#1D1F20]">
                   위치기반 서비스 이용약관 동의

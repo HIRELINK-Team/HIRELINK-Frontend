@@ -72,7 +72,7 @@ export function LocationServiceTermsPage({
   onBack,
 }: LocationServiceTermsPageProps) {
   return (
-    <main className="relative mx-auto h-[min(844px,100dvh)] w-[390px] max-w-none overflow-hidden bg-[#F5F5F5] px-6 pt-[65px] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
+    <main className="relative mx-auto h-dvh w-full max-w-[430px] overflow-hidden bg-[#F5F5F5] px-6 pt-[65px] pb-[calc(37px+env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
       <button
         aria-label="이전 화면으로 이동"
         className="absolute top-[65px] left-5 flex size-6 items-center justify-center border-0 bg-transparent p-0"
@@ -97,7 +97,10 @@ export function LocationServiceTermsPage({
               {section.title}
             </h2>
             {section.paragraphs.map((paragraph) => (
-              <p className="mt-2 mb-0 text-[15px] leading-[1.5] text-[#55595B]" key={paragraph}>
+              <p
+                className="mt-2 mb-0 text-[15px] leading-[1.5] text-[#55595B]"
+                key={paragraph}
+              >
                 {paragraph}
               </p>
             ))}
@@ -112,7 +115,10 @@ export function LocationServiceTermsPage({
             ) : null}
             {'trailing' in section
               ? section.trailing.map((paragraph) => (
-                  <p className="mt-2 mb-0 text-[15px] leading-[1.5] text-[#55595B]" key={paragraph}>
+                  <p
+                    className="mt-2 mb-0 text-[15px] leading-[1.5] text-[#55595B]"
+                    key={paragraph}
+                  >
                     {paragraph}
                   </p>
                 ))
