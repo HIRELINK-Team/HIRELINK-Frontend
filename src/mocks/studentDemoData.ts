@@ -67,7 +67,6 @@ let demoProfile: StudentProfileResponse = {
 
 let demoMatchingPreferences: StudentMatchingPreferencesResponse = {
   businessTypeFlexible: false,
-  minimumHourlyWage: 12_000,
   preferredJobs: [
     {
       businessTypeId: 1,
@@ -88,8 +87,8 @@ let demoMatchingPreferences: StudentMatchingPreferencesResponse = {
   ],
   priorities: [
     { criterionId: 1, criterionName: 'WORK_TIME', priorityOrder: 1 },
-    { criterionId: 2, criterionName: 'DISTANCE', priorityOrder: 2 },
-    { criterionId: 3, criterionName: 'WAGE', priorityOrder: 3 },
+    { criterionId: 2, criterionName: 'WAGE', priorityOrder: 2 },
+    { criterionId: 3, criterionName: 'DISTANCE', priorityOrder: 3 },
     { criterionId: 4, criterionName: 'BUSINESS_TYPE', priorityOrder: 4 },
   ],
 };
@@ -292,49 +291,44 @@ export async function getDemoStudentMatchingPreferences() {
 export async function updateDemoStudentMatchingPreferences(
   request: StudentMatchingPreferencesUpdateRequest,
 ) {
-  if ('preferredJobs' in request) {
-    const businessTypeNames: Record<number, string> = {
-      1: 'FOOD_CAFE',
-      2: 'RETAIL',
-      3: 'OFFICE_AND_TOURISM',
-      4: 'INTERPRETATION',
-      5: 'DUTY_FREE',
-      6: 'ACADEMIC',
-      7: 'INTERNSHIP',
-      8: 'OTHER',
-    };
-    demoMatchingPreferences = {
-      ...demoMatchingPreferences,
-      businessTypeFlexible: request.businessTypeFlexible,
-      preferredJobs: request.preferredJobs.map((job) => ({
-        ...job,
+  const businessTypeNames: Record<number, string> = {
+    1: 'FOOD_CAFE',
+    2: 'RETAIL',
+    3: 'OFFICE_AND_TOURISM',
+    4: 'INTERPRETATION',
+    5: 'DUTY_FREE',
+    6: 'ACADEMIC',
+    7: 'INTERNSHIP',
+    8: 'OTHER',
+  };
+  const criterionNames = {
+    1: 'WORK_TIME',
+    2: 'WAGE',
+    3: 'DISTANCE',
+    4: 'BUSINESS_TYPE',
+  } as const;
+  demoMatchingPreferences = {
+    ...demoMatchingPreferences,
+    businessTypeFlexible:
+      request.businessTypeFlexible ??
+      demoMatchingPreferences.businessTypeFlexible,
+    preferredJobs:
+      request.preferredJobs?.map((job) => ({
+        businessTypeId: job.businessTypeId,
+        otherJobName: job.otherJobName ?? null,
         businessTypeName: businessTypeNames[job.businessTypeId] ?? 'OTHER',
-      })),
-    };
-  } else {
-    demoMatchingPreferences = {
-      ...demoMatchingPreferences,
-      minimumHourlyWage:
-        'minimumHourlyWage' in request
-          ? (request.minimumHourlyWage ?? null)
-          : demoMatchingPreferences.minimumHourlyWage,
-      preferredLocation:
-        request.preferredLocation ?? demoMatchingPreferences.preferredLocation,
-      preferredWorkTimes:
-        request.preferredWorkTimes ??
-        demoMatchingPreferences.preferredWorkTimes,
-      priorities:
-        request.priorities?.map((priority) => {
-          const currentPriority = demoMatchingPreferences.priorities.find(
-            (item) => item.criterionId === priority.criterionId,
-          );
-          return {
-            ...priority,
-            criterionName: currentPriority?.criterionName ?? 'WORK_TIME',
-          };
-        }) ?? demoMatchingPreferences.priorities,
-    };
-  }
+      })) ?? demoMatchingPreferences.preferredJobs,
+    preferredLocation:
+      request.preferredLocation ?? demoMatchingPreferences.preferredLocation,
+    preferredWorkTimes:
+      request.preferredWorkTimes ?? demoMatchingPreferences.preferredWorkTimes,
+    priorities:
+      request.priorities?.map((priority) => ({
+        ...priority,
+        criterionName:
+          criterionNames[priority.criterionId as keyof typeof criterionNames],
+      })) ?? demoMatchingPreferences.priorities,
+  };
   return structuredClone(demoMatchingPreferences);
 }
 

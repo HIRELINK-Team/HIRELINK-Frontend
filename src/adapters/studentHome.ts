@@ -84,10 +84,7 @@ export function mapStudentHomeSummary({
       },
       {
         label: '급여',
-        value:
-          matchingPreferences.minimumHourlyWage === null
-            ? '미입력'
-            : `시급 ${matchingPreferences.minimumHourlyWage.toLocaleString('ko-KR')}원 이상`,
+        value: '미입력',
       },
       { label: '직종', value: summarizeJobs(matchingPreferences) },
     ],

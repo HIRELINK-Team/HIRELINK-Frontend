@@ -15,7 +15,6 @@ import type { WorkLocation } from '../types/workLocation';
 
 export type StudentMatchingPreferencesUiState = {
   businessTypeFlexible: boolean;
-  minimumHourlyWage: number | null;
   otherIndustry: string;
   priorityOrder: MatchingPriorityId[];
   selectedIndustries: IndustryId[];
@@ -73,24 +72,6 @@ const WEEKDAY_TO_BACKEND = {
   wed: 'WED',
 } as const satisfies Record<Weekday, StudentPreferredWorkTime['dayOfWeek']>;
 
-const WORK_TIME_MODE_START_MINUTES: Record<WorkTimeMode, number> = {
-  daytime: 9 * 60,
-  nighttime: 22 * 60,
-};
-
-// Temporary coordinates used for student matching-location saves during the demo.
-const STUDENT_DEMO_LOCATION_LATITUDE = 37.4979;
-const STUDENT_DEMO_LOCATION_LONGITUDE = 127.0276;
-
-type SlotRange = {
-  endSlot: number;
-  startSlot: number;
-};
-
-type DaySlotRange = SlotRange & {
-  day: Weekday;
-};
-
 const WEEKDAYS: readonly Weekday[] = [
   'mon',
   'tue',
@@ -100,71 +81,22 @@ const WEEKDAYS: readonly Weekday[] = [
   'sat',
   'sun',
 ];
+const SLOTS_PER_DAY = 48;
+const SLOTS_PER_WEEK = 7 * SLOTS_PER_DAY;
 
-function getSlotRanges(slots: readonly number[]): SlotRange[] {
-  const sortedSlots = [...new Set(slots)].sort(
-    (first, second) => first - second,
-  );
-  const ranges: SlotRange[] = [];
-  let startSlot: number | null = null;
-  let previousSlot: number | null = null;
-
-  sortedSlots.forEach((slot) => {
-    if (
-      startSlot === null ||
-      previousSlot === null ||
-      slot !== previousSlot + 1
-    ) {
-      if (startSlot !== null && previousSlot !== null) {
-        ranges.push({ endSlot: previousSlot, startSlot });
-      }
-      startSlot = slot;
-    }
-    previousSlot = slot;
-  });
-
-  if (startSlot !== null && previousSlot !== null) {
-    ranges.push({ endSlot: previousSlot, startSlot });
-  }
-
-  return ranges;
-}
-
-function formatBackendTime(minutes: number) {
-  const normalizedMinutes = minutes % (24 * 60);
-  const hours = Math.floor(normalizedMinutes / 60);
-  const minute = normalizedMinutes % 60;
-
-  return `${String(hours).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-}
-
-function getNextWeekday(day: Weekday): Weekday {
-  const dayIndex = WEEKDAYS.indexOf(day);
-  return WEEKDAYS[(dayIndex + 1) % WEEKDAYS.length] ?? day;
-}
-
-function splitNighttimeRange(day: Weekday, range: SlotRange): DaySlotRange[] {
-  const midnightSlot = 4;
-
-  if (range.startSlot < midnightSlot && range.endSlot >= midnightSlot) {
-    return [
-      { day, endSlot: midnightSlot - 1, startSlot: range.startSlot },
-      {
-        day: getNextWeekday(day),
-        endSlot: range.endSlot,
-        startSlot: midnightSlot,
-      },
-    ];
-  }
-
-  return [{ ...range, day }];
+function formatBackendTime(slot: number) {
+  const minutes = (slot % SLOTS_PER_DAY) * 30;
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 }
 
 export function mapIndustrySelectionToUpdateRequest(
   selectedIndustries: readonly IndustryId[],
   otherIndustry: string,
   businessTypeFlexible: boolean,
-): StudentMatchingPreferencesUpdateRequest | null {
+): {
+  businessTypeFlexible: boolean;
+  preferredJobs: import('../types/studentMatchingPreferences').StudentPreferredJobUpdate[];
+} | null {
   if (businessTypeFlexible) {
     return { businessTypeFlexible: true, preferredJobs: [] };
   }
@@ -212,30 +144,36 @@ export function mapIndustrySelectionToUpdateRequest(
 export function mapWorkAvailabilityToUpdateRequest(
   workAvailability: WorkAvailability,
 ): StudentMatchingPreferencesUpdateRequest {
-  const preferredWorkTimes = (
-    Object.keys(workAvailability) as WorkTimeMode[]
-  ).flatMap((mode) =>
-    (Object.keys(workAvailability[mode]) as Weekday[]).flatMap((day) =>
-      getSlotRanges(workAvailability[mode][day])
-        .flatMap((range) =>
-          mode === 'nighttime'
-            ? splitNighttimeRange(day, range)
-            : [{ ...range, day }],
-        )
-        .map(({ day: rangeDay, ...range }) => {
-          const startMinutes =
-            WORK_TIME_MODE_START_MINUTES[mode] + range.startSlot * 30;
-          const endMinutes =
-            WORK_TIME_MODE_START_MINUTES[mode] + (range.endSlot + 1) * 30;
-
-          return {
-            dayOfWeek: WEEKDAY_TO_BACKEND[rangeDay],
-            endTime: formatBackendTime(endMinutes),
-            startTime: formatBackendTime(startMinutes),
-          };
-        }),
-    ),
-  );
+  const selected = Array<boolean>(SLOTS_PER_WEEK).fill(false);
+  for (const mode of ['daytime', 'nighttime'] as WorkTimeMode[]) {
+    WEEKDAYS.forEach((day, dayIndex) => {
+      for (const slot of workAvailability[mode][day]) {
+        const start = mode === 'daytime' ? 18 : 44;
+        selected[(dayIndex * SLOTS_PER_DAY + start + slot) % SLOTS_PER_WEEK] =
+          true;
+      }
+    });
+  }
+  const preferredWorkTimes: StudentPreferredWorkTime[] = [];
+  for (let start = 0; start < SLOTS_PER_WEEK; start += 1) {
+    if (
+      !selected[start] ||
+      selected[(start + SLOTS_PER_WEEK - 1) % SLOTS_PER_WEEK]
+    )
+      continue;
+    let length = 0;
+    while (
+      length < SLOTS_PER_WEEK &&
+      selected[(start + length) % SLOTS_PER_WEEK]
+    )
+      length += 1;
+    preferredWorkTimes.push({
+      dayOfWeek:
+        WEEKDAY_TO_BACKEND[WEEKDAYS[Math.floor(start / SLOTS_PER_DAY)]],
+      startTime: formatBackendTime(start),
+      endTime: formatBackendTime(start + length),
+    });
+  }
 
   return { preferredWorkTimes };
 }
@@ -245,13 +183,18 @@ export function mapWorkLocationToUpdateRequest(
 ): StudentMatchingPreferencesUpdateRequest | null {
   const locationName = workLocation.address.trim();
 
-  if (!locationName) return null;
+  if (
+    !locationName ||
+    workLocation.latitude === undefined ||
+    workLocation.longitude === undefined
+  )
+    return null;
 
   return {
     preferredLocation: {
-      latitude: STUDENT_DEMO_LOCATION_LATITUDE,
+      latitude: workLocation.latitude,
       locationName,
-      longitude: STUDENT_DEMO_LOCATION_LONGITUDE,
+      longitude: workLocation.longitude,
       radiusM: workLocation.radius,
     },
   };
@@ -259,7 +202,9 @@ export function mapWorkLocationToUpdateRequest(
 
 export function mapPriorityOrderToUpdateRequest(
   priorityOrder: readonly MatchingPriorityId[],
-): StudentMatchingPreferencesUpdateRequest | null {
+): {
+  priorities: import('../types/studentMatchingPreferences').StudentMatchingPriorityUpdate[];
+} | null {
   if (priorityOrder.length !== 4 || new Set(priorityOrder).size !== 4) {
     return null;
   }
@@ -307,68 +252,58 @@ function parseTime(time: string) {
   return hours * 60 + minutes;
 }
 
-function getWorkTimeSlots(workTime: StudentPreferredWorkTime): {
-  day: Weekday;
-  mode: WorkTimeMode;
-  slots: number[];
-} | null {
-  const day = workTime.dayOfWeek.toLowerCase() as Weekday;
-  const startMinutes = parseTime(workTime.startTime);
-  const endMinutes = parseTime(workTime.endTime);
-  const isDaytimeRange =
-    startMinutes >= 9 * 60 &&
-    endMinutes > startMinutes &&
-    endMinutes <= 23 * 60;
-  const mode: WorkTimeMode = isDaytimeRange ? 'daytime' : 'nighttime';
-  const rangeStart = isDaytimeRange
-    ? startMinutes
-    : startMinutes < 6 * 60
-      ? startMinutes + 24 * 60
-      : startMinutes;
-  const rangeEnd = isDaytimeRange
-    ? endMinutes
-    : endMinutes <= 6 * 60
-      ? endMinutes + 24 * 60
-      : endMinutes;
-  const modeStart = mode === 'daytime' ? 9 * 60 : 22 * 60;
-  const modeEnd = mode === 'daytime' ? 23 * 60 : 30 * 60;
-
-  if (
-    rangeStart < modeStart ||
-    rangeEnd > modeEnd ||
-    rangeEnd <= rangeStart ||
-    (rangeStart - modeStart) % 30 !== 0 ||
-    (rangeEnd - modeStart) % 30 !== 0
-  ) {
-    return null;
-  }
-
-  const startSlot = (rangeStart - modeStart) / 30;
-  const slotCount = (rangeEnd - rangeStart) / 30;
-
-  return {
-    day,
-    mode,
-    slots: Array.from({ length: slotCount }, (_, index) => startSlot + index),
-  };
+export function hasUnrepresentableWorkTimes(times: StudentPreferredWorkTime[]) {
+  return times.some(({ startTime, endTime }) => {
+    const start = parseTime(startTime);
+    const end = parseTime(endTime);
+    const duration = (end - start + 1440) % 1440;
+    for (let offset = 0; offset < duration; offset += 30) {
+      const minute = (start + offset) % 1440;
+      if (minute >= 6 * 60 && minute < 9 * 60) return true;
+    }
+    return false;
+  });
 }
 
 function mapWorkAvailability(preferredWorkTimes: StudentPreferredWorkTime[]) {
   const workAvailability = createEmptyWorkAvailability();
-
-  preferredWorkTimes.forEach((workTime) => {
-    const mappedRange = getWorkTimeSlots(workTime);
-
-    if (!mappedRange) return;
-
-    workAvailability[mappedRange.mode][mappedRange.day] = [
-      ...new Set([
-        ...workAvailability[mappedRange.mode][mappedRange.day],
-        ...mappedRange.slots,
-      ]),
-    ].sort((first, second) => first - second);
+  preferredWorkTimes.forEach(({ dayOfWeek, startTime, endTime }) => {
+    const startDay = WEEKDAYS.indexOf(dayOfWeek.toLowerCase() as Weekday);
+    const start = parseTime(startTime);
+    const end = parseTime(endTime);
+    if (
+      startDay < 0 ||
+      !Number.isFinite(start) ||
+      !Number.isFinite(end) ||
+      start % 30 ||
+      end % 30 ||
+      start === end
+    )
+      return;
+    const duration = (end - start + 1440) % 1440;
+    for (let offset = 0; offset < duration; offset += 30) {
+      const absoluteMinutes = startDay * 1440 + start + offset;
+      const dayIndex = Math.floor(absoluteMinutes / 1440) % 7;
+      const minute = absoluteMinutes % 1440;
+      const day = WEEKDAYS[dayIndex];
+      if (minute >= 9 * 60 && minute < 23 * 60) {
+        workAvailability.daytime[day].push((minute - 9 * 60) / 30);
+      }
+      if (minute >= 22 * 60) {
+        workAvailability.nighttime[day].push((minute - 22 * 60) / 30);
+      } else if (minute < 6 * 60) {
+        const previousDay = WEEKDAYS[(dayIndex + 6) % 7];
+        workAvailability.nighttime[previousDay].push((minute + 2 * 60) / 30);
+      }
+    }
   });
-
+  for (const mode of ['daytime', 'nighttime'] as WorkTimeMode[]) {
+    for (const day of WEEKDAYS) {
+      workAvailability[mode][day] = [
+        ...new Set(workAvailability[mode][day]),
+      ].sort((a, b) => a - b);
+    }
+  }
   return workAvailability;
 }
 
@@ -393,7 +328,6 @@ export function mapStudentMatchingPreferencesToUiState(
 
   return {
     businessTypeFlexible: preferences.businessTypeFlexible,
-    minimumHourlyWage: preferences.minimumHourlyWage,
     otherIndustry,
     priorityOrder: [...preferences.priorities]
       .sort((first, second) => first.priorityOrder - second.priorityOrder)

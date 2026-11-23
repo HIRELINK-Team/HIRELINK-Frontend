@@ -24,6 +24,7 @@ import {
 } from './api/student';
 import { getApiErrorResponse } from './api/errors';
 import {
+  hasUnrepresentableWorkTimes,
   mapIndustrySelectionToUpdateRequest,
   mapPriorityOrderToUpdateRequest,
   mapStudentMatchingPreferencesToUiState,
@@ -395,7 +396,6 @@ const STUDENT_DOCUMENT_ROUTE_CONFIG: Record<
 type MatchingConditionRouteContext = {
   businessTypeFlexible: boolean;
   isMatchingPreferencesLoading: boolean;
-  minimumHourlyWage: number | null;
   otherIndustry: string;
   priorityOrder: MatchingPriorityId[];
   selectedIndustries: IndustryId[];
@@ -1834,9 +1834,8 @@ function StudentProfileDetailRoute({ view }: { view: ProfileDetailView }) {
 
 function StudentMatchingConditionLayout() {
   const [businessTypeFlexible, setBusinessTypeFlexible] = useState(false);
-  const [minimumHourlyWage, setMinimumHourlyWage] = useState<number | null>(
-    null,
-  );
+  const [hasUnrepresentedWorkTime, setHasUnrepresentedWorkTime] =
+    useState(false);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>(
     [],
   );
@@ -1862,7 +1861,9 @@ function StudentMatchingConditionLayout() {
     const mappedPreferences =
       mapStudentMatchingPreferencesToUiState(preferences);
     setBusinessTypeFlexible(mappedPreferences.businessTypeFlexible);
-    setMinimumHourlyWage(mappedPreferences.minimumHourlyWage);
+    setHasUnrepresentedWorkTime(
+      hasUnrepresentableWorkTimes(preferences.preferredWorkTimes),
+    );
     setSelectedIndustries(mappedPreferences.selectedIndustries);
     setOtherIndustry(mappedPreferences.otherIndustry);
     setPriorityOrder(mappedPreferences.priorityOrder);
@@ -1889,7 +1890,6 @@ function StudentMatchingConditionLayout() {
       })
       .catch(() => {
         setBusinessTypeFlexible(false);
-        setMinimumHourlyWage(null);
         setSelectedIndustries([]);
         setOtherIndustry('');
         setPriorityOrder([]);
@@ -1937,6 +1937,12 @@ function StudentMatchingConditionLayout() {
   };
 
   const saveWorkAvailability = async (availability: WorkAvailability) => {
+    if (hasUnrepresentedWorkTime) {
+      window.alert(
+        '현재 화면에 표시할 수 없는 기존 근무시간이 있어 수정할 수 없어요.',
+      );
+      return false;
+    }
     try {
       const preferences = await studentDataSource.updateMatchingPreferences(
         mapWorkAvailabilityToUpdateRequest(availability),
@@ -1989,7 +1995,6 @@ function StudentMatchingConditionLayout() {
         {
           businessTypeFlexible,
           isMatchingPreferencesLoading,
-          minimumHourlyWage,
           otherIndustry,
           priorityOrder,
           selectedIndustries,

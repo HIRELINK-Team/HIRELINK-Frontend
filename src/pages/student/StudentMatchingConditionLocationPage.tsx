@@ -29,6 +29,8 @@ export default function StudentMatchingConditionLocationPage({
     setDraftLocation((currentLocation) => ({
       ...currentLocation,
       address: STUDENT_DEMO_LOCATION_NAME,
+      latitude: undefined,
+      longitude: undefined,
     }));
     setSaveError('');
   };
@@ -107,6 +109,14 @@ export default function StudentMatchingConditionLocationPage({
               setDraftLocation((currentLocation) => ({
                 ...currentLocation,
                 address: event.target.value,
+                latitude:
+                  event.target.value === initialLocation.address
+                    ? initialLocation.latitude
+                    : undefined,
+                longitude:
+                  event.target.value === initialLocation.address
+                    ? initialLocation.longitude
+                    : undefined,
               }));
               setSaveError('');
             }}
