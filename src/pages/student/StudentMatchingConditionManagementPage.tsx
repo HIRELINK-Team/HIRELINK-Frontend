@@ -1,4 +1,5 @@
 import backIcon from '../../assets/icons/student/documents/back.svg';
+import { useTranslation } from 'react-i18next';
 import matchingConditionChevronIcon from '../../assets/icons/student/my/matching-condition-chevron.svg';
 import matchingConditionNoticeImage from '../../assets/images/student/my/matching-condition-notice.png';
 import { MatchingPriorityList } from '../../components/student/onboarding/MatchingPriorityList';
@@ -69,6 +70,7 @@ export default function StudentMatchingConditionManagementPage({
   priorityOrder,
   summaryValues,
 }: StudentMatchingConditionManagementPageProps) {
+  const { t } = useTranslation();
   const handleConditionClick = (conditionId: MatchingConditionId) => {
     onConditionClick?.(conditionId);
   };
@@ -85,9 +87,9 @@ export default function StudentMatchingConditionManagementPage({
       return priorityCard
         ? [
             {
-              description: priorityCard.description,
+              description: t(`my.matchingConditions.priority.${priorityCard.id}.description`),
               id: priorityCard.id,
-              label: priorityCard.title,
+              label: t(`my.matchingConditions.priority.${priorityCard.id}.title`),
             },
           ]
         : [];
@@ -99,7 +101,7 @@ export default function StudentMatchingConditionManagementPage({
       className="mx-auto min-h-[1074px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[34px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
     >
       <button
-        aria-label="뒤로가기"
+        aria-label={t('common.back')}
         className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -108,7 +110,7 @@ export default function StudentMatchingConditionManagementPage({
       </button>
 
       <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
-        매칭 조건 관리
+        {t('my.matchingConditions.title')}
       </h1>
 
       <section className="mt-[12px] flex h-[82px] items-center rounded-[20px] bg-[#E5E8EB]">
@@ -118,18 +120,16 @@ export default function StudentMatchingConditionManagementPage({
           src={matchingConditionNoticeImage}
         />
         <p className="m-0 ml-[18.5px] text-[15px] leading-[1.5] font-bold">
-          희망하는 조건을 설정하면
-          <br />
-          내게 딱 맞는 일자리를 추천드려요.
+          {t('my.matchingConditions.prompt').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
         </p>
       </section>
       <p className="m-0 mt-[6px] text-[12px] leading-[1.5] text-[#8B95A1]">
-        여러 항목을 설정할수록 매칭 정확도가 높아져요.
+        {t('my.matchingConditions.description')}
       </p>
 
       <section className="-mx-6 mt-[24px] border-y border-[#E5E8EB]">
         {MATCHING_CONDITION_SUMMARIES.map((condition) => {
-          const value = summaryValues?.[condition.id] ?? '설정되지 않음';
+          const value = summaryValues?.[condition.id] ?? t('my.matchingConditions.notSet');
           const isWorkTimeSummary =
             condition.id === 'work-time' && Array.isArray(value);
 
@@ -151,7 +151,7 @@ export default function StudentMatchingConditionManagementPage({
                   isWorkTimeSummary ? 'pt-1' : ''
                 }`}
               >
-                {condition.label}
+                {t(`my.matchingConditions.summary.${condition.id}`)}
               </span>
               {isWorkTimeSummary ? (
                 <span className="flex min-w-0 flex-1 flex-wrap gap-1.5">
@@ -188,7 +188,7 @@ export default function StudentMatchingConditionManagementPage({
       </section>
 
       <h2 className="m-0 mt-[21px] ml-[2px] text-[20px] leading-[1.4] font-semibold">
-        매칭 중요도
+        {t('my.matchingConditions.importance')}
       </h2>
       <section className="mt-[18px]">
         <MatchingPriorityList
@@ -204,7 +204,7 @@ export default function StudentMatchingConditionManagementPage({
         type="button"
         onClick={() => void onApply?.()}
       >
-        수정 반영하기
+        {t('my.profile.saveChanges')}
       </button>
     </main>
   );

@@ -1,4 +1,5 @@
 import backIcon from '../../../assets/icons/student/documents/back.svg';
+import { useTranslation } from 'react-i18next';
 import badgeImage from '../../../assets/images/student/documents/verification/badge-issued.png';
 
 type DocumentBadgeIssuedProps = {
@@ -6,6 +7,7 @@ type DocumentBadgeIssuedProps = {
 };
 
 export function DocumentBadgeIssued({ onConfirm }: DocumentBadgeIssuedProps) {
+  const { t } = useTranslation();
   return (
     <main className="relative mx-auto flex h-[100dvh] max-h-[844px] w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] px-6 pt-[clamp(32px,7.2dvh,61px)] pb-[clamp(40px,10.2dvh,86px)] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <span className="grid size-8 -ml-2 place-items-center" aria-hidden="true">
@@ -18,12 +20,10 @@ export function DocumentBadgeIssued({ onConfirm }: DocumentBadgeIssuedProps) {
           src={badgeImage}
         />
         <h1 className="m-0 mt-[clamp(18px,2.73dvh,23px)] text-center text-[clamp(21px,3.08dvh,26px)] leading-[1.5] font-semibold">
-          뱃지가 발급되었어요!
+          {t('my.documents.badgeTitle')}
         </h1>
         <p className="m-0 mt-[clamp(4px,0.71dvh,6px)] text-center text-[clamp(11px,1.54dvh,13px)] leading-[1.5] text-[#8B95A1]">
-          이제 더 정확하게 일자리를
-          <br />
-          추천받을 수 있어요.
+          {t('my.documents.badgeDescription').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
         </p>
       </section>
       <button
@@ -31,7 +31,7 @@ export function DocumentBadgeIssued({ onConfirm }: DocumentBadgeIssuedProps) {
         type="button"
         onClick={onConfirm}
       >
-        확인
+        {t('common.confirm')}
       </button>
     </main>
   );

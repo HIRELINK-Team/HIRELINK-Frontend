@@ -1,4 +1,5 @@
 import backIcon from '../../../assets/icons/student/documents/back.svg';
+import { useTranslation } from 'react-i18next';
 
 type DocumentRegistrationCompleteProps = {
   completeIcon: string;
@@ -13,10 +14,11 @@ export function DocumentRegistrationComplete({
   onBack,
   onConfirm,
 }: DocumentRegistrationCompleteProps) {
+  const { t } = useTranslation();
   return (
     <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
-        aria-label="뒤로가기"
+        aria-label={t('common.back')}
         className="absolute top-[61px] left-4 grid size-8 place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -29,7 +31,7 @@ export function DocumentRegistrationComplete({
         src={completeIcon}
       />
       <h1 className="absolute top-[425px] right-6 left-6 m-0 text-center text-[22px] leading-[1.5] font-semibold">
-        등록이 완료되었어요!
+        {t('my.documents.complete')}
       </h1>
       <p className="absolute top-[470px] right-6 left-6 m-0 text-center text-[13px] leading-[1.5] text-[#8B95A1]">
         {description[0]}
@@ -41,7 +43,7 @@ export function DocumentRegistrationComplete({
         type="button"
         onClick={onConfirm}
       >
-        확인
+        {t('common.confirm')}
       </button>
     </main>
   );

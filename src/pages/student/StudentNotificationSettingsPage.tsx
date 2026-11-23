@@ -1,4 +1,5 @@
 import backIcon from '../../assets/icons/student/notification-settings-back.svg';
+import { useTranslation } from 'react-i18next';
 import applicationResultIcon from '../../assets/images/student/notification-settings/application-result.png';
 import documentExpiryIcon from '../../assets/images/student/notification-settings/document-expiry.png';
 import documentStatusIcon from '../../assets/images/student/notification-settings/document-status.png';
@@ -146,10 +147,11 @@ function NotificationToggle({
   label: string;
   onChange: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <button
       aria-checked={checked}
-      aria-label={`${label} ${checked ? '켜짐' : '꺼짐'}`}
+      aria-label={`${label} ${t(checked ? 'my.notifications.on' : 'my.notifications.off')}`}
       className={`relative h-[23.428px] w-[41px] shrink-0 overflow-hidden rounded-full border-0 p-0 transition-colors duration-150 ${
         checked ? 'bg-[#00B894]' : 'bg-[#D1D6DB]'
       }`}
@@ -181,11 +183,12 @@ export default function StudentNotificationSettingsPage({
   onSettingsChange,
   settings,
 }: StudentNotificationSettingsPageProps) {
+  const { t } = useTranslation();
   return (
     <main className="mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] pt-10 font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <div className="px-6">
         <button
-          aria-label="뒤로가기"
+          aria-label={t('common.back')}
           className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
           type="button"
           onClick={onBack}
@@ -193,7 +196,7 @@ export default function StudentNotificationSettingsPage({
           <img alt="" className="h-4 w-2" src={backIcon} />
         </button>
         <h1 className="m-0 mt-2.5 text-[26px] leading-[1.5] font-semibold">
-          알림 설정
+          {t('my.notifications.title')}
         </h1>
 
         <section className="relative mt-2 flex h-[62px] items-center overflow-hidden rounded-[18px] bg-[#E5E8EB] pl-[62px] pr-4">
@@ -203,21 +206,19 @@ export default function StudentNotificationSettingsPage({
             src={notificationNoticeImage}
           />
           <p className="m-0 text-[14px] leading-[1.4] font-semibold">
-            나에게 중요한 소식을 HIRELINK에서
-            <br />
-            빠짐없이 받아보세요!
+            {t('my.notifications.prompt').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
           </p>
         </section>
 
         <p className="m-0 mt-1 text-[12px] leading-[1.5] text-[#8B95A1]">
-          원하는 알림만 선택해서 편리하게 관리할 수 있어요.
+          {t('my.notifications.description')}
         </p>
       </div>
 
-      {NOTIFICATION_SECTIONS.map((section) => (
+      {NOTIFICATION_SECTIONS.map((section, index) => (
         <section className="mt-2.5" key={section.title}>
           <h2 className="m-0 px-6 text-[18px] leading-[1.4] font-semibold">
-            {section.title}
+            {t(`my.notifications.sections.${index}`)}
           </h2>
           <div className="mt-1.5 -ml-[7px] border-y border-[#E5E8EB]">
             {section.rows.map((row) => (
@@ -236,16 +237,16 @@ export default function StudentNotificationSettingsPage({
                   style={{ left: row.textLeft }}
                 >
                   <p className="m-0 text-[14px] leading-[1.4] font-semibold">
-                    {row.title}
+                    {t(`my.notifications.rows.${row.id}.title`)}
                   </p>
                   <p className="m-0 text-[10px] leading-[15px] text-[#8B95A1]">
-                    {row.description}
+                    {t(`my.notifications.rows.${row.id}.description`)}
                   </p>
                 </div>
                 <div className="absolute top-[16px] right-[9px]">
                   <NotificationToggle
                     checked={settings[row.id]}
-                    label={row.title}
+                    label={t(`my.notifications.rows.${row.id}.title`)}
                     onChange={() => onSettingsChange(row.id)}
                   />
                 </div>

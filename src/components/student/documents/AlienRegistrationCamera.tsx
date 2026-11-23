@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import backIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-back.svg';
 import bulbIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-bulb.svg';
@@ -18,6 +19,7 @@ export function AlienRegistrationCamera({
   onCapture,
   side = 'front',
 }: AlienRegistrationCameraProps) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const isActiveRef = useRef(false);
   const [cameraError, setCameraError] = useState('');
@@ -31,7 +33,7 @@ export function AlienRegistrationCamera({
 
     const startCamera = async () => {
       if (!navigator.mediaDevices?.getUserMedia) {
-        setCameraError('카메라를 사용할 수 없어요. 이미지를 업로드해주세요.');
+        setCameraError(t('my.documents.cameraError'));
         return;
       }
 
@@ -50,8 +52,8 @@ export function AlienRegistrationCamera({
         setCameraError(
           error instanceof DOMException &&
             (error.name === 'NotAllowedError' || error.name === 'SecurityError')
-            ? '카메라 권한이 거부되었어요. 권한을 허용하거나 이미지를 업로드해주세요.'
-            : '카메라에 접근할 수 없어요. 이미지를 업로드해주세요.',
+            ? t('my.documents.cameraDenied')
+            : t('my.documents.cameraAccessError'),
         );
       }
     };
@@ -62,7 +64,7 @@ export function AlienRegistrationCamera({
       isActiveRef.current = false;
       stream?.getTracks().forEach((track) => track.stop());
     };
-  }, []);
+  }, [t]);
 
   const handleCapture = () => {
     const video = videoRef.current;
@@ -83,7 +85,7 @@ export function AlienRegistrationCamera({
     canvas.height = Math.round(height);
     const context = canvas.getContext('2d');
     if (!context) {
-      setCameraError('이미지를 캡처하지 못했어요. 다시 시도해주세요.');
+      setCameraError(t('my.documents.captureError'));
       return;
     }
     context.drawImage(
@@ -103,7 +105,7 @@ export function AlienRegistrationCamera({
         if (!isActiveRef.current) return;
         setIsCapturing(false);
         if (!blob) {
-          setCameraError('이미지를 캡처하지 못했어요. 다시 시도해주세요.');
+          setCameraError(t('my.documents.captureError'));
           return;
         }
         onCapture(
@@ -122,20 +124,18 @@ export function AlienRegistrationCamera({
       <button
         type="button"
         onClick={onBack}
-        aria-label="뒤로가기"
+        aria-label={t('common.back')}
         className="flex h-6 w-6 shrink-0 items-center justify-center"
       >
         <img src={backIcon} alt="" />
       </button>
 
       <p className="mt-[19px] shrink-0 text-center text-[15px] leading-[1.4] font-normal text-[#F5F5F5]">
-        영역 안에 등록증이 꽉 차도록 조절하면
-        <br />
-        자동으로 촬영돼요.
+        {t('my.alien.capturePrompt').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
       </p>
 
       <div
-        aria-label={`외국인등록증 ${side === 'front' ? '앞면' : '뒷면'} 촬영 영역`}
+        aria-label={t('my.alien.captureArea', { side: t(side === 'front' ? 'my.documents.front' : 'my.documents.backSide') })}
         className="relative mt-[8dvh] aspect-[342/207] w-full max-w-[min(100%,45dvh)] shrink-0 self-center overflow-hidden rounded-[10px] border border-white/90 [@media(max-height:700px)]:mt-[4dvh] [@media(max-height:600px)]:max-w-[min(100%,36dvh)]"
       >
         <video
@@ -160,17 +160,13 @@ export function AlienRegistrationCamera({
         <div className="flex flex-col items-center">
           <img src={bulbIcon} alt="" className="h-[50px] w-[50px]" />
           <p className="mt-4">
-            빛 반사가 없도록
-            <br />
-            촬영해주세요
+            {t('my.alien.noGlare').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
           </p>
         </div>
         <div className="flex flex-col items-center">
           <img src={clarityIcon} alt="" className="h-[46px] w-[46px]" />
           <p className="mt-5">
-            정보를 선명하게
-            <br />
-            보여주세요
+            {t('my.alien.clearInfo').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
           </p>
         </div>
         <div className="flex flex-col items-center">
@@ -180,9 +176,7 @@ export function AlienRegistrationCamera({
             className="mt-[7px] h-[35px] w-[35px]"
           />
           <p className="mt-6">
-            가로 방향으로
-            <br />
-            촬영해주세요
+            {t('my.alien.landscape').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
           </p>
         </div>
       </section>
@@ -195,7 +189,7 @@ export function AlienRegistrationCamera({
         }
         onFileUpload={(file) => {
           if (file.type.startsWith('image/')) onCapture(file);
-          else setCameraError('이미지 파일을 선택해주세요.');
+          else setCameraError(t('my.documents.chooseImage'));
         }}
         onTakePhoto={handleCapture}
       />

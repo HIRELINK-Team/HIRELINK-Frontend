@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import backIcon from '../../../assets/icons/student/documents/alien-registration/issue46-information-back.svg';
 import scanIcon from '../../../assets/icons/student/documents/alien-registration/issue46-review-scan.svg';
 import type { AlienRegistrationFormValues } from './AlienRegistrationEdit';
@@ -38,10 +39,12 @@ export function AlienRegistrationFrontInfo({
   progressLabel = '1/5',
   values,
 }: AlienRegistrationFrontInfoProps) {
+  const { t } = useTranslation();
+  const reviewTitle = t('my.documents.reviewTitle').split('\n');
   return (
     <AlienRegistrationOnboardingLayout>
       <button
-        aria-label="이전 단계로 이동"
+        aria-label={t('common.back')}
         className="flex h-6 w-6 shrink-0 items-center justify-center"
         type="button"
         onClick={onBack}
@@ -54,7 +57,7 @@ export function AlienRegistrationFrontInfo({
           {progressLabel}
         </strong>
         <span className="block text-[15px] leading-[1.5] text-[#909597]">
-          정보 확인
+          {t('my.documents.infoReview')}
         </span>
       </div>
       <div
@@ -67,33 +70,33 @@ export function AlienRegistrationFrontInfo({
 
       <section className="mt-[4.6dvh] shrink-0">
         <h1 className="text-[26px] leading-[1.5] font-semibold">
-          인식된 정보를
+          {reviewTitle[0]}
           <br />
-          확인해주세요.
+          {reviewTitle[1]}
         </h1>
         <p className="mt-[10px] text-[15px] leading-[1.5] text-[#939393]">
-          정보가 다르면 다시 촬영해주세요.
+          {t('my.documents.reviewDescription')}
         </p>
       </section>
 
       <section
-        aria-label="인식된 외국인등록증 앞면 정보"
+        aria-label={t('my.alienFlow.frontReview')}
         className="mt-[3.3dvh] flex h-[31.3dvh] min-h-[220px] max-h-[264px] shrink-0 flex-col overflow-hidden rounded-[20px] bg-white/10"
       >
         <div className="flex h-[65px] shrink-0 items-center gap-[9px] bg-[#B8EBDD]/65 px-[33px]">
           <img alt="" className="h-7 w-7" src={scanIcon} />
           <strong className="text-[20px] leading-[1.5] font-semibold text-[#006E59]">
-            외국인등록증
+            {t('my.alienFlow.registrationCard')}
           </strong>
         </div>
         <dl className="grid min-h-0 flex-1 grid-rows-5 px-[33px] py-3">
-          {FRONT_INFORMATION_FIELDS.map(([label, field]) => (
+          {FRONT_INFORMATION_FIELDS.map(([, field], index) => (
             <div
               className="grid min-h-0 grid-cols-[69px_minmax(0,1fr)] items-center gap-6"
               key={field}
             >
               <dt className="text-[13px] leading-[1.5] text-[#909597]">
-                {label}
+                {t(`my.alienFlow.frontFields.${index}`)}
               </dt>
               <dd className="m-0 min-w-0 truncate text-[13px] leading-[1.5] font-medium text-[#1D1F20]">
                 {values[field]}
@@ -109,14 +112,14 @@ export function AlienRegistrationFrontInfo({
           type="button"
           onClick={onRetry}
         >
-          다시 촬영
+          {t('my.documents.retake')}
         </button>
         <button
           className="h-[57px] rounded-[15px] bg-[#00B894] px-3 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
           type="button"
           onClick={onConfirm}
         >
-          확인
+          {t('common.confirm')}
         </button>
       </div>
     </AlienRegistrationOnboardingLayout>

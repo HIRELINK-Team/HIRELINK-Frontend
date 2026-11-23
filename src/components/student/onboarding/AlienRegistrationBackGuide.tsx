@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import backIcon from '../../../assets/icons/student/documents/alien-registration/issue46-information-back.svg';
 import backGuideImage from '../../../assets/images/student/documents/alien-registration/issue46-back-guide.png';
 import { AlienRegistrationOnboardingLayout } from './AlienRegistrationOnboardingLayout';
@@ -13,10 +14,11 @@ export function AlienRegistrationBackGuide({
   onConfirm,
   progressLabel = '1/5',
 }: AlienRegistrationBackGuideProps) {
+  const { t } = useTranslation();
   return (
     <AlienRegistrationOnboardingLayout>
       <button
-        aria-label="이전 단계로 이동"
+        aria-label={t('common.back')}
         className="flex h-6 w-6 shrink-0 items-center justify-center"
         type="button"
         onClick={onBack}
@@ -29,7 +31,7 @@ export function AlienRegistrationBackGuide({
           {progressLabel}
         </strong>
         <span className="block text-[15px] leading-[1.5] text-[#909597]">
-          정보 확인
+          {t('my.documents.infoReview')}
         </span>
       </div>
       <div
@@ -42,18 +44,18 @@ export function AlienRegistrationBackGuide({
 
       <section className="mt-[4.6dvh] shrink-0">
         <h1 className="text-[26px] leading-[1.5] font-semibold">
-          외국인 등록증
+          {t('my.documents.alienTitle')}
           <br />
-          뒷면을 촬영해주세요.
+          {t('my.alienFlow.backPrompt')}
         </h1>
         <p className="mt-[10px] text-[15px] leading-[1.5] text-[#939393]">
-          최신 만료일과 주소를 확인해요.
+          {t('my.alienFlow.backDescription')}
         </p>
       </section>
 
       <div className="flex min-h-0 flex-1 items-center justify-center py-4">
         <img
-          alt="외국인등록증 뒷면 촬영 안내"
+          alt={t('my.alienFlow.backGuide')}
           className="block h-auto w-[59.4%] max-w-[225px] object-contain"
           src={backGuideImage}
         />
@@ -64,7 +66,7 @@ export function AlienRegistrationBackGuide({
         type="button"
         onClick={onConfirm}
       >
-        확인
+        {t('common.confirm')}
       </button>
     </AlienRegistrationOnboardingLayout>
   );

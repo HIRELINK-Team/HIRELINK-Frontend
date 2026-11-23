@@ -1,4 +1,5 @@
 import scanIcon from '../../../assets/icons/student/documents/topik/camera-scan.svg';
+import { useTranslation } from 'react-i18next';
 import { STUDENT_TOPIK_DETAILS } from '../../../mocks/studentDocuments';
 import { DocumentRecognitionReview } from './DocumentRecognitionReview';
 
@@ -16,10 +17,11 @@ const REVIEW_FIELDS = [
 ].filter((field) => field.value);
 
 export function TopikReview(props: TopikReviewProps) {
+  const { t } = useTranslation();
   return (
     <DocumentRecognitionReview
-      documentTitle="TOPIK 성적증명서"
-      fields={REVIEW_FIELDS}
+      documentTitle={t('my.documents.topik')}
+      fields={REVIEW_FIELDS.map((field) => ({ ...field, label: t('my.documentFlow.topikLevel') }))}
       scanIcon={scanIcon}
       {...props}
     />

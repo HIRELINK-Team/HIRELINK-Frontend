@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type {
   Weekday,
@@ -72,6 +73,7 @@ export function WorkTimeGrid({
   onModeChange,
   onSlotsChange,
 }: WorkTimeGridProps) {
+  const { t, i18n } = useTranslation();
   const dragSelection = useRef<boolean | null>(null);
   const config = TIME_CONFIG[mode];
   const gridHeight = config.slotCount * config.rowHeight;
@@ -120,7 +122,7 @@ export function WorkTimeGrid({
       <div className="flex gap-[5px]">
         {(['daytime', 'nighttime'] as WorkTimeMode[]).map((timeMode) => {
           const isSelected = mode === timeMode;
-          const label = timeMode === 'daytime' ? '일반' : '야간';
+          const label = t(`my.workTimeGrid.${timeMode}`);
 
           return (
             <button
@@ -142,12 +144,12 @@ export function WorkTimeGrid({
 
       <div className="mt-2.5">
         <div className="ml-5 grid w-[calc(100%-20px)] grid-cols-7 gap-x-2">
-          {WEEKDAYS.map(({ id, label }) => (
+          {WEEKDAYS.map(({ id }) => (
             <span
               className="text-center text-[12px] leading-[17px] text-[#8B95A1]"
               key={id}
             >
-              {label}
+              {t(`my.workTimeGrid.days.${id}`)}
             </span>
           ))}
         </div>
@@ -184,7 +186,7 @@ export function WorkTimeGrid({
 
                   return (
                     <button
-                      aria-label={`${WEEKDAYS.find(({ id }) => id === day)?.label}요일 ${getHourLabel(config.startHour + visualSlot / 2)}시 ${visualSlot % 2 === 1 ? '30분 ' : ''}${isSelected ? '선택 해제' : '선택'}`}
+                      aria-label={t('my.workTimeGrid.slot', { day: t(`my.workTimeGrid.days.${day}`), hour: getHourLabel(config.startHour + visualSlot / 2), minute: i18n.resolvedLanguage === 'en' ? (visualSlot % 2 ? '30' : '00') : (visualSlot % 2 ? t('my.workTimeGrid.halfHour') : ''), action: t(isSelected ? 'my.workTimeGrid.deselect' : 'my.workTimeGrid.select') })}
                       aria-pressed={isSelected}
                       className={`h-full border-[#F5F5F5] ${
                         isSelected ? 'bg-[#00B894]' : 'bg-[#E5E8EB]'

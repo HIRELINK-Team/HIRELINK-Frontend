@@ -1,5 +1,6 @@
 import illustration from '../../../assets/images/student/documents/transcript/guide-illustration.png';
 import scoreIcon from '../../../assets/images/student/documents/transcript/guide-score.png';
+import { useTranslation } from 'react-i18next';
 import { DocumentRegistrationInformation } from './DocumentRegistrationInformation';
 
 type TranscriptInformationProps = {
@@ -10,13 +11,14 @@ type TranscriptInformationProps = {
 const GUIDE_ITEMS = [{ icon: scoreIcon, label: '직전학기 평균 학점' }] as const;
 
 export function TranscriptInformation(props: TranscriptInformationProps) {
+  const { t } = useTranslation();
   return (
     <DocumentRegistrationInformation
-      description="직전학기 평균 학점을 위해 필요해요"
-      guideItems={GUIDE_ITEMS}
-      heading={['본인의 성적증명서를', '등록해주세요.']}
+      description={t('my.documentFlow.transcriptDescription')}
+      guideItems={GUIDE_ITEMS.map((item) => ({ ...item, label: t('my.documentFlow.gradeCheck') }))}
+      heading={[t('my.documentFlow.transcriptHeading1'), t('my.documentFlow.registerPrompt')]}
       illustration={illustration}
-      title="성적증명서 등록"
+      title={t('my.documentFlow.transcriptTitle')}
       {...props}
     />
   );

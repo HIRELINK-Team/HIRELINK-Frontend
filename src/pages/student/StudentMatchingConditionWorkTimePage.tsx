@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
 import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
@@ -47,6 +48,7 @@ export default function StudentMatchingConditionWorkTimePage({
   onBack,
   onSave,
 }: StudentMatchingConditionWorkTimePageProps) {
+  const { t } = useTranslation();
   const [workTimeMode, setWorkTimeMode] = useState<WorkTimeMode>('daytime');
   const [draftWorkAvailability, setDraftWorkAvailability] =
     useState<WorkAvailability>(() =>
@@ -69,10 +71,10 @@ export default function StudentMatchingConditionWorkTimePage({
     try {
       const isSaved = await onSave(draftWorkAvailability);
       if (isSaved === false) {
-        setSaveError('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+        setSaveError(t('my.matchingConditions.saveError'));
       }
     } catch {
-      setSaveError('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+      setSaveError(t('my.matchingConditions.saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -81,7 +83,7 @@ export default function StudentMatchingConditionWorkTimePage({
   return (
     <main className="relative mx-auto flex h-[min(844px,100dvh)] w-full max-w-[390px] flex-col overflow-y-auto overscroll-contain bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <button
-        aria-label="뒤로가기"
+        aria-label={t('common.back')}
         className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -90,13 +92,11 @@ export default function StudentMatchingConditionWorkTimePage({
       </button>
 
       <h1 className="m-0 mt-[36px] text-[26px] leading-[1.5] font-semibold">
-        원하는 근무시간대를
-        <br />
-        선택해주세요.
+        {t('my.matchingConditions.chooseWorkTime').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
       </h1>
 
       <p className="m-0 mt-[5px] text-[15px] leading-[1.5] text-[#939393]">
-        드래그하여 선택해주세요.
+        {t('my.matchingConditions.drag')}
       </p>
 
       <WorkTimeGrid
@@ -119,7 +119,7 @@ export default function StudentMatchingConditionWorkTimePage({
           disabled={isSaving}
           onClick={handleSave}
         >
-          수정하기
+          {t('my.profile.edit')}
         </button>
       </div>
     </main>

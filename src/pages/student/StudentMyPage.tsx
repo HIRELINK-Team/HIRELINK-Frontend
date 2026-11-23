@@ -17,6 +17,7 @@ import {
 import type { StudentNavigationTab } from '../../types/studentHome';
 import type { StudentMyMenu, StudentMyMenuId } from '../../types/studentMy';
 import type { StudentProfileResponse } from '../../types/studentProfile';
+import { useTranslation } from 'react-i18next';
 
 type StudentMyPageProps = {
   isBottomNavigationFixed?: boolean;
@@ -60,13 +61,14 @@ export default function StudentMyPage({
   onWorkConditionClick,
   studentProfile,
 }: StudentMyPageProps) {
-  const profileName = studentProfile?.name || '회원';
-  const visaStatus = studentProfile?.visaCode ?? '미등록';
+  const { t } = useTranslation();
+  const profileName = studentProfile?.name || t('my.member');
+  const visaStatus = studentProfile?.visaCode ?? t('my.notRegistered');
   const topikLevel =
     studentProfile?.topikLevel === null ||
     studentProfile?.topikLevel === undefined
-      ? 'TOPIK 미등록'
-      : `TOPIK ${studentProfile.topikLevel}급`;
+      ? t('my.topikNotRegistered')
+      : t('my.topikLevel', { level: studentProfile.topikLevel });
 
   const handleMenuClick = (menu: StudentMyMenu) => {
     if (menu.id === 'documents') {
@@ -94,11 +96,11 @@ export default function StudentMyPage({
         <header>
           <div className="flex items-start justify-between">
             <h1 className="m-0 text-[26px] leading-[1.5] font-semibold">
-              마이페이지
+              {t('my.title')}
             </h1>
             <div className="-mr-2 -mt-1 flex">
               <button
-                aria-label="설정"
+                aria-label={t('my.settings')}
                 className="grid size-10 place-items-center rounded-lg border-0 bg-transparent p-0"
                 type="button"
                 onClick={onSettingsClick}
@@ -108,7 +110,7 @@ export default function StudentMyPage({
             </div>
           </div>
           <p className="m-0 text-[15px] leading-[1.5] text-[#909597]">
-            오늘도 좋은 일자리를 찾아볼까요?
+            {t('home.subtitle')}
           </p>
         </header>
 
@@ -133,7 +135,7 @@ export default function StudentMyPage({
             type="button"
             onClick={onProfileEditClick}
           >
-            프로필 수정
+            {t('my.editProfile')}
             <img
               alt=""
               className="h-[12px] w-[6px] -scale-x-100"
@@ -150,13 +152,11 @@ export default function StudentMyPage({
           />
           <div className="absolute top-[29px] left-[125px]">
             <h2 className="m-0 text-[17px] leading-[1.5] font-semibold">
-              {STUDENT_MY_PROGRESS_MOCK.title}
+              {t('my.workConditionTitle')}
             </h2>
             <div className="mt-[3px] text-[13px] leading-[1.5] text-[#909597]">
-              {STUDENT_MY_PROGRESS_MOCK.descriptionLines.map((line) => (
-                <p className="m-0" key={line}>
-                  {line}
-                </p>
+              {t('my.workConditionDescription').split('\n').map((line) => (
+                <p className="m-0" key={line}>{line}</p>
               ))}
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function StudentMyPage({
             type="button"
             onClick={onWorkConditionClick ?? onMatchingClick}
           >
-            매칭하러 가기
+            {t('home.matchingCta')}
           </button>
         </section>
 
@@ -193,10 +193,10 @@ export default function StudentMyPage({
               />
               <span className="ml-[23px] min-w-0 flex-1">
                 <span className="block text-[15px] leading-[1.5] font-semibold">
-                  {menu.title}
+                  {t(`my.menu.${menu.id}.title`)}
                 </span>
                 <span className="mt-[2px] block text-[13px] leading-[1.5] text-[#909597]">
-                  {menu.description}
+                  {t(`my.menu.${menu.id}.description`)}
                 </span>
               </span>
               <img
@@ -222,7 +222,7 @@ export default function StudentMyPage({
                 src={SECONDARY_MENU_ICONS[menu.id]}
               />
               <span className="ml-[13px] flex-1 text-[15px] leading-[1.5] text-[#909597]">
-                {menu.title}
+                {t(`my.menu.${menu.id}.title`)}
               </span>
               <img
                 alt=""

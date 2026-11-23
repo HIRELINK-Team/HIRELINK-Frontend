@@ -1,4 +1,5 @@
 import type { Experience } from '../../../types/experience';
+import { useTranslation } from 'react-i18next';
 
 type ExperienceCardProps = {
   experience: Experience;
@@ -14,6 +15,7 @@ export function ExperienceCard({
   onDelete,
   onEdit,
 }: ExperienceCardProps) {
+  const { t } = useTranslation();
   return (
     <article className="relative min-h-[132px] rounded-[20px] bg-white px-6 pt-5 pb-4 shadow-[1px_1px_20px_rgba(0,0,0,0.04)]">
       <h2 className="m-0 pr-9 text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
@@ -30,10 +32,10 @@ export function ExperienceCard({
         type="button"
         onClick={() => onEdit(experience.id)}
       >
-        변경하기
+        {t('my.experience.change')}
       </button>
       <button
-        aria-label={`${experience.workplace} 경력 삭제`}
+        aria-label={t('my.experience.delete', { name: experience.workplace })}
         className="absolute top-[25px] right-6 flex size-5 items-center justify-center border-0 bg-transparent p-0 text-[#909597]"
         disabled={isDeleting}
         type="button"

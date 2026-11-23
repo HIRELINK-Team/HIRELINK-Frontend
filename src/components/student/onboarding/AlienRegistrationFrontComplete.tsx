@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import backIcon from '../../../assets/icons/student/documents/alien-registration/information-back.svg';
 import completeIllustration from '../../../assets/images/student/documents/alien-registration/front-verification-complete.png';
 import { AlienRegistrationOnboardingLayout } from './AlienRegistrationOnboardingLayout';
@@ -13,10 +14,12 @@ export function AlienRegistrationFrontComplete({
   onConfirm,
   showDescription = true,
 }: AlienRegistrationFrontCompleteProps) {
+  const { t } = useTranslation();
+  const description = t('my.alienFlow.frontDoneDescription').split('\n');
   return (
     <AlienRegistrationOnboardingLayout>
       <button
-        aria-label="이전 단계로 이동"
+        aria-label={t('common.back')}
         className="-ml-1 grid size-8 shrink-0 place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -26,18 +29,18 @@ export function AlienRegistrationFrontComplete({
 
       <section className="flex flex-1 flex-col items-center justify-center pb-8 text-center">
         <img
-          alt="앞면 인증 완료"
+          alt={t('my.alienFlow.frontDoneImage')}
           className="student-3d-illustration w-[min(26vw,102px)] min-w-[88px]"
           src={completeIllustration}
         />
         <h1 className="mt-8 m-0 text-[22px] leading-[1.5] font-semibold">
-          인증이 완료되었어요.
+          {t('my.alienFlow.frontDone')}
         </h1>
         {showDescription ? (
           <p className="mt-1 text-center text-[13px] leading-[1.5] text-[#909597]">
-            이제 체류기간 만료일만
+            {description[0]}
             <br />
-            확인하면 정보확인이 끝나요!
+            {description[1]}
           </p>
         ) : null}
       </section>
@@ -47,7 +50,7 @@ export function AlienRegistrationFrontComplete({
         type="button"
         onClick={onConfirm}
       >
-        확인
+        {t('common.confirm')}
       </button>
     </AlienRegistrationOnboardingLayout>
   );
