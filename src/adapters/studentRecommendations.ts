@@ -1,5 +1,6 @@
 import type {
   StudentRecommendation,
+  StudentRecommendationDetailResponse,
   StudentRecommendationWorkTime,
 } from '../types/studentRecommendation';
 import type { RecommendedJob } from '../types/studentMatching';
@@ -9,7 +10,7 @@ import {
 } from '../utils/studentMatchingDisplay';
 import { DAY_LABELS } from '../utils/workSchedule';
 
-const WAGE_TYPE_LABELS: Record<StudentRecommendation['wageType'], string> = {
+const WAGE_TYPE_LABELS: Readonly<Record<string, string>> = {
   HOURLY: '시급',
   MONTHLY: '월급',
 };
@@ -18,15 +19,28 @@ function formatWorkTime(workTime: StudentRecommendationWorkTime) {
   return `${DAY_LABELS[workTime.dayOfWeek]} ${workTime.startTime.slice(0, 5)}-${workTime.endTime.slice(0, 5)}`;
 }
 
-function formatWage(recommendation: StudentRecommendation) {
-  return `${WAGE_TYPE_LABELS[recommendation.wageType]} ${recommendation.wageAmount.toLocaleString('ko-KR')}원`;
+type RecommendationDisplayData =
+  StudentRecommendation | StudentRecommendationDetailResponse;
+
+function formatWage(recommendation: RecommendationDisplayData) {
+  const label =
+    WAGE_TYPE_LABELS[recommendation.wageType] ?? recommendation.wageType;
+  return `${label} ${recommendation.wageAmount.toLocaleString('ko-KR')}원`;
 }
 
 export function mapStudentRecommendationToRecommendedJob(
-  recommendation: StudentRecommendation,
+  recommendation: RecommendationDisplayData,
 ): RecommendedJob {
   const workTimeLabels = recommendation.workTimes.map(formatWorkTime);
   const wageLabel = formatWage(recommendation);
+  const applicationId =
+    'applicationId' in recommendation
+      ? recommendation.applicationId
+      : undefined;
+  const applicationStatus =
+    'applicationStatus' in recommendation
+      ? recommendation.applicationStatus
+      : undefined;
   const walkingTimeMinutes =
     'walkingTimeMinutes' in recommendation &&
     typeof recommendation.walkingTimeMinutes === 'number'
@@ -34,8 +48,8 @@ export function mapStudentRecommendationToRecommendedJob(
       : null;
 
   return {
-    applicationId: recommendation.applicationId,
-    applicationStatus: recommendation.applicationStatus,
+    applicationId,
+    applicationStatus,
     countdownLabel: '',
     commuteAndWage: `${recommendation.workplaceAddress} · ${wageLabel}`,
     companyName: recommendation.workplaceName,
@@ -68,7 +82,7 @@ export function mapStudentRecommendationToRecommendedJob(
     recommendationId: recommendation.recommendationId,
     role: `직무 | ${recommendation.jobTitle}`,
     showsApplyButton:
-      recommendation.applicationStatus !== 'WAITING_RESPONSE' &&
-      recommendation.applicationStatus !== 'OFFERED',
+      applicationStatus !== 'WAITING_RESPONSE' &&
+      applicationStatus !== 'OFFERED',
   };
 }
