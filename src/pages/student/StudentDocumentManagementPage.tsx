@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
@@ -36,6 +36,7 @@ import {
 import type { StudentNavigationTab } from '../../types/studentHome';
 import {
   confirmEnrollmentCertificate,
+  getEnrollmentCertificate,
   previewEnrollmentCertificate,
 } from '../../api/studentEnrollment';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
@@ -117,6 +118,34 @@ export default function StudentDocumentManagementPage({
 }: StudentDocumentManagementPageProps) {
   const { t } = useTranslation();
   const [view, setView] = useState<StudentDocumentManagementView>(initialView);
+  const [enrollmentLookup, setEnrollmentLookup] = useState<
+    | { status: 'loading' | 'error'; document: null }
+    | { status: 'loaded'; document: EnrollmentDocumentResponse | null }
+  >({ status: 'loading', document: null });
+
+  useEffect(() => {
+    if (initialView !== 'guide' && initialView !== 'registration') return;
+    let active = true;
+    getEnrollmentCertificate()
+      .then((document) => {
+        if (active) setEnrollmentLookup({ status: 'loaded', document });
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        if (getApiErrorStatus(error) === 404) {
+          setEnrollmentLookup({ status: 'loaded', document: null });
+        } else {
+          setEnrollmentLookup({ status: 'error', document: null });
+          window.alert(
+            getApiErrorResponse(error)?.message ??
+              '재학증명서 정보를 불러오지 못했어요. 다시 시도해주세요.',
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [initialView]);
   const [enrollmentPreview, setEnrollmentPreview] =
     useState<EnrollmentPreviewResponse | null>(null);
   const [enrollmentError, setEnrollmentError] = useState<string | null>(null);
@@ -334,8 +363,9 @@ export default function StudentDocumentManagementPage({
     documentCompletion?.['alien-registration-card'] ??
     isAlienRegistrationComplete;
   const isEnrollmentCertificateRegistered =
-    documentCompletion?.['enrollment-certificate'] ??
-    isEnrollmentCertificateComplete;
+    enrollmentLookup.status === 'loaded'
+      ? enrollmentLookup.document !== null
+      : isEnrollmentCertificateComplete;
   const isTranscriptRegistered =
     documentCompletion?.transcript ?? isTranscriptComplete;
   const isTopikRegistered =
@@ -366,13 +396,19 @@ export default function StudentDocumentManagementPage({
     }
 
     if (document.id === 'enrollment-certificate') {
+      const enrollmentDocument = enrollmentLookup.document;
+      const registrationDate = enrollmentDocument
+        ? new Date(enrollmentDocument.registeredAt)
+        : null;
       return {
         ...document,
         status: isEnrollmentCertificateRegistered
           ? ('registered' as const)
           : ('required' as const),
-        registeredAt: isEnrollmentCertificateRegistered
-          ? registeredAt
+        registeredAt: registrationDate
+          ? t('my.documents.registeredAt', {
+              date: `${String(registrationDate.getFullYear()).slice(-2)}.${String(registrationDate.getMonth() + 1).padStart(2, '0')}.${String(registrationDate.getDate()).padStart(2, '0')}`,
+            })
           : undefined,
       };
     }
@@ -620,6 +656,8 @@ export default function StudentDocumentManagementPage({
         <div className="mt-[8px]">
           <DocumentRegistrationList
             basicDocuments={basicDocuments}
+            enrollmentDocument={enrollmentLookup.document}
+            enrollmentLookupStatus={enrollmentLookup.status}
             onDocumentClick={handleDocumentClick}
           />
         </div>

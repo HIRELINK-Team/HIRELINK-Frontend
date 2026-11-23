@@ -4,6 +4,13 @@ import type {
   EnrollmentPreviewResponse,
 } from '../types/studentDocument';
 
+export async function getEnrollmentCertificate() {
+  const { data } = await apiClient.get<EnrollmentDocumentResponse>(
+    '/students/me/documents/enrollment',
+  );
+  return data;
+}
+
 export async function previewEnrollmentCertificate(file: File) {
   const formData = new FormData();
   formData.append('file', file);
