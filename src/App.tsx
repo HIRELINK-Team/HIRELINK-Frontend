@@ -14,9 +14,9 @@ import {
 import { getAccessToken, setAccessToken } from './api/accessToken';
 import { apiClient } from './api/client';
 import { getOnboardingStatus } from './api/onboarding';
+import { completeStudentOnboarding } from './api/student/onboarding';
 import LandingPage from './pages/LandingPage';
 import {
-  createStudentProfile,
   loginStudent,
   refreshAccessToken,
   signupStudent,
@@ -679,33 +679,20 @@ function StudentOnboardingRoute({
 
   return (
     <StudentOnboardingPage
-      enableCareerApi={!IS_DEMO_MODE}
       initialStep={initialStep}
       initialWorkRadiusOpen={initialWorkRadiusOpen}
       onBack={() => navigate('/student/entry')}
       onComplete={async (requestBody) => {
-        if (IS_DEMO_MODE) {
-          await studentDataSource.updateProfile({ name: requestBody.name });
-          navigate('/student/home', { replace: true });
-          return;
-        }
-
-        try {
-          await createStudentProfile(requestBody);
-        } catch (error) {
-          // An existing student profile must still reflect the values entered again
-          // during onboarding instead of leaving the previous profile unchanged.
-          if (!axios.isAxiosError(error) || error.response?.status !== 409) {
-            throw error;
-          }
-
-          await studentDataSource.updateProfile({ name: requestBody.name });
-
-          const updatedProfile = await studentDataSource.getProfile();
-          if (updatedProfile.name !== requestBody.name) {
-            throw new Error('Student profile name was not updated.', {
-              cause: error,
-            });
+        if (!IS_DEMO_MODE) {
+          try {
+            await completeStudentOnboarding(requestBody);
+          } catch (error) {
+            if (
+              getApiErrorResponse(error)?.code !==
+              'ONBOARDING_ALREADY_COMPLETED'
+            ) {
+              throw error;
+            }
           }
         }
         navigate('/student/home', { replace: true });

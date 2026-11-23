@@ -7,27 +7,18 @@ import searchIcon from '../../assets/icons/student/search.svg';
 import clearIcon from '../../assets/icons/student/clear.svg';
 import ageRestrictionImage from '../../assets/images/student/age-restriction.png';
 import {
-  createStudentCareer,
   confirmPhoneVerification,
-  deleteStudentCareer,
   requestPhoneVerification,
-  updateStudentCareer,
 } from '../../api/student';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
 import { IS_DEMO_MODE } from '../../config/demoMode';
-import { studentDataSource } from '../../services/studentDataSource';
+import { mapIndustrySelectionToUpdateRequest } from '../../adapters/studentMatchingPreferences';
 import {
-  mapIndustrySelectionToUpdateRequest,
-  mapPriorityOrderToUpdateRequest,
-  mapWorkLocationToUpdateRequest,
-} from '../../adapters/studentMatchingPreferences';
-import { mapStudentOnboardingToCreateRequest } from '../../adapters/studentProfile';
-import {
-  isExperienceDraftValid,
-  mapExperienceDraftToCreateRequest,
-  mapExperienceDraftToUpdateRequest,
-  mapStudentCareerToExperience,
-} from '../../adapters/studentExperience';
+  hasOneHourWorkTime,
+  mapOnboardingWorkTimes,
+  mapStudentOnboardingRequest,
+} from '../../adapters/studentOnboarding';
+import { isExperienceDraftValid } from '../../adapters/studentExperience';
 import {
   ACADEMIC_STATUS_OPTIONS,
   KOREAN_LEVELS,
@@ -61,13 +52,9 @@ import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
 import { WorkLocationRadiusMap } from '../../components/student/onboarding/WorkLocationRadiusMap';
 import { AlienRegistrationCamera } from '../../components/student/documents/AlienRegistrationCamera';
 import { AlienRegistrationInformation } from '../../components/student/documents/AlienRegistrationInformation';
-import type {
-  Experience,
-  ExperienceDraft,
-  StudentCareerResponse,
-} from '../../types/experience';
+import type { Experience, ExperienceDraft } from '../../types/experience';
 import type { IndustryId, IndustryOption } from '../../types/industry';
-import type { StudentProfileCreateRequest } from '../../types/studentProfile';
+import type { StudentOnboardingDraftRequest } from '../../types/studentOnboarding';
 import type { MatchingPriority } from '../../types/matchingPriority';
 import type {
   CountryOption,
@@ -127,13 +114,12 @@ export type OnboardingView =
 export type PhoneVerificationPreview = 'default' | 'error' | 'success';
 
 type StudentOnboardingPageProps = {
-  enableCareerApi?: boolean;
   initialStep?: OnboardingView;
   initialWorkRadiusOpen?: boolean;
   phoneVerificationPreview?: PhoneVerificationPreview;
   onBack?: () => void;
   onComplete?: (
-    requestBody: StudentProfileCreateRequest,
+    requestBody: StudentOnboardingDraftRequest,
   ) => boolean | Promise<boolean | void> | void;
 };
 
@@ -409,7 +395,6 @@ function getPhoneVerificationConfirmErrorMessage(error: unknown) {
 }
 
 export default function StudentOnboardingPage({
-  enableCareerApi = false,
   initialStep = 'alienRegistrationInformation',
   initialWorkRadiusOpen = false,
   onBack,
@@ -423,14 +408,7 @@ export default function StudentOnboardingPage({
     null,
   );
   const [experiences, setExperiences] = useState<Experience[]>(() =>
-    enableCareerApi ? [] : INITIAL_EXPERIENCES,
-  );
-  const [studentCareers, setStudentCareers] = useState<StudentCareerResponse[]>(
-    [],
-  );
-  const [isCareerSaving, setIsCareerSaving] = useState(false);
-  const [deletingCareerIds, setDeletingCareerIds] = useState<Set<string>>(
-    () => new Set(),
+    IS_DEMO_MODE ? INITIAL_EXPERIENCES : [],
   );
   const [info, setInfo] = useState<BasicInfo>(() => ({
     ...INITIAL_INFO,
@@ -451,7 +429,7 @@ export default function StudentOnboardingPage({
     );
   const [isIndustrySelectionSubmitted, setIsIndustrySelectionSubmitted] =
     useState(false);
-  const [isIndustrySaving, setIsIndustrySaving] = useState(false);
+  const [businessTypeFlexible, setBusinessTypeFlexible] = useState(false);
   const [otherIndustry, setOtherIndustry] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [isPhoneVerificationPending, setIsPhoneVerificationPending] =
@@ -486,7 +464,7 @@ export default function StudentOnboardingPage({
     setIsWorkLocationRadiusSelectionOpen,
   ] = useState(initialWorkRadiusOpen);
   const [isWorkLocationSubmitted, setIsWorkLocationSubmitted] = useState(false);
-  const [isWorkLocationSaving, setIsWorkLocationSaving] = useState(false);
+
   const [
     isResidenceQualificationSheetOpen,
     setIsResidenceQualificationSheetOpen,
@@ -502,27 +480,6 @@ export default function StudentOnboardingPage({
   const [isResidenceExpirySubmitted, setIsResidenceExpirySubmitted] =
     useState(false);
 
-  useEffect(() => {
-    if (!enableCareerApi) return;
-
-    let isActive = true;
-
-    void studentDataSource
-      .getProfile()
-      .then((profile) => {
-        if (!isActive) return;
-
-        setStudentCareers(profile.careers);
-        setExperiences(profile.careers.map(mapStudentCareerToExperience));
-      })
-      .catch(() => {
-        // Keep the empty career list when the profile is unavailable.
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [enableCareerApi]);
   const [isMatchingPrioritySubmitted, setIsMatchingPrioritySubmitted] =
     useState(false);
   const [isProfileSubmitting, setIsProfileSubmitting] = useState(false);
@@ -619,51 +576,10 @@ export default function StudentOnboardingPage({
     setStep('experienceForm');
   };
 
-  const handleExperienceDelete = async (experienceId: string) => {
-    if (!enableCareerApi) {
-      setExperiences((currentExperiences) =>
-        currentExperiences.filter(
-          (experience) => experience.id !== experienceId,
-        ),
-      );
-      return;
-    }
-
-    if (deletingCareerIds.has(experienceId)) return;
-
-    const career = studentCareers.find(
-      (studentCareer) => String(studentCareer.careerId) === experienceId,
+  const handleExperienceDelete = (experienceId: string) => {
+    setExperiences((currentExperiences) =>
+      currentExperiences.filter((experience) => experience.id !== experienceId),
     );
-
-    if (!career) return;
-
-    setDeletingCareerIds((currentIds) => new Set(currentIds).add(experienceId));
-
-    try {
-      await deleteStudentCareer(career.careerId);
-
-      setStudentCareers((currentCareers) =>
-        currentCareers.filter(
-          (studentCareer) => studentCareer.careerId !== career.careerId,
-        ),
-      );
-      setExperiences((currentExperiences) =>
-        currentExperiences.filter(
-          (experience) => experience.id !== experienceId,
-        ),
-      );
-    } catch (error) {
-      window.alert(
-        getApiErrorResponse(error)?.message ??
-          '경력 삭제에 실패했어요. 다시 시도해 주세요.',
-      );
-    } finally {
-      setDeletingCareerIds((currentIds) => {
-        const nextIds = new Set(currentIds);
-        nextIds.delete(experienceId);
-        return nextIds;
-      });
-    }
   };
 
   const handleIndustryToggle = (industryId: IndustryId) => {
@@ -686,45 +602,27 @@ export default function StudentOnboardingPage({
     });
   };
 
-  const handleIndustrySave = async (businessTypeFlexible: boolean) => {
-    if (isIndustrySaving) return;
-
+  const handleIndustrySave = (isFlexible: boolean) => {
     const requestBody = mapIndustrySelectionToUpdateRequest(
       selectedIndustries,
       otherIndustry,
-      businessTypeFlexible,
+      isFlexible,
     );
-
     if (!requestBody) {
       window.alert('희망 직종을 하나 이상 선택해 주세요.');
       return;
     }
-
-    setIsIndustrySaving(true);
-
-    try {
-      await studentDataSource.updateMatchingPreferences(requestBody);
-
-      if (businessTypeFlexible) {
-        setSelectedIndustries([]);
-        setOtherIndustry('');
-      }
-
-      setIsIndustrySelectionSubmitted(true);
-      setStep('workTimeSelection');
-    } catch (error) {
-      window.alert(
-        getApiErrorResponse(error)?.message ??
-          '희망 직종 저장에 실패했어요. 다시 시도해 주세요.',
-      );
-    } finally {
-      setIsIndustrySaving(false);
+    setBusinessTypeFlexible(isFlexible);
+    if (isFlexible) {
+      setSelectedIndustries([]);
+      setOtherIndustry('');
     }
+    setIsIndustrySelectionSubmitted(true);
+    setStep('workTimeSelection');
   };
 
-  const handleIndustryConfirm = () => void handleIndustrySave(false);
-
-  const handleIndustryNoPreference = () => void handleIndustrySave(true);
+  const handleIndustryConfirm = () => handleIndustrySave(false);
+  const handleIndustryNoPreference = () => handleIndustrySave(true);
 
   const handleWorkTimeSlotsChange = (day: Weekday, slots: number[]) => {
     setIsWorkTimeSelectionSubmitted(false);
@@ -738,6 +636,10 @@ export default function StudentOnboardingPage({
   };
 
   const handleWorkTimeConfirm = () => {
+    if (!hasOneHourWorkTime(mapOnboardingWorkTimes(workAvailability))) {
+      window.alert('연속으로 1시간 이상 근무 가능한 시간을 선택해 주세요.');
+      return;
+    }
     setIsWorkTimeSelectionSubmitted(true);
     setStep('workLocationSelection');
   };
@@ -746,6 +648,8 @@ export default function StudentOnboardingPage({
     setWorkLocation((currentLocation) => ({
       ...currentLocation,
       address,
+      latitude: undefined,
+      longitude: undefined,
     }));
     setIsWorkLocationSubmitted(false);
   };
@@ -768,30 +672,14 @@ export default function StudentOnboardingPage({
     setIsWorkLocationSubmitted(false);
   };
 
-  const handleWorkLocationRadiusConfirm = async () => {
-    if (isWorkLocationSaving) return;
-
-    const requestBody = mapWorkLocationToUpdateRequest(workLocation);
-    if (!requestBody) {
+  const handleWorkLocationRadiusConfirm = () => {
+    if (!workLocation.address.trim()) {
       window.alert('희망 근무위치를 입력해 주세요.');
       return;
     }
-
-    setIsWorkLocationSaving(true);
-
-    try {
-      await studentDataSource.updateMatchingPreferences(requestBody);
-      setIsWorkLocationRadiusSelectionOpen(false);
-      setIsWorkLocationSubmitted(true);
-      setStep('matchingPriority');
-    } catch (error) {
-      window.alert(
-        getApiErrorResponse(error)?.message ??
-          '희망 근무위치 저장에 실패했어요. 다시 시도해 주세요.',
-      );
-    } finally {
-      setIsWorkLocationSaving(false);
-    }
+    setIsWorkLocationRadiusSelectionOpen(false);
+    setIsWorkLocationSubmitted(true);
+    setStep('matchingPriority');
   };
 
   const handleResidenceQualificationConfirm = () => {
@@ -865,106 +753,53 @@ export default function StudentOnboardingPage({
       return;
     }
 
-    const requestBody = mapStudentOnboardingToCreateRequest(info);
-    if (!requestBody) return;
-
-    const priorityRequest = mapPriorityOrderToUpdateRequest(
-      matchingPriorities.map((priority) => priority.id),
-    );
-    if (!priorityRequest) return;
+    const requestBody = mapStudentOnboardingRequest({
+      birthDate: info.birthDate,
+      currentRegion: info.location,
+      koreanLevel: info.koreanLevel,
+      residenceQualification: residenceInfo.residenceQualification,
+      experiences,
+      selectedIndustries,
+      otherIndustry,
+      businessTypeFlexible,
+      workAvailability,
+      workLocation,
+      priorityOrder: matchingPriorities.map((priority) => priority.id),
+    });
+    if (!requestBody) {
+      window.alert('입력한 온보딩 정보를 다시 확인해 주세요.');
+      return;
+    }
 
     setIsProfileSubmitting(true);
 
     try {
-      await studentDataSource.updateMatchingPreferences(priorityRequest);
       const didComplete = await onComplete(requestBody);
       if (didComplete !== false) setIsMatchingPrioritySubmitted(true);
     } catch (error) {
-      window.alert(
-        getApiErrorResponse(error)?.message ??
-          '프로필 등록에 실패했어요. 다시 시도해 주세요.',
-      );
+      const apiError = getApiErrorResponse(error);
+      if (apiError?.code === 'PHONE_NOT_VERIFIED') {
+        window.alert(apiError.message);
+        setStep('phone');
+      } else if (apiError?.code === 'REGISTRATION_VERIFICATION_REQUIRED') {
+        window.alert(apiError.message);
+        setStep('alienRegistrationInformation');
+      } else {
+        window.alert(
+          apiError?.message ?? '프로필 등록에 실패했어요. 다시 시도해 주세요.',
+        );
+      }
     } finally {
       setIsProfileSubmitting(false);
     }
   };
 
-  const isCurrentExperienceDraftValid = isExperienceDraftValid(experienceDraft);
+  const isCurrentExperienceDraftValid =
+    isExperienceDraftValid(experienceDraft) &&
+    Boolean(experienceDraft.duties.trim());
 
-  const handleExperienceSave = async () => {
-    if (!isCurrentExperienceDraftValid || isCareerSaving) return;
-
-    if (enableCareerApi) {
-      setIsCareerSaving(true);
-
-      try {
-        if (experienceEditingId) {
-          const originalCareer = studentCareers.find(
-            (career) => String(career.careerId) === experienceEditingId,
-          );
-
-          if (!originalCareer) return;
-
-          const mappingResult = mapExperienceDraftToUpdateRequest(
-            experienceDraft,
-            originalCareer,
-          );
-
-          if (mappingResult.status === 'invalid') return;
-          if (mappingResult.status === 'unchanged') {
-            setStep('experienceList');
-            return;
-          }
-
-          const updatedCareer = await updateStudentCareer(
-            originalCareer.careerId,
-            mappingResult.requestBody,
-          );
-
-          setStudentCareers((currentCareers) =>
-            currentCareers.map((career) =>
-              career.careerId === updatedCareer.careerId
-                ? updatedCareer
-                : career,
-            ),
-          );
-          setExperiences((currentExperiences) =>
-            currentExperiences.map((experience) =>
-              experience.id === String(updatedCareer.careerId)
-                ? mapStudentCareerToExperience(updatedCareer)
-                : experience,
-            ),
-          );
-        } else {
-          const requestBody =
-            mapExperienceDraftToCreateRequest(experienceDraft);
-
-          if (!requestBody) return;
-
-          const createdCareer = await createStudentCareer(requestBody);
-
-          setStudentCareers((currentCareers) => [
-            ...currentCareers,
-            createdCareer,
-          ]);
-          setExperiences((currentExperiences) => [
-            ...currentExperiences,
-            mapStudentCareerToExperience(createdCareer),
-          ]);
-        }
-
-        setStep('experienceList');
-      } catch (error) {
-        const serverMessage = getApiErrorResponse(error)?.message;
-        window.alert(
-          serverMessage ?? '경력 저장에 실패했어요. 다시 시도해 주세요.',
-        );
-      } finally {
-        setIsCareerSaving(false);
-      }
-
-      return;
-    }
+  const handleExperienceSave = () => {
+    if (!isCurrentExperienceDraftValid) return;
 
     if (experienceEditingId) {
       setExperiences((currentExperiences) =>
@@ -1189,7 +1024,7 @@ export default function StudentOnboardingPage({
       <ExperienceForm
         draft={experienceDraft}
         isEditing={Boolean(experienceEditingId)}
-        isSubmitDisabled={!isCurrentExperienceDraftValid || isCareerSaving}
+        isSubmitDisabled={!isCurrentExperienceDraftValid}
         onBack={() => setStep('experienceList')}
         onChange={updateExperienceDraft}
         onSubmit={() => void handleExperienceSave()}
@@ -1229,7 +1064,7 @@ export default function StudentOnboardingPage({
             {experiences.map((experience) => (
               <ExperienceCard
                 experience={experience}
-                isDeleting={deletingCareerIds.has(experience.id)}
+                isDeleting={false}
                 key={experience.id}
                 onDelete={(experienceId) =>
                   void handleExperienceDelete(experienceId)
@@ -1378,9 +1213,8 @@ export default function StudentOnboardingPage({
           address={workLocation.address}
           radius={workLocation.radius}
           radiusOptions={WORK_LOCATION_RADIUS_OPTIONS}
-          isConfirming={isWorkLocationSaving}
           onBack={() => setIsWorkLocationRadiusSelectionOpen(false)}
-          onConfirm={() => void handleWorkLocationRadiusConfirm()}
+          onConfirm={handleWorkLocationRadiusConfirm}
           onRadiusChange={handleWorkLocationRadiusChange}
         />
       );
