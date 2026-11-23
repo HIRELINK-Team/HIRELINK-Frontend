@@ -50,3 +50,10 @@ export type EnrollmentPreviewResponse = {
     semesterCount: number | null;
   };
 };
+
+export type EnrollmentDocumentResponse = {
+  universityName: string;
+  campusName: string | null;
+  gradeLevel: number;
+  registeredAt: string;
+};

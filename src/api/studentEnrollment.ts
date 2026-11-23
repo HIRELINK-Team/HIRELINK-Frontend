@@ -1,5 +1,8 @@
 import apiClient from './client';
-import type { EnrollmentPreviewResponse } from '../types/studentDocument';
+import type {
+  EnrollmentDocumentResponse,
+  EnrollmentPreviewResponse,
+} from '../types/studentDocument';
 
 export async function previewEnrollmentCertificate(file: File) {
   const formData = new FormData();
@@ -7,6 +10,13 @@ export async function previewEnrollmentCertificate(file: File) {
   const { data } = await apiClient.post<EnrollmentPreviewResponse>(
     '/students/me/documents/enrollment/preview',
     formData,
+  );
+  return data;
+}
+
+export async function confirmEnrollmentCertificate(draftId: string) {
+  const { data } = await apiClient.post<EnrollmentDocumentResponse>(
+    `/students/me/documents/enrollment/${encodeURIComponent(draftId)}/confirm`,
   );
   return data;
 }

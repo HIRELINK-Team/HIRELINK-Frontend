@@ -13,6 +13,8 @@ type DocumentRecognitionReviewProps = {
   onBack: () => void;
   onRetry: () => void;
   onConfirm: () => void;
+  isConfirming?: boolean;
+  errorMessage?: string | null;
 };
 
 export function DocumentRecognitionReview({
@@ -22,6 +24,8 @@ export function DocumentRecognitionReview({
   onBack,
   onRetry,
   onConfirm,
+  isConfirming = false,
+  errorMessage,
 }: DocumentRecognitionReviewProps) {
   const { t } = useTranslation();
   return (
@@ -30,6 +34,7 @@ export function DocumentRecognitionReview({
         aria-label={t('common.back')}
         className="absolute top-[61px] left-4 grid size-8 place-items-center border-0 bg-transparent p-0"
         type="button"
+        disabled={isConfirming}
         onClick={onBack}
       >
         <img alt="" src={backIcon} />
@@ -78,10 +83,19 @@ export function DocumentRecognitionReview({
           ))}
         </dl>
       </section>
+      {errorMessage && (
+        <p
+          role="alert"
+          className="absolute right-6 bottom-[104px] left-6 m-0 text-center text-sm text-[#D33]"
+        >
+          {errorMessage}
+        </p>
+      )}
       <div className="absolute right-6 bottom-[37px] left-6 flex gap-3">
         <button
           className="h-[57px] flex-1 rounded-[15px] border-0 bg-[#CCF1EA] p-0 text-[20px] leading-[1.5] font-medium text-[#006E59]"
           type="button"
+          disabled={isConfirming}
           onClick={onRetry}
         >
           {t('my.documents.retake')}
@@ -89,6 +103,7 @@ export function DocumentRecognitionReview({
         <button
           className="h-[57px] flex-1 rounded-[15px] border-0 bg-[#00B894] p-0 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
           type="button"
+          disabled={isConfirming}
           onClick={onConfirm}
         >
           {t('common.confirm')}

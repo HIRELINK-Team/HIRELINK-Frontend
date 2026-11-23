@@ -34,10 +34,14 @@ import {
   STUDENT_BASIC_DOCUMENTS,
 } from '../../mocks/studentDocuments';
 import type { StudentNavigationTab } from '../../types/studentHome';
-import { previewEnrollmentCertificate } from '../../api/studentEnrollment';
+import {
+  confirmEnrollmentCertificate,
+  previewEnrollmentCertificate,
+} from '../../api/studentEnrollment';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
 import type {
   EnrollmentPreviewResponse,
+  EnrollmentDocumentResponse,
   StudentDocument,
 } from '../../types/studentDocument';
 
@@ -116,19 +120,64 @@ export default function StudentDocumentManagementPage({
   const [enrollmentPreview, setEnrollmentPreview] =
     useState<EnrollmentPreviewResponse | null>(null);
   const [enrollmentError, setEnrollmentError] = useState<string | null>(null);
+  const [confirmedEnrollment, setConfirmedEnrollment] =
+    useState<EnrollmentDocumentResponse | null>(null);
+  const [enrollmentConfirmError, setEnrollmentConfirmError] = useState<
+    string | null
+  >(null);
+  const [isEnrollmentConfirming, setIsEnrollmentConfirming] = useState(false);
+  const enrollmentConfirming = useRef(false);
   const [isEnrollmentUploading, setIsEnrollmentUploading] = useState(false);
   const enrollmentRequestId = useRef(0);
   const enrollmentUploading = useRef(false);
+
+  const handleEnrollmentConfirm = async () => {
+    if (!enrollmentPreview || enrollmentConfirming.current) return;
+    if (confirmedEnrollment) {
+      setView('enrollment-complete');
+      return;
+    }
+    enrollmentConfirming.current = true;
+    setIsEnrollmentConfirming(true);
+    setEnrollmentConfirmError(null);
+    try {
+      const result = await confirmEnrollmentCertificate(
+        enrollmentPreview.draftId,
+      );
+      setConfirmedEnrollment(result);
+      setView('enrollment-complete');
+    } catch (error) {
+      const status = getApiErrorStatus(error);
+      const message = getApiErrorResponse(error)?.message;
+      const messages: Record<number, string> = {
+        400: '인식 결과가 올바르지 않아요. 다시 업로드해주세요.',
+        401: '로그인 후 다시 시도해주세요.',
+        403: '등록 권한을 확인해주세요. 온보딩을 완료해야 할 수 있어요.',
+        404: '등록에 필요한 정보를 찾을 수 없어요.',
+        409: '인식 결과가 만료되었거나 이미 등록되었어요. 다시 업로드해주세요.',
+        422: '서류 정보를 확인할 수 없어요. 다시 업로드해주세요.',
+      };
+      setEnrollmentConfirmError(
+        status === 422 && message
+          ? message
+          : (status && messages[status]) ||
+              '등록하지 못했어요. 다시 시도해주세요.',
+      );
+    } finally {
+      enrollmentConfirming.current = false;
+      setIsEnrollmentConfirming(false);
+    }
+  };
 
   const handleEnrollmentUpload = async (file: File) => {
     if (enrollmentUploading.current) return;
     setEnrollmentError(null);
     if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) {
-      setEnrollmentError('PDF, JPG, PNG ??? ???? ? ???.');
+      setEnrollmentError('PDF, JPG, PNG 파일만 업로드할 수 있어요.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setEnrollmentError('?? ??? 5MB ???? ??.');
+      setEnrollmentError('파일 크기는 5MB 이하여야 해요.');
       return;
     }
     const requestId = ++enrollmentRequestId.current;
@@ -138,22 +187,25 @@ export default function StudentDocumentManagementPage({
       const preview = await previewEnrollmentCertificate(file);
       if (requestId !== enrollmentRequestId.current) return;
       setEnrollmentPreview(preview);
+      setConfirmedEnrollment(null);
+      setEnrollmentConfirmError(null);
       setView('enrollment-review');
     } catch (error) {
       if (requestId !== enrollmentRequestId.current) return;
       const status = getApiErrorStatus(error);
       const serverMessage = getApiErrorResponse(error)?.message;
       const messages: Record<number, string> = {
-        400: '??? ???? ?? ???????.',
-        413: '?? ??? 5MB ???? ??.',
-        415: 'PDF, JPG, PNG ??? ???? ? ???.',
-        422: '??? ??? ? ???. ??? ??? ?? ??????.',
-        502: '?? ?? ???? ??? ?????. ?? ? ?? ??????.',
+        400: '파일을 확인하고 다시 업로드해주세요.',
+        413: '파일 크기는 5MB 이하여야 해요.',
+        415: 'PDF, JPG, PNG 파일만 업로드할 수 있어요.',
+        422: '서류를 인식할 수 없어요. 선명한 파일로 다시 시도해주세요.',
+        502: '서류 인식 서비스에 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
       };
       setEnrollmentError(
         status === 422 && serverMessage
           ? serverMessage
-          : (status && messages[status]) || '???? ?????. ?? ??????.',
+          : (status && messages[status]) ||
+              '업로드에 실패했어요. 다시 시도해주세요.',
       );
     } finally {
       if (requestId === enrollmentRequestId.current) {
@@ -203,7 +255,10 @@ export default function StudentDocumentManagementPage({
   };
 
   const handleDocumentComplete = (documentId: StudentDocument['id']) => {
-    const now = new Date();
+    const now =
+      documentId === 'enrollment-certificate' && confirmedEnrollment
+        ? new Date(confirmedEnrollment.registeredAt)
+        : new Date();
     const registeredAt = t('my.documents.registeredAt', {
       date: `${String(now.getFullYear()).slice(-2)}.${String(
         now.getMonth() + 1,
@@ -450,9 +505,16 @@ export default function StudentDocumentManagementPage({
   if (view === 'enrollment-review' && enrollmentPreview) {
     return (
       <EnrollmentCertificateReview
-        preview={enrollmentPreview}
+        preview={
+          confirmedEnrollment
+            ? { ...enrollmentPreview, ...confirmedEnrollment }
+            : enrollmentPreview
+        }
+        registeredAt={confirmedEnrollment?.registeredAt}
+        isConfirming={isEnrollmentConfirming}
+        errorMessage={enrollmentConfirmError}
         onBack={() => setView('enrollment-camera')}
-        onConfirm={() => setView('enrollment-complete')}
+        onConfirm={handleEnrollmentConfirm}
         onRetry={() => setView('enrollment-camera')}
       />
     );

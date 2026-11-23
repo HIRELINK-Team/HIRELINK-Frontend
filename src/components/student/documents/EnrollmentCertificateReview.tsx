@@ -5,13 +5,17 @@ import { DocumentRecognitionReview } from './DocumentRecognitionReview';
 
 type EnrollmentCertificateReviewProps = {
   preview: EnrollmentPreviewResponse;
+  registeredAt?: string;
   onBack: () => void;
   onRetry: () => void;
   onConfirm: () => void;
+  isConfirming?: boolean;
+  errorMessage?: string | null;
 };
 
 export function EnrollmentCertificateReview({
   preview,
+  registeredAt,
   ...props
 }: EnrollmentCertificateReviewProps) {
   const { t } = useTranslation();
@@ -20,9 +24,20 @@ export function EnrollmentCertificateReview({
       documentTitle={t('my.documents.enrollment')}
       fields={[
         { label: t('my.documentFlow.school'), value: preview.universityName },
-        { label: '???', value: preview.campusName ?? '-' },
-        { label: t('my.documentFlow.year'), value: `${preview.gradeLevel}??` },
-        { label: '?? ID', value: preview.draftId },
+        { label: '캠퍼스', value: preview.campusName ?? '-' },
+        {
+          label: t('my.documentFlow.year'),
+          value: `${preview.gradeLevel}학년`,
+        },
+        { label: '확인 ID', value: preview.draftId },
+        ...(registeredAt
+          ? [
+              {
+                label: '등록일',
+                value: new Date(registeredAt).toLocaleDateString('ko-KR'),
+              },
+            ]
+          : []),
       ]}
       scanIcon={scanIcon}
       {...props}
