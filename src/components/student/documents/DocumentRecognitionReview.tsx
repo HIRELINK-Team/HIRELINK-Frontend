@@ -35,7 +35,14 @@ export function DocumentRecognitionReview({
         <img alt="" src={backIcon} />
       </button>
       <h1 className="absolute top-[210px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
-        {t('my.documents.reviewTitle').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
+        {t('my.documents.reviewTitle')
+          .split('\n')
+          .map((line, index) => (
+            <span key={line}>
+              {index > 0 && <br />}
+              {line}
+            </span>
+          ))}
       </h1>
       <p className="absolute top-[299px] left-6 m-0 text-[15px] leading-[1.5] text-[#8B95A1]">
         {t('my.documents.reviewDescription')}
@@ -49,7 +56,11 @@ export function DocumentRecognitionReview({
         </div>
         <dl
           className={`m-0 flex flex-col justify-center px-6 ${
-            fields.length > 1 ? 'min-h-[100px] gap-3' : 'min-h-[62px]'
+            fields.length > 2
+              ? 'min-h-[100px] gap-3 py-4'
+              : fields.length > 1
+                ? 'min-h-[100px] gap-3'
+                : 'min-h-[62px]'
           }`}
         >
           {fields.map((field) => (
@@ -60,7 +71,7 @@ export function DocumentRecognitionReview({
               <dt className="text-[15px] leading-[1.5] text-[#909597]">
                 {field.label}
               </dt>
-              <dd className="m-0 text-[15px] leading-[1.5] text-[#1D1F20]">
+              <dd className="m-0 break-all text-[15px] leading-[1.5] text-[#1D1F20]">
                 {field.value}
               </dd>
             </div>

@@ -23,11 +23,6 @@ export type StudentAlienRegistrationDetail = {
   value: string;
 };
 
-export type StudentEnrollmentCertificateDetail = {
-  label: string;
-  value: string;
-};
-
 export type StudentTranscriptDetail = {
   label: string;
   value: string;
@@ -41,4 +36,17 @@ export type StudentTopikDetail = {
 export type StudentAlienRegistrationGuideItem = {
   icon: string;
   title: string;
+};
+
+export type EnrollmentPreviewResponse = {
+  draftId: string;
+  universityName: string;
+  campusName: string | null;
+  gradeLevel: number;
+  extracted: {
+    universityName: string;
+    campusName: string | null;
+    gradeLevel: number | null;
+    semesterCount: number | null;
+  };
 };

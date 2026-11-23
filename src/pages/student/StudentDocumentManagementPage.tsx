@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
@@ -34,7 +34,12 @@ import {
   STUDENT_BASIC_DOCUMENTS,
 } from '../../mocks/studentDocuments';
 import type { StudentNavigationTab } from '../../types/studentHome';
-import type { StudentDocument } from '../../types/studentDocument';
+import { previewEnrollmentCertificate } from '../../api/studentEnrollment';
+import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
+import type {
+  EnrollmentPreviewResponse,
+  StudentDocument,
+} from '../../types/studentDocument';
 
 export type StudentDocumentManagementView =
   | 'guide'
@@ -108,6 +113,63 @@ export default function StudentDocumentManagementPage({
 }: StudentDocumentManagementPageProps) {
   const { t } = useTranslation();
   const [view, setView] = useState<StudentDocumentManagementView>(initialView);
+  const [enrollmentPreview, setEnrollmentPreview] =
+    useState<EnrollmentPreviewResponse | null>(null);
+  const [enrollmentError, setEnrollmentError] = useState<string | null>(null);
+  const [isEnrollmentUploading, setIsEnrollmentUploading] = useState(false);
+  const enrollmentRequestId = useRef(0);
+  const enrollmentUploading = useRef(false);
+
+  const handleEnrollmentUpload = async (file: File) => {
+    if (enrollmentUploading.current) return;
+    setEnrollmentError(null);
+    if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) {
+      setEnrollmentError('PDF, JPG, PNG ??? ???? ? ???.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setEnrollmentError('?? ??? 5MB ???? ??.');
+      return;
+    }
+    const requestId = ++enrollmentRequestId.current;
+    enrollmentUploading.current = true;
+    setIsEnrollmentUploading(true);
+    try {
+      const preview = await previewEnrollmentCertificate(file);
+      if (requestId !== enrollmentRequestId.current) return;
+      setEnrollmentPreview(preview);
+      setView('enrollment-review');
+    } catch (error) {
+      if (requestId !== enrollmentRequestId.current) return;
+      const status = getApiErrorStatus(error);
+      const serverMessage = getApiErrorResponse(error)?.message;
+      const messages: Record<number, string> = {
+        400: '??? ???? ?? ???????.',
+        413: '?? ??? 5MB ???? ??.',
+        415: 'PDF, JPG, PNG ??? ???? ? ???.',
+        422: '??? ??? ? ???. ??? ??? ?? ??????.',
+        502: '?? ?? ???? ??? ?????. ?? ? ?? ??????.',
+      };
+      setEnrollmentError(
+        status === 422 && serverMessage
+          ? serverMessage
+          : (status && messages[status]) || '???? ?????. ?? ??????.',
+      );
+    } finally {
+      if (requestId === enrollmentRequestId.current) {
+        enrollmentUploading.current = false;
+        setIsEnrollmentUploading(false);
+      }
+    }
+  };
+
+  const handleEnrollmentCameraBack = () => {
+    enrollmentRequestId.current += 1;
+    enrollmentUploading.current = false;
+    setIsEnrollmentUploading(false);
+    setEnrollmentError(null);
+    setView('enrollment-information');
+  };
   const [isAlienRegistrationComplete, setIsAlienRegistrationComplete] =
     useState(true);
   const [isEnrollmentCertificateComplete, setIsEnrollmentCertificateComplete] =
@@ -142,9 +204,11 @@ export default function StudentDocumentManagementPage({
 
   const handleDocumentComplete = (documentId: StudentDocument['id']) => {
     const now = new Date();
-    const registeredAt = t('my.documents.registeredAt', { date: `${String(now.getFullYear()).slice(-2)}.${String(
-      now.getMonth() + 1,
-    ).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}` });
+    const registeredAt = t('my.documents.registeredAt', {
+      date: `${String(now.getFullYear()).slice(-2)}.${String(
+        now.getMonth() + 1,
+      ).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`,
+    });
 
     if (documentId === 'alien-registration-card') {
       setIsAlienRegistrationComplete(true);
@@ -374,15 +438,19 @@ export default function StudentDocumentManagementPage({
   if (view === 'enrollment-camera') {
     return (
       <EnrollmentCertificateCamera
-        onBack={() => setView('enrollment-information')}
-        onCapture={() => setView('enrollment-review')}
+        onBack={handleEnrollmentCameraBack}
+        onCapture={() => {}}
+        onFileUpload={handleEnrollmentUpload}
+        isUploading={isEnrollmentUploading}
+        errorMessage={enrollmentError}
       />
     );
   }
 
-  if (view === 'enrollment-review') {
+  if (view === 'enrollment-review' && enrollmentPreview) {
     return (
       <EnrollmentCertificateReview
+        preview={enrollmentPreview}
         onBack={() => setView('enrollment-camera')}
         onConfirm={() => setView('enrollment-complete')}
         onRetry={() => setView('enrollment-camera')}
