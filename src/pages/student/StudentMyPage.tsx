@@ -1,5 +1,4 @@
 import chevronRightIcon from '../../assets/icons/student/my/chevron-right.svg';
-import headerBellIcon from '../../assets/icons/student/my/header-bell.svg';
 import headerSettingsIcon from '../../assets/icons/student/my/header-settings.svg';
 import customerCenterMenuIcon from '../../assets/images/student/my/customer-center-menu-figma.png';
 import documentMenuIcon from '../../assets/images/student/my/document-menu-figma.png';
@@ -55,7 +54,6 @@ export default function StudentMyPage({
   onDocumentManagementClick,
   onMatchingClick,
   onMenuClick,
-  onNotificationClick,
   onProfileEditClick,
   onSettingsClick,
   onTabChange,
@@ -84,7 +82,7 @@ export default function StudentMyPage({
         isBottomNavigationFixed
           ? 'h-[844px]'
           : 'h-[940px] px-6 pt-[62px] pb-[85px]'
-      }`}
+      } text-[#1D1F20]`}
     >
       <div
         className={
@@ -98,15 +96,7 @@ export default function StudentMyPage({
             <h1 className="m-0 text-[26px] leading-[1.5] font-semibold">
               마이페이지
             </h1>
-            <div className="-mr-2 -mt-1 flex gap-2">
-              <button
-                aria-label="알림"
-                className="grid size-10 place-items-center rounded-lg border-0 bg-transparent p-0"
-                type="button"
-                onClick={onNotificationClick}
-              >
-                <img alt="" className="size-6" src={headerBellIcon} />
-              </button>
+            <div className="-mr-2 -mt-1 flex">
               <button
                 aria-label="설정"
                 className="grid size-10 place-items-center rounded-lg border-0 bg-transparent p-0"
@@ -117,25 +107,29 @@ export default function StudentMyPage({
               </button>
             </div>
           </div>
-          <p className="m-0 text-[15px] leading-[1.5] text-[#8B95A1]">
+          <p className="m-0 text-[15px] leading-[1.5] text-[#909597]">
             오늘도 좋은 일자리를 찾아볼까요?
           </p>
         </header>
 
         <section className="mt-[13px] flex items-center">
-          <img alt="" className="h-[74px] w-[75px]" src={profileImage} />
-          <div className="ml-[15px] min-w-0 pt-[7px]">
+          <img
+            alt=""
+            className="h-[74px] w-[74px] rounded-full object-cover"
+            src={studentProfile?.profileImageUrl || profileImage}
+          />
+          <div className="ml-[15px] min-w-0">
             <p className="m-0 text-[20px] leading-[1.5] font-semibold">
               {profileName}
             </p>
-            <p className="m-0 mt-[1px] flex items-center gap-[6px] text-[13px] leading-[1.5] text-[#8B95A1]">
+            <p className="m-0 mt-[1px] flex items-center gap-[6px] text-[13px] leading-[1.5] text-[#909597]">
               <span>{visaStatus}</span>
               <span aria-hidden="true">|</span>
               <span>{topikLevel}</span>
             </p>
           </div>
           <button
-            className="ml-auto mt-[12px] flex items-center gap-2 border-0 bg-transparent p-0 text-[13px] leading-[1.5] text-[#8B95A1]"
+            className="ml-auto flex items-center gap-2 border-0 bg-transparent p-0 text-[13px] leading-[1.5] text-[#909597]"
             type="button"
             onClick={onProfileEditClick}
           >
@@ -148,17 +142,17 @@ export default function StudentMyPage({
           </button>
         </section>
 
-        <section className="relative mt-[13px] h-[263px] overflow-hidden rounded-[20px] bg-white">
+        <section className="relative mt-[13px] h-[263px] overflow-hidden rounded-[20px] bg-white shadow-[1px_1px_20px_rgba(0,0,0,0.04)]">
           <img
             alt=""
-            className="student-3d-illustration absolute top-[47px] left-6 h-[86px] w-[82px] object-contain"
+            className="student-3d-illustration absolute top-[50px] left-6 h-[82px] w-[83px] object-contain"
             src={workConditionIllustration}
           />
           <div className="absolute top-[29px] left-[125px]">
-            <h2 className="m-0 text-[17px] leading-[1.5] font-bold">
+            <h2 className="m-0 text-[17px] leading-[1.5] font-semibold">
               {STUDENT_MY_PROGRESS_MOCK.title}
             </h2>
-            <div className="mt-[3px] text-[13px] leading-[1.5] text-[#8B95A1]">
+            <div className="mt-[3px] text-[13px] leading-[1.5] text-[#909597]">
               {STUDENT_MY_PROGRESS_MOCK.descriptionLines.map((line) => (
                 <p className="m-0" key={line}>
                   {line}
@@ -198,10 +192,10 @@ export default function StudentMyPage({
                 src={PRIMARY_MENU_ICONS[menu.id]}
               />
               <span className="ml-[23px] min-w-0 flex-1">
-                <span className="block text-[15px] leading-[1.5] font-bold">
+                <span className="block text-[15px] leading-[1.5] font-semibold">
                   {menu.title}
                 </span>
-                <span className="mt-[2px] block text-[13px] leading-[1.5] text-[#8B95A1]">
+                <span className="mt-[2px] block text-[13px] leading-[1.5] text-[#909597]">
                   {menu.description}
                 </span>
               </span>
@@ -214,7 +208,7 @@ export default function StudentMyPage({
           ))}
         </section>
 
-        <section className="-mx-6 border-b border-[#E5E8EB]">
+        <section className="-mx-6 border-b border-[#E5E8EB] py-2">
           {STUDENT_MY_SECONDARY_MENUS.map((menu) => (
             <button
               className="flex h-[35px] w-full items-center border-0 bg-transparent px-6 text-left"
@@ -227,7 +221,7 @@ export default function StudentMyPage({
                 className="ml-1 h-[23px] w-[23px] shrink-0 object-contain"
                 src={SECONDARY_MENU_ICONS[menu.id]}
               />
-              <span className="ml-[13px] flex-1 text-[15px] leading-[1.5] text-[#8B95A1]">
+              <span className="ml-[13px] flex-1 text-[15px] leading-[1.5] text-[#909597]">
                 {menu.title}
               </span>
               <img
