@@ -38,7 +38,7 @@ export default function StudentHiringCompletePage({
 
       <img
         alt="채용 완료 일러스트"
-        className="absolute top-[194px] left-1/2 h-[123px] w-[121px] -translate-x-1/2 object-contain"
+        className="student-3d-illustration absolute top-[194px] left-1/2 h-[123px] w-[121px] -translate-x-1/2 object-contain"
         src={hiringCompleteIllustration}
       />
 

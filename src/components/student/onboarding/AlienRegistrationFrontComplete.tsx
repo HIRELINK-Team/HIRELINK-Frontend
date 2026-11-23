@@ -25,7 +25,7 @@ export function AlienRegistrationFrontComplete({
       <section className="flex flex-1 flex-col items-center justify-center pb-8 text-center">
         <img
           alt="앞면 인증 완료"
-          className="w-[min(26vw,102px)] min-w-[88px] drop-shadow-[1px_1px_38px_rgba(0,184,148,0.28)]"
+          className="student-3d-illustration w-[min(26vw,102px)] min-w-[88px]"
           src={completeIllustration}
         />
         <h1 className="mt-8 m-0 text-[22px] leading-[1.5] font-semibold">

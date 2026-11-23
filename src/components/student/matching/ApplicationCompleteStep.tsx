@@ -37,7 +37,7 @@ export function ApplicationCompleteStep({
       <div className="absolute top-[clamp(178px,25.8dvh,218px)] left-1/2 h-[clamp(102px,14.6dvh,123px)] w-[clamp(100px,14.3dvh,121px)] -translate-x-1/2 pointer-events-none">
         <img
           alt=""
-          className="absolute top-[0.04%] left-[0.25%] h-[99.84%] w-[99.52%] max-w-none"
+          className="student-3d-illustration absolute top-[0.04%] left-[0.25%] h-[99.84%] w-[99.52%] max-w-none"
           src={completeIllustration}
         />
       </div>

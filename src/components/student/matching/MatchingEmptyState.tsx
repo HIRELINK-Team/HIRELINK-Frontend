@@ -18,7 +18,7 @@ export function MatchingEmptyState({ onConfirm }: MatchingEmptyStateProps) {
       <div className="absolute top-[278px] left-1/2 h-[113px] w-[88px] -translate-x-1/2 drop-shadow-[1px_1px_32px_rgba(0,184,148,0.28)]">
         <img
           alt=""
-          className="block h-full w-full object-contain"
+          className="student-3d-illustration block h-full w-full object-contain"
           src={emptyStateIllustration}
         />
       </div>
