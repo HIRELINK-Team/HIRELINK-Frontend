@@ -27,17 +27,17 @@ export function DocumentCapturePage({
 }: DocumentCapturePageProps) {
   const { t } = useTranslation();
   return (
-    <main className="mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-x-hidden overflow-y-auto bg-[#3F3F3F] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#F5F5F5]">
-      <div className="relative h-full min-h-[789px]">
+    <main className="mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#3F3F3F] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#F5F5F5]">
+      <div className="flex h-full min-h-0 flex-col px-6 pt-[clamp(8px,7.23dvh,61px)] pb-[clamp(8px,11dvh,93px)]">
         <button
           aria-label={t('common.back')}
-          className="absolute top-[61px] left-4 grid size-8 place-items-center border-0 bg-transparent p-0"
+          className="-ml-2 grid size-8 shrink-0 place-items-center border-0 bg-transparent p-0"
           type="button"
           onClick={onBack}
         >
           <img alt="" src={backIcon} />
         </button>
-        <p className="absolute top-[112px] right-6 left-6 m-0 text-center text-[15px] leading-[1.4]">
+        <p className="m-0 mt-[clamp(4px,2.25dvh,19px)] shrink-0 text-center text-[15px] leading-[1.4]">
           {t('my.documents.capturePrompt')
             .split('\n')
             .map((line, index) => (
@@ -47,10 +47,10 @@ export function DocumentCapturePage({
               </span>
             ))}
         </p>
-        <div className="absolute top-[198px] left-1/2 h-[290px] w-[227px] -translate-x-1/2 rounded-[10px] border border-[#F5F5F5]" />
+        <div className="mx-auto mt-[clamp(8px,5.25dvh,44px)] aspect-[227/290] min-h-0 max-h-[290px] w-auto max-w-full flex-1 rounded-[10px] border border-[#F5F5F5]" />
         <section
           aria-label={t('my.captureGuide')}
-          className="absolute top-[536px] right-6 left-6 grid grid-cols-3"
+          className="mt-[clamp(8px,5.7dvh,48px)] grid shrink-0 grid-cols-3"
         >
           <div className="flex flex-col items-center">
             <img alt="" className="h-10 w-10" src={cornersIcon} />
@@ -90,7 +90,7 @@ export function DocumentCapturePage({
         {errorMessage && (
           <p
             role="alert"
-            className="absolute right-6 bottom-[92px] left-6 m-0 text-center text-sm text-[#FFB4B4]"
+            className="m-0 mt-1 shrink-0 text-center text-sm text-[#FFB4B4]"
           >
             {errorMessage}
           </p>
@@ -104,7 +104,7 @@ export function DocumentCapturePage({
           captureFile={captureFile}
           isFileUploadDisabled={isUploading}
           isTakePhotoDisabled={isUploading}
-          className="absolute top-[694px] right-6 left-6"
+          className="mt-[clamp(8px,4dvh,34px)] shrink-0"
           onFileUpload={onFileUpload ?? onCapture}
           onTakePhoto={onCapture}
         />
