@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import timerActiveIcon from '../../../assets/icons/student/matching/timer-active.svg';
 import type { StudentApplication } from '../../../types/studentApplication';
@@ -6,6 +7,7 @@ import type {
   RecommendedJob,
   StudentOfferAction,
 } from '../../../types/studentMatching';
+import { translateMatchingText } from './translateMatchingText';
 
 type RecommendationApplication = Pick<
   StudentApplication,
@@ -94,6 +96,7 @@ export function RecommendedJobCard({
   onOfferAction,
   showApplyButton = false,
 }: RecommendedJobCardProps) {
+  const { t } = useTranslation();
   const isExpanded = isSelected || isOffer;
 
   return (
@@ -119,12 +122,14 @@ export function RecommendedJobCard({
 
       <p className="mt-[1px] mb-0 text-[15px] leading-[1.5] whitespace-nowrap">
         <span className="font-semibold text-[#009376]">{job.matchRate}% </span>
-        <span className="text-[#909597]">일치</span>
+        <span className="text-[#909597]">{t('common.match')}</span>
       </p>
 
       <div className="mt-[3px] flex min-w-0 items-center justify-between gap-3">
         <p className="m-0 min-w-0 truncate text-[15px] leading-[1.5] text-[#909597]">
-          {job.matchDescription || '추천 조건을 확인해 보세요.'}
+          {job.matchDescription
+            ? translateMatchingText(job.matchDescription, t)
+            : t('matching.recommendationFallback')}
         </p>
         <button
           className="h-[27px] shrink-0 rounded-[30px] border-[0.7px] border-[#D3D6D7] bg-white px-[14px] text-[13px] leading-[1.5] text-[#55595B]"
@@ -134,7 +139,7 @@ export function RecommendedJobCard({
             onDetailClick?.(job);
           }}
         >
-          상세보기
+          {t('common.viewDetails')}
         </button>
       </div>
 
@@ -146,7 +151,7 @@ export function RecommendedJobCard({
             type="button"
             onClick={() => onOfferAction?.('decline')}
           >
-            거절
+            {t('common.decline')}
           </button>
           <button
             className="rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5] disabled:opacity-60"
@@ -154,7 +159,7 @@ export function RecommendedJobCard({
             type="button"
             onClick={() => onOfferAction?.('accept')}
           >
-            수락
+            {t('common.accept')}
           </button>
         </div>
       ) : isSelected && showApplyButton ? (
@@ -166,7 +171,7 @@ export function RecommendedJobCard({
             onApply?.(job);
           }}
         >
-          지원하기
+          {t('common.apply')}
         </button>
       ) : null}
     </article>

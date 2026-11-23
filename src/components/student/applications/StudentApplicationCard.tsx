@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import activeTimerIcon from '../../../assets/icons/student/matching/timer-active.svg';
 import type { StudentApplicationCardModel } from '../../../types/studentApplication';
@@ -53,6 +54,7 @@ export function StudentApplicationCard({
   onDeclineOffer,
   onDetailClick,
 }: StudentApplicationCardProps) {
+  const { t } = useTranslation();
   const isOffer = application.status === 'OFFER_WAITING';
   const isHired = application.status === 'HIRED';
   const canRespond =
@@ -81,11 +83,11 @@ export function StudentApplicationCard({
       </div>
       <div className={`absolute left-[24px] flex items-baseline gap-[5px] ${scorePosition}`}>
         <strong className="text-[15px] font-semibold text-[#00A884]">{application.job.matchRate || 0}%</strong>
-        <span className="text-[15px] text-[#909597]">일치</span>
+        <span className="text-[15px] text-[#909597]">{t('common.match')}</span>
       </div>
       {!isHired ? (
         <p className={`absolute left-[24px] m-0 max-w-[205px] truncate text-[15px] text-[#909597] ${descriptionPosition}`}>
-          시간·거리 모두 일치
+          {t('common.timeAndDistanceMatch')}
         </p>
       ) : null}
       {isHired && application.employerPhoneNumber ? (
@@ -94,12 +96,12 @@ export function StudentApplicationCard({
         </p>
       ) : null}
       <button className={`absolute right-[24px] h-[24px] rounded-[30px] border-[0.7px] border-[#D3D6D7] bg-white px-[10px] text-[10px] text-[#55595B] ${isHired ? 'top-[91px]' : detailPosition}`} type="button" onClick={() => onDetailClick?.(application)}>
-        상세보기
+        {t('common.viewDetails')}
       </button>
       {canRespond ? (
         <div className="absolute right-[24px] bottom-[20px] left-[24px] grid grid-cols-2 gap-[8px]">
-          <button className="h-[50px] rounded-[15px] bg-[#B2E8DC] text-[17px] font-medium text-[#007A68]" disabled={isOfferActionPending} type="button" onClick={() => onDeclineOffer?.(application)}>거절</button>
-          <button className="h-[50px] rounded-[15px] bg-[#00B894] text-[17px] font-medium text-white" disabled={isOfferActionPending} type="button" onClick={() => onAcceptOffer?.(application)}>수락</button>
+          <button className="h-[50px] rounded-[15px] bg-[#B2E8DC] text-[17px] font-medium text-[#007A68]" disabled={isOfferActionPending} type="button" onClick={() => onDeclineOffer?.(application)}>{t('common.decline')}</button>
+          <button className="h-[50px] rounded-[15px] bg-[#00B894] text-[17px] font-medium text-white" disabled={isOfferActionPending} type="button" onClick={() => onAcceptOffer?.(application)}>{t('common.accept')}</button>
         </div>
       ) : null}
     </article>

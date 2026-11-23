@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import emptyStateIllustration from '../../../assets/images/student/matching/empty-state-illustration.png';
 
 type MatchingEmptyStateProps = {
@@ -6,6 +8,7 @@ type MatchingEmptyStateProps = {
 
 /** Empty recommendation state reused when student matching has no available jobs. */
 export function MatchingEmptyState({ onConfirm }: MatchingEmptyStateProps) {
+  const { t } = useTranslation();
   const handleConfirm = () => {
     onConfirm?.();
   };
@@ -27,14 +30,12 @@ export function MatchingEmptyState({ onConfirm }: MatchingEmptyStateProps) {
           className="m-0 text-[22px] leading-[1.5] font-semibold text-[#1D1F20]"
           id="matching-empty-title"
         >
-          현재 조건에 맞는
-          <br />
-          일자리가 없어요.
+          <span className="whitespace-pre-line">{t('matching.emptyTitle')}</span>
         </h1>
         <p className="mt-[15px] text-[13px] leading-[1.5] text-[#8B95A1]">
-          조건에 맞는 일자리를 찾으면
-          <br />
-          알림으로 알려드려요.
+          <span className="whitespace-pre-line">
+            {t('matching.emptyDescription')}
+          </span>
         </p>
       </div>
       <button
@@ -42,7 +43,7 @@ export function MatchingEmptyState({ onConfirm }: MatchingEmptyStateProps) {
         type="button"
         onClick={handleConfirm}
       >
-        확인
+        {t('common.confirm')}
       </button>
     </section>
   );

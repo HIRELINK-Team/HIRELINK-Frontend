@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 
 import { studentDataSource } from '../../services/studentDataSource';
 import backIcon from '../../assets/icons/student/matching/back.svg';
@@ -108,9 +110,16 @@ function isPendingOfferApplication(
 
 function mapOfferApplicationToRecommendedJob(
   application: PendingOfferApplication,
-  recommendation?: RecommendedJob,
+  recommendation: RecommendedJob | undefined,
+  t: TFunction,
 ): RecommendedJob {
-  const wageLabel = `${application.wageType === 'HOURLY' ? '시급' : '월급'} ${application.wageAmount.toLocaleString('ko-KR')}원`;
+  const amount = application.wageAmount.toLocaleString('ko-KR');
+  const wageLabel = t(
+    application.wageType === 'HOURLY'
+      ? 'matching.offerHourly'
+      : 'matching.offerMonthly',
+    { amount },
+  );
 
   return {
     applicationId: application.applicationId,
@@ -202,6 +211,7 @@ export default function StudentMatchingPage({
   recommendations = [],
   studentProfile = null,
 }: StudentMatchingPageProps) {
+  const { t } = useTranslation();
   const [matchingView, setMatchingView] =
     useState<StudentMatchingView>(initialView);
   const [selectedJob, setSelectedJob] = useState<RecommendedJob | null>(
@@ -238,6 +248,7 @@ export default function StudentMatchingPage({
             getJobPostingIdKey(job.jobPostingId) ===
             getJobPostingIdKey(offeredApplication.jobPostingId),
         ),
+        t,
       )
     : null;
   const displayedJobs = offeredJob
@@ -634,7 +645,7 @@ export default function StudentMatchingPage({
       data-selected-job-id={selectedJob?.id}
     >
       <button
-        aria-label="이전 화면으로 이동"
+        aria-label={t('matching.backToPrevious')}
         className="absolute top-[69px] left-[26px] flex h-[16px] w-[8px] items-center justify-center border-0 bg-transparent p-0"
         type="button"
         onClick={handleBack}
@@ -642,18 +653,16 @@ export default function StudentMatchingPage({
         <img alt="" className="block" src={backIcon} />
       </button>
 
-      <h1 className="absolute top-[112px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
-        지금 조건에 딱 맞는
-        <br />
-        일자리를 추천해드려요.
+      <h1 className="absolute top-[112px] left-6 m-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold">
+        {t('matching.recommendationTitle')}
       </h1>
 
       <p className="absolute top-[198px] left-6 text-[15px] leading-[1.5] text-[#B0B8C1]">
-        지원하면 24시간 타이머가 시작돼요.
+        {t('matching.timerNotice')}
       </p>
 
       <section
-        aria-label="추천 근무지 목록"
+        aria-label={t('matching.recommendationList')}
         className="absolute top-[243px] right-6 left-[23px] flex flex-col gap-[10px]"
       >
         {displayedJobs.map((job) => {

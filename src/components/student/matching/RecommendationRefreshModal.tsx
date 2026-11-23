@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import refreshIllustration from '../../../assets/images/student/matching/recommendation-refresh-illustration.png';
 
 type RecommendationRefreshModalProps = {
@@ -10,9 +12,10 @@ export function RecommendationRefreshModal({
   isSubmitting = false,
   onConfirm,
 }: RecommendationRefreshModalProps) {
+  const { t } = useTranslation();
   return (
     <section
-      aria-label="추천 갱신 안내"
+      aria-label={t('matching.refreshDialog')}
       aria-modal="true"
       className="absolute inset-0 z-40 bg-black/50"
       role="dialog"
@@ -24,12 +27,12 @@ export function RecommendationRefreshModal({
           src={refreshIllustration}
         />
         <h2 className="absolute top-[170px] left-0 m-0 w-full text-center text-[20px] leading-[1.5] font-semibold text-[#191F28]">
-          추천이 갱신되었습니다!
+          {t('matching.refreshTitle')}
         </h2>
         <p className="absolute top-[208px] left-0 m-0 w-full text-center text-[15px] leading-[1.5] text-[#8B95A1]">
-          지금 바로 새로운 일자리를
-          <br />
-          알아볼 수 있어요.
+          <span className="whitespace-pre-line">
+            {t('matching.refreshDescription')}
+          </span>
         </p>
         <button
           className="absolute right-[19px] bottom-6 left-[19px] h-[54px] rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium text-[#F5F5F5] disabled:cursor-not-allowed disabled:opacity-60"
@@ -37,7 +40,7 @@ export function RecommendationRefreshModal({
           type="button"
           onClick={onConfirm}
         >
-          확인
+          {t('common.confirm')}
         </button>
       </div>
     </section>

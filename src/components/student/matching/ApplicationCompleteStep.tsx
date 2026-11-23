@@ -1,7 +1,10 @@
+import { useTranslation } from 'react-i18next';
+
 import backIcon from '../../../assets/icons/student/matching/back.svg';
 import completeIllustration from '../../../assets/images/student/matching/application-complete-illustration.png';
 import type { RecommendedJob } from '../../../types/studentMatching';
 import { formatMatchingSummary } from '../../../utils/studentMatchingDisplay';
+import { translateMatchingText } from './translateMatchingText';
 
 type ApplicationCompleteStepProps = {
   job: RecommendedJob;
@@ -17,16 +20,17 @@ export function ApplicationCompleteStep({
   onDetail,
   onHome,
 }: ApplicationCompleteStepProps) {
-  const companyName = job.companyName || '근무지 정보';
+  const { t } = useTranslation();
+  const companyName = job.companyName || t('matching.workplaceFallback');
   const matchDescription = formatMatchingSummary(
     job.detail.comparisonTags,
-    job.matchDescription || '지원 정보가 접수되었어요.',
+    job.matchDescription || t('matching.applicationReceived'),
   );
 
   return (
     <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
-        aria-label="지원 전 확인으로 돌아가기"
+        aria-label={t('matching.backToConfirmation')}
         className="absolute top-[clamp(44px,8.2dvh,69px)] left-[26px] flex h-[19px] w-[11px] items-center justify-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -43,7 +47,7 @@ export function ApplicationCompleteStep({
       </div>
 
       <h1 className="absolute top-[clamp(310px,45dvh,380px)] left-0 m-0 w-full text-center text-[22px] leading-[1.5] font-semibold">
-        지원이 완료되었어요!
+        {t('matching.applicationCompleteTitle')}
       </h1>
 
       <section className="absolute top-[clamp(387px,56.1dvh,473px)] right-6 left-6 h-[clamp(108px,15.6dvh,132px)] overflow-hidden rounded-[20px] bg-white shadow-[1px_1px_20px_rgba(0,0,0,0.04)]">
@@ -54,10 +58,10 @@ export function ApplicationCompleteStep({
           <span className="font-semibold text-[#009376]">
             {job.matchRate}%{' '}
           </span>
-          <span className="text-[#909597]">일치</span>
+          <span className="text-[#909597]">{t('common.match')}</span>
         </p>
         <p className="absolute top-[88px] right-[105px] left-[24px] m-0 truncate text-[15px] leading-[1.5] text-[#909597]">
-          {matchDescription}
+          {translateMatchingText(matchDescription, t)}
         </p>
         <span className="absolute top-[25px] right-[27px] flex size-[26px] items-center justify-center rounded-full bg-[#E2F8F3] text-[16px] font-semibold text-[#00B894]">
           ✓
@@ -67,7 +71,9 @@ export function ApplicationCompleteStep({
           type="button"
           onClick={onDetail}
         >
-          <span className="text-[13px] leading-[1.5]">상세보기</span>
+          <span className="text-[13px] leading-[1.5]">
+            {t('common.viewDetails')}
+          </span>
         </button>
       </section>
 
@@ -77,7 +83,7 @@ export function ApplicationCompleteStep({
         onClick={onHome}
       >
         <span className="text-[20px] leading-[1.5] font-medium">
-          홈으로 돌아가기
+          {t('matching.backHome')}
         </span>
       </button>
     </main>

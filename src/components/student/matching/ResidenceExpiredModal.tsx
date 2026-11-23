@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import warningIcon from '../../../assets/icons/student/matching/expired-warning.svg';
 
 type ResidenceExpiredModalProps = {
@@ -10,6 +12,7 @@ export function ResidenceExpiredModal({
   onBack,
   onUpdate,
 }: ResidenceExpiredModalProps) {
+  const { t } = useTranslation();
   return (
     <section
       aria-labelledby="residence-expired-title"
@@ -23,12 +26,12 @@ export function ResidenceExpiredModal({
           className="mt-[25px] mb-0 text-[20px] leading-[1.5] font-semibold text-[#1D1F20]"
           id="residence-expired-title"
         >
-          체류기간이 만료되었어요.
+          {t('matching.residenceExpiredTitle')}
         </h2>
         <p className="mt-[7px] mb-0 text-[15px] leading-[1.5] text-[#909597]">
-          최신 만료일을 등록하고
-          <br />
-          일자리를 추천받아 보세요.
+          <span className="whitespace-pre-line">
+            {t('matching.residenceExpiredDescription')}
+          </span>
         </p>
         <div className="absolute right-[19px] bottom-[18px] left-[19px] grid gap-2">
           <button
@@ -36,14 +39,14 @@ export function ResidenceExpiredModal({
             type="button"
             onClick={onUpdate}
           >
-            재등록하러 가기
+            {t('matching.updateResidence')}
           </button>
           <button
             className="h-[46px] rounded-[15px] border-0 bg-[#B8EBDD] text-[17px] leading-[1.5] font-medium text-[#006E59]"
             type="button"
             onClick={onBack}
           >
-            뒤로 가기
+            {t('common.back')}
           </button>
         </div>
       </div>

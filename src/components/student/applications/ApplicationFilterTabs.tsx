@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import type { StudentApplicationsFilter } from '../../../types/studentApplication';
 
 type ApplicationFilterTabsProps = {
@@ -5,19 +7,23 @@ type ApplicationFilterTabsProps = {
   onChange: (filter: StudentApplicationsFilter) => void;
 };
 
-const FILTERS: Array<{ label: string; value: StudentApplicationsFilter }> = [
-  { value: 'reviewing', label: '검토 중' },
-  { value: 'offer', label: '채용 제안' },
-  { value: 'hired', label: '채용 완료' },
+const FILTERS: Array<{
+  labelKey: 'applications.inReview' | 'applications.offers' | 'applications.hired';
+  value: StudentApplicationsFilter;
+}> = [
+  { value: 'reviewing', labelKey: 'applications.inReview' },
+  { value: 'offer', labelKey: 'applications.offers' },
+  { value: 'hired', labelKey: 'applications.hired' },
 ];
 
 export function ApplicationFilterTabs({
   activeFilter,
   onChange,
 }: ApplicationFilterTabsProps) {
+  const { t } = useTranslation();
   return (
     <div
-      aria-label="지원 내역 상태 필터"
+      aria-label={t('applications.filter')}
       className="flex justify-start gap-[5px]"
       role="tablist"
     >
@@ -37,7 +43,7 @@ export function ApplicationFilterTabs({
             type="button"
             onClick={() => onChange(filter.value)}
           >
-            {filter.label}
+            {t(filter.labelKey)}
           </button>
         );
       })}
