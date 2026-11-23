@@ -123,6 +123,7 @@ type StudentOnboardingPageProps = {
   isSocialSignup?: boolean;
   onSocialSignupComplete?: (response: SocialSignupResponse) => Promise<void>;
   onSocialSignupExpired?: () => void;
+  onSocialRegistrationRequired?: () => void;
   initialStep?: OnboardingView;
   initialWorkRadiusOpen?: boolean;
   phoneVerificationPreview?: PhoneVerificationPreview;
@@ -407,6 +408,7 @@ export default function StudentOnboardingPage({
   isSocialSignup = false,
   onSocialSignupComplete,
   onSocialSignupExpired,
+  onSocialRegistrationRequired,
   initialStep = 'alienRegistrationInformation',
   initialWorkRadiusOpen = false,
   onBack,
@@ -1581,6 +1583,10 @@ export default function StudentOnboardingPage({
       return;
     }
     if (step === 'phone') {
+      if (isSocialSignup) {
+        onBack?.();
+        return;
+      }
       setStep(phoneBackStep);
       return;
     }
@@ -1625,6 +1631,19 @@ export default function StudentOnboardingPage({
 
       return true;
     } catch (error) {
+      if (
+        isSocialSignup &&
+        [
+          'REGISTRATION_VERIFICATION_REQUIRED',
+          'STAY_DOCUMENT_REQUIRED',
+        ].includes(getApiErrorResponse(error)?.code ?? '')
+      ) {
+        window.alert(
+          getApiErrorResponse(error)?.message ?? '등록증 인증이 필요해요.',
+        );
+        onSocialRegistrationRequired?.();
+        return false;
+      }
       if (
         isSocialSignup &&
         [
@@ -1693,6 +1712,19 @@ export default function StudentOnboardingPage({
         }
         setVerificationError('');
       } catch (error) {
+        if (
+          isSocialSignup &&
+          [
+            'REGISTRATION_VERIFICATION_REQUIRED',
+            'STAY_DOCUMENT_REQUIRED',
+          ].includes(getApiErrorResponse(error)?.code ?? '')
+        ) {
+          window.alert(
+            getApiErrorResponse(error)?.message ?? '등록증 인증이 필요해요.',
+          );
+          onSocialRegistrationRequired?.();
+          return;
+        }
         if (
           isSocialSignup &&
           [

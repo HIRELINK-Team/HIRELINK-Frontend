@@ -13,6 +13,10 @@ import type {
   SocialSignupTermsRequest,
   SocialSignupTermsResponse,
 } from '../types/socialTerms';
+import type {
+  SocialRegistrationFrontResponse,
+  SocialRegistrationVerificationResponse,
+} from '../types/socialRegistration';
 
 const SOCIAL_AUTH_PENDING_KEY = 'student.socialAuthPending';
 const SOCIAL_SIGNUP_KEY = 'student.socialSignup';
@@ -76,6 +80,44 @@ export async function confirmSocialPhoneVerification(
     { headers: { [headerName]: token } },
   );
   return data;
+}
+
+async function submitSocialRegistrationFile<T>(
+  path: string,
+  field: 'registrationFile' | 'stayDocument',
+  file: File,
+): Promise<T> {
+  const { headerName, token } = await getAuthCsrfToken();
+  const form = new FormData();
+  form.append(field, file);
+  const { data } = await publicApiClient.post<T>(path, form, {
+    headers: { [headerName]: token },
+  });
+  return data;
+}
+
+export function verifySocialRegistrationFront(file: File) {
+  return submitSocialRegistrationFile<SocialRegistrationFrontResponse>(
+    '/auth/social/registration/front',
+    'registrationFile',
+    file,
+  );
+}
+
+export function verifySocialRegistrationBack(file: File) {
+  return submitSocialRegistrationFile<SocialRegistrationVerificationResponse>(
+    '/auth/social/registration/back',
+    'registrationFile',
+    file,
+  );
+}
+
+export function verifySocialStayDocument(file: File) {
+  return submitSocialRegistrationFile<SocialRegistrationVerificationResponse>(
+    '/auth/social/registration/stay-document',
+    'stayDocument',
+    file,
+  );
 }
 
 export function hasPendingStudentSocialLogin() {

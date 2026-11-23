@@ -112,6 +112,7 @@ import StudentNotificationSettingsPage from './pages/student/StudentNotification
 import StudentOnboardingPage, {
   type PhoneVerificationPreview,
 } from './pages/student/StudentOnboardingPage';
+import StudentSocialRegistrationPage from './pages/student/StudentSocialRegistrationPage';
 import StudentProfileManagementPage, {
   type ProfileDetailView,
   type StudentProfileEditField,
@@ -568,7 +569,8 @@ function StudentSessionBootstrap() {
     typeof location.state === 'object' &&
     location.state !== null &&
     'initialStep' in location.state &&
-    location.state.initialStep === 'phone';
+    (location.state.initialStep === 'phone' ||
+      location.state.initialStep === 'socialRegistration');
   if (
     !isSessionRestored &&
     !getAccessToken() &&
@@ -854,10 +856,22 @@ function StudentTermsAgreementRoute() {
       }
       onContinue={async (agreements) => {
         if (isSocialSignup && mappedSocialTerms) {
-          await saveStudentSocialSignupTerms(
+          const saved = await saveStudentSocialSignupTerms(
             mapStudentSocialTermAgreements(mappedSocialTerms, agreements),
           );
-          navigate('/student/onboarding', { state: { initialStep: 'phone' } });
+          const savedTerms = mapStudentSocialTerms(saved.terms);
+          if (!savedTerms) throw new Error('Unsupported social terms');
+          const requiresRegistration = savedTerms.some(
+            (term) =>
+              term.agreementId === 'uniqueIdentification' && term.isRequired,
+          );
+          navigate('/student/onboarding', {
+            state: {
+              initialStep: requiresRegistration
+                ? 'socialRegistration'
+                : 'phone',
+            },
+          });
           return;
         }
         if (!IS_DEMO_MODE) {
@@ -915,6 +929,30 @@ function StudentOnboardingRoute({
       (hasStudentSocialSignup() && location.state.initialStep === 'phone'))
       ? location.state.initialStep
       : undefined;
+  const isSocialRegistration =
+    hasStudentSocialSignup() &&
+    typeof location.state === 'object' &&
+    location.state !== null &&
+    'initialStep' in location.state &&
+    location.state.initialStep === 'socialRegistration';
+
+  if (isSocialRegistration) {
+    return (
+      <StudentSocialRegistrationPage
+        onBack={() => navigate('/student/onboarding/terms')}
+        onComplete={() =>
+          navigate('/student/onboarding', {
+            replace: true,
+            state: { initialStep: 'phone' },
+          })
+        }
+        onSessionExpired={() => {
+          clearStudentSocialSignup();
+          navigate('/student/login', { replace: true });
+        }}
+      />
+    );
+  }
 
   return (
     <StudentOnboardingPage
@@ -923,6 +961,12 @@ function StudentOnboardingRoute({
       initialWorkRadiusOpen={initialWorkRadiusOpen}
       isSocialSignup={
         hasStudentSocialSignup() && requestedInitialStep === 'phone'
+      }
+      onSocialRegistrationRequired={() =>
+        navigate('/student/onboarding', {
+          replace: true,
+          state: { initialStep: 'socialRegistration' },
+        })
       }
       onSocialSignupExpired={() => {
         clearStudentSocialSignup();
@@ -976,7 +1020,13 @@ function StudentOnboardingRoute({
           navigate('/student/login', { replace: true });
         }
       }}
-      onBack={() => navigate('/student/entry')}
+      onBack={() =>
+        navigate(
+          hasStudentSocialSignup()
+            ? '/student/onboarding/terms'
+            : '/student/entry',
+        )
+      }
       onComplete={async (requestBody) => {
         if (!IS_DEMO_MODE) {
           try {

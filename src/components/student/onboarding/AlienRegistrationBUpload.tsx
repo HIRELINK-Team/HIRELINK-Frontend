@@ -4,7 +4,7 @@ import { AlienRegistrationOnboardingLayout } from './AlienRegistrationOnboarding
 
 type AlienRegistrationBUploadProps = {
   onBack: () => void;
-  onUpload: () => void;
+  onUpload: (file: File) => void;
 };
 
 export function AlienRegistrationBUpload({
@@ -60,7 +60,8 @@ export function AlienRegistrationBUpload({
             className="sr-only"
             type="file"
             onChange={(event) => {
-              if (event.currentTarget.files?.length) onUpload();
+              const file = event.currentTarget.files?.[0];
+              if (file) onUpload(file);
             }}
           />
         </label>
