@@ -21,9 +21,14 @@ import { getAccessToken, setAccessToken } from './api/accessToken';
 import { apiClient } from './api/client';
 import { getOnboardingStatus } from './api/onboarding';
 import {
+  clearStudentSocialSignup,
   clearPendingStudentSocialLogin,
   getSocialAuthResult,
+  getStudentSocialSignupTerms,
   hasPendingStudentSocialLogin,
+  hasStudentSocialSignup,
+  markStudentSocialSignup,
+  saveStudentSocialSignupTerms,
   startStudentSocialLogin,
 } from './api/socialAuth';
 import { completeStudentOnboarding } from './api/student/onboarding';
@@ -35,6 +40,10 @@ import {
   updateMyTermAgreements,
 } from './api/student';
 import { getApiErrorResponse } from './api/errors';
+import {
+  mapStudentSocialTermAgreements,
+  mapStudentSocialTerms,
+} from './adapters/socialTerms';
 import {
   hasUnrepresentableWorkTimes,
   mapIndustrySelectionToUpdateRequest,
@@ -110,7 +119,10 @@ import StudentProfileManagementPage, {
 } from './pages/student/StudentProfileManagementPage';
 import StudentProfileEditPage from './pages/student/StudentProfileEditPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
-import StudentTermsAgreementPage from './pages/student/StudentTermsAgreementPage';
+import StudentTermsAgreementPage, {
+  type StudentOnboardingTermAgreements,
+} from './pages/student/StudentTermsAgreementPage';
+import type { SocialSignupTerm } from './types/socialTerms';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
 import { formatWorkAvailabilityRanges } from './utils/formatWorkAvailability';
 import StudentMatchingConditionIndustryPage from './pages/student/StudentMatchingConditionIndustryPage';
@@ -550,7 +562,18 @@ function StudentSessionBootstrap() {
     return null;
   }
 
-  if (!isSessionRestored && !PUBLIC_STUDENT_ROUTES.has(location.pathname)) {
+  const isSocialPhoneStep =
+    hasStudentSocialSignup() &&
+    location.pathname === '/student/onboarding' &&
+    typeof location.state === 'object' &&
+    location.state !== null &&
+    'initialStep' in location.state &&
+    location.state.initialStep === 'phone';
+  if (
+    !isSessionRestored &&
+    !PUBLIC_STUDENT_ROUTES.has(location.pathname) &&
+    !isSocialPhoneStep
+  ) {
     return (
       <Navigate
         replace
@@ -589,6 +612,7 @@ function StudentSocialAuthCallback({ children }: { children: ReactNode }) {
         if (!isActive) return;
         if (result.role !== 'STUDENT') throw new Error('SOCIAL_ROLE_MISMATCH');
         if (result.status === 'SIGNUP_REQUIRED') {
+          markStudentSocialSignup();
           clearPendingStudentSocialLogin();
           navigate('/student/onboarding/terms', {
             replace: true,
@@ -683,6 +707,7 @@ function StudentLoginRoute() {
     <StudentEmailLoginPage
       onBack={() => navigate('/student/entry')}
       onLogin={async (request) => {
+        clearStudentSocialSignup();
         if (IS_DEMO_MODE) {
           navigate('/student/home');
           return;
@@ -721,6 +746,7 @@ function StudentSignupRoute() {
     <StudentEmailSignupPage
       onBack={() => navigate('/student/login')}
       onSignup={async (request) => {
+        clearStudentSocialSignup();
         if (IS_DEMO_MODE) {
           navigate('/student/onboarding/terms');
           return;
@@ -737,6 +763,32 @@ function StudentSignupRoute() {
 function StudentTermsAgreementRoute() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSocialSignup] = useState(hasStudentSocialSignup);
+  const [socialTerms, setSocialTerms] = useState<SocialSignupTerm[] | null>(
+    null,
+  );
+  const [termsLoadError, setTermsLoadError] = useState(false);
+  const [termsLoadAttempt, setTermsLoadAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!isSocialSignup) return;
+    let isActive = true;
+    void getStudentSocialSignupTerms()
+      .then(({ terms }) => {
+        if (!mapStudentSocialTerms(terms))
+          throw new Error('Unsupported social terms');
+        if (isActive) {
+          setSocialTerms(terms);
+          setTermsLoadError(false);
+        }
+      })
+      .catch(() => {
+        if (isActive) setTermsLoadError(true);
+      });
+    return () => {
+      isActive = false;
+    };
+  }, [isSocialSignup, termsLoadAttempt]);
 
   const cameFromStudentEntry =
     typeof location.state === 'object' &&
@@ -744,12 +796,69 @@ function StudentTermsAgreementRoute() {
     'fromStudentEntry' in location.state &&
     location.state.fromStudentEntry === true;
 
+  const mappedSocialTerms = socialTerms
+    ? mapStudentSocialTerms(socialTerms)
+    : null;
+  if (isSocialSignup && !mappedSocialTerms) {
+    return termsLoadError ? (
+      <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col items-center justify-center gap-4 bg-[#F5F5F5] px-6 text-center">
+        <p>약관을 불러오지 못했어요. 다시 시도해 주세요.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setTermsLoadError(false);
+            setTermsLoadAttempt((attempt) => attempt + 1);
+          }}
+        >
+          다시 시도
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            clearStudentSocialSignup();
+            navigate('/student/entry');
+          }}
+        >
+          처음으로
+        </button>
+      </main>
+    ) : (
+      <div aria-busy="true" />
+    );
+  }
+
+  const initialAgreements: StudentOnboardingTermAgreements | undefined =
+    mappedSocialTerms
+      ? {
+          serviceTerms: false,
+          personalInformationCollection: false,
+          thirdPartyProvision: false,
+          uniqueIdentification: false,
+          marketing: false,
+          ...Object.fromEntries(
+            mappedSocialTerms.map((term) => [term.agreementId, term.isAgreed]),
+          ),
+        }
+      : undefined;
+
   return (
     <StudentTermsAgreementPage
+      availableAgreementIds={mappedSocialTerms?.map((term) => term.agreementId)}
+      requiredAgreementIds={mappedSocialTerms
+        ?.filter((term) => term.isRequired)
+        .map((term) => term.agreementId)}
+      initialAgreements={initialAgreements}
       onBack={() =>
         navigate(cameFromStudentEntry ? '/student/entry' : '/student/signup')
       }
       onContinue={async (agreements) => {
+        if (isSocialSignup && mappedSocialTerms) {
+          await saveStudentSocialSignupTerms(
+            mapStudentSocialTermAgreements(mappedSocialTerms, agreements),
+          );
+          navigate('/student/onboarding', { state: { initialStep: 'phone' } });
+          return;
+        }
         if (!IS_DEMO_MODE) {
           await updateMyTermAgreements({
             agreements: [
@@ -781,6 +890,7 @@ type StudentOnboardingRouteProps = {
   initialStep?:
     | 'verification'
     | 'birthYear'
+    | 'phone'
     | 'industrySelection'
     | 'workTimeSelection'
     | 'workLocationSelection'
@@ -796,15 +906,18 @@ function StudentOnboardingRoute({
 }: StudentOnboardingRouteProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const resumeAtBirthDate =
+  const requestedInitialStep =
     typeof location.state === 'object' &&
     location.state !== null &&
     'initialStep' in location.state &&
-    location.state.initialStep === 'birthYear';
+    (location.state.initialStep === 'birthYear' ||
+      (hasStudentSocialSignup() && location.state.initialStep === 'phone'))
+      ? location.state.initialStep
+      : undefined;
 
   return (
     <StudentOnboardingPage
-      initialStep={initialStep ?? (resumeAtBirthDate ? 'birthYear' : undefined)}
+      initialStep={initialStep ?? requestedInitialStep}
       initialWorkRadiusOpen={initialWorkRadiusOpen}
       onBack={() => navigate('/student/entry')}
       onComplete={async (requestBody) => {
