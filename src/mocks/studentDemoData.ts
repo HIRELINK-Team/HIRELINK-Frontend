@@ -196,10 +196,13 @@ let demoApplications: StudentApplication[] = [
   },
 ];
 
-let demoMatches: StudentEmploymentMatchListItem[] = [
+let demoMatches: Array<
+  StudentEmploymentMatchListItem & { employerPhoneNumber?: string }
+> = [
   {
     applicationId: 2003,
     desiredStartDate: '2026-11-20',
+    employerPhoneNumber: '010-1111-2222',
     jobPostingId: 105,
     jobTitle: '카페 스태프',
     matchId: 4003,

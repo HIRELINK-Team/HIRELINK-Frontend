@@ -1,297 +1,105 @@
 import { useEffect, useState } from 'react';
 
-import type { StudentApplicationCardModel } from '../../../types/studentApplication';
-import hiredStatusDotIcon from '../../../assets/icons/student/applications/hired-status-dot.svg';
-import offerStatusDotIcon from '../../../assets/icons/student/applications/offer-status-dot.svg';
 import activeTimerIcon from '../../../assets/icons/student/matching/timer-active.svg';
+import type { StudentApplicationCardModel } from '../../../types/studentApplication';
 
 type StudentApplicationCardProps = {
   application: StudentApplicationCardModel;
-  isGeneralLayout?: boolean;
-  isHiredLayout?: boolean;
   isOfferActionPending?: boolean;
   onDeclineOffer?: (application: StudentApplicationCardModel) => void;
   onDetailClick?: (application: StudentApplicationCardModel) => void;
   onAcceptOffer?: (application: StudentApplicationCardModel) => void;
 };
 
-const STATUS_COPY = {
-  REVIEWING: { color: '#8B95A1', label: '응답 대기' },
-  OFFER_WAITING: { color: '#E05260', label: '채용 제안' },
-  HIRED: { color: '#387DD6', label: '채용 완료' },
-} as const;
-
-function formatRemainingTime(deadline: string, currentTime: number | null) {
-  if (currentTime === null) return null;
-
+function formatRemainingTime(deadline: string, now: number | null) {
+  if (now === null) return null;
   const deadlineTime = new Date(deadline).getTime();
   if (Number.isNaN(deadlineTime)) return null;
-
-  const remainingSeconds = Math.max(
-    0,
-    Math.floor((deadlineTime - currentTime) / 1_000),
-  );
-  const hours = Math.floor(remainingSeconds / 3_600);
-  const minutes = Math.floor((remainingSeconds % 3_600) / 60);
-
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  const seconds = Math.max(0, Math.floor((deadlineTime - now) / 1000));
+  return `${String(Math.floor(seconds / 3600)).padStart(2, '0')}:${String(Math.floor((seconds % 3600) / 60)).padStart(2, '0')}`;
 }
 
-function ApplicationDeadlineTimer({ deadline }: { deadline?: string | null }) {
-  const [currentTime, setCurrentTime] = useState<number | null>(null);
-
+function ApplicationDeadlineTimer({
+  deadline,
+  fallbackLabel,
+}: {
+  deadline?: string | null;
+  fallbackLabel?: string;
+}) {
+  const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
     if (!deadline) return undefined;
-
-    const updateCurrentTime = () => setCurrentTime(Date.now());
-    const timeoutId = window.setTimeout(updateCurrentTime, 0);
-    const intervalId = window.setInterval(updateCurrentTime, 1_000);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      window.clearInterval(intervalId);
-    };
+    const update = () => setNow(Date.now());
+    update();
+    const interval = window.setInterval(update, 1000);
+    return () => window.clearInterval(interval);
   }, [deadline]);
-
-  const timerLabel = deadline
-    ? formatRemainingTime(deadline, currentTime)
-    : null;
-  if (!timerLabel) return null;
-
+  const label = deadline
+    ? formatRemainingTime(deadline, now)
+    : fallbackLabel ?? null;
+  if (!label) return null;
   return (
-    <div className="flex h-[30px] items-center gap-[6px] whitespace-nowrap text-[#009376]">
-      <img
-        alt=""
-        className="block h-[18px] w-[18px] shrink-0"
-        src={activeTimerIcon}
-      />
-      <span className="block text-[20px] leading-none font-semibold tabular-nums">
-        {timerLabel}
-      </span>
+    <div className="flex items-center gap-[6px] whitespace-nowrap text-[#00A884]">
+      <img alt="" className="h-[18px] w-[18px]" src={activeTimerIcon} />
+      <span className="text-[20px] leading-none font-semibold tabular-nums">{label}</span>
     </div>
-  );
-}
-
-type OfferWaitingApplicationCardProps = Pick<
-  StudentApplicationCardProps,
-  | 'application'
-  | 'isOfferActionPending'
-  | 'onAcceptOffer'
-  | 'onDeclineOffer'
-  | 'onDetailClick'
->;
-
-function OfferWaitingApplicationCard({
-  application,
-  isOfferActionPending = false,
-  onAcceptOffer,
-  onDeclineOffer,
-  onDetailClick,
-}: OfferWaitingApplicationCardProps) {
-  const [currentTime, setCurrentTime] = useState<number | null>(null);
-
-  useEffect(() => {
-    const updateCurrentTime = () => {
-      setCurrentTime(Date.now());
-    };
-
-    updateCurrentTime();
-    const intervalId = window.setInterval(updateCurrentTime, 1_000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, []);
-
-  const canRespondToOffer =
-    application.apiStatus === 'OFFERED' &&
-    application.offerStatus === 'PENDING' &&
-    application.offerId !== null &&
-    application.offerId !== undefined &&
-    application.studentResponseDeadline !== null &&
-    application.studentResponseDeadline !== undefined &&
-    currentTime !== null &&
-    new Date(application.studentResponseDeadline).getTime() > currentTime;
-
-  return (
-    <article
-      className={`relative mx-auto w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1] ${
-        canRespondToOffer ? 'h-[223px]' : 'h-[164px]'
-      }`}
-    >
-      <h2 className="absolute top-[21px] left-[23px] m-0 max-w-[190px] truncate text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
-        {application.job.companyName}
-      </h2>
-      <p className="absolute top-[58px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
-        {application.job.role}
-      </p>
-      <p className="absolute top-[88px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
-        {application.job.commuteAndWage}
-      </p>
-      <p className="absolute top-[118px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
-        {application.job.matchDescription}
-      </p>
-
-      <div className="absolute top-[26px] right-[23px] flex items-center gap-[7px] whitespace-nowrap">
-        <img alt="" className="block" src={offerStatusDotIcon} />
-        <span className="text-[13px] leading-[1.5] font-medium tracking-[-0.02em] text-[#E05260]">
-          채용 제안
-        </span>
-      </div>
-      <div className="absolute top-[46px] right-[23px] flex h-[30px] items-center justify-end">
-        <ApplicationDeadlineTimer deadline={application.expiresAt} />
-      </div>
-      <button
-        className="absolute top-[108px] right-[23px] flex h-[27px] w-[72px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13px] text-[13px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#191F28]"
-        type="button"
-        onClick={() => onDetailClick?.(application)}
-      >
-        상세보기
-      </button>
-
-      {canRespondToOffer ? (
-        <div className="absolute right-[21px] bottom-5 left-[21px] grid grid-cols-2 gap-[7px]">
-          <button
-            className="h-[50px] rounded-[15px] border-0 bg-[#00B894] text-[17px] leading-[1.5] font-medium tracking-[-0.02em] text-[#F5F5F5]"
-            disabled={isOfferActionPending}
-            type="button"
-            onClick={() => onAcceptOffer?.(application)}
-          >
-            수락
-          </button>
-          <button
-            className="h-[50px] rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent text-[17px] leading-[1.5] font-medium tracking-[-0.02em] text-[#8B95A1]"
-            disabled={isOfferActionPending}
-            type="button"
-            onClick={() => onDeclineOffer?.(application)}
-          >
-            거절
-          </button>
-        </div>
-      ) : null}
-    </article>
-  );
-}
-
-type HiredApplicationCardProps = Pick<
-  StudentApplicationCardProps,
-  'application' | 'onDetailClick'
->;
-
-function HiredApplicationCard({
-  application,
-  onDetailClick,
-}: HiredApplicationCardProps) {
-  return (
-    <article className="relative mx-auto h-[164px] w-full max-w-[342px] overflow-hidden rounded-[20px] border-[0.7px] border-[#B0B8C1]">
-      <h2 className="absolute top-[21px] left-[23px] m-0 max-w-[190px] truncate text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
-        {application.job.companyName}
-      </h2>
-      <p className="absolute top-[58px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
-        {application.job.role}
-      </p>
-      <p className="absolute top-[88px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
-        {application.job.commuteAndWage}
-      </p>
-      <p className="absolute top-[118px] left-[23px] m-0 max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
-        {application.job.matchDescription}
-      </p>
-
-      <div className="absolute top-[26px] right-[23px] flex items-center gap-[7px] whitespace-nowrap">
-        <img alt="" className="block" src={hiredStatusDotIcon} />
-        <span className="text-[13px] leading-[1.5] font-medium tracking-[-0.02em] text-[#387DD6]">
-          채용 완료
-        </span>
-      </div>
-      <button
-        className="absolute top-[108px] right-[23px] flex h-[27px] w-[72px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13px] text-[13px] leading-[1.5] tracking-[-0.02em] whitespace-nowrap text-[#191F28]"
-        type="button"
-        onClick={() => onDetailClick?.(application)}
-      >
-        상세보기
-      </button>
-    </article>
   );
 }
 
 export function StudentApplicationCard({
   application,
-  isGeneralLayout = false,
-  isHiredLayout = false,
   isOfferActionPending = false,
   onAcceptOffer,
   onDeclineOffer,
   onDetailClick,
 }: StudentApplicationCardProps) {
-  const isOfferWaiting = application.status === 'OFFER_WAITING';
-  const status = STATUS_COPY[application.status as keyof typeof STATUS_COPY];
-
-  if (isOfferWaiting) {
-    return (
-      <OfferWaitingApplicationCard
-        application={application}
-        isOfferActionPending={isOfferActionPending}
-        onAcceptOffer={onAcceptOffer}
-        onDeclineOffer={onDeclineOffer}
-        onDetailClick={onDetailClick}
-      />
-    );
-  }
-
-  if (isHiredLayout && application.status === 'HIRED') {
-    return (
-      <HiredApplicationCard
-        application={application}
-        onDetailClick={onDetailClick}
-      />
-    );
-  }
-
-  if (!status) {
-    return null;
-  }
+  const isOffer = application.status === 'OFFER_WAITING';
+  const isHired = application.status === 'HIRED';
+  const canRespond =
+    isOffer && application.offerStatus === 'PENDING' && application.offerId != null;
+  const isExpandedOffer = canRespond;
+  const cardHeight = isExpandedOffer
+    ? 'h-[198px]'
+    : isHired
+      ? 'h-[132px]'
+      : 'h-[132px]';
+  const titlePosition = isOffer || isHired ? 'top-[22px]' : 'top-[18px]';
+  const scorePosition = isOffer || isHired ? 'top-[61px]' : 'top-[57px]';
+  const descriptionPosition = isOffer || isHired ? 'top-[92px]' : 'top-[87px]';
+  const detailPosition = isOffer || isHired ? 'top-[89px]' : 'top-[84px]';
 
   return (
-    <article className="relative h-[164px] w-full rounded-[20px] border-[0.7px] border-[#B0B8C1] px-[23px] pt-[21px]">
-      <h2 className="m-0 max-w-[190px] truncate text-[20px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
+    <article className={`relative mx-auto w-full max-w-[343px] overflow-hidden rounded-[20px] bg-white shadow-[1px_1px_20px_rgba(0,0,0,0.04)] ${cardHeight}`}>
+      <h2 className={`absolute left-[24px] m-0 max-w-[185px] truncate text-[20px] leading-[1.5] font-semibold text-[#191F28] ${titlePosition}`}>
         {application.job.companyName}
       </h2>
-      <div className="absolute top-[26px] right-[23px] flex items-center gap-[7px]">
-        <span
-          aria-hidden="true"
-          className="h-2 w-2 rounded-full"
-          style={{ backgroundColor: status.color }}
+      <div className="absolute top-[26px] right-[24px]">
+        <ApplicationDeadlineTimer
+          deadline={application.expiresAt}
+          fallbackLabel={application.timerLabel}
         />
-        <span
-          className="text-[13px] leading-[1.5] font-medium tracking-[-0.02em]"
-          style={{ color: status.color }}
-        >
-          {status.label}
-        </span>
       </div>
-
-      <p className="mt-[7px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
-        {application.job.role}
-      </p>
-      <p className="mt-[7.5px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
-        {application.job.commuteAndWage}
-      </p>
-      <p className="mt-[7.5px] max-w-[190px] truncate text-[15px] leading-[1.5] tracking-[-0.02em] text-[#8B95A1]">
-        {application.job.matchDescription}
-      </p>
-      <button
-        className={`absolute top-[108px] right-[23px] flex h-[27px] items-center justify-center rounded-[30px] border-0 bg-[#E5E8EB] px-[13.636px] text-[13px] leading-[1.5] whitespace-nowrap text-[#191F28] ${
-          isGeneralLayout ? 'w-[72.273px]' : ''
-        }`}
-        type="button"
-        onClick={() => onDetailClick?.(application)}
-      >
+      <div className={`absolute left-[24px] flex items-baseline gap-[5px] ${scorePosition}`}>
+        <strong className="text-[15px] font-semibold text-[#00A884]">{application.job.matchRate || 0}%</strong>
+        <span className="text-[15px] text-[#909597]">일치</span>
+      </div>
+      {!isHired ? (
+        <p className={`absolute left-[24px] m-0 max-w-[205px] truncate text-[15px] text-[#909597] ${descriptionPosition}`}>
+          시간·거리 모두 일치
+        </p>
+      ) : null}
+      {isHired && application.employerPhoneNumber ? (
+        <p className="absolute top-[94px] left-[24px] m-0 text-[15px] font-semibold text-[#00A884] underline underline-offset-2">
+          T. {application.employerPhoneNumber}
+        </p>
+      ) : null}
+      <button className={`absolute right-[24px] h-[24px] rounded-[30px] border-[0.7px] border-[#D3D6D7] bg-white px-[10px] text-[10px] text-[#55595B] ${isHired ? 'top-[91px]' : detailPosition}`} type="button" onClick={() => onDetailClick?.(application)}>
         상세보기
       </button>
-
-      {application.status === 'REVIEWING' ? (
-        <div className="absolute top-[47px] right-[23px] flex h-[30px] items-center justify-end">
-          <ApplicationDeadlineTimer deadline={application.expiresAt} />
+      {canRespond ? (
+        <div className="absolute right-[24px] bottom-[20px] left-[24px] grid grid-cols-2 gap-[8px]">
+          <button className="h-[50px] rounded-[15px] bg-[#B2E8DC] text-[17px] font-medium text-[#007A68]" disabled={isOfferActionPending} type="button" onClick={() => onDeclineOffer?.(application)}>거절</button>
+          <button className="h-[50px] rounded-[15px] bg-[#00B894] text-[17px] font-medium text-white" disabled={isOfferActionPending} type="button" onClick={() => onAcceptOffer?.(application)}>수락</button>
         </div>
       ) : null}
     </article>

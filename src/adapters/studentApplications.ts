@@ -104,10 +104,16 @@ export function mapStudentEmploymentMatchToCardModel(
   match: StudentEmploymentMatchListItem,
 ): StudentApplicationCardModel {
   const wageLabel = `${WAGE_TYPE_LABELS[match.wageType]} ${match.wageAmount.toLocaleString('ko-KR')}원`;
+  const employerPhoneNumber =
+    'employerPhoneNumber' in match &&
+    typeof match.employerPhoneNumber === 'string'
+      ? match.employerPhoneNumber
+      : undefined;
 
   return {
     applicationId: match.applicationId,
     desiredStartDate: match.desiredStartDate,
+    employerPhoneNumber,
     id: String(match.applicationId),
     job: {
       countdownLabel: '',

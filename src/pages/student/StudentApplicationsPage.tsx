@@ -33,11 +33,11 @@ const SCENARIO_FILTER: Record<
   StudentApplicationsScenario,
   StudentApplicationsFilter
 > = {
-  all: 'all',
+  all: 'reviewing',
   reviewing: 'reviewing',
   offer: 'offer',
   hired: 'hired',
-  empty: 'all',
+  empty: 'reviewing',
 };
 
 function getApplicationsForFilter(
@@ -69,7 +69,7 @@ export default function StudentApplicationsPage({
   applications: applicationData = STUDENT_APPLICATIONS_MOCK,
   isBottomNavigationFixed = false,
   isApplicationsLoading = false,
-  initialScenario = 'all',
+  initialScenario = 'reviewing',
   onAcceptOffer,
   onBack,
   onDeclineOffer,
@@ -88,9 +88,6 @@ export default function StudentApplicationsPage({
   const applications = isEmptyScenario
     ? []
     : getApplicationsForFilter(applicationData, activeFilter);
-  const isGeneralLayout = activeFilter === 'all' && !isEmptyScenario;
-  const isReviewingLayout = activeFilter === 'reviewing' && !isEmptyScenario;
-  const isHiredLayout = activeFilter === 'hired' && !isEmptyScenario;
 
   const handleFilterChange = (filter: StudentApplicationsFilter) => {
     setActiveFilter(filter);
@@ -157,20 +154,12 @@ export default function StudentApplicationsPage({
           <StudentApplicationsEmptyState />
         ) : (
           <section
-            className={`mt-[27px] ${
-              isGeneralLayout
-                ? 'space-y-[11px] [&>article:last-child]:-mt-px'
-                : isReviewingLayout
-                  ? 'space-y-[11px]'
-                  : 'space-y-[12px]'
-            }`}
+            className="mt-[27px] space-y-[11px]"
             aria-label="지원한 공고 목록"
           >
             {applications.map((application) => (
               <StudentApplicationCard
                 application={application}
-                isGeneralLayout={isGeneralLayout || isReviewingLayout}
-                isHiredLayout={isHiredLayout}
                 isOfferActionPending={
                   pendingOfferApplicationId === application.id
                 }
