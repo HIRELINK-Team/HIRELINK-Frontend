@@ -159,6 +159,7 @@ export default function StudentDocumentManagementPage({
   const [isEnrollmentUploading, setIsEnrollmentUploading] = useState(false);
   const enrollmentRequestId = useRef(0);
   const enrollmentUploading = useRef(false);
+  const documentCompletionPending = useRef(false);
 
   const handleEnrollmentConfirm = async () => {
     if (!enrollmentPreview || enrollmentConfirming.current) return;
@@ -283,7 +284,32 @@ export default function StudentDocumentManagementPage({
     setView('registration');
   };
 
-  const handleDocumentComplete = (documentId: StudentDocument['id']) => {
+  const handleDocumentComplete = async (documentId: StudentDocument['id']) => {
+    if (documentCompletionPending.current) return;
+    documentCompletionPending.current = true;
+    let enrollmentRegistered = isEnrollmentCertificateRegistered;
+    if (
+      documentId !== 'enrollment-certificate' &&
+      enrollmentLookup.status !== 'loaded'
+    ) {
+      try {
+        const document = await getEnrollmentCertificate();
+        enrollmentRegistered = true;
+        setEnrollmentLookup({ status: 'loaded', document });
+      } catch (error) {
+        if (getApiErrorStatus(error) === 404) {
+          enrollmentRegistered = false;
+          setEnrollmentLookup({ status: 'loaded', document: null });
+        } else {
+          window.alert(
+            getApiErrorResponse(error)?.message ??
+              '재학증명서 정보를 불러오지 못했어요. 다시 시도해주세요.',
+          );
+          documentCompletionPending.current = false;
+          return;
+        }
+      }
+    }
     const now =
       documentId === 'enrollment-certificate' && confirmedEnrollment
         ? new Date(confirmedEnrollment.registeredAt)
@@ -318,17 +344,19 @@ export default function StudentDocumentManagementPage({
 
     const nextCompletion = {
       'alien-registration-card': isAlienRegistrationRegistered,
-      'enrollment-certificate': isEnrollmentCertificateRegistered,
+      'enrollment-certificate': enrollmentRegistered,
       transcript: isTranscriptRegistered,
       'topik-transcript': isTopikRegistered,
       [documentId]: true,
     };
 
     if (Object.values(nextCompletion).every(Boolean)) {
+      documentCompletionPending.current = false;
       setView('badge-issued');
       return;
     }
 
+    documentCompletionPending.current = false;
     handleDocumentFlowExit();
   };
 
