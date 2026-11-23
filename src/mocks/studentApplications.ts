@@ -27,6 +27,7 @@ export const STUDENT_APPLICATIONS_MOCK: StudentApplicationCardModel[] = [
     expiresAt: '2026-10-30T09:00:00+09:00',
   },
   {
+    employerPhoneNumber: '010-1234-5678',
     id: 'application-hired-1',
     job: STUDENT_RECOMMENDED_JOBS[2],
     status: 'HIRED',

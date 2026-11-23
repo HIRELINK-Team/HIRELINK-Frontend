@@ -6,7 +6,6 @@ type ApplicationFilterTabsProps = {
 };
 
 const FILTERS: Array<{ label: string; value: StudentApplicationsFilter }> = [
-  { value: 'all', label: '일반' },
   { value: 'reviewing', label: '검토 중' },
   { value: 'offer', label: '채용 제안' },
   { value: 'hired', label: '채용 완료' },
@@ -19,7 +18,7 @@ export function ApplicationFilterTabs({
   return (
     <div
       aria-label="지원 내역 상태 필터"
-      className="flex w-full justify-center gap-[5px]"
+      className="flex justify-start gap-[5px]"
       role="tablist"
     >
       {FILTERS.map((filter) => {
@@ -28,10 +27,10 @@ export function ApplicationFilterTabs({
         return (
           <button
             aria-selected={isActive}
-            className={`h-[34px] shrink-0 rounded-[50px] border-0 px-3 text-[13px] leading-[1.5] tracking-[-0.02em] ${
+            className={`h-[31px] shrink-0 rounded-[50px] border-0 px-[15px] text-[10px] leading-[1.5] tracking-[-0.02em] ${
               isActive
-                ? 'bg-[#00B894] font-bold text-[#F5F5F5]'
-                : 'bg-[#E5E8EB] font-normal text-[#191F28]'
+                ? 'bg-[#00B894] font-bold text-white'
+                : 'bg-[#E6E8E9] font-normal text-[#191F28]'
             }`}
             key={filter.value}
             role="tab"

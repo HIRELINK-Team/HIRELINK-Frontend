@@ -135,4 +135,5 @@ export type StudentApplicationCardModel = {
   status: StudentApplicationStatus;
   studentResponseDeadline?: string | null;
   timerLabel?: string;
+  employerPhoneNumber?: string;
 };
