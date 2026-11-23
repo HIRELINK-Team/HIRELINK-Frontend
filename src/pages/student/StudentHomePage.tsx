@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import airplaneImage from '../../assets/images/student/home/figma/airplane.png';
 import cloudImage from '../../assets/images/student/home/figma/cloud.png';
 import ellipseShadowLeft from '../../assets/images/student/home/figma/ellipse-shadow-left.svg';
@@ -14,28 +16,32 @@ import type {
 
 type ApplicationStatusItemProps = {
   className: string;
+  isEnglish: boolean;
   label: string;
+  unit: string;
   value: number;
 };
 
 function ApplicationStatusItem({
   className,
+  isEnglish,
   label,
+  unit,
   value,
 }: ApplicationStatusItemProps) {
   return (
     <div
       className={`absolute top-[45px] flex h-[47px] w-[37px] flex-col items-center gap-[3px] text-center ${className}`}
     >
-      <span className="whitespace-nowrap text-[13px] leading-[1.5] font-normal text-[#707577]">
+      <span className={`whitespace-nowrap leading-[1.5] font-normal text-[#707577] ${isEnglish ? 'text-[11px]' : 'text-[13px]'}`}>
         {label}
       </span>
       <p className="m-0 leading-[1.5] whitespace-nowrap">
         <strong className="text-[20px] font-bold text-[#707577]">
           {value}
         </strong>
-        <span className="ml-[2px] text-[13px] font-normal text-[#909597]">
-          곳
+        <span className={`ml-[2px] font-normal text-[#909597] ${isEnglish ? 'text-[10px]' : 'text-[13px]'}`}>
+          {unit}
         </span>
       </p>
     </div>
@@ -59,6 +65,8 @@ export default function StudentHomePage({
   onMatchingClick,
   onTabChange,
 }: StudentHomePageProps) {
+  const { i18n, t } = useTranslation();
+  const isEnglish = i18n.resolvedLanguage === 'en';
   const { applications, greetingName } = homeSummary;
 
   return (
@@ -70,43 +78,58 @@ export default function StudentHomePage({
         src={homeBackgroundImage}
       />
 
+      <button
+        aria-label={t('home.languageToggle')}
+        className="absolute top-[56px] right-6 z-30 border-0 bg-transparent p-0 text-[15px] leading-[1.5] font-semibold text-[#1D1F20]"
+        type="button"
+        onClick={() => void i18n.changeLanguage(isEnglish ? 'ko' : 'en')}
+      >
+        {t('home.languageToggle')}
+      </button>
+
       <header className="absolute top-[96px] right-6 left-6 z-30">
         <h1 className="m-0 text-[26px] leading-[1.5] font-semibold">
-          안녕하세요, {greetingName}님!
+          {t('home.greeting', { name: greetingName })}
         </h1>
         <p className="mt-[3px] text-[15px] leading-[1.5] font-normal text-[#B3B8B9]">
-          오늘도 좋은 일자리를 찾아볼까요?
+          {t('home.subtitle')}
         </p>
       </header>
 
       <section
-        aria-label="지원 현황"
+        aria-label={t('home.applications')}
         className="absolute top-[181px] left-6 z-30 h-[121px] w-[342px] overflow-hidden rounded-[20px] bg-white/10 backdrop-blur-[13px]"
       >
         <h2 className="absolute top-[18px] left-6 m-0 text-[17px] leading-[1.5] font-semibold">
-          지원현황
+          {t('home.applications')}
         </h2>
         <p className="absolute top-[37px] left-6 m-0 flex h-[84px] items-baseline leading-[1.5]">
           <strong className="text-[50px] font-bold tracking-[0.038em] text-[#00B894]">
             {applications.total}
           </strong>
-          <span className="ml-[2px] text-[20px] font-medium tracking-[0.05em] text-[#909597]">
-            곳
+          <span className={`ml-[2px] font-medium text-[#909597] ${isEnglish ? 'text-[13px] tracking-normal' : 'text-[20px] tracking-[0.05em]'}`}>
+            {t('home.unit')}
           </span>
         </p>
         <ApplicationStatusItem
           className="left-[133px]"
-          label="검토 중"
+          isEnglish={isEnglish}
+          label={t('home.reviewing')}
+          unit={t('home.unit')}
           value={applications.reviewing}
         />
         <ApplicationStatusItem
           className="left-[205px]"
-          label="채용완료"
+          isEnglish={isEnglish}
+          label={t('home.completed')}
+          unit={t('home.unit')}
           value={applications.completed}
         />
         <ApplicationStatusItem
           className="left-[277px]"
-          label="채용제안"
+          isEnglish={isEnglish}
+          label={t('home.offer')}
+          unit={t('home.unit')}
           value={applications.offer}
         />
       </section>
@@ -196,7 +219,7 @@ export default function StudentHomePage({
           type="button"
           onClick={onMatchingClick}
         >
-          매칭하러 가기 →
+          {t('home.matchingCta')}
         </button>
         <StudentBottomNavigation
           activeTab="home"

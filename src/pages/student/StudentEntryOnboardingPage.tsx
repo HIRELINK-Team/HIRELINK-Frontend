@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import backIcon from '../../assets/icons/student/terms-privacy-back.svg';
 import socialLoginIllustration from '../../assets/images/student/entry/figma-social-background.png';
@@ -18,40 +19,21 @@ type StudentEntryOnboardingPageProps = {
   onStart?: () => void;
 };
 
-const COPY = {
-  en: {
-    email: 'Continue with email',
-    employer: 'Are you an employer?',
-    google: 'Continue with Google',
-    kakao: 'Continue with Kakao',
-    language: 'Language',
-  },
-  ko: {
-    email: '이메일 로그인·회원가입',
-    employer: '사장님이신가요?',
-    google: '구글로 계속하기',
-    kakao: '카카오로 계속하기',
-    language: '언어 선택',
-  },
-} as const;
-
 /** Renders the Student onboarding entry, language selection, and social login flow. */
 export default function StudentEntryOnboardingPage({
   onEmailLogin,
   onStart,
 }: StudentEntryOnboardingPageProps) {
+  const { i18n, t } = useTranslation();
   const [entryStep, setEntryStep] = useState<EntryStep>('start');
-  const [language, setLanguage] = useState<Language>('ko');
   const [isEmployerNoticeOpen, setIsEmployerNoticeOpen] = useState(false);
-
-  const copy = COPY[language];
 
   const handleStart = () => {
     setEntryStep('language');
   };
 
   const handleLanguageSelect = (nextLanguage: Language) => {
-    setLanguage(nextLanguage);
+    void i18n.changeLanguage(nextLanguage);
     setEntryStep('socialLogin');
   };
 
@@ -109,7 +91,7 @@ export default function StudentEntryOnboardingPage({
         </div>
         <section className="mt-auto mb-[clamp(3.5rem,28.8dvh,15.2rem)]">
           <h1 className="m-0 text-[16px] leading-6 font-medium">
-            {copy.language}
+            {t('entry.language')}
           </h1>
           <div className="mt-[11px] grid gap-5">
             <button
@@ -117,14 +99,14 @@ export default function StudentEntryOnboardingPage({
               type="button"
               onClick={() => handleLanguageSelect('en')}
             >
-              ENGLISH
+              {t('entry.english')}
             </button>
             <button
               className="h-16 rounded-[15px] bg-[#B8EBDD] text-[20px] leading-[30px] font-medium text-[#1D1F20]"
               type="button"
               onClick={() => handleLanguageSelect('ko')}
             >
-              한국어
+              {t('entry.korean')}
             </button>
           </div>
         </section>
@@ -157,7 +139,7 @@ export default function StudentEntryOnboardingPage({
           type="button"
           onClick={() => setIsEmployerNoticeOpen(true)}
         >
-          {copy.employer}
+          {t('entry.employer')}
         </button>
 
         <div className="mt-5 grid gap-[14px]">
@@ -167,7 +149,7 @@ export default function StudentEntryOnboardingPage({
             onClick={onStart}
           >
             <span className="absolute top-[15.3px] left-[54.33%] -translate-x-1/2 whitespace-nowrap">
-              {copy.google}
+              {t('entry.google')}
             </span>
             <span className="pointer-events-none absolute top-[19.3px] left-[29.91%] size-[19px] overflow-hidden">
               <img
@@ -183,7 +165,7 @@ export default function StudentEntryOnboardingPage({
             onClick={onStart}
           >
             <span className="absolute top-[15.3px] left-[54.91%] -translate-x-1/2 whitespace-nowrap">
-              {copy.kakao}
+              {t('entry.kakao')}
             </span>
             <img
               alt=""
@@ -196,7 +178,7 @@ export default function StudentEntryOnboardingPage({
             type="button"
             onClick={onEmailLogin}
           >
-            {copy.email}
+            {t('entry.email')}
           </button>
         </div>
       </section>

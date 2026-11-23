@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import applicationsActiveIcon from '../../../assets/icons/student/navigation/applications-active.svg';
 import applicationsInactiveIcon from '../../../assets/icons/student/navigation/applications-inactive.svg';
 import homeActiveIcon from '../../../assets/icons/student/navigation/home-active.svg';
@@ -19,13 +21,12 @@ type StudentBottomNavigationProps = {
 };
 
 const NAVIGATION_ITEMS: Array<{
-  label: string;
   tab: StudentNavigationTab;
 }> = [
-  { tab: 'home', label: '홈' },
-  { tab: 'matching', label: '매칭' },
-  { tab: 'applications', label: '지원내역' },
-  { tab: 'my', label: '마이' },
+  { tab: 'home' },
+  { tab: 'matching' },
+  { tab: 'applications' },
+  { tab: 'my' },
 ];
 
 const ACTIVE_ICONS: Record<StudentNavigationTab, string> = {
@@ -89,6 +90,8 @@ export function StudentBottomNavigation({
   isFixed = false,
   onTabChange,
 }: StudentBottomNavigationProps) {
+  const { i18n, t } = useTranslation();
+  const isEnglish = i18n.resolvedLanguage === 'en';
   const activeIndex = Math.max(
     NAVIGATION_ITEMS.findIndex((item) => item.tab === activeTab),
     0,
@@ -131,11 +134,11 @@ export function StudentBottomNavigation({
               tab={item.tab}
             />
             <span
-              className={`min-w-full text-center text-[13px] leading-[1.5] tracking-[-0.02em] ${
+              className={`min-w-full whitespace-nowrap text-center leading-[1.5] tracking-[-0.02em] ${isEnglish ? 'text-[10px]' : 'text-[13px]'} ${
                 isActive ? 'font-bold' : 'font-normal'
               }`}
             >
-              {item.label}
+              {t(`navigation.${item.tab}`)}
             </span>
           </button>
         );

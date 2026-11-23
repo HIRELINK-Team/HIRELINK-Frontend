@@ -1,0 +1,28 @@
+{
+  "entry": {
+    "language": "언어 선택",
+    "english": "ENGLISH",
+    "korean": "한국어",
+    "employer": "사장님이신가요?",
+    "google": "구글로 계속하기",
+    "kakao": "카카오로 계속하기",
+    "email": "이메일 로그인·회원가입"
+  },
+  "home": {
+    "greeting": "안녕하세요, {{name}}님!",
+    "subtitle": "오늘도 좋은 일자리를 찾아볼까요?",
+    "applications": "지원현황",
+    "reviewing": "검토 중",
+    "completed": "채용완료",
+    "offer": "채용제안",
+    "unit": "곳",
+    "matchingCta": "매칭하러 가기 →",
+    "languageToggle": "⇄ 한국어"
+  },
+  "navigation": {
+    "home": "홈",
+    "matching": "매칭",
+    "applications": "지원내역",
+    "my": "마이"
+  }
+}
