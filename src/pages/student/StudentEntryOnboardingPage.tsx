@@ -10,13 +10,14 @@ import socialLoginWordmark from '../../assets/images/student/entry/figma-social-
 import hirelinkLogoMint from '../../assets/images/student/entry/hirelink-logo-mint.svg';
 import hirelinkWordmark from '../../assets/images/student/entry/hirelink-wordmark.svg';
 import { EmployerEntryNotice } from '../../components/student/onboarding/EmployerEntryNotice';
+import type { SocialProvider } from '../../types/auth';
 
 type EntryStep = 'start' | 'language' | 'socialLogin';
 type Language = 'en' | 'ko';
 
 type StudentEntryOnboardingPageProps = {
   onEmailLogin?: () => void;
-  onStart?: () => void;
+  onStart?: (provider: SocialProvider) => void;
 };
 
 /** Renders the Student onboarding entry, language selection, and social login flow. */
@@ -146,7 +147,7 @@ export default function StudentEntryOnboardingPage({
           <button
             className="relative h-[57px] overflow-hidden rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
             type="button"
-            onClick={onStart}
+            onClick={() => onStart?.('google')}
           >
             <span className="absolute top-[15.3px] left-[54.33%] -translate-x-1/2 whitespace-nowrap">
               {t('entry.google')}
@@ -162,7 +163,7 @@ export default function StudentEntryOnboardingPage({
           <button
             className="relative h-[57px] overflow-hidden rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-[#F5F5F5] text-[17px] leading-[1.5] font-medium text-black"
             type="button"
-            onClick={onStart}
+            onClick={() => onStart?.('kakao')}
           >
             <span className="absolute top-[15.3px] left-[54.91%] -translate-x-1/2 whitespace-nowrap">
               {t('entry.kakao')}

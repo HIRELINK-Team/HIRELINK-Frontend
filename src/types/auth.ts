@@ -26,6 +26,16 @@ export interface LoginResponse extends AccessTokenResponse {
   userId: number;
 }
 
+export type SocialProvider = 'google' | 'kakao';
+
+export type SocialAuthResponse = {
+  status: 'LOGIN' | 'SIGNUP_REQUIRED';
+  role: UserRole;
+  email: string | null;
+  signupExpiresAt: string | null;
+  login: LoginResponse | null;
+};
+
 export interface SignupResponse extends AccessTokenResponse {
   email: string;
   role: UserRole;

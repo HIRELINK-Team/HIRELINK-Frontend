@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import axios from 'axios';
 import {
   Navigate,
@@ -14,6 +20,12 @@ import {
 import { getAccessToken, setAccessToken } from './api/accessToken';
 import { apiClient } from './api/client';
 import { getOnboardingStatus } from './api/onboarding';
+import {
+  clearPendingStudentSocialLogin,
+  getSocialAuthResult,
+  hasPendingStudentSocialLogin,
+  startStudentSocialLogin,
+} from './api/socialAuth';
 import { completeStudentOnboarding } from './api/student/onboarding';
 import LandingPage from './pages/LandingPage';
 import {
@@ -140,6 +152,7 @@ const PUBLIC_STUDENT_ROUTES = new Set([
   '/student/entry',
   '/student/login',
   '/student/signup',
+  '/student/onboarding/terms',
 ]);
 
 const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
@@ -556,17 +569,109 @@ function StudentSplashRoute() {
   return <Navigate replace to="/student/entry" />;
 }
 
+function StudentSocialAuthCallback({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(
+    hasPendingStudentSocialLogin,
+  );
+
+  useEffect(() => {
+    if (!isProcessing) return;
+    let isActive = true;
+
+    const handleResult = async () => {
+      try {
+        const errorCode = new URLSearchParams(window.location.search).get(
+          'error',
+        );
+        if (errorCode) throw new Error(errorCode);
+        const result = await getSocialAuthResult();
+        if (!isActive) return;
+        if (result.role !== 'STUDENT') throw new Error('SOCIAL_ROLE_MISMATCH');
+        if (result.status === 'SIGNUP_REQUIRED') {
+          clearPendingStudentSocialLogin();
+          navigate('/student/onboarding/terms', {
+            replace: true,
+            state: { fromStudentEntry: true },
+          });
+        } else if (
+          result.status === 'LOGIN' &&
+          result.login?.role === 'STUDENT' &&
+          result.login.accessToken
+        ) {
+          setAccessToken(result.login.accessToken);
+          const onboarding = await getOnboardingStatus();
+          if (!isActive) return;
+          if (onboarding.role !== 'STUDENT')
+            throw new Error('SOCIAL_ROLE_MISMATCH');
+          if (
+            onboarding.status === 'REQUIRED' &&
+            onboarding.nextStep === 'BASIC_INFORMATION'
+          ) {
+            clearPendingStudentSocialLogin();
+            navigate('/student/onboarding', {
+              replace: true,
+              state: { initialStep: 'birthYear' },
+            });
+          } else if (
+            onboarding.status === 'COMPLETED' &&
+            onboarding.nextStep === 'NONE'
+          ) {
+            clearPendingStudentSocialLogin();
+            navigate('/student/home', { replace: true });
+          } else if (
+            onboarding.status === 'NOT_APPLICABLE' &&
+            onboarding.nextStep === 'EXISTING_FLOW'
+          ) {
+            try {
+              await studentDataSource.getProfile();
+              if (!isActive) return;
+              clearPendingStudentSocialLogin();
+              navigate('/student/home', { replace: true });
+            } catch (error) {
+              if (!axios.isAxiosError(error) || error.response?.status !== 404)
+                throw error;
+              if (!isActive) return;
+              clearPendingStudentSocialLogin();
+              navigate('/student/onboarding', { replace: true });
+            }
+          } else {
+            throw new Error('INVALID_ONBOARDING_STATUS');
+          }
+        } else {
+          throw new Error('INVALID_SOCIAL_AUTH_RESULT');
+        }
+      } catch (error) {
+        if (!isActive) return;
+        clearPendingStudentSocialLogin();
+        const code = error instanceof Error ? error.message : '';
+        window.alert(
+          code === 'SOCIAL_ROLE_MISMATCH'
+            ? '유학생 계정으로 로그인해 주세요.'
+            : '소셜 로그인에 실패했어요. 다시 시도해 주세요.',
+        );
+        navigate('/student/login', { replace: true });
+      } finally {
+        if (isActive) setIsProcessing(false);
+      }
+    };
+
+    void handleResult();
+    return () => {
+      isActive = false;
+    };
+  }, [isProcessing, navigate]);
+
+  return isProcessing ? null : children;
+}
+
 function StudentEntryRoute() {
   const navigate = useNavigate();
 
   return (
     <StudentEntryOnboardingPage
       onEmailLogin={() => navigate('/student/login')}
-      onStart={() =>
-        navigate('/student/onboarding/terms', {
-          state: { fromStudentEntry: true },
-        })
-      }
+      onStart={startStudentSocialLogin}
     />
   );
 }
@@ -604,7 +709,7 @@ function StudentLoginRoute() {
         }
       }}
       onSignup={() => navigate('/student/signup')}
-      onSocialLogin={() => navigate('/student/onboarding')}
+      onSocialLogin={startStudentSocialLogin}
     />
   );
 }
@@ -675,6 +780,7 @@ function StudentTermsAgreementRoute() {
 type StudentOnboardingRouteProps = {
   initialStep?:
     | 'verification'
+    | 'birthYear'
     | 'industrySelection'
     | 'workTimeSelection'
     | 'workLocationSelection'
@@ -689,10 +795,16 @@ function StudentOnboardingRoute({
   phoneVerificationPreview,
 }: StudentOnboardingRouteProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const resumeAtBirthDate =
+    typeof location.state === 'object' &&
+    location.state !== null &&
+    'initialStep' in location.state &&
+    location.state.initialStep === 'birthYear';
 
   return (
     <StudentOnboardingPage
-      initialStep={initialStep}
+      initialStep={initialStep ?? (resumeAtBirthDate ? 'birthYear' : undefined)}
       initialWorkRadiusOpen={initialWorkRadiusOpen}
       onBack={() => navigate('/student/entry')}
       onComplete={async (requestBody) => {
@@ -2257,7 +2369,9 @@ function App() {
   return (
     <EmployerProfileProvider>
       <EmployerWorkplacesProvider>
-        <Routes>
+        <StudentSocialAuthCallback>
+          {/* prettier-ignore */}
+          <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route element={<EmployerAuthRoute />}>
             <Route path="/employer/entry" element={<EmployerLoginPage />} />
@@ -2530,6 +2644,7 @@ function App() {
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </StudentSocialAuthCallback>
       </EmployerWorkplacesProvider>
     </EmployerProfileProvider>
   );
