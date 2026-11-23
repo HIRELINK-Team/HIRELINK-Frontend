@@ -5,11 +5,13 @@ import { AlienRegistrationOnboardingLayout } from '../onboarding/AlienRegistrati
 type AlienRegistrationInformationProps = {
   onBack: () => void;
   onRegister: () => void;
+  progressLabel?: string;
 };
 
 export function AlienRegistrationInformation({
   onBack,
   onRegister,
+  progressLabel = '1/5',
 }: AlienRegistrationInformationProps) {
   return (
     <AlienRegistrationOnboardingLayout>
@@ -24,7 +26,7 @@ export function AlienRegistrationInformation({
 
       <div className="mt-[9px] shrink-0">
         <strong className="block text-[17px] leading-[1.5] font-semibold text-[#00B894]">
-          1/5
+          {progressLabel}
         </strong>
         <span className="block text-[15px] leading-[1.5] text-[#909597]">
           정보 확인

@@ -252,6 +252,7 @@ type StudentApplicationsRouteContext = {
 };
 
 type StudentProfileRouteContext = {
+  careerCount: number;
   isProfileLoading: boolean;
   isProfileUnavailable: boolean;
   profileValues: StudentProfileValues;
@@ -1621,6 +1622,7 @@ function StudentProfileLayout() {
     <Outlet
       context={
         {
+          careerCount: studentProfile?.careers.length ?? 0,
           isProfileLoading,
           isProfileUnavailable,
           profileValues,
@@ -1678,7 +1680,7 @@ function StudentProfileLayout() {
 
 function StudentProfileRoute() {
   const navigate = useNavigate();
-  const { isProfileLoading, isProfileUnavailable, profileValues } =
+  const { careerCount, isProfileLoading, isProfileUnavailable, profileValues } =
     useOutletContext<StudentProfileRouteContext>();
 
   return (
@@ -1686,6 +1688,7 @@ function StudentProfileRoute() {
       onApply={() => navigate('/student/my')}
       onBack={() => navigate('/student/my')}
       onViewChange={(view) => navigate(`/student/my/profile/${view}`)}
+      careerCount={careerCount}
       profileValues={profileValues}
       isLoading={isProfileLoading}
       isProfileUnavailable={isProfileUnavailable}

@@ -5,11 +5,13 @@ import { AlienRegistrationOnboardingLayout } from './AlienRegistrationOnboarding
 type AlienRegistrationBackGuideProps = {
   onBack: () => void;
   onConfirm: () => void;
+  progressLabel?: string;
 };
 
 export function AlienRegistrationBackGuide({
   onBack,
   onConfirm,
+  progressLabel = '1/5',
 }: AlienRegistrationBackGuideProps) {
   return (
     <AlienRegistrationOnboardingLayout>
@@ -24,7 +26,7 @@ export function AlienRegistrationBackGuide({
 
       <div className="mt-[9px] shrink-0">
         <strong className="block text-[17px] leading-[1.5] font-semibold text-[#00B894]">
-          1/5
+          {progressLabel}
         </strong>
         <span className="block text-[15px] leading-[1.5] text-[#909597]">
           정보 확인

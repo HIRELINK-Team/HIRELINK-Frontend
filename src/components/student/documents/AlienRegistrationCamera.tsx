@@ -204,7 +204,7 @@ export function AlienRegistrationCamera({
           disabled={!isCameraReady || isCapturing || Boolean(cameraError)}
           className="h-[58px] rounded-[15px] bg-[#F5F5F5] !text-[20px] !leading-[1.5] !font-normal text-[#1D1F20]"
         >
-          등록하기
+          사진 찍기
         </button>
       </div>
     </AlienRegistrationOnboardingLayout>

@@ -2,7 +2,6 @@ import { useState } from 'react';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
 import { AlienRegistrationCamera } from '../../components/student/documents/AlienRegistrationCamera';
-import { AlienRegistrationComplete } from '../../components/student/documents/AlienRegistrationComplete';
 import { AlienRegistrationInformation } from '../../components/student/documents/AlienRegistrationInformation';
 import { DocumentBadgeIssued } from '../../components/student/documents/DocumentBadgeIssued';
 import { DocumentManagementGuide } from '../../components/student/documents/DocumentManagementGuide';
@@ -17,7 +16,19 @@ import { TranscriptInformation } from '../../components/student/documents/Transc
 import { TopikCamera } from '../../components/student/documents/TopikCamera';
 import { TopikComplete } from '../../components/student/documents/TopikComplete';
 import { TopikInformation } from '../../components/student/documents/TopikInformation';
-import { STUDENT_BASIC_DOCUMENTS } from '../../mocks/studentDocuments';
+import { AlienRegistrationBackCamera } from '../../components/student/onboarding/AlienRegistrationBackCamera';
+import {
+  AlienRegistrationBackInfo,
+  type AlienRegistrationBackInfoValues,
+} from '../../components/student/onboarding/AlienRegistrationBackInfo';
+import { AlienRegistrationBackGuide } from '../../components/student/onboarding/AlienRegistrationBackGuide';
+import { AlienRegistrationFrontComplete } from '../../components/student/onboarding/AlienRegistrationFrontComplete';
+import { AlienRegistrationFrontInfo } from '../../components/student/onboarding/AlienRegistrationFrontInfo';
+import type { AlienRegistrationFormValues } from '../../components/student/onboarding/AlienRegistrationEdit';
+import {
+  STUDENT_ALIEN_REGISTRATION_DETAILS,
+  STUDENT_BASIC_DOCUMENTS,
+} from '../../mocks/studentDocuments';
 import type { StudentNavigationTab } from '../../types/studentHome';
 import type { StudentDocument } from '../../types/studentDocument';
 
@@ -26,6 +37,10 @@ export type StudentDocumentManagementView =
   | 'registration'
   | 'alien-information'
   | 'alien-camera'
+  | 'alien-front-info'
+  | 'alien-back-guide'
+  | 'alien-back-camera'
+  | 'alien-back-info'
   | 'alien-complete'
   | 'enrollment-information'
   | 'enrollment-camera'
@@ -37,6 +52,24 @@ export type StudentDocumentManagementView =
   | 'topik-camera'
   | 'topik-complete'
   | 'badge-issued';
+
+const ALIEN_REGISTRATION_VALUES: AlienRegistrationFormValues = {
+  name: STUDENT_ALIEN_REGISTRATION_DETAILS[0]?.value ?? '-',
+  nationality: STUDENT_ALIEN_REGISTRATION_DETAILS[1]?.value ?? '-',
+  residenceQualification: STUDENT_ALIEN_REGISTRATION_DETAILS[2]?.value ?? '-',
+  registrationNumber: STUDENT_ALIEN_REGISTRATION_DETAILS[4]?.value ?? '-',
+  issueDate: '-',
+  serialNumber: '-',
+  expiryDate:
+    STUDENT_ALIEN_REGISTRATION_DETAILS[3]?.value.split(' - ')[1] ?? '-',
+};
+
+const ALIEN_REGISTRATION_BACK_VALUES: AlienRegistrationBackInfoValues = {
+  permissionDate: '-',
+  expirationDate: ALIEN_REGISTRATION_VALUES.expiryDate,
+  reportDate: '-',
+  serialNumber: '-',
+};
 
 type StudentDocumentManagementPageProps = {
   documentCompletion?: Partial<Record<StudentDocument['id'], boolean>>;
@@ -254,6 +287,7 @@ export default function StudentDocumentManagementPage({
       <AlienRegistrationInformation
         onBack={handleDocumentFlowExit}
         onRegister={() => setView('alien-camera')}
+        progressLabel="1/6"
       />
     );
   }
@@ -262,16 +296,60 @@ export default function StudentDocumentManagementPage({
     return (
       <AlienRegistrationCamera
         onBack={() => setView('alien-information')}
-        onCapture={() => setView('alien-complete')}
+        onCapture={() => setView('alien-front-info')}
+      />
+    );
+  }
+
+  if (view === 'alien-front-info') {
+    return (
+      <AlienRegistrationFrontInfo
+        onBack={() => setView('alien-camera')}
+        onConfirm={() => setView('alien-back-guide')}
+        onRetry={() => setView('alien-camera')}
+        progressLabel="1/6"
+        values={ALIEN_REGISTRATION_VALUES}
+      />
+    );
+  }
+
+  if (view === 'alien-back-guide') {
+    return (
+      <AlienRegistrationBackGuide
+        onBack={() => setView('alien-front-info')}
+        onConfirm={() => setView('alien-back-camera')}
+        progressLabel="1/6"
+      />
+    );
+  }
+
+  if (view === 'alien-back-camera') {
+    return (
+      <AlienRegistrationBackCamera
+        onBack={() => setView('alien-back-guide')}
+        onCapture={() => setView('alien-back-info')}
+      />
+    );
+  }
+
+  if (view === 'alien-back-info') {
+    return (
+      <AlienRegistrationBackInfo
+        onBack={() => setView('alien-back-camera')}
+        onConfirm={() => setView('alien-complete')}
+        onRetry={() => setView('alien-back-camera')}
+        progressLabel="1/6"
+        values={ALIEN_REGISTRATION_BACK_VALUES}
       />
     );
   }
 
   if (view === 'alien-complete') {
     return (
-      <AlienRegistrationComplete
-        onBack={() => setView('alien-camera')}
+      <AlienRegistrationFrontComplete
+        onBack={() => setView('alien-back-info')}
         onConfirm={() => handleDocumentComplete('alien-registration-card')}
+        showDescription={false}
       />
     );
   }
