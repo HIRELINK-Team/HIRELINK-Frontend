@@ -1,4 +1,5 @@
 import backIcon from '../../../assets/icons/student/documents/alien-registration/complete-back.svg';
+import { useTranslation } from 'react-i18next';
 import completeCheckIcon from '../../../assets/icons/student/documents/alien-registration/complete-check.svg';
 import { STUDENT_ALIEN_REGISTRATION_DETAILS } from '../../../mocks/studentDocuments';
 
@@ -11,10 +12,11 @@ export function AlienRegistrationComplete({
   onBack,
   onConfirm,
 }: AlienRegistrationCompleteProps) {
+  const { t } = useTranslation();
   return (
     <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
-        aria-label="뒤로가기"
+        aria-label={t('common.back')}
         className="grid size-8 -ml-2 place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -28,19 +30,17 @@ export function AlienRegistrationComplete({
         src={completeCheckIcon}
       />
       <h1 className="m-0 mt-3 text-center text-[22px] leading-[1.5] font-semibold">
-        등록이 완료되었어요!
+        {t('my.documents.complete')}
       </h1>
       <p className="m-0 mt-[6px] text-center text-[13px] leading-[1.5] text-[#8B95A1]">
-        등록된 정보를 바탕으로
-        <br />
-        체류 정보가 확인되었어요.
+        {t('my.documents.alienCompleteDescription').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
       </p>
 
-      <section aria-label="등록된 외국인등록증 정보" className="mt-6 space-y-2">
-        {STUDENT_ALIEN_REGISTRATION_DETAILS.map((detail) => (
+      <section aria-label={t('my.alien.registeredInformation')} className="mt-6 space-y-2">
+        {STUDENT_ALIEN_REGISTRATION_DETAILS.map((detail, index) => (
           <div className="flex items-center gap-[15px]" key={detail.label}>
             <span className="flex h-8 w-[73px] shrink-0 items-center justify-center rounded-[20px] bg-[#E5E8EB] px-2.5 text-center text-[13px] leading-[1.5] font-medium">
-              {detail.label}
+              {t(`my.alien.detail.${index}`)}
             </span>
             <span className="text-[13px] leading-[1.5]">{detail.value}</span>
           </div>
@@ -52,7 +52,7 @@ export function AlienRegistrationComplete({
         type="button"
         onClick={onConfirm}
       >
-        확인
+        {t('common.confirm')}
       </button>
     </main>
   );

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   confirmPhoneVerification,
@@ -53,7 +54,7 @@ type StudentProfileEditPageProps = {
 
 function ProfileEditScaffold({
   children,
-  ctaLabel = '저장',
+  ctaLabel,
   disabled = false,
   onBack,
   onSubmit,
@@ -66,11 +67,12 @@ function ProfileEditScaffold({
   onSubmit: () => void;
   question: string;
 }) {
+  const { t } = useTranslation();
   return (
     <OnboardingScaffold
       activeSubStep={1}
       contentClassName="mt-[64px]"
-      ctaLabel={ctaLabel}
+      ctaLabel={ctaLabel ?? t('my.edit.save')}
       currentStage={1}
       isCtaDisabled={disabled}
       onBack={onBack}
@@ -100,6 +102,7 @@ function LocationAddressEditor({
   onSubmit: () => void;
   title: string;
 }) {
+  const { t } = useTranslation();
   return (
     <ProfileEditScaffold
       disabled={!address.trim()}
@@ -108,12 +111,12 @@ function LocationAddressEditor({
       question={title}
     >
       <label className="mt-[39px] block">
-        <span className="block text-[17px] leading-[1.5]">주소 검색</span>
+        <span className="block text-[17px] leading-[1.5]">{t('my.edit.searchAddress')}</span>
         <span className="flex h-[58px] items-center gap-3 border-b border-[#B0B8C1] focus-within:border-[#00B894]">
           <img alt="" className="size-6" src={locationIcon} />
           <input
             className="min-w-0 flex-1 border-0 bg-transparent p-0 text-[26px] leading-[1.5] font-semibold outline-none placeholder:text-[#B0B8C1]"
-            placeholder="주소를 입력해주세요"
+            placeholder={t('my.edit.addressPlaceholder')}
             value={address}
             onChange={(event) => onAddressChange(event.target.value)}
           />
@@ -124,7 +127,7 @@ function LocationAddressEditor({
         type="button"
         onClick={() => navigator.geolocation?.getCurrentPosition(() => undefined)}
       >
-        현재 위치 불러오기
+        {t('my.edit.currentLocation')}
       </button>
     </ProfileEditScaffold>
   );
@@ -160,6 +163,7 @@ export default function StudentProfileEditPage({
   preferredLocation,
   profileValues,
 }: StudentProfileEditPageProps) {
+  const { t, i18n } = useTranslation();
   const basicValues = [...(profileValues.basic ?? [])];
   const [birthDate, setBirthDate] = useState(basicValues[1] ?? '');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -208,14 +212,14 @@ export default function StudentProfileEditPage({
           disabled={!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)}
           onBack={onBack}
           onSubmit={() => void saveBasicValue(1, birthDate)}
-          question={'본인의 생년월일을\n입력해주세요'}
+          question={t('my.edit.birthQuestion')}
         >
           <button
             className="mt-[39px] flex w-full flex-col border-0 bg-transparent p-0 text-left"
             type="button"
             onClick={() => setIsCalendarOpen(true)}
           >
-            <span className="text-[17px] leading-[1.5]">생년월일</span>
+            <span className="text-[17px] leading-[1.5]">{t('my.profile.birthDate')}</span>
             <span className="flex h-[58px] w-full items-center border-b border-[#B0B8C1] text-[26px] leading-[1.5] font-semibold">
               {birthDate.replaceAll('-', '.')}
               <img alt="" className="ml-auto size-6" src={calendarIcon} />
@@ -226,7 +230,9 @@ export default function StudentProfileEditPage({
           <ResidenceExpiryDatePicker
             emptyInitialDate="2000-01-01"
             initialDate={birthDate}
-            title="생년월일 선택"
+            title={t('my.edit.birthPicker')}
+            locale={i18n.resolvedLanguage === 'en' ? 'en' : 'ko'}
+            confirmLabel={t('common.confirm')}
             onClose={() => setIsCalendarOpen(false)}
             onConfirm={(date) => {
               setBirthDate(date);
@@ -241,7 +247,7 @@ export default function StudentProfileEditPage({
   if (field === 'phone') {
     const requestVerification = async () => {
       if (!/^01\d{8,9}$/.test(phone.replaceAll('-', ''))) {
-        setPhoneError('다시 입력해주세요.');
+        setPhoneError(t('my.edit.retry'));
         return;
       }
       setIsPhonePending(true);
@@ -252,14 +258,14 @@ export default function StudentProfileEditPage({
         setPhoneError('');
         setPhoneStep('verification');
       } catch {
-        setPhoneError('인증번호를 전송하지 못했어요. 다시 시도해주세요.');
+        setPhoneError(t('my.edit.sendError'));
       } finally {
         setIsPhonePending(false);
       }
     };
     const confirmVerification = async () => {
       if (!/^\d{6}$/.test(verificationCode)) {
-        setPhoneError('인증번호가 틀렸어요. 다시 입력해주세요.');
+        setPhoneError(t('my.edit.codeError'));
         return;
       }
       setIsPhonePending(true);
@@ -270,23 +276,23 @@ export default function StudentProfileEditPage({
         onPhoneChange(phone);
         onBack();
       } catch {
-        setPhoneError('인증번호가 틀렸어요. 다시 입력해주세요.');
+        setPhoneError(t('my.edit.codeError'));
       } finally {
         setIsPhonePending(false);
       }
     };
     return (
       <ProfileEditScaffold
-        ctaLabel={phoneStep === 'phone' ? '인증번호 받기' : '확인'}
+        ctaLabel={phoneStep === 'phone' ? t('my.edit.requestCode') : t('common.confirm')}
         disabled={isPhonePending}
         onBack={phoneStep === 'verification' ? () => setPhoneStep('phone') : onBack}
         onSubmit={() => void (phoneStep === 'phone' ? requestVerification() : confirmVerification())}
-        question={'본인의 전화번호를\n입력해주세요.'}
+        question={t('my.edit.phoneQuestion')}
       >
         <OnboardingField
           errorMessage={phoneStep === 'phone' ? phoneError : undefined}
           inputMode="tel"
-          label="전화번호"
+          label={t('my.profile.phone')}
           spacing="first"
           value={phone}
           onChange={(event) => setPhone(event.target.value.replace(/[^\d-]/g, ''))}
@@ -295,7 +301,7 @@ export default function StudentProfileEditPage({
           <OnboardingField
             errorMessage={phoneError}
             inputMode="numeric"
-            label="인증번호"
+            label={t('my.edit.verificationCode')}
             maxLength={6}
             spacing="next"
             value={verificationCode}
@@ -313,7 +319,7 @@ export default function StudentProfileEditPage({
         onAddressChange={setCurrentRegion}
         onBack={onBack}
         onSubmit={() => void saveBasicValue(3, currentRegion.trim())}
-        title={'현재 거주 지역을\n입력해주세요.'}
+        title={t('my.edit.currentRegionQuestion')}
       />
     );
   }
@@ -355,7 +361,7 @@ export default function StudentProfileEditPage({
         onAddressChange={setPreferredAddress}
         onBack={onBack}
         onSubmit={() => setIsRadiusStep(true)}
-        title={'희망 근무 지역을\n입력해주세요.'}
+        title={t('my.edit.preferredRegionQuestion')}
       />
     );
   }
@@ -368,17 +374,17 @@ export default function StudentProfileEditPage({
           const label = KOREAN_LEVELS.find((option) => option.value === selectedKoreanLevel)?.label;
           if (label) void saveBasicValue(4, label);
         }}
-        question={'한국어 실력은\n어느 정도인가요?'}
+        question={t('my.edit.koreanQuestion')}
       >
         <div className="mt-[35px] space-y-[10px]">
           {KOREAN_LEVELS.map((option) => (
             <SelectionCard
-              description={option.description}
+              description={t(`my.koreanLevels.${option.value}.description`)}
               isSelected={selectedKoreanLevel === option.value}
               key={option.value}
               onClick={() => setSelectedKoreanLevel(option.value)}
             >
-              {option.label}
+              {t(`my.koreanLevels.${option.value}.label`)}
             </SelectionCard>
           ))}
         </div>
@@ -430,7 +436,7 @@ export default function StudentProfileEditPage({
 
   return (
     <ProfileEditScaffold
-      ctaLabel="저장"
+      ctaLabel={t('my.edit.save')}
       onBack={onBack}
       onSubmit={() => {
         if (IS_DEMO_MODE) {
@@ -446,7 +452,7 @@ export default function StudentProfileEditPage({
         }
         onBack();
       }}
-      question={'이전에 해본 아르바이트나\n근무경험을 알려주세요.'}
+      question={t('my.edit.careerQuestion')}
     >
       <button
         className="mt-[35px] h-[54px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent text-[17px] leading-[1.5]"
@@ -457,7 +463,7 @@ export default function StudentProfileEditPage({
           setIsCareerFormOpen(true);
         }}
       >
-        + 경력 추가하기
+        {t('my.edit.addCareer')}
       </button>
       <div className="mt-[22px] space-y-[10px]">
         {careerItems.map((experience) => (

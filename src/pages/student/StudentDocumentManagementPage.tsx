@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
 import { AlienRegistrationCamera } from '../../components/student/documents/AlienRegistrationCamera';
@@ -105,6 +106,7 @@ export default function StudentDocumentManagementPage({
   onBadgeConfirm,
   onTabChange,
 }: StudentDocumentManagementPageProps) {
+  const { t } = useTranslation();
   const [view, setView] = useState<StudentDocumentManagementView>(initialView);
   const [isAlienRegistrationComplete, setIsAlienRegistrationComplete] =
     useState(true);
@@ -140,9 +142,9 @@ export default function StudentDocumentManagementPage({
 
   const handleDocumentComplete = (documentId: StudentDocument['id']) => {
     const now = new Date();
-    const registeredAt = `등록일 ${String(now.getFullYear()).slice(-2)}.${String(
+    const registeredAt = t('my.documents.registeredAt', { date: `${String(now.getFullYear()).slice(-2)}.${String(
       now.getMonth() + 1,
-    ).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+    ).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}` });
 
     if (documentId === 'alien-registration-card') {
       setIsAlienRegistrationComplete(true);
@@ -475,7 +477,7 @@ export default function StudentDocumentManagementPage({
     <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <div className="h-full overflow-y-auto px-6 pt-[61px] pb-[113px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
-          aria-label="뒤로가기"
+          aria-label={t('common.back')}
           className="grid size-8 -ml-2 place-items-center border-0 bg-transparent p-0"
           type="button"
           onClick={handleRegistrationBack}
@@ -483,7 +485,7 @@ export default function StudentDocumentManagementPage({
           <img alt="" src={backIcon} />
         </button>
         <h1 className="m-0 mt-[19px] text-[26px] leading-[1.5] font-semibold">
-          서류 관리
+          {t('my.documents.title')}
         </h1>
         <div className="mt-[8px]">
           <DocumentRegistrationList

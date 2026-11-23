@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
 import { MatchingPriorityList } from '../../components/student/onboarding/MatchingPriorityList';
@@ -60,6 +61,7 @@ export default function StudentMatchingConditionPriorityPage({
   onBack,
   onSave,
 }: StudentMatchingConditionPriorityPageProps) {
+  const { t } = useTranslation();
   const [priorities, setPriorities] = useState<MatchingPriority[]>(() =>
     createPriorities(initialPriorityOrder),
   );
@@ -73,10 +75,10 @@ export default function StudentMatchingConditionPriorityPage({
     try {
       const isSaved = await onSave(priorities.map((priority) => priority.id));
       if (isSaved === false) {
-        setSaveError('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+        setSaveError(t('my.matchingConditions.saveError'));
       }
     } catch {
-      setSaveError('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+      setSaveError(t('my.matchingConditions.saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -85,7 +87,7 @@ export default function StudentMatchingConditionPriorityPage({
   return (
     <main className="relative mx-auto flex h-[min(844px,100dvh)] w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] px-6 pt-[61px] pb-[37px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
-        aria-label="뒤로가기"
+        aria-label={t('common.back')}
         className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -94,14 +96,14 @@ export default function StudentMatchingConditionPriorityPage({
       </button>
 
       <h1 className="m-0 mt-9 text-[26px] leading-[1.5] font-semibold">
-        우선순위를 정해주세요.
+        {t('my.matchingConditions.choosePriority')}
       </h1>
       <p className="m-0 mt-1 text-[15px] leading-[1.5] text-[#939393]">
-        중요한 순서대로 끌어다 놓으세요.
+        {t('my.matchingConditions.priorityHint')}
       </p>
 
       <MatchingPriorityList
-        priorities={priorities}
+        priorities={priorities.map((priority) => ({ ...priority, label: t(`my.matchingConditions.priority.${priority.id}.title`), description: t(`my.matchingConditions.priority.${priority.id}.description`) }))}
         onChange={(nextPriorities) => {
           setPriorities(nextPriorities);
           setSaveError('');
@@ -120,7 +122,7 @@ export default function StudentMatchingConditionPriorityPage({
         type="button"
         onClick={() => void handleSave()}
       >
-        수정하기
+        {t('my.profile.edit')}
       </button>
     </main>
   );

@@ -1,4 +1,5 @@
 import scanIcon from '../../../assets/icons/student/documents/enrollment-certificate/camera-scan.svg';
+import { useTranslation } from 'react-i18next';
 import { STUDENT_ENROLLMENT_CERTIFICATE_DETAILS } from '../../../mocks/studentDocuments';
 import { DocumentRecognitionReview } from './DocumentRecognitionReview';
 
@@ -22,10 +23,11 @@ const REVIEW_FIELDS = [
 export function EnrollmentCertificateReview(
   props: EnrollmentCertificateReviewProps,
 ) {
+  const { t } = useTranslation();
   return (
     <DocumentRecognitionReview
-      documentTitle="재학증명서"
-      fields={REVIEW_FIELDS}
+      documentTitle={t('my.documents.enrollment')}
+      fields={REVIEW_FIELDS.map((field, index) => ({ ...field, label: t(index === 0 ? 'my.documentFlow.school' : 'my.documentFlow.year') }))}
       scanIcon={scanIcon}
       {...props}
     />

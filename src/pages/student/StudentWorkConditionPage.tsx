@@ -1,4 +1,5 @@
 import backIcon from '../../assets/icons/student/documents/back.svg';
+import { useTranslation } from 'react-i18next';
 import approvedStatusIcon from '../../assets/icons/student/my/work-condition-approved.png';
 import restrictedStatusIcon from '../../assets/icons/student/my/work-condition-restricted.png';
 import reviewStatusIcon from '../../assets/icons/student/my/work-condition-review.png';
@@ -53,18 +54,19 @@ export default function StudentWorkConditionPage({
   onTabChange,
   studentProfile = null,
 }: StudentWorkConditionPageProps) {
+  const { t } = useTranslation();
   const profileValues = studentProfile
     ? mapStudentProfileResponseToValues(studentProfile)
     : undefined;
-  const visaStatus = profileValues?.residence?.[0] ?? '미등록';
-  const academicStatus = profileValues?.academic?.[2] ?? '미등록';
-  const topikLevel = profileValues?.language?.[0] ?? 'TOPIK 미등록';
+  const visaStatus = profileValues?.residence?.[0] ?? t('my.notRegistered');
+  const academicStatus = profileValues?.academic?.[2] ?? t('my.notRegistered');
+  const topikLevel = profileValues?.language?.[0] ?? t('my.topikNotRegistered');
 
   return (
     <main className="relative mx-auto h-[914px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <div className="h-full overflow-y-auto px-6 pt-[61px] pb-[126px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
-          aria-label="뒤로가기"
+          aria-label={t('common.back')}
           className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
           type="button"
           onClick={onBack}
@@ -72,7 +74,7 @@ export default function StudentWorkConditionPage({
           <img alt="" className="h-4 w-2" src={backIcon} />
         </button>
         <h1 className="m-0 mt-2 text-[26px] leading-[1.5] font-semibold">
-          나의 근무 가능 조건
+          {t('my.workCondition.title')}
         </h1>
 
         <section className="relative mt-[17px] h-[82px] overflow-hidden rounded-[20px] bg-[#E5E8EB]">
@@ -82,36 +84,34 @@ export default function StudentWorkConditionPage({
             src={workConditionSummaryImage}
           />
           <p className="absolute top-[18px] left-24 m-0 text-[15px] leading-[1.5] font-bold">
-            등록한 정보를 기준으로
-            <br />
-            현재 근무 조건을 확인했어요.
+            {t('my.workCondition.prompt').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
           </p>
         </section>
         <p className="m-0 mt-[6px] text-[12px] leading-[1.5] text-[#8B95A1]">
-          실제 허가 여부는 출입국 심사 결과에 따라 달라질 수 있어요.
+          {t('my.workCondition.disclaimer')}
         </p>
 
         <section className="mt-[28px] h-[138px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-[17px]">
-          <CardHeader title="기본 정보" onEdit={onEditBasicInfo} />
-          <InfoRow label="체류자격" value={visaStatus} />
-          <InfoRow label="학적상태" value={academicStatus} />
-          <InfoRow label="한국어 능력" value={topikLevel} />
+          <CardHeader title={t('my.workCondition.basic')} onEdit={onEditBasicInfo} />
+          <InfoRow label={t('my.profile.visa')} value={visaStatus} />
+          <InfoRow label={t('my.workCondition.academicStatus')} value={academicStatus} />
+          <InfoRow label={t('my.workCondition.koreanAbility')} value={topikLevel} />
         </section>
 
         <section className="mt-[16px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-[17px]">
-          <CardHeader title="근무시간 기준 (예상)" onEdit={onEditWorkTime} />
-          <InfoRow label="학기 중" value="주중 최대 25시간 기준" />
-          <InfoRow label="방학 중" value="별도 기준 적용 가능" />
-          <InfoRow label="주말·공휴일" value="별도 기준 적용 가능" />
+          <CardHeader title={t('my.workCondition.hours')} onEdit={onEditWorkTime} />
+          <InfoRow label={t('my.workCondition.semester')} value={t('my.workCondition.semesterValue')} />
+          <InfoRow label={t('my.workCondition.vacation')} value={t('my.workCondition.conditional')} />
+          <InfoRow label={t('my.workCondition.weekends')} value={t('my.workCondition.conditional')} />
           <p className="m-0 mt-[10px] text-[12px] leading-[1.5] text-[#8B95A1]">
-            *실제 허용 시간은 출입국의 허가 결과를 확인해야 합니다.
+            {t('my.workCondition.hoursDisclaimer')}
           </p>
         </section>
 
         <section className="mt-[16px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-7">
-          <CardHeader title="지원 가능 분야" onEdit={onEditEligibleFields} />
+          <CardHeader title={t('my.workCondition.eligible')} onEdit={onEditEligibleFields} />
           <ul className="m-0 mt-[12px] space-y-[7px] p-0">
-            {ELIGIBLE_FIELDS.map((field) => (
+            {ELIGIBLE_FIELDS.map((field, index) => (
               <li
                 className="flex items-center gap-4 text-[13px] leading-[1.5]"
                 key={field.label}
@@ -130,7 +130,7 @@ export default function StudentWorkConditionPage({
                     src={field.icon}
                   />
                 </span>
-                {field.label}
+                {t(`my.workCondition.fields.${index}`)}
               </li>
             ))}
           </ul>
@@ -147,6 +147,7 @@ export default function StudentWorkConditionPage({
 }
 
 function CardHeader({ title, onEdit }: { title: string; onEdit?: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-between">
       <h2 className="m-0 text-[15px] leading-[1.5] font-bold">{title}</h2>
@@ -155,7 +156,7 @@ function CardHeader({ title, onEdit }: { title: string; onEdit?: () => void }) {
         type="button"
         onClick={onEdit}
       >
-        수정하기
+        {t('my.profile.edit')}
       </button>
     </div>
   );

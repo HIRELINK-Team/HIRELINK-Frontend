@@ -1,4 +1,5 @@
 import backIcon from '../../../assets/icons/student/documents/back.svg';
+import { useTranslation } from 'react-i18next';
 
 type GuideItem = {
   icon: string;
@@ -26,10 +27,11 @@ export function DocumentRegistrationInformation({
   onBack,
   onRegister,
 }: DocumentRegistrationInformationProps) {
+  const { t } = useTranslation();
   return (
     <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
-        aria-label="뒤로가기"
+        aria-label={t('common.back')}
         className="absolute top-[61px] left-4 grid size-8 place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -53,7 +55,7 @@ export function DocumentRegistrationInformation({
         {description}
       </p>
       <section
-        aria-label={`${title} 확인 항목`}
+        aria-label={t('my.documentFlow.reviewItems', { title })}
         className={`absolute right-6 left-6 space-y-2.5 ${
           compactGuidePosition ? 'top-[424px]' : 'top-[445px]'
         }`}
@@ -79,7 +81,7 @@ export function DocumentRegistrationInformation({
         type="button"
         onClick={onRegister}
       >
-        등록하기
+        {t('my.documents.submit')}
       </button>
     </main>
   );

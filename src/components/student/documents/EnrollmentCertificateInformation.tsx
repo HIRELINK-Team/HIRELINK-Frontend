@@ -1,6 +1,7 @@
 import gradeIcon from '../../../assets/images/student/documents/enrollment-certificate/guide-grade.png';
 import illustration from '../../../assets/images/student/documents/enrollment-certificate/guide-illustration.png';
 import schoolProgramIcon from '../../../assets/images/student/documents/enrollment-certificate/guide-school-program.png';
+import { useTranslation } from 'react-i18next';
 import { DocumentRegistrationInformation } from './DocumentRegistrationInformation';
 
 type EnrollmentCertificateInformationProps = {
@@ -16,13 +17,14 @@ const GUIDE_ITEMS = [
 export function EnrollmentCertificateInformation(
   props: EnrollmentCertificateInformationProps,
 ) {
+  const { t } = useTranslation();
   return (
     <DocumentRegistrationInformation
-      description="대학교와 학년 정보를 위해 필요해요"
-      guideItems={GUIDE_ITEMS}
-      heading={['본인의 재학증명서를', '등록해주세요.']}
+      description={t('my.documentFlow.enrollmentDescription')}
+      guideItems={GUIDE_ITEMS.map((item, index) => ({ ...item, label: t(index === 0 ? 'my.documentFlow.schoolCheck' : 'my.documentFlow.yearCheck') }))}
+      heading={[t('my.documentFlow.enrollmentHeading1'), t('my.documentFlow.registerPrompt')]}
       illustration={illustration}
-      title="재학증명서 등록"
+      title={t('my.documentFlow.enrollmentTitle')}
       {...props}
     />
   );
