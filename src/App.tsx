@@ -571,6 +571,7 @@ function StudentSessionBootstrap() {
     location.state.initialStep === 'phone';
   if (
     !isSessionRestored &&
+    !getAccessToken() &&
     !PUBLIC_STUDENT_ROUTES.has(location.pathname) &&
     !isSocialPhoneStep
   ) {
@@ -917,8 +918,64 @@ function StudentOnboardingRoute({
 
   return (
     <StudentOnboardingPage
+      key={initialStep ?? requestedInitialStep ?? 'default'}
       initialStep={initialStep ?? requestedInitialStep}
       initialWorkRadiusOpen={initialWorkRadiusOpen}
+      isSocialSignup={
+        hasStudentSocialSignup() && requestedInitialStep === 'phone'
+      }
+      onSocialSignupExpired={() => {
+        clearStudentSocialSignup();
+        navigate('/student/login', { replace: true });
+      }}
+      onSocialSignupComplete={async (response) => {
+        clearStudentSocialSignup();
+        if (response.role !== 'STUDENT' || !response.accessToken) {
+          window.alert(
+            '유학생 계정 정보를 확인하지 못했어요. 다시 로그인해 주세요.',
+          );
+          navigate('/student/login', { replace: true });
+          return;
+        }
+        setAccessToken(response.accessToken);
+        try {
+          const onboarding = await getOnboardingStatus();
+          if (onboarding.role !== 'STUDENT') throw new Error('Invalid role');
+          if (
+            onboarding.status === 'REQUIRED' &&
+            onboarding.nextStep === 'BASIC_INFORMATION'
+          ) {
+            navigate('/student/onboarding', {
+              replace: true,
+              state: { initialStep: 'birthYear' },
+            });
+          } else if (
+            onboarding.status === 'COMPLETED' &&
+            onboarding.nextStep === 'NONE'
+          ) {
+            navigate('/student/home', { replace: true });
+          } else if (
+            onboarding.status === 'NOT_APPLICABLE' &&
+            onboarding.nextStep === 'EXISTING_FLOW'
+          ) {
+            try {
+              await studentDataSource.getProfile();
+              navigate('/student/home', { replace: true });
+            } catch (error) {
+              if (!axios.isAxiosError(error) || error.response?.status !== 404)
+                throw error;
+              navigate('/student/onboarding', { replace: true });
+            }
+          } else {
+            throw new Error('Invalid onboarding status');
+          }
+        } catch {
+          window.alert(
+            '계정은 생성되었지만 온보딩 상태를 확인하지 못했어요. 다시 로그인해 주세요.',
+          );
+          navigate('/student/login', { replace: true });
+        }
+      }}
       onBack={() => navigate('/student/entry')}
       onComplete={async (requestBody) => {
         if (!IS_DEMO_MODE) {

@@ -1,7 +1,14 @@
 import { publicApiClient } from './baseClient';
 import { getAuthCsrfToken } from './student/auth';
 
-import type { SocialAuthResponse, SocialProvider } from '../types/auth';
+import type {
+  PhoneVerificationConfirmRequest,
+  PhoneVerificationRequest,
+  PhoneVerificationResponse,
+  SocialAuthResponse,
+  SocialProvider,
+  SocialSignupResponse,
+} from '../types/auth';
 import type {
   SocialSignupTermsRequest,
   SocialSignupTermsResponse,
@@ -41,6 +48,30 @@ export async function saveStudentSocialSignupTerms(
   const { headerName, token } = await getAuthCsrfToken();
   const { data } = await publicApiClient.put<SocialSignupTermsResponse>(
     '/auth/social/terms',
+    request,
+    { headers: { [headerName]: token } },
+  );
+  return data;
+}
+
+export async function requestSocialPhoneVerification(
+  request: PhoneVerificationRequest,
+): Promise<PhoneVerificationResponse> {
+  const { headerName, token } = await getAuthCsrfToken();
+  const { data } = await publicApiClient.post<PhoneVerificationResponse>(
+    '/auth/social/phone-verifications',
+    request,
+    { headers: { [headerName]: token } },
+  );
+  return data;
+}
+
+export async function confirmSocialPhoneVerification(
+  request: PhoneVerificationConfirmRequest,
+): Promise<SocialSignupResponse> {
+  const { headerName, token } = await getAuthCsrfToken();
+  const { data } = await publicApiClient.post<SocialSignupResponse>(
+    '/auth/social/phone-verifications/verify',
     request,
     { headers: { [headerName]: token } },
   );

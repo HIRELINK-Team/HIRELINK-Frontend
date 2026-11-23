@@ -36,6 +36,12 @@ export type SocialAuthResponse = {
   login: LoginResponse | null;
 };
 
+export interface SocialSignupResponse extends AccessTokenResponse {
+  userId: number;
+  role: UserRole;
+  onboardingRequired: boolean;
+}
+
 export interface SignupResponse extends AccessTokenResponse {
   email: string;
   role: UserRole;

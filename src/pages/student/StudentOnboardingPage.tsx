@@ -11,6 +11,10 @@ import {
   requestPhoneVerification,
 } from '../../api/student';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
+import {
+  confirmSocialPhoneVerification,
+  requestSocialPhoneVerification,
+} from '../../api/socialAuth';
 import { syncWorkAvailability } from '../../utils/syncWorkAvailability';
 import { IS_DEMO_MODE } from '../../config/demoMode';
 import { mapIndustrySelectionToUpdateRequest } from '../../adapters/studentMatchingPreferences';
@@ -56,6 +60,7 @@ import { AlienRegistrationInformation } from '../../components/student/documents
 import type { Experience, ExperienceDraft } from '../../types/experience';
 import type { IndustryId, IndustryOption } from '../../types/industry';
 import type { StudentOnboardingDraftRequest } from '../../types/studentOnboarding';
+import type { SocialSignupResponse } from '../../types/auth';
 import type { MatchingPriority } from '../../types/matchingPriority';
 import type {
   CountryOption,
@@ -115,6 +120,9 @@ export type OnboardingView =
 export type PhoneVerificationPreview = 'default' | 'error' | 'success';
 
 type StudentOnboardingPageProps = {
+  isSocialSignup?: boolean;
+  onSocialSignupComplete?: (response: SocialSignupResponse) => Promise<void>;
+  onSocialSignupExpired?: () => void;
   initialStep?: OnboardingView;
   initialWorkRadiusOpen?: boolean;
   phoneVerificationPreview?: PhoneVerificationPreview;
@@ -396,6 +404,9 @@ function getPhoneVerificationConfirmErrorMessage(error: unknown) {
 }
 
 export default function StudentOnboardingPage({
+  isSocialSignup = false,
+  onSocialSignupComplete,
+  onSocialSignupExpired,
   initialStep = 'alienRegistrationInformation',
   initialWorkRadiusOpen = false,
   onBack,
@@ -1592,7 +1603,7 @@ export default function StudentOnboardingPage({
     setIsPhoneVerificationPending(true);
 
     try {
-      if (IS_DEMO_MODE) {
+      if (IS_DEMO_MODE && !isSocialSignup) {
         setRemainingSeconds(180);
         setPhoneError('');
         setVerificationError('');
@@ -1600,7 +1611,10 @@ export default function StudentOnboardingPage({
         return true;
       }
 
-      const response = await requestPhoneVerification({
+      const request = isSocialSignup
+        ? requestSocialPhoneVerification
+        : requestPhoneVerification;
+      const response = await request({
         phoneNumber: info.phone,
       });
 
@@ -1611,6 +1625,20 @@ export default function StudentOnboardingPage({
 
       return true;
     } catch (error) {
+      if (
+        isSocialSignup &&
+        [
+          'INVALID_SOCIAL_SESSION',
+          'SOCIAL_ACCOUNT_ALREADY_REGISTERED',
+        ].includes(getApiErrorResponse(error)?.code ?? '')
+      ) {
+        window.alert(
+          getApiErrorResponse(error)?.message ??
+            '가입 정보를 확인할 수 없어요. 다시 로그인해 주세요.',
+        );
+        onSocialSignupExpired?.();
+        return false;
+      }
       const errorMessage = getPhoneVerificationRequestErrorMessage(error);
 
       if (shouldMoveToVerification) {
@@ -1649,6 +1677,14 @@ export default function StudentOnboardingPage({
       setIsPhoneVerificationPending(true);
 
       try {
+        if (isSocialSignup) {
+          const response = await confirmSocialPhoneVerification({
+            phoneNumber: info.phone,
+            code: info.verificationCode,
+          });
+          await onSocialSignupComplete?.(response);
+          return;
+        }
         if (!IS_DEMO_MODE) {
           await confirmPhoneVerification({
             phoneNumber: info.phone,
@@ -1657,6 +1693,21 @@ export default function StudentOnboardingPage({
         }
         setVerificationError('');
       } catch (error) {
+        if (
+          isSocialSignup &&
+          [
+            'DUPLICATE_PHONE_NUMBER',
+            'INVALID_SOCIAL_SESSION',
+            'SOCIAL_ACCOUNT_ALREADY_REGISTERED',
+          ].includes(getApiErrorResponse(error)?.code ?? '')
+        ) {
+          window.alert(
+            getApiErrorResponse(error)?.message ??
+              '가입 정보를 확인할 수 없어요. 다시 로그인해 주세요.',
+          );
+          onSocialSignupExpired?.();
+          return;
+        }
         setVerificationError(getPhoneVerificationConfirmErrorMessage(error));
         return;
       } finally {
