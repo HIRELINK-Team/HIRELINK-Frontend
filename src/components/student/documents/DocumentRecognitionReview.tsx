@@ -1,4 +1,5 @@
 import backIcon from '../../../assets/icons/student/documents/back.svg';
+import { useTranslation } from 'react-i18next';
 
 type ReviewField = {
   label: string;
@@ -22,10 +23,11 @@ export function DocumentRecognitionReview({
   onRetry,
   onConfirm,
 }: DocumentRecognitionReviewProps) {
+  const { t } = useTranslation();
   return (
     <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
-        aria-label="뒤로가기"
+        aria-label={t('common.back')}
         className="absolute top-[61px] left-4 grid size-8 place-items-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -33,12 +35,10 @@ export function DocumentRecognitionReview({
         <img alt="" src={backIcon} />
       </button>
       <h1 className="absolute top-[210px] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
-        인식된 정보를
-        <br />
-        확인해주세요.
+        {t('my.documents.reviewTitle').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
       </h1>
       <p className="absolute top-[299px] left-6 m-0 text-[15px] leading-[1.5] text-[#8B95A1]">
-        정보가 다르면 다시 촬영해주세요.
+        {t('my.documents.reviewDescription')}
       </p>
       <section className="absolute top-[342px] right-6 left-6 overflow-hidden rounded-[20px] bg-white">
         <div className="flex h-[65px] items-center gap-3 bg-[#00B894]/10 px-6 text-[#006E59]">
@@ -73,14 +73,14 @@ export function DocumentRecognitionReview({
           type="button"
           onClick={onRetry}
         >
-          다시 촬영
+          {t('my.documents.retake')}
         </button>
         <button
           className="h-[57px] flex-1 rounded-[15px] border-0 bg-[#00B894] p-0 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
           type="button"
           onClick={onConfirm}
         >
-          확인
+          {t('common.confirm')}
         </button>
       </div>
     </main>

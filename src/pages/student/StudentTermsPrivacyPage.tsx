@@ -1,4 +1,5 @@
 import backIcon from '../../assets/icons/student/terms-privacy-back.svg';
+import { useTranslation } from 'react-i18next';
 import chevronIcon from '../../assets/icons/student/terms-privacy-chevron.svg';
 import accountIcon from '../../assets/images/student/terms-privacy/account.png';
 import locationIcon from '../../assets/images/student/terms-privacy/location.png';
@@ -96,6 +97,7 @@ function TermsRows({
   items: readonly TermsItem[];
   onItemClick?: (itemId: TermsItemId) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="-mx-6 border-y border-[#E5E8EB]">
       {items.map((item) => (
@@ -116,7 +118,7 @@ function TermsRows({
             }}
           />
           <span className="absolute top-[19px] left-[74px] text-[15px] leading-[1.5] font-bold">
-            {item.title}
+            {t(`my.terms.items.${item.id}`)}
           </span>
           <img
             alt=""
@@ -138,11 +140,12 @@ export default function StudentTermsPrivacyPage({
   onBack,
   onTermsItemClick,
 }: StudentTermsPrivacyPageProps) {
+  const { t } = useTranslation();
   return (
     <main className="mx-auto h-[1053px] w-full max-w-[390px] bg-[#F5F5F5] pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <div className="px-6">
         <button
-          aria-label="뒤로가기"
+          aria-label={t('common.back')}
           className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
           type="button"
           onClick={onBack}
@@ -151,7 +154,7 @@ export default function StudentTermsPrivacyPage({
         </button>
 
         <h1 className="m-0 mt-[19px] text-[26px] leading-[1.5] font-semibold">
-          약관 및 개인정보
+          {t('my.terms.title')}
         </h1>
 
         <section className="relative mt-3 h-[82px] overflow-hidden rounded-[20px] bg-[#E5E8EB] pl-24 pr-[26px]">
@@ -161,14 +164,12 @@ export default function StudentTermsPrivacyPage({
             src={noticeImage}
           />
           <p className="m-0 pt-[18px] text-[15px] leading-[1.5] font-bold">
-            회원님의 소중한 정보,
-            <br />
-            안전하게 보호하고 있어요!
+            {t('my.terms.prompt').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
           </p>
         </section>
 
         <p className="m-0 mt-[6px] text-[12px] leading-[1.5] text-[#8B95A1]">
-          Hirelink 는 관련 법령에 따라 개인정보를 안전하게 관리하고 있어요.
+          {t('my.terms.intro')}
         </p>
 
         <div className="mt-[30px]">
@@ -182,14 +183,10 @@ export default function StudentTermsPrivacyPage({
             src={accountIcon}
           />
           <p className="m-0 ml-[33px] text-[15px] leading-[1.5] font-bold">
-            개인정보 보호 안내
+            {t('my.terms.privacyNotice')}
           </p>
           <p className="m-0 mt-[4px] text-[12px] leading-[1.5] text-[#8B95A1]">
-            회원님의 개인정보는 일자리 매칭 및 서비스 제공을
-            <br />
-            위해서만 사용되며, 관련 법령에 따라 안전하게 관리됩니다.
-            <br />
-            자세한 내용은 개인정보 처리방침을 확인해주세요.
+            {t('my.terms.privacyDescription').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
           </p>
         </section>
 

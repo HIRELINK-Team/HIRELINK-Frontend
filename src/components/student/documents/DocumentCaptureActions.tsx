@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 type DocumentCaptureActionsProps = {
   accept: string;
   className?: string;
@@ -18,6 +20,7 @@ export function DocumentCaptureActions({
   onFileUpload,
   onTakePhoto,
 }: DocumentCaptureActionsProps) {
+  const { t } = useTranslation();
   return (
     <div
       className={`grid grid-cols-[165fr_169fr] gap-[7px] ${className}`.trim()}
@@ -25,7 +28,7 @@ export function DocumentCaptureActions({
       <label
         className="flex h-[57px] cursor-pointer items-center justify-center rounded-[15px] bg-white/15 text-[#F5F5F5]"
       >
-        <span className={ACTION_LABEL}>파일 업로드</span>
+        <span className={ACTION_LABEL}>{t('my.documents.upload')}</span>
         <input
           accept={accept}
           className="sr-only"
@@ -42,7 +45,7 @@ export function DocumentCaptureActions({
         type="button"
         onClick={onTakePhoto}
       >
-        <span className={ACTION_LABEL}>사진 찍기</span>
+        <span className={ACTION_LABEL}>{t('my.documents.camera')}</span>
       </button>
     </div>
   );

@@ -1,4 +1,5 @@
 import registrationEmploymentIcon from '../../../assets/images/student/documents/registration-employment.png';
+import { useTranslation } from 'react-i18next';
 import registrationNoticeIcon from '../../../assets/images/student/documents/registration-notice.png';
 import {
   STUDENT_BASIC_DOCUMENTS,
@@ -18,7 +19,9 @@ function DocumentRow({
   document: StudentDocument;
   onClick?: (document: StudentDocument) => void;
 }) {
+  const { t } = useTranslation();
   const isRegistered = document.status === 'registered';
+  const titleKey = { 'alien-registration-card': 'alienTitle', 'enrollment-certificate': 'enrollment', transcript: 'transcript', 'topik-transcript': 'topik' }[document.id as 'alien-registration-card' | 'enrollment-certificate' | 'transcript' | 'topik-transcript'];
 
   return (
     <button
@@ -32,14 +35,14 @@ function DocumentRow({
     >
       <span className="flex min-w-0 flex-1 flex-col">
         <strong className="truncate text-[17px] leading-[1.5] font-semibold text-[#1D1F20]">
-          {document.title}
+          {document.id === 'part-time-work-permit' ? t('my.workPermit') : titleKey ? t(`my.documents.${titleKey}`) : document.title}
         </strong>
         <span
           className={`mt-1 text-[13px] leading-[1.5] ${
             isRegistered ? 'text-[#00B894]' : 'text-[#909597]'
           }`}
         >
-          {isRegistered ? document.registeredAt : '등록 필요'}
+          {isRegistered ? (document.registeredAt?.startsWith('등록일 ') ? t('my.documents.registeredAt', { date: document.registeredAt.slice(4) }) : document.registeredAt) : t('my.documents.registrationNeeded')}
         </span>
       </span>
       <span
@@ -49,7 +52,7 @@ function DocumentRow({
             : 'bg-[#00B894] text-[#F5F5F5]'
         }`}
       >
-        {isRegistered ? '재업로드' : '등록하기'}
+        {isRegistered ? t('my.documents.reupload') : t('my.documents.register')}
       </span>
     </button>
   );
@@ -59,6 +62,7 @@ export function DocumentRegistrationList({
   basicDocuments = STUDENT_BASIC_DOCUMENTS,
   onDocumentClick,
 }: DocumentRegistrationListProps) {
+  const { t } = useTranslation();
   return (
     <section>
       <div className="h-[100px] rounded-[20px] bg-[#E6E8E9] px-6 py-[19px]">
@@ -70,18 +74,17 @@ export function DocumentRegistrationList({
           />
           <div className="ml-[15px]">
             <h2 className="m-0 text-[15px] leading-[1.5] font-semibold text-[#1D1F20]">
-              필요한 서류를 등록해주세요.
+              {t('my.documents.listPrompt')}
             </h2>
             <p className="m-0 mt-1 text-[12px] leading-[1.5] text-[#909597]">
-              서류를 등록하면 근무 가능 조건을
-              <br />더 정확하게 확인할 수 있어요.
+              {t('my.documents.listDescription').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
             </p>
           </div>
         </div>
       </div>
 
       <h2 className="m-0 mt-[20px] pl-0.5 text-[20px] leading-[1.5] font-semibold">
-        기본 서류
+        {t('my.documents.basic')}
       </h2>
       <div className="mt-[17px] space-y-[10px]">
         {basicDocuments.map((document) => (
@@ -94,7 +97,7 @@ export function DocumentRegistrationList({
       </div>
 
       <h2 className="m-0 mt-[23px] pl-0.5 text-[20px] leading-[1.5] font-semibold">
-        취업허가 관련 (채용 후 준비)
+        {t('my.documents.employment')}
       </h2>
       <div className="mt-[23px]">
         <DocumentRow
@@ -110,9 +113,7 @@ export function DocumentRegistrationList({
           src={registrationEmploymentIcon}
         />
         <p className="m-0 ml-[14px] text-[13px] leading-[1.5] font-medium text-[#1D1F20]">
-          근로계약서, 사업자등록증 등은
-          <br />
-          일자리가 정해진 후에 등록하시면 돼요.
+          {t('my.documents.employmentDescription').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
         </p>
       </div>
     </section>

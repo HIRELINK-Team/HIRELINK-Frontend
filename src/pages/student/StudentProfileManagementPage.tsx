@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
 import rowChevronIcon from '../../assets/icons/student/documents/chevron-right.svg';
@@ -96,19 +98,20 @@ const DETAIL_FIELDS: Record<
   ],
 };
 
-const DETAIL_TITLES: Record<Exclude<ProfileManagementView, 'main'>, string> = {
-  basic: '기본정보',
-  residence: '체류정보',
-  academic: '학업정보',
-  language: '어학정보',
-};
-
 function getDetailFields(
   view: ProfileDetailView,
   profileValues: StudentProfileValues,
+  t: TFunction,
 ) {
+  const labelKeys = {
+    basic: ['my.profileDetails.name', 'my.profile.birthDate', 'my.profileDetails.nationality', 'my.profile.currentRegion', 'my.profileDetails.koreanLevel'],
+    residence: ['my.profile.visa', 'my.profileDetails.residenceExpiry', 'my.profileDetails.alienRegistered'],
+    academic: ['my.profileDetails.school', 'my.profileDetails.degree', 'my.profileDetails.academicStatus'],
+    language: ['TOPIK', 'my.profile.koreanLevel', 'my.profileDetails.englishScore'],
+  }[view];
   return DETAIL_FIELDS[view].map((field, index) => ({
     ...field,
+    label: labelKeys[index] === 'TOPIK' ? 'TOPIK' : t(labelKeys[index]),
     value: profileValues[view]?.[index] ?? field.value,
   }));
 }
@@ -220,9 +223,10 @@ function EditableProfileValue({
 }
 
 function BackButton({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation();
   return (
     <button
-      aria-label="뒤로가기"
+      aria-label={t('common.back')}
       className="grid size-8 -ml-[10px] place-items-center border-0 bg-transparent p-0"
       type="button"
       onClick={onClick}
@@ -307,6 +311,7 @@ function DetailPage({
   onBack: () => void;
   title: string;
 }) {
+  const { t } = useTranslation();
   return (
     <main className="mx-auto flex h-[844px] w-full max-w-[390px] flex-col bg-[#F5F5F5] px-6 pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <BackButton onClick={onBack} />
@@ -339,7 +344,7 @@ function DetailPage({
         type="button"
         onClick={onBack}
       >
-        수정하기
+        {t('my.profile.edit')}
       </button>
     </main>
   );
@@ -356,6 +361,7 @@ function BasicInformationPage({
   onBack: () => void;
   onSave: (values: readonly string[]) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
   );
@@ -389,7 +395,7 @@ function BasicInformationPage({
   return (
     <main className={PROFILE_DETAIL_PAGE_CLASS}>
       <BackButton onClick={onBack} />
-      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>기본정보</h1>
+      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>{t('my.profileDetails.basicTitle')}</h1>
       <section className={PROFILE_DETAIL_FORM_CLASS}>
         {fields.map((field, index) => (
           <div key={field.label}>
@@ -427,7 +433,7 @@ function BasicInformationPage({
         disabled={isSaving}
         onClick={() => void onSave(values)}
       >
-        수정하기
+        {t('my.profile.edit')}
       </button>
       {openFieldIndex !== null && options ? (
         <ProfileOptionSheet
@@ -454,6 +460,7 @@ function ResidenceInformationPage({
   onBack: () => void;
   onSave: (values: readonly string[]) => Promise<void>;
 }) {
+  const { t, i18n } = useTranslation();
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
   );
@@ -467,7 +474,7 @@ function ResidenceInformationPage({
   return (
     <main className={PROFILE_DETAIL_PAGE_CLASS}>
       <BackButton onClick={onBack} />
-      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>체류정보</h1>
+      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>{t('my.profileDetails.residenceTitle')}</h1>
       <section className={PROFILE_DETAIL_FORM_CLASS}>
         {fields.map((field, index) => (
           <div key={field.label}>
@@ -498,7 +505,7 @@ function ResidenceInformationPage({
         disabled={isSaving}
         onClick={() => void onSave(values)}
       >
-        수정하기
+        {t('my.profile.edit')}
       </button>
       {isQualificationSheetOpen ? (
         <ProfileOptionSheet
@@ -520,6 +527,8 @@ function ResidenceInformationPage({
       {isExpiryPickerOpen ? (
         <ResidenceExpiryDatePicker
           initialDate={toProfileExpiryDate(values[1] ?? '')}
+          locale={i18n.resolvedLanguage === 'en' ? 'en' : 'ko'}
+          confirmLabel={t('common.confirm')}
           onClose={() => setIsExpiryPickerOpen(false)}
           onConfirm={(date) => {
             setValues((currentValues) =>
@@ -548,6 +557,7 @@ function AcademicInformationPage({
   onSave: (values: readonly string[]) => Promise<void>;
   residenceQualification: ResidenceQualification;
 }) {
+  const { t } = useTranslation();
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
   );
@@ -561,7 +571,7 @@ function AcademicInformationPage({
   return (
     <main className={PROFILE_DETAIL_PAGE_CLASS}>
       <BackButton onClick={onBack} />
-      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>학업정보</h1>
+      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>{t('my.profileDetails.academicTitle')}</h1>
       <section className={PROFILE_DETAIL_FORM_CLASS}>
         {fields.map((field, index) => (
           <div key={field.label}>
@@ -591,7 +601,7 @@ function AcademicInformationPage({
         disabled={isSaving}
         onClick={() => void onSave(values)}
       >
-        수정하기
+        {t('my.profile.edit')}
       </button>
       {isAcademicStatusSheetOpen ? (
         <ProfileOptionSheet
@@ -625,6 +635,7 @@ function LanguageInformationPage({
   onBack: () => void;
   onSave: (values: readonly string[]) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [values, setValues] = useState(() =>
     fields.map((field) => field.value),
   );
@@ -663,7 +674,7 @@ function LanguageInformationPage({
   return (
     <main className={PROFILE_DETAIL_PAGE_CLASS}>
       <BackButton onClick={onBack} />
-      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>어학정보</h1>
+      <h1 className={PROFILE_DETAIL_TITLE_CLASS}>{t('my.profileDetails.languageTitle')}</h1>
       <section className={PROFILE_DETAIL_FORM_CLASS}>
         {fields.map((field, index) => (
           <div key={field.label}>
@@ -683,7 +694,7 @@ function LanguageInformationPage({
         disabled={isSaving}
         onClick={() => void onSave(values)}
       >
-        수정하기
+        {t('my.profile.edit')}
       </button>
       {openFieldIndex !== null && options && pendingValue !== null ? (
         <ProfileOptionSheet
@@ -712,6 +723,7 @@ export default function StudentProfileManagementPage({
   preferredRegion = '-',
   profileValues,
 }: StudentProfileManagementPageProps) {
+  const { t } = useTranslation();
   const [view, setView] = useState<ProfileManagementView>(initialView);
   const [localProfileValues, setLocalProfileValues] =
     useState<StudentProfileValues>({});
@@ -727,8 +739,8 @@ export default function StudentProfileManagementPage({
         <BackButton onClick={onBack ?? (() => undefined)} />
         <p className="mt-10 text-[17px] leading-[1.5] text-[#6B7684]">
           {isLoading
-            ? '프로필 정보를 불러오는 중이에요.'
-            : '프로필 정보를 불러오지 못했어요.'}
+            ? t('my.profile.loading')
+            : t('my.profile.loadError')}
         </p>
       </main>
     );
@@ -783,10 +795,10 @@ export default function StudentProfileManagementPage({
   if (view === 'basic') {
     return (
       <BasicInformationPage
-        key={getDetailFields('basic', resolvedProfileValues)
+        key={getDetailFields('basic', resolvedProfileValues, t)
           .map((field) => field.value)
           .join('|')}
-        fields={getDetailFields('basic', resolvedProfileValues)}
+        fields={getDetailFields('basic', resolvedProfileValues, t)}
         isSaving={isSaving}
         onBack={handleDetailBack}
         onSave={(values) => handleSave('basic', values)}
@@ -797,10 +809,10 @@ export default function StudentProfileManagementPage({
   if (view === 'residence') {
     return (
       <ResidenceInformationPage
-        key={getDetailFields('residence', resolvedProfileValues)
+        key={getDetailFields('residence', resolvedProfileValues, t)
           .map((field) => field.value)
           .join('|')}
-        fields={getDetailFields('residence', resolvedProfileValues)}
+        fields={getDetailFields('residence', resolvedProfileValues, t)}
         isSaving={isSaving}
         onBack={handleDetailBack}
         onSave={(values) => handleSave('residence', values)}
@@ -811,10 +823,10 @@ export default function StudentProfileManagementPage({
   if (view === 'academic') {
     return (
       <AcademicInformationPage
-        key={getDetailFields('academic', resolvedProfileValues)
+        key={getDetailFields('academic', resolvedProfileValues, t)
           .map((field) => field.value)
           .join('|')}
-        fields={getDetailFields('academic', resolvedProfileValues)}
+        fields={getDetailFields('academic', resolvedProfileValues, t)}
         isSaving={isSaving}
         onBack={handleDetailBack}
         onSave={(values) => handleSave('academic', values)}
@@ -829,10 +841,10 @@ export default function StudentProfileManagementPage({
   if (view === 'language') {
     return (
       <LanguageInformationPage
-        key={getDetailFields('language', resolvedProfileValues)
+        key={getDetailFields('language', resolvedProfileValues, t)
           .map((field) => field.value)
           .join('|')}
-        fields={getDetailFields('language', resolvedProfileValues)}
+        fields={getDetailFields('language', resolvedProfileValues, t)}
         isSaving={isSaving}
         onBack={handleDetailBack}
         onSave={(values) => handleSave('language', values)}
@@ -843,8 +855,8 @@ export default function StudentProfileManagementPage({
   if (view !== 'main') {
     return (
       <DetailPage
-        fields={DETAIL_FIELDS[view]}
-        title={DETAIL_TITLES[view]}
+        fields={getDetailFields(view, resolvedProfileValues, t)}
+        title={t(`my.profileDetails.${view}Title`, { defaultValue: '' })}
         onBack={handleDetailBack}
       />
     );
@@ -858,17 +870,17 @@ export default function StudentProfileManagementPage({
       <div className="px-6">
         <BackButton onClick={onBack ?? (() => undefined)} />
         <h1 className="m-0 mt-[19px] text-[26px] leading-[1.5] font-semibold">
-          내 정보 관리
+          {t('my.profile.title')}
         </h1>
       </div>
 
       <div className="mt-[19px]">
         <ProfileInformationSection
           icon={basicInformationIcon}
-          title="기본 정보"
+          title={t('my.profile.basic')}
         >
           <ProfileInformationRow
-            label="생년월일"
+            label={t('my.profile.birthDate')}
             value={resolvedProfileValues.basic?.[1] ?? '-'}
             onClick={() =>
               onEditField
@@ -877,14 +889,14 @@ export default function StudentProfileManagementPage({
             }
           />
           <ProfileInformationRow
-            label="전화번호"
+            label={t('my.profile.phone')}
             value={resolvedProfileValues.basic?.[5] ?? '-'}
             onClick={() =>
               onEditField ? onEditField('phone') : handleProfileCardClick('basic')
             }
           />
           <ProfileInformationRow
-            label="거주지역"
+            label={t('my.profile.currentRegion')}
             value={resolvedProfileValues.basic?.[3] ?? '-'}
             onClick={() =>
               onEditField
@@ -893,7 +905,7 @@ export default function StudentProfileManagementPage({
             }
           />
           <ProfileInformationRow
-            label="희망거주지역"
+            label={t('my.profile.preferredRegion')}
             value={preferredRegion}
             onClick={() =>
               onEditField
@@ -902,8 +914,8 @@ export default function StudentProfileManagementPage({
             }
           />
           <ProfileInformationRow
-            label="경력"
-            value={`${careerCount}개`}
+            label={t('my.profile.career')}
+            value={t('my.profile.careerCount', { count: careerCount })}
             onClick={() =>
               onEditField ? onEditField('career') : handleProfileCardClick('basic')
             }
@@ -913,14 +925,14 @@ export default function StudentProfileManagementPage({
         <div className="mt-[18px]">
           <ProfileInformationSection
             icon={residenceInformationIcon}
-            title="체류기간 정보"
+            title={t('my.profile.residence')}
           >
             <ProfileInformationRow
-              label="체류자격"
+              label={t('my.profile.visa')}
               value={resolvedProfileValues.residence?.[0] ?? '-'}
             />
             <ProfileInformationRow
-              label="만료일"
+              label={t('my.profile.expiry')}
               value={resolvedProfileValues.residence?.[1] ?? '-'}
             />
           </ProfileInformationSection>
@@ -929,14 +941,14 @@ export default function StudentProfileManagementPage({
         <div className="mt-[24px]">
           <ProfileInformationSection
             icon={languageInformationIcon}
-            title="어학 정보"
+            title={t('my.profile.language')}
           >
             <ProfileInformationRow
               label="TOPIK"
               value={resolvedProfileValues.language?.[0] ?? '-'}
             />
             <ProfileInformationRow
-              label="한국어 실력"
+              label={t('my.profile.koreanLevel')}
               value={resolvedProfileValues.language?.[1] ?? '-'}
               onClick={() =>
                 onEditField
@@ -953,7 +965,7 @@ export default function StudentProfileManagementPage({
         type="button"
         onClick={onApply}
       >
-        수정 반영하기
+        {t('my.profile.saveChanges')}
       </button>
     </main>
   );

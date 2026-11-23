@@ -1,5 +1,6 @@
 import illustration from '../../../assets/images/student/documents/topik/guide-illustration.png';
 import levelIcon from '../../../assets/images/student/documents/topik/guide-level.png';
+import { useTranslation } from 'react-i18next';
 import { DocumentRegistrationInformation } from './DocumentRegistrationInformation';
 
 type TopikInformationProps = {
@@ -10,14 +11,15 @@ type TopikInformationProps = {
 const GUIDE_ITEMS = [{ icon: levelIcon, label: 'TOPIK 등급 확인' }] as const;
 
 export function TopikInformation(props: TopikInformationProps) {
+  const { t } = useTranslation();
   return (
     <DocumentRegistrationInformation
       compactGuidePosition
-      description="TOPIK 등급 확인 위해 필요해요"
-      guideItems={GUIDE_ITEMS}
-      heading={['TOPIK 성적증명서를', '등록해주세요.']}
+      description={t('my.documentFlow.topikDescription')}
+      guideItems={GUIDE_ITEMS.map((item) => ({ ...item, label: t('my.documentFlow.topikCheck') }))}
+      heading={[t('my.documentFlow.topikHeading1'), t('my.documentFlow.registerPrompt')]}
       illustration={illustration}
-      title="TOPIK 성적증명서 등록"
+      title={t('my.documentFlow.topikTitle')}
       {...props}
     />
   );

@@ -1,4 +1,5 @@
 import backIcon from '../../../assets/icons/student/back.svg';
+import { useTranslation } from 'react-i18next';
 import detailMapImage from '../../../assets/images/student/matching/detail-map.png';
 import type { WorkLocationRadius } from '../../../types/workLocation';
 
@@ -35,6 +36,7 @@ export function WorkLocationRadiusMap({
   radius,
   radiusOptions,
 }: WorkLocationRadiusMapProps) {
+  const { t } = useTranslation();
   const selectedRadiusIndex = radiusOptions.indexOf(radius);
   const circleSize = RADIUS_CIRCLE_SIZE_BY_METERS[radius] ?? 196;
   const sliderPosition = RADIUS_SLIDER_POSITION_BY_METERS[radius] ?? 50;
@@ -48,7 +50,7 @@ export function WorkLocationRadiusMap({
       />
       <header className="absolute top-0 right-0 left-0 z-10 h-[241px] overflow-hidden rounded-b-[20px] bg-[#F5F5F5] shadow-[2px_2px_5px_rgba(0,0,0,0.14)]">
         <button
-          aria-label="희망 근무 위치 입력으로 돌아가기"
+          aria-label={t('my.experience.radiusBack')}
           className="absolute top-[60px] left-[13px] grid size-[34px] place-items-center border-0 bg-transparent p-0"
           type="button"
           onClick={onBack}
@@ -74,7 +76,7 @@ export function WorkLocationRadiusMap({
 
         <section className="absolute top-[125px] right-[6.41%] left-[5.9%]">
           <h1 className="m-0 text-[17px] leading-[1.5] font-medium">
-            반경 선택하기
+            {t('my.experience.selectRadius')}
           </h1>
           <div className="relative mt-[25px] h-[19px] w-full">
             <span
@@ -92,7 +94,7 @@ export function WorkLocationRadiusMap({
               style={{ left: `calc(${sliderPosition}% - 9.5px)` }}
             />
             <input
-              aria-label="희망 근무 반경"
+              aria-label={t('my.experience.radius')}
               className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
               max={radiusOptions.length - 1}
               min="0"
@@ -134,7 +136,7 @@ export function WorkLocationRadiusMap({
         type="button"
         onClick={onConfirm}
       >
-        확인
+        {t('common.confirm')}
       </button>
     </main>
   );
