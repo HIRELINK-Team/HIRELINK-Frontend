@@ -21,6 +21,13 @@ type ProfileManagementView =
   'main' | 'basic' | 'residence' | 'academic' | 'language';
 
 export type ProfileDetailView = Exclude<ProfileManagementView, 'main'>;
+export type StudentProfileEditField =
+  | 'birth-date'
+  | 'phone'
+  | 'current-region'
+  | 'preferred-region'
+  | 'career'
+  | 'korean-level';
 export type StudentProfileValues = Partial<
   Record<ProfileDetailView, readonly string[]>
 >;
@@ -55,7 +62,9 @@ type StudentProfileManagementPageProps = {
     values: readonly string[],
   ) => boolean | void | Promise<boolean | void>;
   onViewChange?: (view: Exclude<ProfileManagementView, 'main'>) => void;
+  onEditField?: (field: StudentProfileEditField) => void;
   careerCount?: number;
+  preferredRegion?: string;
   profileValues?: StudentProfileValues;
 };
 
@@ -699,6 +708,8 @@ export default function StudentProfileManagementPage({
   onBack,
   onSave,
   onViewChange,
+  onEditField,
+  preferredRegion = '-',
   profileValues,
 }: StudentProfileManagementPageProps) {
   const [view, setView] = useState<ProfileManagementView>(initialView);
@@ -859,27 +870,43 @@ export default function StudentProfileManagementPage({
           <ProfileInformationRow
             label="생년월일"
             value={resolvedProfileValues.basic?.[1] ?? '-'}
-            onClick={() => handleProfileCardClick('basic')}
+            onClick={() =>
+              onEditField
+                ? onEditField('birth-date')
+                : handleProfileCardClick('basic')
+            }
           />
           <ProfileInformationRow
             label="전화번호"
             value={resolvedProfileValues.basic?.[5] ?? '-'}
-            onClick={() => handleProfileCardClick('basic')}
+            onClick={() =>
+              onEditField ? onEditField('phone') : handleProfileCardClick('basic')
+            }
           />
           <ProfileInformationRow
             label="거주지역"
             value={resolvedProfileValues.basic?.[3] ?? '-'}
-            onClick={() => handleProfileCardClick('basic')}
+            onClick={() =>
+              onEditField
+                ? onEditField('current-region')
+                : handleProfileCardClick('basic')
+            }
           />
           <ProfileInformationRow
             label="희망거주지역"
-            value="-"
-            onClick={() => handleProfileCardClick('basic')}
+            value={preferredRegion}
+            onClick={() =>
+              onEditField
+                ? onEditField('preferred-region')
+                : handleProfileCardClick('basic')
+            }
           />
           <ProfileInformationRow
             label="경력"
             value={`${careerCount}개`}
-            onClick={() => handleProfileCardClick('basic')}
+            onClick={() =>
+              onEditField ? onEditField('career') : handleProfileCardClick('basic')
+            }
           />
         </ProfileInformationSection>
 
@@ -911,7 +938,11 @@ export default function StudentProfileManagementPage({
             <ProfileInformationRow
               label="한국어 실력"
               value={resolvedProfileValues.language?.[1] ?? '-'}
-              onClick={() => handleProfileCardClick('language')}
+              onClick={() =>
+                onEditField
+                  ? onEditField('korean-level')
+                  : handleProfileCardClick('language')
+              }
             />
           </ProfileInformationSection>
         </div>

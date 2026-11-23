@@ -1,6 +1,8 @@
+import { useState } from 'react';
+
 import backIcon from '../../../assets/icons/student/back.svg';
-import calendarIcon from '../../../assets/icons/student/calendar.svg';
 import type { ExperienceDraft } from '../../../types/experience';
+import { ResidenceExpiryDatePicker } from './ResidenceExpiryDatePicker';
 
 type ExperienceFormProps = {
   draft: ExperienceDraft;
@@ -14,12 +16,23 @@ type ExperienceFormProps = {
   onSubmit: () => void;
 };
 
-function formatMonthInput(value: string) {
-  const digits = value.replace(/\D/g, '').slice(0, 6);
-
-  return digits.length >= 4
-    ? `${digits.slice(0, 4)}.${digits.slice(4)}`
-    : digits;
+function CalendarIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-[19px] shrink-0"
+      fill="none"
+      viewBox="0 0 20 20"
+    >
+      <path
+        d="M4.5 3.5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-10a2 2 0 0 1 2-2ZM6.5 1.75v3.5M13.5 1.75v3.5M2.5 7.25h15"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
 }
 
 /** Collects one student work-experience entry for creation or editing. */
@@ -31,6 +44,9 @@ export function ExperienceForm({
   onChange,
   onSubmit,
 }: ExperienceFormProps) {
+  const [openDateField, setOpenDateField] = useState<
+    'startMonth' | 'endMonth' | null
+  >(null);
   const formTitle = isEditing ? '경력 수정하기' : '경력 추가하기';
   const submitLabel = isEditing ? '수정하기' : '+ 추가하기';
 
@@ -50,7 +66,7 @@ export function ExperienceForm({
       </h1>
 
       <label className="mt-[39px] block">
-        <span className="block text-[15px] leading-[1.5] font-semibold text-[#009376]">
+        <span className="block text-[15px] leading-[1.5] font-semibold text-[#191F28]">
           알바명
         </span>
         <input
@@ -62,42 +78,54 @@ export function ExperienceForm({
       </label>
 
       <fieldset className="mt-[10px] min-w-0 border-0 p-0">
-        <legend className="text-[15px] leading-[1.5] font-semibold">
+        <legend className="text-[15px] leading-[1.5] font-semibold text-[#191F28]">
           근무기간
         </legend>
         <div className="mt-2 flex items-center gap-[7px]">
-          <label className="relative flex h-[56px] min-w-0 flex-1 items-center justify-center rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-2 focus-within:border-[1.5px] focus-within:border-[#00B894]">
-            <img alt="" className="shrink-0" src={calendarIcon} />
+          <label
+            className={`relative flex h-[56px] min-w-0 flex-1 items-center justify-center rounded-[15px] bg-transparent px-2 ${
+              openDateField === 'startMonth'
+                ? 'border-[1.5px] border-[#00B894] text-[#00B894]'
+                : 'border-[0.7px] border-[#B3B8B9] text-[#00B894]'
+            }`}
+          >
+            <span className="-translate-x-2">
+              <CalendarIcon />
+            </span>
             <input
               aria-label="근무 시작 월"
-              className="w-[71px] min-w-0 bg-transparent pl-2 text-[17px] leading-[1.5] outline-none placeholder:text-[#8B95A1]"
-              inputMode="numeric"
+              className="w-[71px] min-w-0 -translate-x-2 bg-transparent pl-2 text-[17px] leading-[1.5] text-[#191F28] outline-none placeholder:text-[#8B95A1]"
               placeholder="2023.03"
+              readOnly
               value={draft.startMonth}
-              onChange={(event) =>
-                onChange('startMonth', formatMonthInput(event.target.value))
-              }
+              onClick={() => setOpenDateField('startMonth')}
             />
           </label>
           <span aria-hidden="true" className="h-px w-4 shrink-0 bg-[#D1D6DB]" />
-          <label className="relative flex h-[56px] min-w-0 flex-1 items-center justify-center rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent px-2 focus-within:border-[1.5px] focus-within:border-[#00B894]">
-            <img alt="" className="shrink-0" src={calendarIcon} />
+          <label
+            className={`relative flex h-[56px] min-w-0 flex-1 items-center justify-center rounded-[15px] bg-transparent px-2 ${
+              openDateField === 'endMonth'
+                ? 'border-[1.5px] border-[#00B894] text-[#00B894]'
+                : 'border-[0.7px] border-[#B3B8B9] text-[#00B894]'
+            }`}
+          >
+            <span className="-translate-x-2">
+              <CalendarIcon />
+            </span>
             <input
               aria-label="근무 종료 월"
-              className="w-[71px] min-w-0 bg-transparent pl-2 text-[17px] leading-[1.5] outline-none placeholder:text-[#8B95A1]"
-              inputMode="numeric"
+              className="w-[71px] min-w-0 -translate-x-2 bg-transparent pl-2 text-[17px] leading-[1.5] text-[#191F28] outline-none placeholder:text-[#8B95A1]"
               placeholder="2023.09"
+              readOnly
               value={draft.endMonth}
-              onChange={(event) =>
-                onChange('endMonth', formatMonthInput(event.target.value))
-              }
+              onClick={() => setOpenDateField('endMonth')}
             />
           </label>
         </div>
       </fieldset>
 
       <label className="mt-[10px] block">
-        <span className="block text-[15px] leading-[1.5] font-semibold">
+        <span className="block text-[15px] leading-[1.5] font-semibold text-[#191F28]">
           근무 내용
         </span>
         <input
@@ -118,6 +146,22 @@ export function ExperienceForm({
           {submitLabel}
         </button>
       </div>
+
+      {openDateField ? (
+        <ResidenceExpiryDatePicker
+          emptyInitialDate="2023-01"
+          initialDate={draft[openDateField].replace('.', '-')}
+          precision="month"
+          title={
+            openDateField === 'startMonth' ? '시작 월 선택' : '종료 월 선택'
+          }
+          onClose={() => setOpenDateField(null)}
+          onConfirm={(month) => {
+            onChange(openDateField, month.replace('-', '.'));
+            setOpenDateField(null);
+          }}
+        />
+      ) : null}
     </main>
   );
 }
