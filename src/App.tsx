@@ -44,7 +44,10 @@ import {
   mapStudentProfileResponseToValues,
   mapStudentProfileValuesToUpdateRequest,
 } from './adapters/studentProfile';
-import { mapStudentRecommendationToRecommendedJob } from './adapters/studentRecommendations';
+import {
+  mapStudentRecommendationToRecommendedJob,
+  mergeRecommendationApplicationState,
+} from './adapters/studentRecommendations';
 import { mapStudentJobPostingToRecommendedJob } from './adapters/studentJobPostings';
 import { IS_DEMO_MODE } from './config/demoMode';
 import { studentDataSource } from './services/studentDataSource';
@@ -975,7 +978,10 @@ function StudentMatchingRoute() {
 
           if (response.status !== 'RECRUITING') return null;
 
-          return mapStudentJobPostingToRecommendedJob(recommendation, response);
+          return mapStudentJobPostingToRecommendedJob(
+            mergeRecommendationApplicationState(recommendation, job),
+            response,
+          );
         } catch (error) {
           if (axios.isAxiosError(error) && error.response?.status === 409) {
             await refreshRecommendations();

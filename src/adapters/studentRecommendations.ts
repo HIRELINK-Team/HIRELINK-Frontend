@@ -22,6 +22,28 @@ function formatWorkTime(workTime: StudentRecommendationWorkTime) {
 type RecommendationDisplayData =
   StudentRecommendation | StudentRecommendationDetailResponse;
 
+export function mergeRecommendationApplicationState(
+  detail: RecommendedJob,
+  selected: RecommendedJob,
+): RecommendedJob {
+  const applicationId =
+    detail.applicationId === undefined
+      ? selected.applicationId
+      : detail.applicationId;
+  const applicationStatus =
+    detail.applicationStatus === undefined
+      ? selected.applicationStatus
+      : detail.applicationStatus;
+  return {
+    ...detail,
+    applicationId,
+    applicationStatus,
+    showsApplyButton:
+      applicationStatus !== 'WAITING_RESPONSE' &&
+      applicationStatus !== 'OFFERED',
+  };
+}
+
 function formatWage(recommendation: RecommendationDisplayData) {
   const label =
     WAGE_TYPE_LABELS[recommendation.wageType] ?? recommendation.wageType;

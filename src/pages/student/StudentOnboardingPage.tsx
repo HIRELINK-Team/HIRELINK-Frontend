@@ -11,6 +11,7 @@ import {
   requestPhoneVerification,
 } from '../../api/student';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
+import { syncWorkAvailability } from '../../utils/syncWorkAvailability';
 import { IS_DEMO_MODE } from '../../config/demoMode';
 import { mapIndustrySelectionToUpdateRequest } from '../../adapters/studentMatchingPreferences';
 import {
@@ -626,13 +627,9 @@ export default function StudentOnboardingPage({
 
   const handleWorkTimeSlotsChange = (day: Weekday, slots: number[]) => {
     setIsWorkTimeSelectionSubmitted(false);
-    setWorkAvailability((currentAvailability) => ({
-      ...currentAvailability,
-      [workTimeMode]: {
-        ...currentAvailability[workTimeMode],
-        [day]: slots,
-      },
-    }));
+    setWorkAvailability((currentAvailability) =>
+      syncWorkAvailability(currentAvailability, workTimeMode, day, slots),
+    );
   };
 
   const handleWorkTimeConfirm = () => {
