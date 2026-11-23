@@ -9,13 +9,16 @@ import { DocumentRegistrationList } from '../../components/student/documents/Doc
 import { EnrollmentCertificateCamera } from '../../components/student/documents/EnrollmentCertificateCamera';
 import { EnrollmentCertificateComplete } from '../../components/student/documents/EnrollmentCertificateComplete';
 import { EnrollmentCertificateInformation } from '../../components/student/documents/EnrollmentCertificateInformation';
+import { EnrollmentCertificateReview } from '../../components/student/documents/EnrollmentCertificateReview';
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import { TranscriptCamera } from '../../components/student/documents/TranscriptCamera';
 import { TranscriptComplete } from '../../components/student/documents/TranscriptComplete';
 import { TranscriptInformation } from '../../components/student/documents/TranscriptInformation';
+import { TranscriptReview } from '../../components/student/documents/TranscriptReview';
 import { TopikCamera } from '../../components/student/documents/TopikCamera';
 import { TopikComplete } from '../../components/student/documents/TopikComplete';
 import { TopikInformation } from '../../components/student/documents/TopikInformation';
+import { TopikReview } from '../../components/student/documents/TopikReview';
 import { AlienRegistrationBackCamera } from '../../components/student/onboarding/AlienRegistrationBackCamera';
 import {
   AlienRegistrationBackInfo,
@@ -44,12 +47,15 @@ export type StudentDocumentManagementView =
   | 'alien-complete'
   | 'enrollment-information'
   | 'enrollment-camera'
+  | 'enrollment-review'
   | 'enrollment-complete'
   | 'transcript-information'
   | 'transcript-camera'
+  | 'transcript-review'
   | 'transcript-complete'
   | 'topik-information'
   | 'topik-camera'
+  | 'topik-review'
   | 'topik-complete'
   | 'badge-issued';
 
@@ -367,7 +373,17 @@ export default function StudentDocumentManagementPage({
     return (
       <EnrollmentCertificateCamera
         onBack={() => setView('enrollment-information')}
-        onCapture={() => setView('enrollment-complete')}
+        onCapture={() => setView('enrollment-review')}
+      />
+    );
+  }
+
+  if (view === 'enrollment-review') {
+    return (
+      <EnrollmentCertificateReview
+        onBack={() => setView('enrollment-camera')}
+        onConfirm={() => setView('enrollment-complete')}
+        onRetry={() => setView('enrollment-camera')}
       />
     );
   }
@@ -375,7 +391,7 @@ export default function StudentDocumentManagementPage({
   if (view === 'enrollment-complete') {
     return (
       <EnrollmentCertificateComplete
-        onBack={() => setView('enrollment-camera')}
+        onBack={() => setView('enrollment-review')}
         onConfirm={() => handleDocumentComplete('enrollment-certificate')}
       />
     );
@@ -394,7 +410,17 @@ export default function StudentDocumentManagementPage({
     return (
       <TranscriptCamera
         onBack={() => setView('transcript-information')}
-        onCapture={() => setView('transcript-complete')}
+        onCapture={() => setView('transcript-review')}
+      />
+    );
+  }
+
+  if (view === 'transcript-review') {
+    return (
+      <TranscriptReview
+        onBack={() => setView('transcript-camera')}
+        onConfirm={() => setView('transcript-complete')}
+        onRetry={() => setView('transcript-camera')}
       />
     );
   }
@@ -402,7 +428,7 @@ export default function StudentDocumentManagementPage({
   if (view === 'transcript-complete') {
     return (
       <TranscriptComplete
-        onBack={() => setView('transcript-camera')}
+        onBack={() => setView('transcript-review')}
         onConfirm={() => handleDocumentComplete('transcript')}
       />
     );
@@ -421,7 +447,17 @@ export default function StudentDocumentManagementPage({
     return (
       <TopikCamera
         onBack={() => setView('topik-information')}
-        onCapture={() => setView('topik-complete')}
+        onCapture={() => setView('topik-review')}
+      />
+    );
+  }
+
+  if (view === 'topik-review') {
+    return (
+      <TopikReview
+        onBack={() => setView('topik-camera')}
+        onConfirm={() => setView('topik-complete')}
+        onRetry={() => setView('topik-camera')}
       />
     );
   }
@@ -429,7 +465,7 @@ export default function StudentDocumentManagementPage({
   if (view === 'topik-complete') {
     return (
       <TopikComplete
-        onBack={() => setView('topik-camera')}
+        onBack={() => setView('topik-review')}
         onConfirm={() => handleDocumentComplete('topik-transcript')}
       />
     );
