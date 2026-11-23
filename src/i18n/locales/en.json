@@ -1,0 +1,28 @@
+{
+  "entry": {
+    "language": "Language",
+    "english": "ENGLISH",
+    "korean": "한국어",
+    "employer": "Are you an employer?",
+    "google": "Continue with Google",
+    "kakao": "Continue with Kakao",
+    "email": "Continue with email"
+  },
+  "home": {
+    "greeting": "Hello, {{name}}!",
+    "subtitle": "Shall we find a great job today?",
+    "applications": "Applications",
+    "reviewing": "Reviewing",
+    "completed": "Hired",
+    "offer": "Offers",
+    "unit": "jobs",
+    "matchingCta": "Find a match →",
+    "languageToggle": "⇄ ENGLISH"
+  },
+  "navigation": {
+    "home": "Home",
+    "matching": "Matching",
+    "applications": "Applications",
+    "my": "My"
+  }
+}
