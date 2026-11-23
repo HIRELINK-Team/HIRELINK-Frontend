@@ -87,8 +87,10 @@ import StudentOnboardingPage, {
 } from './pages/student/StudentOnboardingPage';
 import StudentProfileManagementPage, {
   type ProfileDetailView,
+  type StudentProfileEditField,
   type StudentProfileValues,
 } from './pages/student/StudentProfileManagementPage';
+import StudentProfileEditPage from './pages/student/StudentProfileEditPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
 import StudentTermsAgreementPage from './pages/student/StudentTermsAgreementPage';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
@@ -104,6 +106,7 @@ import type { StudentDocument } from './types/studentDocument';
 import type { IndustryId } from './types/industry';
 import type { MatchingPriorityId } from './types/matchingPriority';
 import type { StudentMatchingPreferencesResponse } from './types/studentMatchingPreferences';
+import type { StudentPreferredLocation } from './types/studentMatchingPreferences';
 import type { RecommendedJob } from './types/studentMatching';
 import type {
   StudentNotificationId,
@@ -115,6 +118,7 @@ import type {
   StudentProfileResponse,
   StudentProfileUpdateResponse,
 } from './types/studentProfile';
+import type { StudentCareerResponse } from './types/experience';
 import type { WorkAvailability } from './types/workAvailability';
 import type { WorkLocation } from './types/workLocation';
 
@@ -252,9 +256,15 @@ type StudentApplicationsRouteContext = {
 };
 
 type StudentProfileRouteContext = {
+  careers: readonly StudentCareerResponse[];
+  careerCount: number;
   isProfileLoading: boolean;
   isProfileUnavailable: boolean;
   profileValues: StudentProfileValues;
+  preferredLocation: StudentPreferredLocation | null;
+  setCareers: (careers: readonly StudentCareerResponse[]) => void;
+  setPhoneNumber: (phoneNumber: string) => void;
+  setPreferredLocation: (location: StudentPreferredLocation) => void;
   saveProfile: (
     view: ProfileDetailView,
     values: readonly string[],
@@ -1582,6 +1592,8 @@ function StudentProfileLayout() {
   const [profileValues, setProfileValues] = useState<StudentProfileValues>({});
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [isProfileUnavailable, setIsProfileUnavailable] = useState(false);
+  const [preferredLocation, setPreferredLocation] =
+    useState<StudentPreferredLocation | null>(null);
 
   useEffect(() => {
     let isActive = true;
@@ -1617,13 +1629,42 @@ function StudentProfileLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    let isActive = true;
+
+    void studentDataSource.getMatchingPreferences().then((preferences) => {
+      if (isActive) setPreferredLocation(preferences.preferredLocation);
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
   return (
     <Outlet
       context={
         {
+          careers: studentProfile?.careers ?? [],
+          careerCount: studentProfile?.careers.length ?? 0,
           isProfileLoading,
           isProfileUnavailable,
           profileValues,
+          preferredLocation,
+          setCareers: (careers) => {
+            setStudentProfile((current) =>
+              current ? { ...current, careers: [...careers] } : current,
+            );
+          },
+          setPhoneNumber: (phoneNumber) => {
+            setStudentProfile((current) => {
+              if (!current) return current;
+              const next = { ...current, phoneNumber };
+              setProfileValues(mapStudentProfileResponseToValues(next));
+              return next;
+            });
+          },
+          setPreferredLocation,
           saveProfile: async (view, values) => {
             if (!studentProfile) {
               window.alert('프로필 정보를 불러온 뒤 다시 시도해 주세요.');
@@ -1678,7 +1719,13 @@ function StudentProfileLayout() {
 
 function StudentProfileRoute() {
   const navigate = useNavigate();
-  const { isProfileLoading, isProfileUnavailable, profileValues } =
+  const {
+    careerCount,
+    isProfileLoading,
+    isProfileUnavailable,
+    preferredLocation,
+    profileValues,
+  } =
     useOutletContext<StudentProfileRouteContext>();
 
   return (
@@ -1686,9 +1733,45 @@ function StudentProfileRoute() {
       onApply={() => navigate('/student/my')}
       onBack={() => navigate('/student/my')}
       onViewChange={(view) => navigate(`/student/my/profile/${view}`)}
+      onEditField={(field) => navigate(`/student/my/profile/${field}`)}
+      careerCount={careerCount}
+      preferredRegion={preferredLocation?.locationName ?? '-'}
       profileValues={profileValues}
       isLoading={isProfileLoading}
       isProfileUnavailable={isProfileUnavailable}
+    />
+  );
+}
+
+function StudentProfileEditRoute({
+  field,
+}: {
+  field: StudentProfileEditField;
+}) {
+  const navigate = useNavigate();
+  const {
+    careers,
+    profileValues,
+    preferredLocation,
+    saveProfile,
+    setCareers,
+    setPhoneNumber,
+    setPreferredLocation,
+  } = useOutletContext<StudentProfileRouteContext>();
+
+  return (
+    <StudentProfileEditPage
+      careers={careers}
+      field={field}
+      onBack={() => navigate('/student/my/profile')}
+      onCareersChange={setCareers}
+      onPhoneChange={setPhoneNumber}
+      onPreferredLocationChange={setPreferredLocation}
+      onProfileSave={async (view, values) =>
+        (await saveProfile(view, values)) === true
+      }
+      preferredLocation={preferredLocation}
+      profileValues={profileValues}
     />
   );
 }
@@ -2342,6 +2425,22 @@ function App() {
                 path="language"
                 element={<StudentProfileDetailRoute view="language" />}
               />
+              {(
+                [
+                  'birth-date',
+                  'phone',
+                  'current-region',
+                  'preferred-region',
+                  'career',
+                  'korean-level',
+                ] as const
+              ).map((field) => (
+                <Route
+                  element={<StudentProfileEditRoute field={field} />}
+                  key={field}
+                  path={field}
+                />
+              ))}
             </Route>
             <Route
               path="/student/my/matching-condition"

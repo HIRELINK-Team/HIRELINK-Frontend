@@ -9,6 +9,7 @@ type ResidenceExpiryDatePickerProps = {
   onDateChange?: (date: string) => void;
   onClose: () => void;
   onConfirm: (date: string) => void;
+  precision?: 'day' | 'month';
   title?: string;
 };
 
@@ -42,8 +43,19 @@ function isValidIsoDate(value: string) {
   );
 }
 
-function getInitialMonth(date: string, emptyInitialDate: string) {
-  if (!isValidIsoDate(date)) {
+function isValidIsoMonth(value: string) {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+}
+
+function getInitialMonth(
+  date: string,
+  emptyInitialDate: string,
+  precision: 'day' | 'month',
+) {
+  const isValid =
+    precision === 'month' ? isValidIsoMonth(date) : isValidIsoDate(date);
+
+  if (!isValid) {
     const [year, month] = emptyInitialDate.split('-').map(Number);
     return new Date(year, month - 1, 1);
   }
@@ -66,13 +78,20 @@ export function ResidenceExpiryDatePicker({
   onDateChange,
   onClose,
   onConfirm,
+  precision = 'day',
   title = '\uB9CC\uB8CC\uC77C \uC120\uD0DD',
 }: ResidenceExpiryDatePickerProps) {
   const [displayMonth, setDisplayMonth] = useState(() =>
-    getInitialMonth(initialDate, emptyInitialDate),
+    getInitialMonth(initialDate, emptyInitialDate, precision),
   );
   const [selectedDate, setSelectedDate] = useState(() =>
-    isValidIsoDate(initialDate) ? initialDate : '',
+    precision === 'month'
+      ? isValidIsoMonth(initialDate)
+        ? initialDate
+        : ''
+      : isValidIsoDate(initialDate)
+        ? initialDate
+        : '',
   );
 
   const calendarDays = useMemo(() => {
@@ -87,6 +106,11 @@ export function ResidenceExpiryDatePicker({
     });
   }, [displayMonth]);
 
+  const selectValue = (value: string) => {
+    setSelectedDate(value);
+    onDateChange?.(value);
+  };
+
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-black/50">
       <button
@@ -97,19 +121,24 @@ export function ResidenceExpiryDatePicker({
       />
       <section
         aria-label={title}
-        className="relative h-[494px] rounded-t-[20px] bg-[#F5F5F5] px-6 pt-[34px]"
+        className="relative h-[494px] rounded-t-[20px] bg-[#FAFAFA] px-6 pt-[34px]"
       >
         <h2 className="m-0 text-[20px] leading-[1.5] font-semibold">{title}</h2>
         <div className="relative mt-[13px] h-[26px]">
           <p className="m-0 text-[17px] leading-[1.5] font-medium">
             {displayMonth.getFullYear()}
-            {'\uB144 '}
-            {displayMonth.getMonth() + 1}
-            {'\uC6D4'}
+            {'\uB144'}
+            {precision === 'day' ? (
+              <>
+                {' '}
+                {displayMonth.getMonth() + 1}
+                {'\uC6D4'}
+              </>
+            ) : null}
           </p>
           <div
             aria-label={'\uC6D4 \uC774\uB3D9'}
-            className="absolute top-[2px] left-[260.5px] flex items-center gap-[22px]"
+            className="absolute top-[2px] right-0 flex items-center gap-[22px]"
             role="group"
           >
             <button
@@ -117,13 +146,14 @@ export function ResidenceExpiryDatePicker({
               className="flex size-[22px] items-center justify-center border-0 bg-transparent p-0"
               type="button"
               onClick={() =>
-                setDisplayMonth(
-                  (currentMonth) =>
-                    new Date(
-                      currentMonth.getFullYear(),
-                      currentMonth.getMonth() - 1,
-                      1,
-                    ),
+                setDisplayMonth((currentMonth) =>
+                  precision === 'month'
+                    ? new Date(currentMonth.getFullYear() - 1, 0, 1)
+                    : new Date(
+                        currentMonth.getFullYear(),
+                        currentMonth.getMonth() - 1,
+                        1,
+                      ),
                 )
               }
             >
@@ -134,13 +164,14 @@ export function ResidenceExpiryDatePicker({
               className="flex size-[22px] items-center justify-center border-0 bg-transparent p-0"
               type="button"
               onClick={() =>
-                setDisplayMonth(
-                  (currentMonth) =>
-                    new Date(
-                      currentMonth.getFullYear(),
-                      currentMonth.getMonth() + 1,
-                      1,
-                    ),
+                setDisplayMonth((currentMonth) =>
+                  precision === 'month'
+                    ? new Date(currentMonth.getFullYear() + 1, 0, 1)
+                    : new Date(
+                        currentMonth.getFullYear(),
+                        currentMonth.getMonth() + 1,
+                        1,
+                      ),
                 )
               }
             >
@@ -149,6 +180,31 @@ export function ResidenceExpiryDatePicker({
           </div>
         </div>
 
+        {precision === 'month' ? (
+          <div className="mt-[26px] grid grid-cols-3 gap-3">
+            {Array.from({ length: 12 }, (_, index) => {
+              const month = String(index + 1).padStart(2, '0');
+              const value = `${displayMonth.getFullYear()}-${month}`;
+              const isSelected = selectedDate === value;
+
+              return (
+                <button
+                  aria-pressed={isSelected}
+                  className={`h-[48px] rounded-[12px] border-0 text-[17px] leading-[1.5] ${
+                    isSelected
+                      ? 'bg-[#00B894] font-medium text-[#F5F5F5]'
+                      : 'bg-white text-[#6B7684]'
+                  }`}
+                  key={value}
+                  type="button"
+                  onClick={() => selectValue(value)}
+                >
+                  {index + 1}월
+                </button>
+              );
+            })}
+          </div>
+        ) : (
         <div className="mt-[17px] grid grid-cols-7 gap-x-[10px] gap-y-[4px]">
           {WEEKDAY_LABELS.map((label) => (
             <span
@@ -176,8 +232,7 @@ export function ResidenceExpiryDatePicker({
                 key={dateValue}
                 type="button"
                 onClick={() => {
-                  setSelectedDate(dateValue);
-                  onDateChange?.(dateValue);
+                  selectValue(dateValue);
                 }}
               >
                 {date.getDate()}
@@ -185,6 +240,7 @@ export function ResidenceExpiryDatePicker({
             );
           })}
         </div>
+        )}
         <button
           className="absolute right-6 bottom-[37px] left-6 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5] active:bg-[#009376] disabled:bg-[#B0B8C1] disabled:active:bg-[#B0B8C1]"
           disabled={!selectedDate}

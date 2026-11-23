@@ -1,8 +1,11 @@
+import { useEffect, useRef, useState } from 'react';
+
 import backIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-back.svg';
 import bulbIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-bulb.svg';
 import clarityIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-clarity.svg';
 import landscapeIcon from '../../../assets/icons/student/documents/alien-registration/issue46-camera-landscape.svg';
 import { AlienRegistrationOnboardingLayout } from '../onboarding/AlienRegistrationOnboardingLayout';
+import { DocumentCaptureActions } from './DocumentCaptureActions';
 
 type AlienRegistrationCameraProps = {
   onBack: () => void;
@@ -184,30 +187,18 @@ export function AlienRegistrationCamera({
         </div>
       </section>
 
-      <div className="mt-auto grid shrink-0 grid-cols-[165fr_169fr] gap-[7px] pt-6 [@media(max-height:700px)]:pt-3">
-        <label className="flex h-[57px] cursor-pointer items-center justify-center rounded-[15px] bg-white/15 text-[20px] leading-[1.5] font-medium text-[#F5F5F5]">
-          파일업로드
-          <input
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file && file.type.startsWith('image/')) onCapture(file);
-              else if (file) setCameraError('이미지 파일을 선택해주세요.');
-            }}
-          />
-        </label>
-        <button
-          type="button"
-          onClick={handleCapture}
-          disabled={!isCameraReady || isCapturing || Boolean(cameraError)}
-          className="h-[58px] rounded-[15px] bg-[#F5F5F5] !text-[20px] !leading-[1.5] !font-normal text-[#1D1F20]"
-        >
-          등록하기
-        </button>
-      </div>
+      <DocumentCaptureActions
+        accept="image/*"
+        className="mt-auto shrink-0 pt-6 [@media(max-height:700px)]:pt-3"
+        isTakePhotoDisabled={
+          !isCameraReady || isCapturing || Boolean(cameraError)
+        }
+        onFileUpload={(file) => {
+          if (file.type.startsWith('image/')) onCapture(file);
+          else setCameraError('이미지 파일을 선택해주세요.');
+        }}
+        onTakePhoto={handleCapture}
+      />
     </AlienRegistrationOnboardingLayout>
   );
 }
-import { useEffect, useRef, useState } from 'react';

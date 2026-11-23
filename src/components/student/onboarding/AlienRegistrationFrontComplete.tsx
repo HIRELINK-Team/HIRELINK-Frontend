@@ -5,11 +5,13 @@ import { AlienRegistrationOnboardingLayout } from './AlienRegistrationOnboarding
 type AlienRegistrationFrontCompleteProps = {
   onBack: () => void;
   onConfirm: () => void;
+  showDescription?: boolean;
 };
 
 export function AlienRegistrationFrontComplete({
   onBack,
   onConfirm,
+  showDescription = true,
 }: AlienRegistrationFrontCompleteProps) {
   return (
     <AlienRegistrationOnboardingLayout>
@@ -31,11 +33,13 @@ export function AlienRegistrationFrontComplete({
         <h1 className="mt-8 m-0 text-[22px] leading-[1.5] font-semibold">
           인증이 완료되었어요.
         </h1>
-        <p className="mt-1 text-center text-[13px] leading-[1.5] text-[#909597]">
-          이제 체류기간 만료일만
-          <br />
-          확인하면 정보확인이 끝나요!
-        </p>
+        {showDescription ? (
+          <p className="mt-1 text-center text-[13px] leading-[1.5] text-[#909597]">
+            이제 체류기간 만료일만
+            <br />
+            확인하면 정보확인이 끝나요!
+          </p>
+        ) : null}
       </section>
 
       <button

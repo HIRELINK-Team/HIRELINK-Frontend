@@ -19,6 +19,7 @@ type OnboardingScaffoldProps = {
   questionClassName?: string;
   responsive?: boolean;
   showProgress?: boolean;
+  showStageLabel?: boolean;
   stageLabelLayout?: 'inline' | 'stacked';
   stageLabel: string;
   totalStages?: number;
@@ -42,6 +43,7 @@ export function OnboardingScaffold({
   questionClassName,
   responsive = false,
   showProgress = true,
+  showStageLabel = true,
   stageLabelLayout = 'stacked',
   stageLabel,
   totalStages = 5,
@@ -87,38 +89,42 @@ export function OnboardingScaffold({
         <img alt="" className="h-4 w-2" src={backIcon} />
       </button>
 
-      <header className="mt-[37px]">
-        <p
-          className={`${
-            stageLabelLayout === 'stacked'
-              ? 'block text-[15px] leading-[1.5] text-[#8B95A1]'
-              : 'flex items-baseline gap-1 text-[15px] leading-[1.5] text-[#8B95A1]'
-          }`}
-        >
-          <strong className="text-[17px] leading-[1.5] font-bold text-[#00B894]">
-            {currentStage}/{totalStages}
-          </strong>
-          {stageLabelLayout === 'stacked' ? (
-            <span className="block">{stageLabel}</span>
-          ) : (
-            stageLabel
-          )}
-        </p>
-        {showProgress ? (
-          <div
-            aria-hidden="true"
-            className={`${stageLabelLayout === 'stacked' ? 'mt-[11px]' : 'mt-[35px]'} grid gap-[5px]`}
-            style={progressStyle}
-          >
-            {Array.from({ length: totalSubSteps }, (_, index) => (
-              <span
-                className={`h-0.5 ${index < activeSubStep ? 'bg-[#00B894]' : 'bg-[#B0B8C1]'}`}
-                key={index}
-              />
-            ))}
-          </div>
-        ) : null}
-      </header>
+      {showStageLabel || showProgress ? (
+        <header className="mt-[37px]">
+          {showStageLabel ? (
+            <p
+              className={`${
+                stageLabelLayout === 'stacked'
+                  ? 'block text-[15px] leading-[1.5] text-[#8B95A1]'
+                  : 'flex items-baseline gap-1 text-[15px] leading-[1.5] text-[#8B95A1]'
+              }`}
+            >
+              <strong className="text-[17px] leading-[1.5] font-bold text-[#00B894]">
+                {currentStage}/{totalStages}
+              </strong>
+              {stageLabelLayout === 'stacked' ? (
+                <span className="block">{stageLabel}</span>
+              ) : (
+                stageLabel
+              )}
+            </p>
+          ) : null}
+          {showProgress ? (
+            <div
+              aria-hidden="true"
+              className={`${stageLabelLayout === 'stacked' ? 'mt-[11px]' : 'mt-[35px]'} grid gap-[5px]`}
+              style={progressStyle}
+            >
+              {Array.from({ length: totalSubSteps }, (_, index) => (
+                <span
+                  className={`h-0.5 ${index < activeSubStep ? 'bg-[#00B894]' : 'bg-[#B0B8C1]'}`}
+                  key={index}
+                />
+              ))}
+            </div>
+          ) : null}
+        </header>
+      ) : null}
 
       <section className={contentClassName}>
         <h1

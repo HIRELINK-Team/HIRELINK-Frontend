@@ -1,4 +1,3 @@
-import deleteIcon from '../../../assets/icons/student/delete.svg';
 import type { Experience } from '../../../types/experience';
 
 type ExperienceCardProps = {
@@ -23,7 +22,7 @@ export function ExperienceCard({
       <p className="mt-2 mb-0 text-[15px] leading-[1.5] tracking-[-0.02em] text-[#909597]">
         {experience.startMonth} - {experience.endMonth}
       </p>
-      <p className="mt-1 mb-0 pr-[86px] text-[15px] leading-[1.5] font-medium tracking-[-0.02em] text-[#009376]">
+      <p className="mt-2 mb-0 pr-[86px] text-[15px] leading-[1.5] font-medium tracking-[-0.02em] text-[#009376]">
         {experience.duties}
       </p>
       <button
@@ -31,16 +30,23 @@ export function ExperienceCard({
         type="button"
         onClick={() => onEdit(experience.id)}
       >
-        변경
+        변경하기
       </button>
       <button
         aria-label={`${experience.workplace} 경력 삭제`}
-        className="absolute top-[27px] right-6 flex size-[18px] items-center justify-center border-0 bg-transparent p-0"
+        className="absolute top-[25px] right-6 flex size-5 items-center justify-center border-0 bg-transparent p-0 text-[#909597]"
         disabled={isDeleting}
         type="button"
         onClick={() => onDelete(experience.id)}
       >
-        <img alt="" src={deleteIcon} />
+        <span
+          aria-hidden="true"
+          className="absolute h-[1.5px] w-[14px] rotate-45 rounded-full bg-current"
+        />
+        <span
+          aria-hidden="true"
+          className="absolute h-[1.5px] w-[14px] -rotate-45 rounded-full bg-current"
+        />
       </button>
     </article>
   );

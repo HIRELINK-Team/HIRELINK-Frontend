@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
+import rowChevronIcon from '../../assets/icons/student/documents/chevron-right.svg';
 import dropdownChevronIcon from '../../assets/icons/student/profile/dropdown-chevron.svg';
+import basicInformationIcon from '../../assets/images/student/profile-management/basic-information.png';
+import languageInformationIcon from '../../assets/images/student/profile-management/language-information.png';
+import residenceInformationIcon from '../../assets/images/student/profile-management/residence-information.png';
 import { OnboardingBottomSheet } from '../../components/student/onboarding/OnboardingBottomSheet';
 import { ResidenceExpiryDatePicker } from '../../components/student/onboarding/ResidenceExpiryDatePicker';
 import {
@@ -17,6 +21,13 @@ type ProfileManagementView =
   'main' | 'basic' | 'residence' | 'academic' | 'language';
 
 export type ProfileDetailView = Exclude<ProfileManagementView, 'main'>;
+export type StudentProfileEditField =
+  | 'birth-date'
+  | 'phone'
+  | 'current-region'
+  | 'preferred-region'
+  | 'career'
+  | 'korean-level';
 export type StudentProfileValues = Partial<
   Record<ProfileDetailView, readonly string[]>
 >;
@@ -26,12 +37,6 @@ type ProfileField = {
   isSelectable?: boolean;
   label: string;
   value: string;
-};
-
-type ProfileCard = {
-  fields: readonly ProfileField[];
-  title: string;
-  view: Exclude<ProfileManagementView, 'main'>;
 };
 
 const PROFILE_DETAIL_PAGE_CLASS =
@@ -57,49 +62,11 @@ type StudentProfileManagementPageProps = {
     values: readonly string[],
   ) => boolean | void | Promise<boolean | void>;
   onViewChange?: (view: Exclude<ProfileManagementView, 'main'>) => void;
+  onEditField?: (field: StudentProfileEditField) => void;
+  careerCount?: number;
+  preferredRegion?: string;
   profileValues?: StudentProfileValues;
 };
-
-const PROFILE_CARDS: readonly ProfileCard[] = [
-  {
-    title: '기본 정보',
-    view: 'basic',
-    fields: [
-      { label: '이름', value: '김숭실' },
-      { label: '생년월일', value: '2002-01-01' },
-      { label: '국적', value: '베트남' },
-      { label: '전화번호', value: '010-1234-5678' },
-      { label: '현재거주지', value: '서울 마포구' },
-    ],
-  },
-  {
-    title: '체류 정보',
-    view: 'residence',
-    fields: [
-      { label: '체류자격', value: 'D-2-2 (학사)' },
-      { label: '체류기간 만료일', value: '2027.02.28' },
-      { label: '외국인 등록 여부', value: '등록 완료' },
-    ],
-  },
-  {
-    title: '학업 정보',
-    view: 'academic',
-    fields: [
-      { label: '학교', value: '숭실대학교' },
-      { label: '학위과정', value: '학사' },
-      { label: '학적상태', value: '재학 중' },
-    ],
-  },
-  {
-    title: '어학 정보',
-    view: 'language',
-    fields: [
-      { label: 'TOPIK', value: '4급' },
-      { label: '한국어실력', value: '상' },
-      { label: '영어 성적', value: '미등록' },
-    ],
-  },
-];
 
 const DETAIL_FIELDS: Record<
   Exclude<ProfileManagementView, 'main'>,
@@ -136,16 +103,6 @@ const DETAIL_TITLES: Record<Exclude<ProfileManagementView, 'main'>, string> = {
   language: '어학정보',
 };
 
-const PROFILE_CARD_VALUE_MAPPINGS: Record<
-  ProfileDetailView,
-  readonly (number | undefined)[]
-> = {
-  academic: [0, 1, 2],
-  basic: [0, 1, 2, 5, 3],
-  language: [0, 1, 2],
-  residence: [0, 1, 2],
-};
-
 function getDetailFields(
   view: ProfileDetailView,
   profileValues: StudentProfileValues,
@@ -154,27 +111,6 @@ function getDetailFields(
     ...field,
     value: profileValues[view]?.[index] ?? field.value,
   }));
-}
-
-function getProfileCards(profileValues: StudentProfileValues) {
-  return PROFILE_CARDS.map((card) => {
-    const valueMappings = PROFILE_CARD_VALUE_MAPPINGS[card.view];
-
-    return {
-      ...card,
-      fields: card.fields.map((field, index) => {
-        const detailIndex = valueMappings[index];
-
-        return {
-          ...field,
-          value:
-            detailIndex === undefined
-              ? field.value
-              : (profileValues[card.view]?.[detailIndex] ?? field.value),
-        };
-      }),
-    };
-  });
 }
 
 type ProfileSelectOption = {
@@ -296,41 +232,68 @@ function BackButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function ProfileCard({
-  card,
-  onClick,
-}: {
-  card: ProfileCard;
-  onClick: () => void;
-}) {
-  const isBasicInformation = card.fields.length === 5;
+type ProfileInformationRowProps = {
+  label: string;
+  onClick?: () => void;
+  value: string;
+};
 
-  return (
-    <section
-      className={`relative w-full overflow-hidden rounded-[20px] bg-[#E5E8EB] ${
-        isBasicInformation ? 'h-[186px]' : 'h-[138px]'
-      }`}
+function ProfileInformationRow({
+  label,
+  onClick,
+  value,
+}: ProfileInformationRowProps) {
+  const content = (
+    <>
+      <span className="w-[102px] shrink-0 text-[13px] leading-[1.5] text-[#909597]">
+        {label}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-[13px] leading-[1.5] font-medium text-[#1D1F20]">
+        {value || '-'}
+      </span>
+      {onClick ? (
+        <img
+          alt=""
+          className="h-[13px] w-[6px] shrink-0 rotate-180"
+          src={rowChevronIcon}
+        />
+      ) : null}
+    </>
+  );
+
+  return onClick ? (
+    <button
+      className="flex h-[45px] w-full items-center border-0 border-t border-[#E6E8E9] bg-transparent px-6 text-left"
+      type="button"
+      onClick={onClick}
     >
-      <h2 className="absolute top-[19px] left-[30px] m-0 text-[15px] leading-[1.5] font-bold">
-        {card.title}
-      </h2>
-      <button
-        className="absolute top-[22px] right-[22px] h-[27px] rounded-[30px] border border-[#B0B8C1] bg-transparent px-[13px] text-[13px] leading-[1.5] text-[#4E5968]"
-        type="button"
-        onClick={onClick}
-      >
-        수정하기
-      </button>
-      <dl className="absolute top-[51px] left-[31px] m-0 space-y-1 text-[13px] leading-[1.5]">
-        {card.fields.map((field) => (
-          <div className="grid grid-cols-[45px_1fr] gap-x-12" key={field.label}>
-            <dt className="whitespace-nowrap text-[#8B95A1]">{field.label}</dt>
-            <dd className="m-0 whitespace-nowrap text-[#191F28]">
-              {field.value}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      {content}
+    </button>
+  ) : (
+    <div className="flex h-[45px] w-full items-center border-t border-[#E6E8E9] px-6">
+      {content}
+    </div>
+  );
+}
+
+function ProfileInformationSection({
+  children,
+  icon,
+  title,
+}: {
+  children: ReactNode;
+  icon: string;
+  title: string;
+}) {
+  return (
+    <section>
+      <div className="flex h-7 items-center gap-1 px-6">
+        <img alt="" className="size-7 object-contain" src={icon} />
+        <h2 className="m-0 text-[17px] leading-[1.5] font-semibold text-[#393C3E]">
+          {title}
+        </h2>
+      </div>
+      <div className="mt-[13px]">{children}</div>
     </section>
   );
 }
@@ -737,6 +700,7 @@ function LanguageInformationPage({
 }
 
 export default function StudentProfileManagementPage({
+  careerCount = 0,
   initialView = 'main',
   isLoading = false,
   isProfileUnavailable = false,
@@ -744,6 +708,8 @@ export default function StudentProfileManagementPage({
   onBack,
   onSave,
   onViewChange,
+  onEditField,
+  preferredRegion = '-',
   profileValues,
 }: StudentProfileManagementPageProps) {
   const [view, setView] = useState<ProfileManagementView>(initialView);
@@ -887,23 +853,103 @@ export default function StudentProfileManagementPage({
   return (
     <main
       aria-busy={isLoading}
-      className="mx-auto h-[954px] w-full max-w-[390px] bg-[#F5F5F5] px-6 pt-[61px] pb-[29px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]"
+      className="relative mx-auto h-[954px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] pt-[61px] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]"
     >
-      <BackButton onClick={onBack ?? (() => undefined)} />
-      <h1 className="m-0 mt-[18px] text-[26px] leading-[1.5] font-semibold">
-        내 정보 관리
-      </h1>
-      <section className="mt-[27px] space-y-[10px]">
-        {getProfileCards(resolvedProfileValues).map((card) => (
-          <ProfileCard
-            card={card}
-            key={card.view}
-            onClick={() => handleProfileCardClick(card.view)}
+      <div className="px-6">
+        <BackButton onClick={onBack ?? (() => undefined)} />
+        <h1 className="m-0 mt-[19px] text-[26px] leading-[1.5] font-semibold">
+          내 정보 관리
+        </h1>
+      </div>
+
+      <div className="mt-[19px]">
+        <ProfileInformationSection
+          icon={basicInformationIcon}
+          title="기본 정보"
+        >
+          <ProfileInformationRow
+            label="생년월일"
+            value={resolvedProfileValues.basic?.[1] ?? '-'}
+            onClick={() =>
+              onEditField
+                ? onEditField('birth-date')
+                : handleProfileCardClick('basic')
+            }
           />
-        ))}
-      </section>
+          <ProfileInformationRow
+            label="전화번호"
+            value={resolvedProfileValues.basic?.[5] ?? '-'}
+            onClick={() =>
+              onEditField ? onEditField('phone') : handleProfileCardClick('basic')
+            }
+          />
+          <ProfileInformationRow
+            label="거주지역"
+            value={resolvedProfileValues.basic?.[3] ?? '-'}
+            onClick={() =>
+              onEditField
+                ? onEditField('current-region')
+                : handleProfileCardClick('basic')
+            }
+          />
+          <ProfileInformationRow
+            label="희망거주지역"
+            value={preferredRegion}
+            onClick={() =>
+              onEditField
+                ? onEditField('preferred-region')
+                : handleProfileCardClick('basic')
+            }
+          />
+          <ProfileInformationRow
+            label="경력"
+            value={`${careerCount}개`}
+            onClick={() =>
+              onEditField ? onEditField('career') : handleProfileCardClick('basic')
+            }
+          />
+        </ProfileInformationSection>
+
+        <div className="mt-[18px]">
+          <ProfileInformationSection
+            icon={residenceInformationIcon}
+            title="체류기간 정보"
+          >
+            <ProfileInformationRow
+              label="체류자격"
+              value={resolvedProfileValues.residence?.[0] ?? '-'}
+            />
+            <ProfileInformationRow
+              label="만료일"
+              value={resolvedProfileValues.residence?.[1] ?? '-'}
+            />
+          </ProfileInformationSection>
+        </div>
+
+        <div className="mt-[24px]">
+          <ProfileInformationSection
+            icon={languageInformationIcon}
+            title="어학 정보"
+          >
+            <ProfileInformationRow
+              label="TOPIK"
+              value={resolvedProfileValues.language?.[0] ?? '-'}
+            />
+            <ProfileInformationRow
+              label="한국어 실력"
+              value={resolvedProfileValues.language?.[1] ?? '-'}
+              onClick={() =>
+                onEditField
+                  ? onEditField('korean-level')
+                  : handleProfileCardClick('language')
+              }
+            />
+          </ProfileInformationSection>
+        </div>
+      </div>
+
       <button
-        className="relative left-[-2px] mt-[60px] h-[57px] w-full rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
+        className="absolute top-[792px] right-6 left-6 h-[57px] rounded-[15px] border-0 bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
         type="button"
         onClick={onApply}
       >
