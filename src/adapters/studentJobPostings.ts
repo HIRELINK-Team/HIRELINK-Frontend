@@ -63,10 +63,16 @@ export function mapStudentJobPostingToRecommendedJob(
     companyName: jobPosting.workplaceName,
     detail: {
       ...recommendation.detail,
+      announcement: jobPosting.preferredExperience
+        ? `우대 경력: ${jobPosting.preferredExperience}`
+        : null,
       locationAndDistance: jobPosting.workplaceAddress,
       metrics: [
         { label: '급여', value: wageLabel },
-        { label: '마감', value: deadlineLabel },
+        ...workTimeLabels.map((workTime, index) => ({
+          label: `근무${index + 1}`,
+          value: workTime,
+        })),
       ],
       tags: workTimeLabels,
     },

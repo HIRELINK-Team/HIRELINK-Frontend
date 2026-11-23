@@ -34,7 +34,7 @@ export function TranscriptInformation({
       </h1>
       <img
         alt=""
-        className="mx-auto mt-5 h-[60px] w-[62px] object-contain"
+        className="student-3d-illustration mx-auto mt-5 h-[60px] w-[62px] object-contain"
         src={illustration}
       />
       <h2 className="m-0 mt-[6px] text-center text-[20px] leading-[1.5] font-semibold">

@@ -24,7 +24,7 @@ export function DocumentManagementGuide({
 
       <img
         alt=""
-        className="mx-auto mt-0 h-[clamp(67px,11.5dvh,97px)] w-[clamp(59px,10.1dvh,85px)] object-contain"
+        className="student-3d-illustration mx-auto mt-0 h-[clamp(67px,11.5dvh,97px)] w-[clamp(59px,10.1dvh,85px)] object-contain"
         src={guideIllustration}
       />
       <h1 className="m-0 mt-[clamp(4px,1.1dvh,9px)] text-center text-[clamp(18px,2.37dvh,20px)] leading-[1.5] font-semibold">

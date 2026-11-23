@@ -74,6 +74,7 @@ export function mapStudentApplicationToCardModel(
       commuteAndWage: wageLabel,
       companyName: application.workplaceName,
       detail: {
+        announcement: null,
         comparisonTags: application.recommendationReasons,
         locationAndDistance: '',
         matchRate: 0,
@@ -113,6 +114,7 @@ export function mapStudentEmploymentMatchToCardModel(
       commuteAndWage: wageLabel,
       companyName: match.workplaceName,
       detail: {
+        announcement: null,
         comparisonTags: [],
         locationAndDistance: '',
         matchRate: 0,
@@ -172,6 +174,7 @@ export function mapStudentApplicationDetailToCardModel(
       commuteAndWage: wageLabel,
       companyName: application.workplaceName,
       detail: {
+        announcement: null,
         comparisonTags: [],
         locationAndDistance: application.workplaceAddress,
         matchRate: 0,

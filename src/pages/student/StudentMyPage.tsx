@@ -151,7 +151,7 @@ export default function StudentMyPage({
         <section className="relative mt-[13px] h-[263px] overflow-hidden rounded-[20px] bg-white">
           <img
             alt=""
-            className="absolute top-[47px] left-6 h-[86px] w-[82px] object-contain"
+            className="student-3d-illustration absolute top-[47px] left-6 h-[86px] w-[82px] object-contain"
             src={workConditionIllustration}
           />
           <div className="absolute top-[29px] left-[125px]">

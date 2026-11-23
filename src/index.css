@@ -35,3 +35,8 @@ a {
 button {
   font: inherit;
 }
+
+.student-3d-illustration {
+  filter: drop-shadow(1px 1px 64.4px rgba(0, 184, 148, 0.74));
+  filter: drop-shadow(1px 1px 28.4px rgba(0, 184, 148, 0.38));
+}

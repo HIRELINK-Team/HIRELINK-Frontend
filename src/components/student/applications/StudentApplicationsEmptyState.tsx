@@ -8,7 +8,7 @@ export function StudentApplicationsEmptyState() {
     >
       <img
         alt=""
-        className="h-[104px] w-[87px] object-contain"
+        className="student-3d-illustration h-[104px] w-[87px] object-contain"
         src={emptyStateIllustration}
       />
       <h2

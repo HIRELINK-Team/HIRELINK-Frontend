@@ -185,7 +185,7 @@ function VerifiedMyPage({
       >
         <img
           alt=""
-          className="absolute top-8 left-2 h-[87px] w-[76px] object-contain"
+          className="student-3d-illustration absolute top-8 left-2 h-[87px] w-[76px] object-contain"
           src={verifiedWorkConditionIllustration}
           style={{
             height: 87,
@@ -350,7 +350,7 @@ function BadgeIssuedPage({ onConfirm }: { onConfirm: () => void }) {
       >
         <img
           alt=""
-          className="h-[123px] w-[121px] object-contain"
+          className="student-3d-illustration h-[123px] w-[121px] object-contain"
           style={{ height: 123, objectFit: 'contain', width: 121 }}
           src={badgeImage}
         />

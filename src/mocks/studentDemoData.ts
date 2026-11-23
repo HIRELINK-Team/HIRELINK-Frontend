@@ -93,7 +93,11 @@ let demoMatchingPreferences: StudentMatchingPreferencesResponse = {
   ],
 };
 
-let demoRecommendations: StudentRecommendation[] = [
+type DemoStudentRecommendation = StudentRecommendation & {
+  walkingTimeMinutes: number;
+};
+
+let demoRecommendations: DemoStudentRecommendation[] = [
   {
     applicationId: null,
     applicationStatus: null,
@@ -102,6 +106,7 @@ let demoRecommendations: StudentRecommendation[] = [
     matchScore: 92,
     rank: 1,
     recommendationId: 1001,
+    walkingTimeMinutes: 12,
     recommendationReasons: ['근무 시간이 일치해요', '희망 지역과 가까워요'],
     wageAmount: 13_000,
     wageType: 'HOURLY',
@@ -121,6 +126,7 @@ let demoRecommendations: StudentRecommendation[] = [
     matchScore: 84,
     rank: 2,
     recommendationId: 1002,
+    walkingTimeMinutes: 18,
     recommendationReasons: ['한국어 수준이 일치해요', '희망 급여 이상이에요'],
     wageAmount: 12_500,
     wageType: 'HOURLY',

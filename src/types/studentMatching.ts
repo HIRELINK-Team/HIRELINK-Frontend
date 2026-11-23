@@ -4,11 +4,13 @@ export type RecommendedJobDetailMetric = {
 };
 
 export type RecommendedJobDetail = {
+  announcement: string | null;
   comparisonTags: string[];
   locationAndDistance: string;
   matchRate: number;
   metrics: RecommendedJobDetailMetric[];
   tags: string[];
+  walkingTimeMinutes?: number | null;
 };
 
 export type RecommendedJob = {

@@ -14,7 +14,7 @@ export function DocumentBadgeIssued({ onConfirm }: DocumentBadgeIssuedProps) {
       <section className="mt-[clamp(100px,19.7dvh,166px)] flex flex-col items-center">
         <img
           alt=""
-          className="h-[clamp(97px,14.6dvh,123px)] w-[clamp(95px,14.3dvh,121px)] object-contain"
+          className="student-3d-illustration h-[clamp(97px,14.6dvh,123px)] w-[clamp(95px,14.3dvh,121px)] object-contain"
           src={badgeImage}
         />
         <h1 className="m-0 mt-[clamp(18px,2.73dvh,23px)] text-center text-[clamp(21px,3.08dvh,26px)] leading-[1.5] font-semibold">

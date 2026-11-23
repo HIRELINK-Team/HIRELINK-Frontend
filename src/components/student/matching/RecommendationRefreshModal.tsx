@@ -20,7 +20,7 @@ export function RecommendationRefreshModal({
       <div className="absolute top-[271px] left-1/2 h-[360px] w-[313px] -translate-x-1/2 overflow-hidden rounded-[20px] bg-[#F5F5F5]">
         <img
           alt=""
-          className="absolute top-[47px] left-[106px] h-[106px] w-[93px]"
+          className="student-3d-illustration absolute top-[47px] left-[106px] h-[106px] w-[93px]"
           src={refreshIllustration}
         />
         <h2 className="absolute top-[170px] left-0 m-0 w-full text-center text-[20px] leading-[1.5] font-semibold text-[#191F28]">

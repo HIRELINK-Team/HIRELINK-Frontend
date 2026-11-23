@@ -6,6 +6,7 @@ import type {
 export const MAX_RECOMMENDED_JOBS = 3;
 
 const RECOMMENDED_JOB_DETAIL: RecommendedJobDetail = {
+  announcement: null,
   locationAndDistance: '동작구 · 도보 12분',
   matchRate: 94,
   tags: ['카페', '주 3일 이상'],
@@ -16,6 +17,7 @@ const RECOMMENDED_JOB_DETAIL: RecommendedJobDetail = {
     { label: '시간', value: '9-18시' },
   ],
   comparisonTags: ['근무 시간 일치', '희망 거리'],
+  walkingTimeMinutes: 12,
 };
 
 export const STUDENT_RECOMMENDED_JOBS: RecommendedJob[] = [
