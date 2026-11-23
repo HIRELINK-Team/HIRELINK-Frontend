@@ -2,6 +2,8 @@ export type StudentKoreanLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 export type StudentTopikLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
 import type { StudentCareerResponse } from './experience';
+import type { StudentPreferredLocation } from './studentMatchingPreferences';
+import type { StudentStudyProgram } from './studentOnboarding';
 
 export type StudentProfileCareer = StudentCareerResponse;
 
@@ -26,7 +28,7 @@ export type StudentProfileCreateResponse = {
 export type StudentProfileResponse = {
   studentId: number;
   name: string;
-  email: string;
+  email: string | null;
   phoneNumber: string;
   birthDate: string;
   nationality: string;
@@ -36,6 +38,7 @@ export type StudentProfileResponse = {
   universityName: string | null;
   enrollmentStartDate: string | null;
   studyProgramId: number | null;
+  studyProgram: StudentStudyProgram | null;
   gradeLevel: number | null;
   academicState: string | null;
   topikLevel: StudentTopikLevel | null;
@@ -52,14 +55,17 @@ export type StudentProfileUpdateResponse = Omit<
 >;
 
 export type StudentProfileUpdateRequest = Partial<{
-  name: string;
   birthDate: string;
-  nationality: string;
+  phoneNumber: string;
   currentRegion: string;
   koreanLevel: StudentKoreanLevel;
-  visaCode: string;
-  stayExpirationDate: string;
-  universityName: string;
-  academicState: string;
-  topikLevel: StudentTopikLevel | null;
+  preferredLocation: StudentPreferredLocation;
+  careers: StudentProfileCareerInput[];
 }>;
+
+export type StudentProfileCareerInput = {
+  careerName: string;
+  startMonth: string;
+  endMonth: string;
+  description: string;
+};

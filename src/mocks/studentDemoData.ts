@@ -59,6 +59,7 @@ let demoProfile: StudentProfileResponse = {
   stayStartDate: '2025-02-20',
   studentId: 999_999,
   studyProgramId: 1,
+  studyProgram: 'BACHELOR',
   topikLevel: 3,
   universityName: '하이어링크대학교',
   visaCode: 'D-2-2',
@@ -248,7 +249,21 @@ export async function getDemoStudentProfile() {
 export async function updateDemoStudentProfile(
   request: StudentProfileUpdateRequest,
 ): Promise<StudentProfileUpdateResponse> {
-  demoProfile = { ...demoProfile, ...request };
+  const { birthDate, phoneNumber, currentRegion, koreanLevel, careers } =
+    request;
+  demoProfile = {
+    ...demoProfile,
+    ...(birthDate !== undefined && { birthDate }),
+    ...(phoneNumber !== undefined && { phoneNumber }),
+    ...(currentRegion !== undefined && { currentRegion }),
+    ...(koreanLevel !== undefined && { koreanLevel }),
+    ...(careers && {
+      careers: careers.map((career, index) => ({
+        ...career,
+        careerId: index + 1,
+      })),
+    }),
+  };
   return structuredClone({
     academicState: demoProfile.academicState,
     birthDate: demoProfile.birthDate,
@@ -263,6 +278,7 @@ export async function updateDemoStudentProfile(
     stayExpirationDate: demoProfile.stayExpirationDate,
     studentId: demoProfile.studentId,
     studyProgramId: demoProfile.studyProgramId,
+    studyProgram: demoProfile.studyProgram,
     topikLevel: demoProfile.topikLevel,
     universityName: demoProfile.universityName,
     visaCode: demoProfile.visaCode,

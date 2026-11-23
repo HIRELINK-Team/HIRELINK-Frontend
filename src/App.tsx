@@ -117,6 +117,7 @@ import type {
 import type { StudentMyMenuId } from './types/studentMy';
 import type { StudentEmploymentMatchContact } from './types/studentMatch';
 import type {
+  StudentProfileCareerInput,
   StudentProfileResponse,
   StudentProfileUpdateResponse,
 } from './types/studentProfile';
@@ -264,8 +265,9 @@ type StudentProfileRouteContext = {
   isProfileUnavailable: boolean;
   profileValues: StudentProfileValues;
   preferredLocation: StudentPreferredLocation | null;
-  setCareers: (careers: readonly StudentCareerResponse[]) => void;
-  setPhoneNumber: (phoneNumber: string) => void;
+  saveCareers: (
+    careers: readonly StudentProfileCareerInput[],
+  ) => Promise<readonly StudentCareerResponse[] | null>;
   setPreferredLocation: (location: StudentPreferredLocation) => void;
   saveProfile: (
     view: ProfileDetailView,
@@ -285,7 +287,7 @@ function isStudentProfileResponse(
   return (
     typeof profile.studentId === 'number' &&
     typeof profile.name === 'string' &&
-    typeof profile.email === 'string' &&
+    (typeof profile.email === 'string' || profile.email === null) &&
     typeof profile.phoneNumber === 'string' &&
     typeof profile.birthDate === 'string' &&
     typeof profile.nationality === 'string' &&
@@ -298,6 +300,10 @@ function isStudentProfileResponse(
       profile.enrollmentStartDate === null) &&
     (typeof profile.studyProgramId === 'number' ||
       profile.studyProgramId === null) &&
+    (['ASSOCIATE', 'BACHELOR', 'MASTER', 'DOCTORATE', 'EXCHANGE'].includes(
+      String(profile.studyProgram),
+    ) ||
+      profile.studyProgram === null) &&
     (typeof profile.gradeLevel === 'number' || profile.gradeLevel === null) &&
     (typeof profile.academicState === 'string' ||
       profile.academicState === null) &&
@@ -326,7 +332,7 @@ function isStudentProfileUpdateResponse(
   return (
     typeof profile.studentId === 'number' &&
     typeof profile.name === 'string' &&
-    typeof profile.email === 'string' &&
+    (typeof profile.email === 'string' || profile.email === null) &&
     typeof profile.phoneNumber === 'string' &&
     typeof profile.birthDate === 'string' &&
     typeof profile.nationality === 'string' &&
@@ -337,6 +343,10 @@ function isStudentProfileUpdateResponse(
       profile.universityName === null) &&
     (typeof profile.studyProgramId === 'number' ||
       profile.studyProgramId === null) &&
+    (['ASSOCIATE', 'BACHELOR', 'MASTER', 'DOCTORATE', 'EXCHANGE'].includes(
+      String(profile.studyProgram),
+    ) ||
+      profile.studyProgram === null) &&
     (typeof profile.gradeLevel === 'number' || profile.gradeLevel === null) &&
     (typeof profile.academicState === 'string' ||
       profile.academicState === null) &&
@@ -1599,6 +1609,7 @@ function StudentWorkConditionRoute() {
 }
 
 function StudentProfileLayout() {
+  const navigate = useNavigate();
   const [studentProfile, setStudentProfile] =
     useState<StudentProfileResponse | null>(null);
   const [profileValues, setProfileValues] = useState<StudentProfileValues>({});
@@ -1663,18 +1674,31 @@ function StudentProfileLayout() {
           isProfileUnavailable,
           profileValues,
           preferredLocation,
-          setCareers: (careers) => {
-            setStudentProfile((current) =>
-              current ? { ...current, careers: [...careers] } : current,
-            );
-          },
-          setPhoneNumber: (phoneNumber) => {
-            setStudentProfile((current) => {
-              if (!current) return current;
-              const next = { ...current, phoneNumber };
-              setProfileValues(mapStudentProfileResponseToValues(next));
-              return next;
-            });
+          saveCareers: async (careers) => {
+            try {
+              await studentDataSource.updateProfile({ careers: [...careers] });
+            } catch (error) {
+              window.alert(
+                getApiErrorResponse(error)?.message ??
+                  '경력 저장에 실패했어요. 다시 시도해 주세요.',
+              );
+              return null;
+            }
+            try {
+              const profile = await studentDataSource.getProfile();
+              if (!isStudentProfileResponse(profile))
+                throw new Error('Invalid student profile response.');
+              setStudentProfile(profile);
+              setProfileValues(mapStudentProfileResponseToValues(profile));
+              return profile.careers;
+            } catch {
+              window.alert(
+                '경력은 저장되었지만 변경된 목록을 불러오지 못했어요. 화면을 다시 열어 확인해 주세요.',
+              );
+              setIsProfileUnavailable(true);
+              navigate('/student/my/profile', { replace: true });
+              return null;
+            }
           },
           setPreferredLocation,
           saveProfile: async (view, values) => {
@@ -1691,6 +1715,12 @@ function StudentProfileLayout() {
 
             if (mappingResult.status === 'invalid') {
               window.alert('입력한 프로필 정보를 다시 확인해 주세요.');
+              return false;
+            }
+            if (mappingResult.status === 'unsupported') {
+              window.alert(
+                '이 항목은 이 화면에서 수정할 수 없어요. 관련 서류 인증을 확인해 주세요.',
+              );
               return false;
             }
             if (mappingResult.status === 'unchanged') return true;
@@ -1765,8 +1795,7 @@ function StudentProfileEditRoute({
     profileValues,
     preferredLocation,
     saveProfile,
-    setCareers,
-    setPhoneNumber,
+    saveCareers,
     setPreferredLocation,
   } = useOutletContext<StudentProfileRouteContext>();
 
@@ -1775,8 +1804,7 @@ function StudentProfileEditRoute({
       careers={careers}
       field={field}
       onBack={() => navigate('/student/my/profile')}
-      onCareersChange={setCareers}
-      onPhoneChange={setPhoneNumber}
+      onCareersSave={saveCareers}
       onPreferredLocationChange={setPreferredLocation}
       onProfileSave={async (view, values) =>
         (await saveProfile(view, values)) === true

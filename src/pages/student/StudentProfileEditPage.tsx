@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 
 import {
   confirmPhoneVerification,
-  createStudentCareer,
-  deleteStudentCareer,
   requestPhoneVerification,
-  updateStudentCareer,
 } from '../../api/student';
+import {
+  isExperienceDraftValid,
+  mapExperienceDraftToCreateRequest,
+} from '../../adapters/studentExperience';
 import calendarIcon from '../../assets/icons/student/calendar.svg';
 import locationIcon from '../../assets/icons/student/location.svg';
 import { mapWorkLocationToUpdateRequest } from '../../adapters/studentMatchingPreferences';
@@ -20,9 +21,17 @@ import { WorkLocationRadiusMap } from '../../components/student/onboarding/WorkL
 import { KOREAN_LEVELS } from '../../constants/studentOnboardingOptions';
 import { IS_DEMO_MODE } from '../../config/demoMode';
 import { studentDataSource } from '../../services/studentDataSource';
-import type { Experience, ExperienceDraft, StudentCareerResponse } from '../../types/experience';
+import type {
+  Experience,
+  ExperienceDraft,
+  StudentCareerResponse,
+} from '../../types/experience';
 import type { StudentPreferredLocation } from '../../types/studentMatchingPreferences';
-import type { WorkLocation, WorkLocationRadius } from '../../types/workLocation';
+import type { StudentProfileCareerInput } from '../../types/studentProfile';
+import type {
+  WorkLocation,
+  WorkLocationRadius,
+} from '../../types/workLocation';
 import type {
   StudentProfileEditField,
   StudentProfileValues,
@@ -40,12 +49,10 @@ type StudentProfileEditPageProps = {
   careers: readonly StudentCareerResponse[];
   field: StudentProfileEditField;
   onBack: () => void;
-  onCareersChange: (careers: readonly StudentCareerResponse[]) => void;
-  onPhoneChange: (phoneNumber: string) => void;
-  onProfileSave: (
-    view: 'basic',
-    values: readonly string[],
-  ) => Promise<boolean>;
+  onCareersSave: (
+    careers: readonly StudentProfileCareerInput[],
+  ) => Promise<readonly StudentCareerResponse[] | null>;
+  onProfileSave: (view: 'basic', values: readonly string[]) => Promise<boolean>;
   onPreferredLocationChange: (location: StudentPreferredLocation) => void;
   preferredLocation: StudentPreferredLocation | null;
   profileValues: StudentProfileValues;
@@ -122,7 +129,9 @@ function LocationAddressEditor({
       <button
         className="mt-6 h-[54px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent text-[17px] leading-[1.5]"
         type="button"
-        onClick={() => navigator.geolocation?.getCurrentPosition(() => undefined)}
+        onClick={() =>
+          navigator.geolocation?.getCurrentPosition(() => undefined)
+        }
       >
         현재 위치 불러오기
       </button>
@@ -140,21 +149,11 @@ function toExperience(career: StudentCareerResponse): Experience {
   };
 }
 
-function toCareerDraft(draft: ExperienceDraft) {
-  return {
-    careerName: draft.workplace.trim(),
-    description: draft.duties.trim() || null,
-    endMonth: draft.endMonth.replace('.', '-'),
-    startMonth: draft.startMonth.replace('.', '-'),
-  };
-}
-
 export default function StudentProfileEditPage({
   careers,
   field,
   onBack,
-  onCareersChange,
-  onPhoneChange,
+  onCareersSave,
   onPreferredLocationChange,
   onProfileSave,
   preferredLocation,
@@ -181,17 +180,18 @@ export default function StudentProfileEditPage({
       KOREAN_LEVELS.find((option) => option.label === basicValues[4])?.value ??
       KOREAN_LEVELS[0].value,
   );
-  const [careerItems, setCareerItems] = useState(() => careers.map(toExperience));
-  const [careerDraft, setCareerDraft] = useState<ExperienceDraft>(EMPTY_EXPERIENCE);
+  const [careerItems, setCareerItems] = useState(() =>
+    careers.map(toExperience),
+  );
+  const [careerDraft, setCareerDraft] =
+    useState<ExperienceDraft>(EMPTY_EXPERIENCE);
   const [editingCareerId, setEditingCareerId] = useState<string | null>(null);
   const [isCareerFormOpen, setIsCareerFormOpen] = useState(false);
+  const [hasCareerChanges, setHasCareerChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const isCareerDraftInvalid = useMemo(
-    () =>
-      !careerDraft.workplace.trim() ||
-      !/^\d{4}\.\d{2}$/.test(careerDraft.startMonth) ||
-      !/^\d{4}\.\d{2}$/.test(careerDraft.endMonth),
+    () => !isExperienceDraftValid(careerDraft) || !careerDraft.duties.trim(),
     [careerDraft],
   );
 
@@ -199,6 +199,30 @@ export default function StudentProfileEditPage({
     const values = [...basicValues];
     values[index] = value;
     if (await onProfileSave('basic', values)) onBack();
+  };
+
+  const saveCareerItems = async (items: Experience[]) => {
+    if (isSaving) return false;
+    const mapped = items.map(mapExperienceDraftToCreateRequest);
+    if (mapped.some((career) => !career?.description)) {
+      window.alert('모든 경력의 근무 내용을 입력한 뒤 다시 저장해 주세요.');
+      return false;
+    }
+    const request = mapped.map((career) => ({
+      careerName: career!.careerName,
+      startMonth: career!.startMonth,
+      endMonth: career!.endMonth,
+      description: career!.description!,
+    }));
+    setIsSaving(true);
+    try {
+      const saved = await onCareersSave(request);
+      if (!saved) return false;
+      setCareerItems(saved.map(toExperience));
+      return true;
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (field === 'birth-date') {
@@ -265,10 +289,14 @@ export default function StudentProfileEditPage({
       setIsPhonePending(true);
       try {
         if (!IS_DEMO_MODE) {
-          await confirmPhoneVerification({ code: verificationCode, phoneNumber: phone });
+          await confirmPhoneVerification({
+            code: verificationCode,
+            phoneNumber: phone,
+          });
         }
-        onPhoneChange(phone);
-        onBack();
+        const values = [...basicValues];
+        values[5] = phone;
+        if (await onProfileSave('basic', values)) onBack();
       } catch {
         setPhoneError('인증번호가 틀렸어요. 다시 입력해주세요.');
       } finally {
@@ -279,8 +307,14 @@ export default function StudentProfileEditPage({
       <ProfileEditScaffold
         ctaLabel={phoneStep === 'phone' ? '인증번호 받기' : '확인'}
         disabled={isPhonePending}
-        onBack={phoneStep === 'verification' ? () => setPhoneStep('phone') : onBack}
-        onSubmit={() => void (phoneStep === 'phone' ? requestVerification() : confirmVerification())}
+        onBack={
+          phoneStep === 'verification' ? () => setPhoneStep('phone') : onBack
+        }
+        onSubmit={() =>
+          void (phoneStep === 'phone'
+            ? requestVerification()
+            : confirmVerification())
+        }
         question={'본인의 전화번호를\n입력해주세요.'}
       >
         <OnboardingField
@@ -289,7 +323,9 @@ export default function StudentProfileEditPage({
           label="전화번호"
           spacing="first"
           value={phone}
-          onChange={(event) => setPhone(event.target.value.replace(/[^\d-]/g, ''))}
+          onChange={(event) =>
+            setPhone(event.target.value.replace(/[^\d-]/g, ''))
+          }
         />
         {phoneStep === 'verification' ? (
           <OnboardingField
@@ -299,7 +335,9 @@ export default function StudentProfileEditPage({
             maxLength={6}
             spacing="next"
             value={verificationCode}
-            onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, ''))}
+            onChange={(event) =>
+              setVerificationCode(event.target.value.replace(/\D/g, ''))
+            }
           />
         ) : null}
       </ProfileEditScaffold>
@@ -365,7 +403,9 @@ export default function StudentProfileEditPage({
       <ProfileEditScaffold
         onBack={onBack}
         onSubmit={() => {
-          const label = KOREAN_LEVELS.find((option) => option.value === selectedKoreanLevel)?.label;
+          const label = KOREAN_LEVELS.find(
+            (option) => option.value === selectedKoreanLevel,
+          )?.label;
           if (label) void saveBasicValue(4, label);
         }}
         question={'한국어 실력은\n어느 정도인가요?'}
@@ -393,36 +433,20 @@ export default function StudentProfileEditPage({
         isEditing={editingCareerId !== null}
         isSubmitDisabled={isCareerDraftInvalid || isSaving}
         onBack={() => setIsCareerFormOpen(false)}
-        onChange={(key, value) => setCareerDraft((current) => ({ ...current, [key]: value }))}
+        onChange={(key, value) =>
+          setCareerDraft((current) => ({ ...current, [key]: value }))
+        }
         onSubmit={() => {
-          setIsSaving(true);
-          const request = toCareerDraft(careerDraft);
-          if (IS_DEMO_MODE) {
-            const next = editingCareerId
-              ? careerItems.map((item) =>
-                  item.id === editingCareerId ? { ...item, ...careerDraft } : item,
-                )
-              : [...careerItems, { ...careerDraft, id: `demo-${Date.now()}` }];
-            setCareerItems(next);
-            setIsCareerFormOpen(false);
-            setIsSaving(false);
-            return;
-          }
-          const operation = editingCareerId
-            ? updateStudentCareer(editingCareerId, request)
-            : createStudentCareer(request);
-          void operation
-            .then((saved) => {
-              const next = editingCareerId
-                ? careers.map((career) =>
-                    career.careerId === Number(editingCareerId) ? saved : career,
-                  )
-                : [...careers, saved];
-              onCareersChange(next);
-              setCareerItems(next.map(toExperience));
-              setIsCareerFormOpen(false);
-            })
-            .finally(() => setIsSaving(false));
+          const next = editingCareerId
+            ? careerItems.map((item) =>
+                item.id === editingCareerId
+                  ? { ...item, ...careerDraft }
+                  : item,
+              )
+            : [...careerItems, { ...careerDraft, id: `new-${Date.now()}` }];
+          setCareerItems(next);
+          setHasCareerChanges(true);
+          setIsCareerFormOpen(false);
         }}
       />
     );
@@ -431,20 +455,16 @@ export default function StudentProfileEditPage({
   return (
     <ProfileEditScaffold
       ctaLabel="저장"
+      disabled={isSaving}
       onBack={onBack}
       onSubmit={() => {
-        if (IS_DEMO_MODE) {
-          onCareersChange(
-            careerItems.map((item, index) => ({
-              careerId: Number(item.id.replace(/\D/g, '')) || index + 1,
-              careerName: item.workplace,
-              description: item.duties || null,
-              endMonth: item.endMonth.replace('.', '-'),
-              startMonth: item.startMonth.replace('.', '-'),
-            })),
-          );
+        if (!hasCareerChanges) {
+          onBack();
+          return;
         }
-        onBack();
+        void saveCareerItems(careerItems).then((saved) => {
+          if (saved) onBack();
+        });
       }}
       question={'이전에 해본 아르바이트나\n근무경험을 알려주세요.'}
     >
@@ -463,17 +483,11 @@ export default function StudentProfileEditPage({
         {careerItems.map((experience) => (
           <ExperienceCard
             experience={experience}
+            isDeleting={isSaving}
             key={experience.id}
             onDelete={(id) => {
-              if (IS_DEMO_MODE) {
-                setCareerItems((items) => items.filter((item) => item.id !== id));
-                return;
-              }
-              void deleteStudentCareer(id).then(() => {
-                const next = careers.filter((career) => career.careerId !== Number(id));
-                onCareersChange(next);
-                setCareerItems(next.map(toExperience));
-              });
+              setCareerItems((items) => items.filter((item) => item.id !== id));
+              setHasCareerChanges(true);
             }}
             onEdit={(id) => {
               const selected = careerItems.find((item) => item.id === id);
