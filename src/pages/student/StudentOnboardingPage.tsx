@@ -344,8 +344,17 @@ function isAgeEligible(birthDate: string) {
   if (!isValidBirthDate(birthDate)) return false;
 
   const [year, month, day] = birthDate.split('-').map(Number);
-  const eligibilityDate = new Date(year + 19, month - 1, day);
-  return new Date() >= eligibilityDate;
+  const eligibilityYear = year + 18;
+  const koreaDate = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(koreaDate.find((part) => part.type === type)?.value);
+  const today = Date.UTC(getPart('year'), getPart('month') - 1, getPart('day'));
+  return today >= Date.UTC(eligibilityYear, month - 1, day);
 }
 
 function formatBirthDate(birthDate: string) {
