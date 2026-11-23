@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import backIcon from '../../../assets/icons/student/matching/back.svg';
 import calendarIcon from '../../../assets/icons/student/matching/start-date-calendar.svg';
 import { ResidenceExpiryDatePicker } from '../onboarding/ResidenceExpiryDatePicker';
@@ -26,10 +28,11 @@ export function WorkStartDateStep({
   onDatePickerOpen,
   onNext,
 }: WorkStartDateStepProps) {
+  const { i18n, t } = useTranslation();
   return (
     <main className="relative mx-auto h-[min(844px,100dvh)] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
-        aria-label="추천 근무지 상세로 돌아가기"
+        aria-label={t('matching.backToDetail')}
         className="absolute top-[clamp(44px,8.2dvh,69px)] left-[26px] flex h-[19px] w-[11px] items-center justify-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -37,21 +40,21 @@ export function WorkStartDateStep({
         <img alt="" src={backIcon} />
       </button>
 
-      <h1 className="absolute top-[clamp(120px,18.7dvh,158px)] left-6 m-0 text-[26px] leading-[1.5] font-semibold">
-        원하는 근무 시작일을
-        <br />
-        적어주세요.
+      <h1 className="absolute top-[clamp(120px,18.7dvh,158px)] left-6 m-0 whitespace-pre-line text-[26px] leading-[1.5] font-semibold">
+        {t('matching.workStartTitle')}
       </h1>
 
       <button
         aria-expanded={isDatePickerOpen}
         aria-haspopup="dialog"
-        aria-label="근무 시작일 선택"
+        aria-label={t('matching.selectWorkStartDate')}
         className="absolute top-[clamp(206px,32.1dvh,271px)] right-6 left-6 h-[clamp(72px,9.9dvh,84px)] border-0 border-b border-[#B0B8C1] bg-transparent p-0 text-left"
         type="button"
         onClick={onDatePickerOpen}
       >
-        <span className="block text-[17px] leading-[1.5]">근무 시작일</span>
+        <span className="block text-[17px] leading-[1.5]">
+          {t('matching.workStartDate')}
+        </span>
         <span className="mt-[7px] block text-[26px] leading-[1.5] font-semibold">
           {formatWorkStartDate(selectedDate)}
         </span>
@@ -67,13 +70,18 @@ export function WorkStartDateStep({
         type="button"
         onClick={onNext}
       >
-        확인
+        {t('common.confirm')}
       </button>
 
       {isDatePickerOpen ? (
         <ResidenceExpiryDatePicker
           initialDate={selectedDate}
-          title="시작일 선택"
+          title={t('matching.selectStartDate')}
+          confirmLabel={t('common.confirm')}
+          closeLabel={t('matching.closeDatePicker')}
+          locale={i18n.resolvedLanguage === 'en' ? 'en' : 'ko'}
+          nextLabel={t('matching.nextMonth')}
+          previousLabel={t('matching.previousMonth')}
           onClose={onDatePickerClose}
           onConfirm={(date) => {
             onDateChange(date);

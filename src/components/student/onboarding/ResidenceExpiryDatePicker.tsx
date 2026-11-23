@@ -4,12 +4,17 @@ import nextIcon from '../../../assets/icons/student/calendar-next.svg';
 import previousIcon from '../../../assets/icons/student/calendar-previous.svg';
 
 type ResidenceExpiryDatePickerProps = {
+  closeLabel?: string;
+  confirmLabel?: string;
   emptyInitialDate?: string;
   initialDate: string;
+  locale?: 'ko' | 'en';
+  nextLabel?: string;
   onDateChange?: (date: string) => void;
   onClose: () => void;
   onConfirm: (date: string) => void;
   precision?: 'day' | 'month';
+  previousLabel?: string;
   title?: string;
 };
 
@@ -22,6 +27,7 @@ const WEEKDAY_LABELS = [
   '\uAE08',
   '\uD1A0',
 ];
+const ENGLISH_WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function getMonthStart(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -73,12 +79,17 @@ function toIsoDate(date: Date) {
 }
 
 export function ResidenceExpiryDatePicker({
+  closeLabel = '\uB9CC\uB8CC\uC77C \uC120\uD0DD \uB2EB\uAE30',
+  confirmLabel = '\uD655\uC778',
   emptyInitialDate = '2027-03-01',
   initialDate,
+  locale = 'ko',
+  nextLabel = '\uB2E4\uC74C \uB2EC',
   onDateChange,
   onClose,
   onConfirm,
   precision = 'day',
+  previousLabel = '\uC774\uC804 \uB2EC',
   title = '\uB9CC\uB8CC\uC77C \uC120\uD0DD',
 }: ResidenceExpiryDatePickerProps) {
   const [displayMonth, setDisplayMonth] = useState(() =>
@@ -114,7 +125,7 @@ export function ResidenceExpiryDatePicker({
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-black/50">
       <button
-        aria-label={'\uB9CC\uB8CC\uC77C \uC120\uD0DD \uB2EB\uAE30'}
+        aria-label={closeLabel}
         className="flex-1 cursor-default border-0 bg-transparent p-0"
         type="button"
         onClick={onClose}
@@ -126,23 +137,22 @@ export function ResidenceExpiryDatePicker({
         <h2 className="m-0 text-[20px] leading-[1.5] font-semibold">{title}</h2>
         <div className="relative mt-[13px] h-[26px]">
           <p className="m-0 text-[17px] leading-[1.5] font-medium">
-            {displayMonth.getFullYear()}
-            {'\uB144'}
-            {precision === 'day' ? (
-              <>
-                {' '}
-                {displayMonth.getMonth() + 1}
-                {'\uC6D4'}
-              </>
-            ) : null}
+            {locale === 'en'
+              ? precision === 'day'
+                ? new Intl.DateTimeFormat('en', {
+                    month: 'long',
+                    year: 'numeric',
+                  }).format(displayMonth)
+                : String(displayMonth.getFullYear())
+              : `${displayMonth.getFullYear()}\uB144${precision === 'day' ? ` ${displayMonth.getMonth() + 1}\uC6D4` : ''}`}
           </p>
           <div
-            aria-label={'\uC6D4 \uC774\uB3D9'}
+            aria-label={locale === 'en' ? 'Change month' : '\uC6D4 \uC774\uB3D9'}
             className="absolute top-[2px] right-0 flex items-center gap-[22px]"
             role="group"
           >
             <button
-              aria-label={'\uC774\uC804 \uB2EC'}
+              aria-label={previousLabel}
               className="flex size-[22px] items-center justify-center border-0 bg-transparent p-0"
               type="button"
               onClick={() =>
@@ -160,7 +170,7 @@ export function ResidenceExpiryDatePicker({
               <img alt="" className="block" src={previousIcon} />
             </button>
             <button
-              aria-label={'\uB2E4\uC74C \uB2EC'}
+              aria-label={nextLabel}
               className="flex size-[22px] items-center justify-center border-0 bg-transparent p-0"
               type="button"
               onClick={() =>
@@ -206,7 +216,7 @@ export function ResidenceExpiryDatePicker({
           </div>
         ) : (
         <div className="mt-[17px] grid grid-cols-7 gap-x-[10px] gap-y-[4px]">
-          {WEEKDAY_LABELS.map((label) => (
+          {(locale === 'en' ? ENGLISH_WEEKDAY_LABELS : WEEKDAY_LABELS).map((label) => (
             <span
               className="flex h-[22px] items-center justify-center text-[13px] leading-[1.5] text-[#B0B8C1]"
               key={label}
@@ -247,7 +257,7 @@ export function ResidenceExpiryDatePicker({
           type="button"
           onClick={() => onConfirm(selectedDate)}
         >
-          {'\uD655\uC778'}
+          {confirmLabel}
         </button>
       </section>
     </div>

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import backIcon from '../../assets/icons/student/matching/back.svg';
 
 import type { StudentApplicationCardModel } from '../../types/studentApplication';
@@ -25,10 +27,11 @@ export default function StudentApplicationDetailPage({
   showOfferActions = false,
   showWithdrawAction = false,
 }: StudentApplicationDetailPageProps) {
+  const { t } = useTranslation();
   return (
     <main className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <button
-        aria-label="지원 내역으로 돌아가기"
+        aria-label={t('applications.back')}
         className="absolute top-[49px] left-[26px] flex h-4 w-2 items-center justify-center border-0 bg-transparent p-0"
         type="button"
         onClick={onBack}
@@ -60,11 +63,13 @@ export default function StudentApplicationDetailPage({
             </div>
           ))}
           <div className="flex items-start justify-between gap-6">
-            <dt className="shrink-0 text-[15px] text-[#8B95A1]">근무시간</dt>
+            <dt className="shrink-0 text-[15px] text-[#8B95A1]">
+              {t('applications.workHours')}
+            </dt>
             <dd className="m-0 text-right text-[15px] font-medium">
               {application.job.detail.tags.length > 0
                 ? application.job.detail.tags.join(', ')
-                : '미정'}
+                : t('applications.notSet')}
             </dd>
           </div>
         </dl>
@@ -78,7 +83,7 @@ export default function StudentApplicationDetailPage({
             type="button"
             onClick={onAcceptOffer}
           >
-            수락
+            {t('common.accept')}
           </button>
           <button
             className="h-[57px] rounded-[15px] border-[0.7px] border-[#B0B8C1] bg-transparent text-[20px] leading-[1.5] font-medium text-[#8B95A1] disabled:opacity-50"
@@ -86,7 +91,7 @@ export default function StudentApplicationDetailPage({
             type="button"
             onClick={onDeclineOffer}
           >
-            거절
+            {t('common.decline')}
           </button>
         </div>
       ) : null}
@@ -98,7 +103,7 @@ export default function StudentApplicationDetailPage({
             type="button"
             onClick={onWithdraw}
           >
-            지원 취소
+            {t('applications.withdraw')}
           </button>
         </div>
       ) : null}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import backIcon from '../../assets/icons/student/matching/back.svg';
 import { ApplicationFilterTabs } from '../../components/student/applications/ApplicationFilterTabs';
@@ -76,6 +77,7 @@ export default function StudentApplicationsPage({
   onDetailClick,
   onTabChange,
 }: StudentApplicationsPageProps) {
+  const { t } = useTranslation();
   const [activeFilter, setActiveFilter] = useState<StudentApplicationsFilter>(
     SCENARIO_FILTER[initialScenario],
   );
@@ -131,7 +133,7 @@ export default function StudentApplicationsPage({
     <main className="relative mx-auto flex h-[844px] w-full max-w-[390px] flex-col overflow-hidden bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#191F28]">
       <div className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
-          aria-label="뒤로 가기"
+          aria-label={t('common.back')}
           className="absolute top-[69px] left-[26px] flex h-4 w-2 items-center justify-center border-0 bg-transparent p-0"
           type="button"
           onClick={onBack}
@@ -140,7 +142,7 @@ export default function StudentApplicationsPage({
         </button>
 
         <h1 className="m-0 pt-[112px] text-[26px] leading-[1.5] font-semibold tracking-[-0.02em] text-[#191F28]">
-          지원 내역
+          {t('applications.title')}
         </h1>
         <div className="mt-[15px]">
           <ApplicationFilterTabs
@@ -155,7 +157,7 @@ export default function StudentApplicationsPage({
         ) : (
           <section
             className="mt-[27px] space-y-[11px]"
-            aria-label="지원한 공고 목록"
+            aria-label={t('applications.list')}
           >
             {applications.map((application) => (
               <StudentApplicationCard
