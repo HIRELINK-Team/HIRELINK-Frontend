@@ -12,6 +12,8 @@ import {
 } from 'react-router-dom';
 
 import { getAccessToken, setAccessToken } from './api/accessToken';
+import { apiClient } from './api/client';
+import { getOnboardingStatus } from './api/onboarding';
 import LandingPage from './pages/LandingPage';
 import {
   createStudentProfile,
@@ -466,9 +468,31 @@ function formatMatchingConditionWorkTime(workAvailability: WorkAvailability) {
 
 function StudentSessionBootstrap() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isSessionRestored, setIsSessionRestored] = useState<boolean | null>(
     () => (IS_DEMO_MODE || getAccessToken() ? true : null),
   );
+
+  useEffect(() => {
+    const interceptorId = apiClient.interceptors.response.use(
+      undefined,
+      (error: unknown) => {
+        if (
+          !location.pathname.startsWith('/student/onboarding') &&
+          axios.isAxiosError(error) &&
+          error.response?.status === 403 &&
+          error.response.data?.code === 'ONBOARDING_REQUIRED' &&
+          error.config?.url === '/students/me/profile'
+        ) {
+          navigate('/student/onboarding', { replace: true });
+        }
+
+        return Promise.reject(error);
+      },
+    );
+
+    return () => apiClient.interceptors.response.eject(interceptorId);
+  }, [location.pathname, navigate]);
 
   useEffect(() => {
     let isActive = true;
@@ -553,16 +577,17 @@ function StudentLoginRoute() {
 
         setAccessToken(response.accessToken);
 
-        try {
-          await studentDataSource.getProfile();
-          navigate('/student/home');
-        } catch (error) {
-          if (axios.isAxiosError(error) && error.response?.status === 404) {
-            navigate('/student/onboarding');
-            return;
-          }
+        const onboarding = await getOnboardingStatus();
+        if (onboarding.role !== 'STUDENT') {
+          throw new Error('유학생 온보딩 상태를 확인할 수 없습니다.');
+        }
 
-          throw error;
+        if (onboarding.status === 'REQUIRED') {
+          navigate('/student/onboarding');
+        } else if (onboarding.status === 'COMPLETED') {
+          navigate('/student/home');
+        } else {
+          throw new Error('유학생 온보딩 상태를 확인할 수 없습니다.');
         }
       }}
       onSignup={() => navigate('/student/signup')}
@@ -1725,8 +1750,7 @@ function StudentProfileRoute() {
     isProfileUnavailable,
     preferredLocation,
     profileValues,
-  } =
-    useOutletContext<StudentProfileRouteContext>();
+  } = useOutletContext<StudentProfileRouteContext>();
 
   return (
     <StudentProfileManagementPage
