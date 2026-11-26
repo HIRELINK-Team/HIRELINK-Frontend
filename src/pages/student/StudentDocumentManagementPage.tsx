@@ -40,6 +40,12 @@ import {
   previewEnrollmentCertificate,
 } from '../../api/studentEnrollment';
 import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
+import {
+  getDocumentCompletion,
+  getStudentBadge,
+  type StudentDocumentCompletion,
+} from '../../api/student/studentDocumentStatus';
+import { IS_DEMO_MODE } from '../../config/demoMode';
 import type {
   EnrollmentPreviewResponse,
   EnrollmentDocumentResponse,
@@ -118,6 +124,35 @@ export default function StudentDocumentManagementPage({
 }: StudentDocumentManagementPageProps) {
   const { t } = useTranslation();
   const [view, setView] = useState<StudentDocumentManagementView>(initialView);
+  const [serverCompletion, setServerCompletion] =
+    useState<StudentDocumentCompletion | null>(null);
+  const [completionError, setCompletionError] = useState(false);
+  const [completionAttempt, setCompletionAttempt] = useState(0);
+  const initialBadgeActive = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (IS_DEMO_MODE) return;
+    let active = true;
+    void getStudentBadge()
+      .then((badge) => {
+        if (active) initialBadgeActive.current = badge.active;
+      })
+      .catch(() => {
+        if (active) initialBadgeActive.current = null;
+      });
+    void getDocumentCompletion()
+      .then((result) => {
+        if (active) {
+          setServerCompletion(result);
+          setCompletionError(false);
+        }
+      })
+      .catch(() => {
+        if (active) setCompletionError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [completionAttempt]);
   const [enrollmentLookup, setEnrollmentLookup] = useState<
     | { status: 'loading' | 'error'; document: null }
     | { status: 'loaded'; document: EnrollmentDocumentResponse | null }
@@ -287,6 +322,33 @@ export default function StudentDocumentManagementPage({
   const handleDocumentComplete = async (documentId: StudentDocument['id']) => {
     if (documentCompletionPending.current) return;
     documentCompletionPending.current = true;
+    if (!IS_DEMO_MODE) {
+      if (documentId !== 'enrollment-certificate' || !confirmedEnrollment) {
+        documentCompletionPending.current = false;
+        window.alert('해당 서류의 실제 등록 기능은 아직 준비 중이에요.');
+        return;
+      }
+      try {
+        const [completion, badge] = await Promise.all([
+          getDocumentCompletion(),
+          getStudentBadge(),
+        ]);
+        setServerCompletion(completion);
+        documentCompletionPending.current = false;
+        if (initialBadgeActive.current === false && badge.active) {
+          setView('badge-issued');
+        } else {
+          handleDocumentFlowExit();
+        }
+      } catch (error) {
+        documentCompletionPending.current = false;
+        window.alert(
+          getApiErrorResponse(error)?.message ??
+            '등록은 완료되었지만 서류 상태를 확인하지 못했어요. 다시 확인해주세요.',
+        );
+      }
+      return;
+    }
     let enrollmentRegistered = isEnrollmentCertificateRegistered;
     if (
       documentId !== 'enrollment-certificate' &&
@@ -361,6 +423,15 @@ export default function StudentDocumentManagementPage({
   };
 
   const handleDocumentClick = (document: StudentDocument) => {
+    if (
+      !IS_DEMO_MODE &&
+      ['alien-registration-card', 'transcript', 'topik-transcript'].includes(
+        document.id,
+      )
+    ) {
+      window.alert('해당 서류의 실제 등록 기능은 아직 준비 중이에요.');
+      return;
+    }
     if (onDocumentClick) {
       onDocumentClick(document);
       return;
@@ -388,16 +459,22 @@ export default function StudentDocumentManagementPage({
   };
 
   const isAlienRegistrationRegistered =
+    serverCompletion?.registrationIncluded ??
     documentCompletion?.['alien-registration-card'] ??
     isAlienRegistrationComplete;
-  const isEnrollmentCertificateRegistered =
-    enrollmentLookup.status === 'loaded'
+  const isEnrollmentCertificateRegistered = serverCompletion
+    ? serverCompletion.enrollmentIncluded
+    : enrollmentLookup.status === 'loaded'
       ? enrollmentLookup.document !== null
       : isEnrollmentCertificateComplete;
   const isTranscriptRegistered =
-    documentCompletion?.transcript ?? isTranscriptComplete;
+    serverCompletion?.transcriptIncluded ??
+    documentCompletion?.transcript ??
+    isTranscriptComplete;
   const isTopikRegistered =
-    documentCompletion?.['topik-transcript'] ?? isTopikComplete;
+    serverCompletion?.topikIncluded ??
+    documentCompletion?.['topik-transcript'] ??
+    isTopikComplete;
 
   if (view === 'badge-issued') {
     return (
@@ -409,9 +486,11 @@ export default function StudentDocumentManagementPage({
 
   const basicDocuments = STUDENT_BASIC_DOCUMENTS.map((document) => {
     const registeredAt =
-      externalDocumentRegistrationDates?.[document.id] ??
+      (IS_DEMO_MODE
+        ? externalDocumentRegistrationDates?.[document.id]
+        : undefined) ??
       documentRegistrationDates[document.id] ??
-      document.registeredAt;
+      (IS_DEMO_MODE ? document.registeredAt : undefined);
 
     if (document.id === 'alien-registration-card') {
       return {
@@ -473,11 +552,44 @@ export default function StudentDocumentManagementPage({
     );
   }
 
+  if (!IS_DEMO_MODE && view === 'registration' && !serverCompletion) {
+    return (
+      <main
+        className="mx-auto flex min-h-dvh max-w-[390px] flex-col items-center justify-center gap-4 bg-[#F5F5F5] p-6"
+        aria-busy={!completionError}
+      >
+        <p>
+          {completionError
+            ? '서류 상태를 불러오지 못했어요.'
+            : '서류 상태를 불러오는 중이에요.'}
+        </p>
+        {completionError ? (
+          <button
+            type="button"
+            onClick={() => {
+              setCompletionError(false);
+              setCompletionAttempt((value) => value + 1);
+            }}
+          >
+            다시 시도
+          </button>
+        ) : null}
+        <button type="button" onClick={handleGuideBack}>
+          뒤로
+        </button>
+      </main>
+    );
+  }
+
   if (view === 'alien-information') {
     return (
       <AlienRegistrationInformation
         onBack={handleDocumentFlowExit}
-        onRegister={() => setView('alien-camera')}
+        onRegister={() =>
+          IS_DEMO_MODE
+            ? setView('alien-camera')
+            : window.alert('해당 서류의 실제 등록 기능은 아직 준비 중이에요.')
+        }
         progressLabel="1/6"
       />
     );
@@ -597,7 +709,11 @@ export default function StudentDocumentManagementPage({
     return (
       <TranscriptInformation
         onBack={handleDocumentFlowExit}
-        onRegister={() => setView('transcript-camera')}
+        onRegister={() =>
+          IS_DEMO_MODE
+            ? setView('transcript-camera')
+            : window.alert('해당 서류의 실제 등록 기능은 아직 준비 중이에요.')
+        }
       />
     );
   }
@@ -634,7 +750,11 @@ export default function StudentDocumentManagementPage({
     return (
       <TopikInformation
         onBack={handleDocumentFlowExit}
-        onRegister={() => setView('topik-camera')}
+        onRegister={() =>
+          IS_DEMO_MODE
+            ? setView('topik-camera')
+            : window.alert('해당 서류의 실제 등록 기능은 아직 준비 중이에요.')
+        }
       />
     );
   }
@@ -682,6 +802,11 @@ export default function StudentDocumentManagementPage({
           {t('my.documents.title')}
         </h1>
         <div className="mt-[8px]">
+          {serverCompletion ? (
+            <p aria-label="서류 등록 완성률">
+              서류 등록 완성률 {serverCompletion.completionPercentage}%
+            </p>
+          ) : null}
           <DocumentRegistrationList
             basicDocuments={basicDocuments}
             enrollmentDocument={enrollmentLookup.document}
