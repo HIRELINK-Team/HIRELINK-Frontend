@@ -130,15 +130,18 @@ export function clearPendingStudentSocialLogin() {
 }
 
 export function getSocialAuthResult() {
-  socialResultPromise ??= getAuthCsrfToken().then(
-    async ({ headerName, token }) => {
+  socialResultPromise ??= getAuthCsrfToken()
+    .then(async ({ headerName, token }) => {
       const { data } = await publicApiClient.post<SocialAuthResponse>(
         '/auth/social/result',
         undefined,
         { headers: { [headerName]: token } },
       );
       return data;
-    },
-  );
+    })
+    .catch((error: unknown) => {
+      socialResultPromise = null;
+      throw error;
+    });
   return socialResultPromise;
 }

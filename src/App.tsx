@@ -732,6 +732,20 @@ function StudentLoginRoute() {
           navigate('/student/onboarding');
         } else if (onboarding.status === 'COMPLETED') {
           navigate('/student/home');
+        } else if (
+          onboarding.status === 'NOT_APPLICABLE' &&
+          onboarding.nextStep === 'EXISTING_FLOW'
+        ) {
+          try {
+            await studentDataSource.getProfile();
+            navigate('/student/home');
+          } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+              navigate('/student/onboarding');
+            } else {
+              throw error;
+            }
+          }
         } else {
           throw new Error('유학생 온보딩 상태를 확인할 수 없습니다.');
         }
@@ -856,23 +870,50 @@ function StudentTermsAgreementRoute() {
       }
       onContinue={async (agreements) => {
         if (isSocialSignup && mappedSocialTerms) {
-          const saved = await saveStudentSocialSignupTerms(
-            mapStudentSocialTermAgreements(mappedSocialTerms, agreements),
-          );
-          const savedTerms = mapStudentSocialTerms(saved.terms);
-          if (!savedTerms) throw new Error('Unsupported social terms');
-          const requiresRegistration = savedTerms.some(
-            (term) =>
-              term.agreementId === 'uniqueIdentification' && term.isRequired,
-          );
-          navigate('/student/onboarding', {
-            state: {
-              initialStep: requiresRegistration
-                ? 'socialRegistration'
-                : 'phone',
-            },
-          });
-          return;
+          try {
+            const saved = await saveStudentSocialSignupTerms(
+              mapStudentSocialTermAgreements(mappedSocialTerms, agreements),
+            );
+            const savedTerms = mapStudentSocialTerms(saved.terms);
+            if (!savedTerms) throw new Error('Unsupported social terms');
+            const requiresRegistration = savedTerms.some(
+              (term) =>
+                term.agreementId === 'uniqueIdentification' && term.isRequired,
+            );
+            navigate('/student/onboarding', {
+              state: {
+                initialStep: requiresRegistration
+                  ? 'socialRegistration'
+                  : 'phone',
+              },
+            });
+            return;
+          } catch (error) {
+            const apiError = getApiErrorResponse(error);
+            if (
+              apiError?.code === 'INVALID_SOCIAL_SESSION' ||
+              apiError?.code === 'SOCIAL_ACCOUNT_ALREADY_REGISTERED'
+            ) {
+              clearStudentSocialSignup();
+              window.alert(
+                apiError.message ||
+                  '가입 정보가 만료되었어요. 다시 로그인해 주세요.',
+              );
+              navigate('/student/login', { replace: true });
+              return;
+            }
+            if (apiError?.code === 'TERM_VERSION_MISMATCH') {
+              throw new Error(
+                '약관 버전이 변경되었어요. 다시 로그인해 약관을 확인해 주세요.',
+                { cause: error },
+              );
+            }
+            throw new Error(
+              apiError?.message ||
+                '약관 동의를 저장하지 못했어요. 잠시 후 다시 시도해주세요.',
+              { cause: error },
+            );
+          }
         }
         if (!IS_DEMO_MODE) {
           await updateMyTermAgreements({

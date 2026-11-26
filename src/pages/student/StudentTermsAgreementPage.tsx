@@ -1046,9 +1046,11 @@ export default function StudentTermsAgreementPage({
 
     try {
       await onContinue(agreements);
-    } catch {
+    } catch (error) {
       setErrorMessage(
-        '약관 동의를 저장하지 못했어요. 잠시 후 다시 시도해주세요.',
+        error instanceof Error && error.message
+          ? error.message
+          : '약관 동의를 저장하지 못했어요. 잠시 후 다시 시도해주세요.',
       );
     } finally {
       setIsSubmitting(false);
