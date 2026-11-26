@@ -7,20 +7,25 @@ export type StudentRecommendationWorkTime = {
   endTime: string;
 };
 
-export type StudentRecommendation = {
-  applicationId: number | null;
-  applicationStatus: 'WAITING_RESPONSE' | 'OFFERED' | null;
+type RecommendationFields = {
   recommendationId: number;
   jobPostingId: number;
   rank: number;
   jobTitle: string;
   workplaceName: string;
   workplaceAddress: string;
-  wageType: SalaryType;
   wageAmount: number;
   workTimes: StudentRecommendationWorkTime[];
   matchScore: number;
   recommendationReasons: string[];
+};
+
+// The list item's Swagger reference currently points to an application schema.
+// Keep the existing list contract until the actual recommendation response is confirmed.
+export type StudentRecommendation = RecommendationFields & {
+  applicationId: number | null;
+  applicationStatus: 'WAITING_RESPONSE' | 'OFFERED' | null;
+  wageType: SalaryType;
 };
 
 export type StudentRecommendationsResponse = {
@@ -43,7 +48,8 @@ export type StudentRecommendationRefreshResponse = {
   refreshed: boolean;
 };
 
-export type StudentRecommendationDetailResponse = StudentRecommendation & {
+export type StudentRecommendationDetailResponse = RecommendationFields & {
   batchId: number;
   generatedAt: string;
+  wageType: string;
 };

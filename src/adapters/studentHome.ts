@@ -27,11 +27,12 @@ export const EMPTY_STUDENT_HOME_SUMMARY: StudentHomeSummary = {
 function summarizeApplications(applications: StudentApplication[]) {
   return applications.reduce(
     (summary, application) => {
+      if (application.status === 'ENDED') return summary;
       summary.total += 1;
-
-      if (application.matchId !== null) summary.completed += 1;
-      else if (application.offerId !== null) summary.offer += 1;
-      else summary.reviewing += 1;
+      if (application.status === 'COMPLETED') summary.completed += 1;
+      else if (application.status === 'OFFERED') summary.offer += 1;
+      else if (application.status === 'WAITING_RESPONSE')
+        summary.reviewing += 1;
 
       return summary;
     },
@@ -84,10 +85,7 @@ export function mapStudentHomeSummary({
       },
       {
         label: '급여',
-        value:
-          matchingPreferences.minimumHourlyWage === null
-            ? '미입력'
-            : `시급 ${matchingPreferences.minimumHourlyWage.toLocaleString('ko-KR')}원 이상`,
+        value: '미입력',
       },
       { label: '직종', value: summarizeJobs(matchingPreferences) },
     ],

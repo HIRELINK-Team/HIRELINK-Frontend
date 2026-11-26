@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 import backIcon from '../../assets/icons/student/documents/back.svg';
 import { useTranslation } from 'react-i18next';
 import approvedStatusIcon from '../../assets/icons/student/my/work-condition-approved.png';
@@ -8,6 +10,12 @@ import { mapStudentProfileResponseToValues } from '../../adapters/studentProfile
 import { StudentBottomNavigation } from '../../components/student/navigation/StudentBottomNavigation';
 import type { StudentNavigationTab } from '../../types/studentHome';
 import type { StudentProfileResponse } from '../../types/studentProfile';
+import { getWorkingConditions } from '../../api/student/workingConditions';
+import { getApiErrorResponse } from '../../api/errors';
+import type {
+  WorkingConditions,
+  WorkingPeriodLimit,
+} from '../../types/studentWorkingConditions';
 
 type StudentWorkConditionPageProps = {
   onBack?: () => void;
@@ -54,7 +62,45 @@ export default function StudentWorkConditionPage({
   onTabChange,
   studentProfile = null,
 }: StudentWorkConditionPageProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [conditions, setConditions] = useState<WorkingConditions | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    let active = true;
+    void getWorkingConditions()
+      .then((result) => {
+        if (active) setConditions(result);
+      })
+      .catch((reason: unknown) => {
+        if (active)
+          setError(
+            getApiErrorResponse(reason)?.message ??
+              (i18n.resolvedLanguage === 'en'
+                ? 'Unable to load working conditions.'
+                : '근무 가능 조건을 불러오지 못했어요.'),
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, [i18n.resolvedLanguage]);
+  const formatLimit = (limit: WorkingPeriodLimit) => {
+    if (limit.type === 'NO_TIME_CAP')
+      return i18n.resolvedLanguage === 'en' ? 'No time cap' : '시간 상한 없음';
+    if (limit.type === 'SHARED_WEEKLY_LIMIT') {
+      const hours = conditions?.estimate.combinedWeeklyLimitHours;
+      return hours == null
+        ? '-'
+        : i18n.resolvedLanguage === 'en'
+          ? `${hours} hours/week combined`
+          : `공통 주 ${hours}시간`;
+    }
+    return limit.hours == null
+      ? '-'
+      : i18n.resolvedLanguage === 'en'
+        ? `${limit.hours} hours/week`
+        : `주 ${limit.hours}시간`;
+  };
   const profileValues = studentProfile
     ? mapStudentProfileResponseToValues(studentProfile)
     : undefined;
@@ -84,7 +130,14 @@ export default function StudentWorkConditionPage({
             src={workConditionSummaryImage}
           />
           <p className="absolute top-[18px] left-24 m-0 text-[15px] leading-[1.5] font-bold">
-            {t('my.workCondition.prompt').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}
+            {t('my.workCondition.prompt')
+              .split('\n')
+              .map((line, index) => (
+                <span key={line}>
+                  {index > 0 && <br />}
+                  {line}
+                </span>
+              ))}
           </p>
         </section>
         <p className="m-0 mt-[6px] text-[12px] leading-[1.5] text-[#8B95A1]">
@@ -92,24 +145,63 @@ export default function StudentWorkConditionPage({
         </p>
 
         <section className="mt-[28px] h-[138px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-[17px]">
-          <CardHeader title={t('my.workCondition.basic')} onEdit={onEditBasicInfo} />
+          <CardHeader
+            title={t('my.workCondition.basic')}
+            onEdit={onEditBasicInfo}
+          />
           <InfoRow label={t('my.profile.visa')} value={visaStatus} />
-          <InfoRow label={t('my.workCondition.academicStatus')} value={academicStatus} />
-          <InfoRow label={t('my.workCondition.koreanAbility')} value={topikLevel} />
+          <InfoRow
+            label={t('my.workCondition.academicStatus')}
+            value={academicStatus}
+          />
+          <InfoRow
+            label={t('my.workCondition.koreanAbility')}
+            value={topikLevel}
+          />
         </section>
 
         <section className="mt-[16px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-[17px]">
-          <CardHeader title={t('my.workCondition.hours')} onEdit={onEditWorkTime} />
-          <InfoRow label={t('my.workCondition.semester')} value={t('my.workCondition.semesterValue')} />
-          <InfoRow label={t('my.workCondition.vacation')} value={t('my.workCondition.conditional')} />
-          <InfoRow label={t('my.workCondition.weekends')} value={t('my.workCondition.conditional')} />
+          <CardHeader
+            title={t('my.workCondition.hours')}
+            onEdit={onEditWorkTime}
+          />
+          <InfoRow
+            label={t('my.workCondition.semester')}
+            value={
+              conditions ? formatLimit(conditions.estimate.termWeekdays) : '-'
+            }
+          />
+          <InfoRow
+            label={t('my.workCondition.vacation')}
+            value={
+              conditions ? formatLimit(conditions.estimate.vacations) : '-'
+            }
+          />
+          <InfoRow
+            label={t('my.workCondition.weekends')}
+            value={
+              conditions
+                ? formatLimit(conditions.estimate.weekendsAndHolidays)
+                : '-'
+            }
+          />
           <p className="m-0 mt-[10px] text-[12px] leading-[1.5] text-[#8B95A1]">
-            {t('my.workCondition.hoursDisclaimer')}
+            {conditions?.notice && i18n.resolvedLanguage !== 'en'
+              ? conditions.notice
+              : t('my.workCondition.hoursDisclaimer')}
           </p>
+          {error ? (
+            <p role="alert" className="mt-2 text-[12px] text-[#D13A3A]">
+              {error}
+            </p>
+          ) : null}
         </section>
 
         <section className="mt-[16px] rounded-[20px] bg-[#E5E8EB] px-[30px] pt-[19px] pb-7">
-          <CardHeader title={t('my.workCondition.eligible')} onEdit={onEditEligibleFields} />
+          <CardHeader
+            title={t('my.workCondition.eligible')}
+            onEdit={onEditEligibleFields}
+          />
           <ul className="m-0 mt-[12px] space-y-[7px] p-0">
             {ELIGIBLE_FIELDS.map((field, index) => (
               <li

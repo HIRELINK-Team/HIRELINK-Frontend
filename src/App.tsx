@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import axios from 'axios';
 import {
   Navigate,
@@ -12,9 +18,22 @@ import {
 } from 'react-router-dom';
 
 import { getAccessToken, setAccessToken } from './api/accessToken';
+import { apiClient } from './api/client';
+import { getOnboardingStatus } from './api/onboarding';
+import {
+  clearStudentSocialSignup,
+  clearPendingStudentSocialLogin,
+  getSocialAuthResult,
+  getStudentSocialSignupTerms,
+  hasPendingStudentSocialLogin,
+  hasStudentSocialSignup,
+  markStudentSocialSignup,
+  saveStudentSocialSignupTerms,
+  startStudentSocialLogin,
+} from './api/socialAuth';
+import { completeStudentOnboarding } from './api/student/onboarding';
 import LandingPage from './pages/LandingPage';
 import {
-  createStudentProfile,
   loginStudent,
   refreshAccessToken,
   signupStudent,
@@ -22,6 +41,11 @@ import {
 } from './api/student';
 import { getApiErrorResponse } from './api/errors';
 import {
+  mapStudentSocialTermAgreements,
+  mapStudentSocialTerms,
+} from './adapters/socialTerms';
+import {
+  hasUnrepresentableWorkTimes,
   mapIndustrySelectionToUpdateRequest,
   mapPriorityOrderToUpdateRequest,
   mapStudentMatchingPreferencesToUiState,
@@ -41,7 +65,10 @@ import {
   mapStudentProfileResponseToValues,
   mapStudentProfileValuesToUpdateRequest,
 } from './adapters/studentProfile';
-import { mapStudentRecommendationToRecommendedJob } from './adapters/studentRecommendations';
+import {
+  mapStudentRecommendationToRecommendedJob,
+  mergeRecommendationApplicationState,
+} from './adapters/studentRecommendations';
 import { mapStudentJobPostingToRecommendedJob } from './adapters/studentJobPostings';
 import { IS_DEMO_MODE } from './config/demoMode';
 import { studentDataSource } from './services/studentDataSource';
@@ -85,6 +112,7 @@ import StudentNotificationSettingsPage from './pages/student/StudentNotification
 import StudentOnboardingPage, {
   type PhoneVerificationPreview,
 } from './pages/student/StudentOnboardingPage';
+import StudentSocialRegistrationPage from './pages/student/StudentSocialRegistrationPage';
 import StudentProfileManagementPage, {
   type ProfileDetailView,
   type StudentProfileEditField,
@@ -92,7 +120,10 @@ import StudentProfileManagementPage, {
 } from './pages/student/StudentProfileManagementPage';
 import StudentProfileEditPage from './pages/student/StudentProfileEditPage';
 import StudentTermsPrivacyPage from './pages/student/StudentTermsPrivacyPage';
-import StudentTermsAgreementPage from './pages/student/StudentTermsAgreementPage';
+import StudentTermsAgreementPage, {
+  type StudentOnboardingTermAgreements,
+} from './pages/student/StudentTermsAgreementPage';
+import type { SocialSignupTerm } from './types/socialTerms';
 import StudentWorkConditionPage from './pages/student/StudentWorkConditionPage';
 import { formatWorkAvailabilityRanges } from './utils/formatWorkAvailability';
 import StudentMatchingConditionIndustryPage from './pages/student/StudentMatchingConditionIndustryPage';
@@ -115,6 +146,7 @@ import type {
 import type { StudentMyMenuId } from './types/studentMy';
 import type { StudentEmploymentMatchContact } from './types/studentMatch';
 import type {
+  StudentProfileCareerInput,
   StudentProfileResponse,
   StudentProfileUpdateResponse,
 } from './types/studentProfile';
@@ -133,6 +165,7 @@ const PUBLIC_STUDENT_ROUTES = new Set([
   '/student/entry',
   '/student/login',
   '/student/signup',
+  '/student/onboarding/terms',
 ]);
 
 const STUDENT_TAB_ROUTES: Record<StudentNavigationTab, string> = {
@@ -262,8 +295,9 @@ type StudentProfileRouteContext = {
   isProfileUnavailable: boolean;
   profileValues: StudentProfileValues;
   preferredLocation: StudentPreferredLocation | null;
-  setCareers: (careers: readonly StudentCareerResponse[]) => void;
-  setPhoneNumber: (phoneNumber: string) => void;
+  saveCareers: (
+    careers: readonly StudentProfileCareerInput[],
+  ) => Promise<readonly StudentCareerResponse[] | null>;
   setPreferredLocation: (location: StudentPreferredLocation) => void;
   saveProfile: (
     view: ProfileDetailView,
@@ -283,7 +317,7 @@ function isStudentProfileResponse(
   return (
     typeof profile.studentId === 'number' &&
     typeof profile.name === 'string' &&
-    typeof profile.email === 'string' &&
+    (typeof profile.email === 'string' || profile.email === null) &&
     typeof profile.phoneNumber === 'string' &&
     typeof profile.birthDate === 'string' &&
     typeof profile.nationality === 'string' &&
@@ -296,6 +330,10 @@ function isStudentProfileResponse(
       profile.enrollmentStartDate === null) &&
     (typeof profile.studyProgramId === 'number' ||
       profile.studyProgramId === null) &&
+    (['ASSOCIATE', 'BACHELOR', 'MASTER', 'DOCTORATE', 'EXCHANGE'].includes(
+      String(profile.studyProgram),
+    ) ||
+      profile.studyProgram === null) &&
     (typeof profile.gradeLevel === 'number' || profile.gradeLevel === null) &&
     (typeof profile.academicState === 'string' ||
       profile.academicState === null) &&
@@ -324,7 +362,7 @@ function isStudentProfileUpdateResponse(
   return (
     typeof profile.studentId === 'number' &&
     typeof profile.name === 'string' &&
-    typeof profile.email === 'string' &&
+    (typeof profile.email === 'string' || profile.email === null) &&
     typeof profile.phoneNumber === 'string' &&
     typeof profile.birthDate === 'string' &&
     typeof profile.nationality === 'string' &&
@@ -335,6 +373,10 @@ function isStudentProfileUpdateResponse(
       profile.universityName === null) &&
     (typeof profile.studyProgramId === 'number' ||
       profile.studyProgramId === null) &&
+    (['ASSOCIATE', 'BACHELOR', 'MASTER', 'DOCTORATE', 'EXCHANGE'].includes(
+      String(profile.studyProgram),
+    ) ||
+      profile.studyProgram === null) &&
     (typeof profile.gradeLevel === 'number' || profile.gradeLevel === null) &&
     (typeof profile.academicState === 'string' ||
       profile.academicState === null) &&
@@ -383,7 +425,6 @@ const STUDENT_DOCUMENT_ROUTE_CONFIG: Record<
 type MatchingConditionRouteContext = {
   businessTypeFlexible: boolean;
   isMatchingPreferencesLoading: boolean;
-  minimumHourlyWage: number | null;
   otherIndustry: string;
   priorityOrder: MatchingPriorityId[];
   selectedIndustries: IndustryId[];
@@ -466,9 +507,31 @@ function formatMatchingConditionWorkTime(workAvailability: WorkAvailability) {
 
 function StudentSessionBootstrap() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isSessionRestored, setIsSessionRestored] = useState<boolean | null>(
     () => (IS_DEMO_MODE || getAccessToken() ? true : null),
   );
+
+  useEffect(() => {
+    const interceptorId = apiClient.interceptors.response.use(
+      undefined,
+      (error: unknown) => {
+        if (
+          !location.pathname.startsWith('/student/onboarding') &&
+          axios.isAxiosError(error) &&
+          error.response?.status === 403 &&
+          error.response.data?.code === 'ONBOARDING_REQUIRED' &&
+          error.config?.url === '/students/me/profile'
+        ) {
+          navigate('/student/onboarding', { replace: true });
+        }
+
+        return Promise.reject(error);
+      },
+    );
+
+    return () => apiClient.interceptors.response.eject(interceptorId);
+  }, [location.pathname, navigate]);
 
   useEffect(() => {
     let isActive = true;
@@ -500,7 +563,20 @@ function StudentSessionBootstrap() {
     return null;
   }
 
-  if (!isSessionRestored && !PUBLIC_STUDENT_ROUTES.has(location.pathname)) {
+  const isSocialPhoneStep =
+    hasStudentSocialSignup() &&
+    location.pathname === '/student/onboarding' &&
+    typeof location.state === 'object' &&
+    location.state !== null &&
+    'initialStep' in location.state &&
+    (location.state.initialStep === 'phone' ||
+      location.state.initialStep === 'socialRegistration');
+  if (
+    !isSessionRestored &&
+    !getAccessToken() &&
+    !PUBLIC_STUDENT_ROUTES.has(location.pathname) &&
+    !isSocialPhoneStep
+  ) {
     return (
       <Navigate
         replace
@@ -519,17 +595,110 @@ function StudentSplashRoute() {
   return <Navigate replace to="/student/entry" />;
 }
 
+function StudentSocialAuthCallback({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(
+    hasPendingStudentSocialLogin,
+  );
+
+  useEffect(() => {
+    if (!isProcessing) return;
+    let isActive = true;
+
+    const handleResult = async () => {
+      try {
+        const errorCode = new URLSearchParams(window.location.search).get(
+          'error',
+        );
+        if (errorCode) throw new Error(errorCode);
+        const result = await getSocialAuthResult();
+        if (!isActive) return;
+        if (result.role !== 'STUDENT') throw new Error('SOCIAL_ROLE_MISMATCH');
+        if (result.status === 'SIGNUP_REQUIRED') {
+          markStudentSocialSignup();
+          clearPendingStudentSocialLogin();
+          navigate('/student/onboarding/terms', {
+            replace: true,
+            state: { fromStudentEntry: true },
+          });
+        } else if (
+          result.status === 'LOGIN' &&
+          result.login?.role === 'STUDENT' &&
+          result.login.accessToken
+        ) {
+          setAccessToken(result.login.accessToken);
+          const onboarding = await getOnboardingStatus();
+          if (!isActive) return;
+          if (onboarding.role !== 'STUDENT')
+            throw new Error('SOCIAL_ROLE_MISMATCH');
+          if (
+            onboarding.status === 'REQUIRED' &&
+            onboarding.nextStep === 'BASIC_INFORMATION'
+          ) {
+            clearPendingStudentSocialLogin();
+            navigate('/student/onboarding', {
+              replace: true,
+              state: { initialStep: 'birthYear' },
+            });
+          } else if (
+            onboarding.status === 'COMPLETED' &&
+            onboarding.nextStep === 'NONE'
+          ) {
+            clearPendingStudentSocialLogin();
+            navigate('/student/home', { replace: true });
+          } else if (
+            onboarding.status === 'NOT_APPLICABLE' &&
+            onboarding.nextStep === 'EXISTING_FLOW'
+          ) {
+            try {
+              await studentDataSource.getProfile();
+              if (!isActive) return;
+              clearPendingStudentSocialLogin();
+              navigate('/student/home', { replace: true });
+            } catch (error) {
+              if (!axios.isAxiosError(error) || error.response?.status !== 404)
+                throw error;
+              if (!isActive) return;
+              clearPendingStudentSocialLogin();
+              navigate('/student/onboarding', { replace: true });
+            }
+          } else {
+            throw new Error('INVALID_ONBOARDING_STATUS');
+          }
+        } else {
+          throw new Error('INVALID_SOCIAL_AUTH_RESULT');
+        }
+      } catch (error) {
+        if (!isActive) return;
+        clearPendingStudentSocialLogin();
+        const code = error instanceof Error ? error.message : '';
+        window.alert(
+          code === 'SOCIAL_ROLE_MISMATCH'
+            ? '유학생 계정으로 로그인해 주세요.'
+            : '소셜 로그인에 실패했어요. 다시 시도해 주세요.',
+        );
+        navigate('/student/login', { replace: true });
+      } finally {
+        if (isActive) setIsProcessing(false);
+      }
+    };
+
+    void handleResult();
+    return () => {
+      isActive = false;
+    };
+  }, [isProcessing, navigate]);
+
+  return isProcessing ? null : children;
+}
+
 function StudentEntryRoute() {
   const navigate = useNavigate();
 
   return (
     <StudentEntryOnboardingPage
       onEmailLogin={() => navigate('/student/login')}
-      onStart={() =>
-        navigate('/student/onboarding/terms', {
-          state: { fromStudentEntry: true },
-        })
-      }
+      onStart={startStudentSocialLogin}
     />
   );
 }
@@ -541,6 +710,7 @@ function StudentLoginRoute() {
     <StudentEmailLoginPage
       onBack={() => navigate('/student/entry')}
       onLogin={async (request) => {
+        clearStudentSocialSignup();
         if (IS_DEMO_MODE) {
           navigate('/student/home');
           return;
@@ -553,20 +723,35 @@ function StudentLoginRoute() {
 
         setAccessToken(response.accessToken);
 
-        try {
-          await studentDataSource.getProfile();
-          navigate('/student/home');
-        } catch (error) {
-          if (axios.isAxiosError(error) && error.response?.status === 404) {
-            navigate('/student/onboarding');
-            return;
-          }
+        const onboarding = await getOnboardingStatus();
+        if (onboarding.role !== 'STUDENT') {
+          throw new Error('유학생 온보딩 상태를 확인할 수 없습니다.');
+        }
 
-          throw error;
+        if (onboarding.status === 'REQUIRED') {
+          navigate('/student/onboarding');
+        } else if (onboarding.status === 'COMPLETED') {
+          navigate('/student/home');
+        } else if (
+          onboarding.status === 'NOT_APPLICABLE' &&
+          onboarding.nextStep === 'EXISTING_FLOW'
+        ) {
+          try {
+            await studentDataSource.getProfile();
+            navigate('/student/home');
+          } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+              navigate('/student/onboarding');
+            } else {
+              throw error;
+            }
+          }
+        } else {
+          throw new Error('유학생 온보딩 상태를 확인할 수 없습니다.');
         }
       }}
       onSignup={() => navigate('/student/signup')}
-      onSocialLogin={() => navigate('/student/onboarding')}
+      onSocialLogin={startStudentSocialLogin}
     />
   );
 }
@@ -578,6 +763,7 @@ function StudentSignupRoute() {
     <StudentEmailSignupPage
       onBack={() => navigate('/student/login')}
       onSignup={async (request) => {
+        clearStudentSocialSignup();
         if (IS_DEMO_MODE) {
           navigate('/student/onboarding/terms');
           return;
@@ -594,6 +780,32 @@ function StudentSignupRoute() {
 function StudentTermsAgreementRoute() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSocialSignup] = useState(hasStudentSocialSignup);
+  const [socialTerms, setSocialTerms] = useState<SocialSignupTerm[] | null>(
+    null,
+  );
+  const [termsLoadError, setTermsLoadError] = useState(false);
+  const [termsLoadAttempt, setTermsLoadAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!isSocialSignup) return;
+    let isActive = true;
+    void getStudentSocialSignupTerms()
+      .then(({ terms }) => {
+        if (!mapStudentSocialTerms(terms))
+          throw new Error('Unsupported social terms');
+        if (isActive) {
+          setSocialTerms(terms);
+          setTermsLoadError(false);
+        }
+      })
+      .catch(() => {
+        if (isActive) setTermsLoadError(true);
+      });
+    return () => {
+      isActive = false;
+    };
+  }, [isSocialSignup, termsLoadAttempt]);
 
   const cameFromStudentEntry =
     typeof location.state === 'object' &&
@@ -601,12 +813,108 @@ function StudentTermsAgreementRoute() {
     'fromStudentEntry' in location.state &&
     location.state.fromStudentEntry === true;
 
+  const mappedSocialTerms = socialTerms
+    ? mapStudentSocialTerms(socialTerms)
+    : null;
+  if (isSocialSignup && !mappedSocialTerms) {
+    return termsLoadError ? (
+      <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col items-center justify-center gap-4 bg-[#F5F5F5] px-6 text-center">
+        <p>약관을 불러오지 못했어요. 다시 시도해 주세요.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setTermsLoadError(false);
+            setTermsLoadAttempt((attempt) => attempt + 1);
+          }}
+        >
+          다시 시도
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            clearStudentSocialSignup();
+            navigate('/student/entry');
+          }}
+        >
+          처음으로
+        </button>
+      </main>
+    ) : (
+      <div aria-busy="true" />
+    );
+  }
+
+  const initialAgreements: StudentOnboardingTermAgreements | undefined =
+    mappedSocialTerms
+      ? {
+          serviceTerms: false,
+          personalInformationCollection: false,
+          thirdPartyProvision: false,
+          uniqueIdentification: false,
+          marketing: false,
+          ...Object.fromEntries(
+            mappedSocialTerms.map((term) => [term.agreementId, term.isAgreed]),
+          ),
+        }
+      : undefined;
+
   return (
     <StudentTermsAgreementPage
+      availableAgreementIds={mappedSocialTerms?.map((term) => term.agreementId)}
+      requiredAgreementIds={mappedSocialTerms
+        ?.filter((term) => term.isRequired)
+        .map((term) => term.agreementId)}
+      initialAgreements={initialAgreements}
       onBack={() =>
         navigate(cameFromStudentEntry ? '/student/entry' : '/student/signup')
       }
       onContinue={async (agreements) => {
+        if (isSocialSignup && mappedSocialTerms) {
+          try {
+            const saved = await saveStudentSocialSignupTerms(
+              mapStudentSocialTermAgreements(mappedSocialTerms, agreements),
+            );
+            const savedTerms = mapStudentSocialTerms(saved.terms);
+            if (!savedTerms) throw new Error('Unsupported social terms');
+            const requiresRegistration = savedTerms.some(
+              (term) =>
+                term.agreementId === 'uniqueIdentification' && term.isRequired,
+            );
+            navigate('/student/onboarding', {
+              state: {
+                initialStep: requiresRegistration
+                  ? 'socialRegistration'
+                  : 'phone',
+              },
+            });
+            return;
+          } catch (error) {
+            const apiError = getApiErrorResponse(error);
+            if (
+              apiError?.code === 'INVALID_SOCIAL_SESSION' ||
+              apiError?.code === 'SOCIAL_ACCOUNT_ALREADY_REGISTERED'
+            ) {
+              clearStudentSocialSignup();
+              window.alert(
+                apiError.message ||
+                  '가입 정보가 만료되었어요. 다시 로그인해 주세요.',
+              );
+              navigate('/student/login', { replace: true });
+              return;
+            }
+            if (apiError?.code === 'TERM_VERSION_MISMATCH') {
+              throw new Error(
+                '약관 버전이 변경되었어요. 다시 로그인해 약관을 확인해 주세요.',
+                { cause: error },
+              );
+            }
+            throw new Error(
+              apiError?.message ||
+                '약관 동의를 저장하지 못했어요. 잠시 후 다시 시도해주세요.',
+              { cause: error },
+            );
+          }
+        }
         if (!IS_DEMO_MODE) {
           await updateMyTermAgreements({
             agreements: [
@@ -637,6 +945,8 @@ function StudentTermsAgreementRoute() {
 type StudentOnboardingRouteProps = {
   initialStep?:
     | 'verification'
+    | 'birthYear'
+    | 'phone'
     | 'industrySelection'
     | 'workTimeSelection'
     | 'workLocationSelection'
@@ -651,36 +961,124 @@ function StudentOnboardingRoute({
   phoneVerificationPreview,
 }: StudentOnboardingRouteProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const requestedInitialStep =
+    typeof location.state === 'object' &&
+    location.state !== null &&
+    'initialStep' in location.state &&
+    (location.state.initialStep === 'birthYear' ||
+      (hasStudentSocialSignup() && location.state.initialStep === 'phone'))
+      ? location.state.initialStep
+      : undefined;
+  const isSocialRegistration =
+    hasStudentSocialSignup() &&
+    typeof location.state === 'object' &&
+    location.state !== null &&
+    'initialStep' in location.state &&
+    location.state.initialStep === 'socialRegistration';
+
+  if (isSocialRegistration) {
+    return (
+      <StudentSocialRegistrationPage
+        onBack={() => navigate('/student/onboarding/terms')}
+        onComplete={() =>
+          navigate('/student/onboarding', {
+            replace: true,
+            state: { initialStep: 'phone' },
+          })
+        }
+        onSessionExpired={() => {
+          clearStudentSocialSignup();
+          navigate('/student/login', { replace: true });
+        }}
+      />
+    );
+  }
 
   return (
     <StudentOnboardingPage
-      enableCareerApi={!IS_DEMO_MODE}
-      initialStep={initialStep}
+      key={initialStep ?? requestedInitialStep ?? 'default'}
+      initialStep={initialStep ?? requestedInitialStep}
       initialWorkRadiusOpen={initialWorkRadiusOpen}
-      onBack={() => navigate('/student/entry')}
-      onComplete={async (requestBody) => {
-        if (IS_DEMO_MODE) {
-          await studentDataSource.updateProfile({ name: requestBody.name });
-          navigate('/student/home', { replace: true });
+      isSocialSignup={
+        hasStudentSocialSignup() && requestedInitialStep === 'phone'
+      }
+      onSocialRegistrationRequired={() =>
+        navigate('/student/onboarding', {
+          replace: true,
+          state: { initialStep: 'socialRegistration' },
+        })
+      }
+      onSocialSignupExpired={() => {
+        clearStudentSocialSignup();
+        navigate('/student/login', { replace: true });
+      }}
+      onSocialSignupComplete={async (response) => {
+        clearStudentSocialSignup();
+        if (response.role !== 'STUDENT' || !response.accessToken) {
+          window.alert(
+            '유학생 계정 정보를 확인하지 못했어요. 다시 로그인해 주세요.',
+          );
+          navigate('/student/login', { replace: true });
           return;
         }
-
+        setAccessToken(response.accessToken);
         try {
-          await createStudentProfile(requestBody);
-        } catch (error) {
-          // An existing student profile must still reflect the values entered again
-          // during onboarding instead of leaving the previous profile unchanged.
-          if (!axios.isAxiosError(error) || error.response?.status !== 409) {
-            throw error;
-          }
-
-          await studentDataSource.updateProfile({ name: requestBody.name });
-
-          const updatedProfile = await studentDataSource.getProfile();
-          if (updatedProfile.name !== requestBody.name) {
-            throw new Error('Student profile name was not updated.', {
-              cause: error,
+          const onboarding = await getOnboardingStatus();
+          if (onboarding.role !== 'STUDENT') throw new Error('Invalid role');
+          if (
+            onboarding.status === 'REQUIRED' &&
+            onboarding.nextStep === 'BASIC_INFORMATION'
+          ) {
+            navigate('/student/onboarding', {
+              replace: true,
+              state: { initialStep: 'birthYear' },
             });
+          } else if (
+            onboarding.status === 'COMPLETED' &&
+            onboarding.nextStep === 'NONE'
+          ) {
+            navigate('/student/home', { replace: true });
+          } else if (
+            onboarding.status === 'NOT_APPLICABLE' &&
+            onboarding.nextStep === 'EXISTING_FLOW'
+          ) {
+            try {
+              await studentDataSource.getProfile();
+              navigate('/student/home', { replace: true });
+            } catch (error) {
+              if (!axios.isAxiosError(error) || error.response?.status !== 404)
+                throw error;
+              navigate('/student/onboarding', { replace: true });
+            }
+          } else {
+            throw new Error('Invalid onboarding status');
+          }
+        } catch {
+          window.alert(
+            '계정은 생성되었지만 온보딩 상태를 확인하지 못했어요. 다시 로그인해 주세요.',
+          );
+          navigate('/student/login', { replace: true });
+        }
+      }}
+      onBack={() =>
+        navigate(
+          hasStudentSocialSignup()
+            ? '/student/onboarding/terms'
+            : '/student/entry',
+        )
+      }
+      onComplete={async (requestBody) => {
+        if (!IS_DEMO_MODE) {
+          try {
+            await completeStudentOnboarding(requestBody);
+          } catch (error) {
+            if (
+              getApiErrorResponse(error)?.code !==
+              'ONBOARDING_ALREADY_COMPLETED'
+            ) {
+              throw error;
+            }
           }
         }
         navigate('/student/home', { replace: true });
@@ -953,7 +1351,10 @@ function StudentMatchingRoute() {
 
           if (response.status !== 'RECRUITING') return null;
 
-          return mapStudentJobPostingToRecommendedJob(recommendation, response);
+          return mapStudentJobPostingToRecommendedJob(
+            mergeRecommendationApplicationState(recommendation, job),
+            response,
+          );
         } catch (error) {
           if (axios.isAxiosError(error) && error.response?.status === 409) {
             await refreshRecommendations();
@@ -1587,6 +1988,7 @@ function StudentWorkConditionRoute() {
 }
 
 function StudentProfileLayout() {
+  const navigate = useNavigate();
   const [studentProfile, setStudentProfile] =
     useState<StudentProfileResponse | null>(null);
   const [profileValues, setProfileValues] = useState<StudentProfileValues>({});
@@ -1651,18 +2053,31 @@ function StudentProfileLayout() {
           isProfileUnavailable,
           profileValues,
           preferredLocation,
-          setCareers: (careers) => {
-            setStudentProfile((current) =>
-              current ? { ...current, careers: [...careers] } : current,
-            );
-          },
-          setPhoneNumber: (phoneNumber) => {
-            setStudentProfile((current) => {
-              if (!current) return current;
-              const next = { ...current, phoneNumber };
-              setProfileValues(mapStudentProfileResponseToValues(next));
-              return next;
-            });
+          saveCareers: async (careers) => {
+            try {
+              await studentDataSource.updateProfile({ careers: [...careers] });
+            } catch (error) {
+              window.alert(
+                getApiErrorResponse(error)?.message ??
+                  '경력 저장에 실패했어요. 다시 시도해 주세요.',
+              );
+              return null;
+            }
+            try {
+              const profile = await studentDataSource.getProfile();
+              if (!isStudentProfileResponse(profile))
+                throw new Error('Invalid student profile response.');
+              setStudentProfile(profile);
+              setProfileValues(mapStudentProfileResponseToValues(profile));
+              return profile.careers;
+            } catch {
+              window.alert(
+                '경력은 저장되었지만 변경된 목록을 불러오지 못했어요. 화면을 다시 열어 확인해 주세요.',
+              );
+              setIsProfileUnavailable(true);
+              navigate('/student/my/profile', { replace: true });
+              return null;
+            }
           },
           setPreferredLocation,
           saveProfile: async (view, values) => {
@@ -1679,6 +2094,12 @@ function StudentProfileLayout() {
 
             if (mappingResult.status === 'invalid') {
               window.alert('입력한 프로필 정보를 다시 확인해 주세요.');
+              return false;
+            }
+            if (mappingResult.status === 'unsupported') {
+              window.alert(
+                '이 항목은 이 화면에서 수정할 수 없어요. 관련 서류 인증을 확인해 주세요.',
+              );
               return false;
             }
             if (mappingResult.status === 'unchanged') return true;
@@ -1725,8 +2146,7 @@ function StudentProfileRoute() {
     isProfileUnavailable,
     preferredLocation,
     profileValues,
-  } =
-    useOutletContext<StudentProfileRouteContext>();
+  } = useOutletContext<StudentProfileRouteContext>();
 
   return (
     <StudentProfileManagementPage
@@ -1754,8 +2174,7 @@ function StudentProfileEditRoute({
     profileValues,
     preferredLocation,
     saveProfile,
-    setCareers,
-    setPhoneNumber,
+    saveCareers,
     setPreferredLocation,
   } = useOutletContext<StudentProfileRouteContext>();
 
@@ -1764,8 +2183,7 @@ function StudentProfileEditRoute({
       careers={careers}
       field={field}
       onBack={() => navigate('/student/my/profile')}
-      onCareersChange={setCareers}
-      onPhoneChange={setPhoneNumber}
+      onCareersSave={saveCareers}
       onPreferredLocationChange={setPreferredLocation}
       onProfileSave={async (view, values) =>
         (await saveProfile(view, values)) === true
@@ -1795,9 +2213,8 @@ function StudentProfileDetailRoute({ view }: { view: ProfileDetailView }) {
 
 function StudentMatchingConditionLayout() {
   const [businessTypeFlexible, setBusinessTypeFlexible] = useState(false);
-  const [minimumHourlyWage, setMinimumHourlyWage] = useState<number | null>(
-    null,
-  );
+  const [hasUnrepresentedWorkTime, setHasUnrepresentedWorkTime] =
+    useState(false);
   const [selectedIndustries, setSelectedIndustries] = useState<IndustryId[]>(
     [],
   );
@@ -1823,7 +2240,9 @@ function StudentMatchingConditionLayout() {
     const mappedPreferences =
       mapStudentMatchingPreferencesToUiState(preferences);
     setBusinessTypeFlexible(mappedPreferences.businessTypeFlexible);
-    setMinimumHourlyWage(mappedPreferences.minimumHourlyWage);
+    setHasUnrepresentedWorkTime(
+      hasUnrepresentableWorkTimes(preferences.preferredWorkTimes),
+    );
     setSelectedIndustries(mappedPreferences.selectedIndustries);
     setOtherIndustry(mappedPreferences.otherIndustry);
     setPriorityOrder(mappedPreferences.priorityOrder);
@@ -1850,7 +2269,6 @@ function StudentMatchingConditionLayout() {
       })
       .catch(() => {
         setBusinessTypeFlexible(false);
-        setMinimumHourlyWage(null);
         setSelectedIndustries([]);
         setOtherIndustry('');
         setPriorityOrder([]);
@@ -1898,6 +2316,12 @@ function StudentMatchingConditionLayout() {
   };
 
   const saveWorkAvailability = async (availability: WorkAvailability) => {
+    if (hasUnrepresentedWorkTime) {
+      window.alert(
+        '현재 화면에 표시할 수 없는 기존 근무시간이 있어 수정할 수 없어요.',
+      );
+      return false;
+    }
     try {
       const preferences = await studentDataSource.updateMatchingPreferences(
         mapWorkAvailabilityToUpdateRequest(availability),
@@ -1950,7 +2374,6 @@ function StudentMatchingConditionLayout() {
         {
           businessTypeFlexible,
           isMatchingPreferencesLoading,
-          minimumHourlyWage,
           otherIndustry,
           priorityOrder,
           selectedIndustries,
@@ -2207,7 +2630,9 @@ function App() {
   return (
     <EmployerProfileProvider>
       <EmployerWorkplacesProvider>
-        <Routes>
+        <StudentSocialAuthCallback>
+          {/* prettier-ignore */}
+          <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route element={<EmployerAuthRoute />}>
             <Route path="/employer/entry" element={<EmployerLoginPage />} />
@@ -2480,6 +2905,7 @@ function App() {
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </StudentSocialAuthCallback>
       </EmployerWorkplacesProvider>
     </EmployerProfileProvider>
   );

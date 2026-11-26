@@ -938,6 +938,9 @@ const DETAIL_CONTENT: Record<DetailId, DetailContent> = {
 
 type StudentTermsAgreementPageProps = {
   onBack: () => void;
+  availableAgreementIds?: readonly AgreementId[];
+  requiredAgreementIds?: readonly AgreementId[];
+  initialAgreements?: StudentOnboardingTermAgreements;
   onContinue: (
     agreements: StudentOnboardingTermAgreements,
   ) => Promise<void> | void;
@@ -1004,14 +1007,20 @@ function TermSectionBody({ body }: { body: readonly string[] }) {
 export default function StudentTermsAgreementPage({
   onBack,
   onContinue,
+  availableAgreementIds,
+  requiredAgreementIds = REQUIRED_AGREEMENT_IDS,
+  initialAgreements = INITIAL_AGREEMENTS,
 }: StudentTermsAgreementPageProps) {
-  const [agreements, setAgreements] = useState(INITIAL_AGREEMENTS);
+  const [agreements, setAgreements] = useState(initialAgreements);
   const [detailId, setDetailId] = useState<DetailId | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isAllAgreed = AGREEMENT_ROWS.every(({ id }) => agreements[id]);
-  const isRequiredAgreed = REQUIRED_AGREEMENT_IDS.every((id) => agreements[id]);
+  const rows = AGREEMENT_ROWS.filter(
+    ({ id }) => !availableAgreementIds || availableAgreementIds.includes(id),
+  );
+  const isAllAgreed = rows.every(({ id }) => agreements[id]);
+  const isRequiredAgreed = requiredAgreementIds.every((id) => agreements[id]);
 
   const handleToggleAgreement = (id: AgreementId) => {
     setErrorMessage(null);
@@ -1020,12 +1029,12 @@ export default function StudentTermsAgreementPage({
 
   const handleToggleAll = () => {
     setErrorMessage(null);
-    setAgreements({
-      uniqueIdentification: !isAllAgreed,
-      serviceTerms: !isAllAgreed,
-      personalInformationCollection: !isAllAgreed,
-      thirdPartyProvision: !isAllAgreed,
-      marketing: !isAllAgreed,
+    setAgreements((current) => {
+      const next = { ...current };
+      rows.forEach(({ id }) => {
+        next[id] = !isAllAgreed;
+      });
+      return next;
     });
   };
 
@@ -1037,9 +1046,11 @@ export default function StudentTermsAgreementPage({
 
     try {
       await onContinue(agreements);
-    } catch {
+    } catch (error) {
       setErrorMessage(
-        '약관 동의를 저장하지 못했어요. 잠시 후 다시 시도해주세요.',
+        error instanceof Error && error.message
+          ? error.message
+          : '약관 동의를 저장하지 못했어요. 잠시 후 다시 시도해주세요.',
       );
     } finally {
       setIsSubmitting(false);
@@ -1145,10 +1156,15 @@ export default function StudentTermsAgreementPage({
 
           <section className="mt-3 rounded-[15px] bg-white p-5 shadow-[1px_1px_20px_rgba(0,0,0,0.04)]">
             <div className="flex flex-col gap-5">
-              {AGREEMENT_ROWS.map((row) => (
+              {rows.map((row) => (
                 <div className="flex h-[23px] items-center gap-3" key={row.id}>
                   <button
-                    aria-label={row.label}
+                    aria-label={row.label.replace(
+                      /^\[(필수|선택)\]/,
+                      requiredAgreementIds.includes(row.id)
+                        ? '[필수]'
+                        : '[선택]',
+                    )}
                     className="flex size-5 shrink-0 items-center justify-center border-0 bg-transparent p-0"
                     type="button"
                     onClick={() => handleToggleAgreement(row.id)}
@@ -1161,7 +1177,12 @@ export default function StudentTermsAgreementPage({
                     onClick={() => setDetailId(row.id)}
                   >
                     <span className="truncate text-[15px] leading-[1.5]">
-                      {row.label}
+                      {row.label.replace(
+                        /^\[(필수|선택)\]/,
+                        requiredAgreementIds.includes(row.id)
+                          ? '[필수]'
+                          : '[선택]',
+                      )}
                     </span>
                     <img
                       alt=""

@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 
 import {
   confirmPhoneVerification,
-  createStudentCareer,
-  deleteStudentCareer,
   requestPhoneVerification,
-  updateStudentCareer,
 } from '../../api/student';
+import { getApiErrorResponse } from '../../api/errors';
+import {
+  isExperienceDraftValid,
+  mapExperienceDraftToCreateRequest,
+} from '../../adapters/studentExperience';
 import calendarIcon from '../../assets/icons/student/calendar.svg';
 import locationIcon from '../../assets/icons/student/location.svg';
 import { mapWorkLocationToUpdateRequest } from '../../adapters/studentMatchingPreferences';
@@ -21,9 +23,17 @@ import { WorkLocationRadiusMap } from '../../components/student/onboarding/WorkL
 import { KOREAN_LEVELS } from '../../constants/studentOnboardingOptions';
 import { IS_DEMO_MODE } from '../../config/demoMode';
 import { studentDataSource } from '../../services/studentDataSource';
-import type { Experience, ExperienceDraft, StudentCareerResponse } from '../../types/experience';
+import type {
+  Experience,
+  ExperienceDraft,
+  StudentCareerResponse,
+} from '../../types/experience';
 import type { StudentPreferredLocation } from '../../types/studentMatchingPreferences';
-import type { WorkLocation, WorkLocationRadius } from '../../types/workLocation';
+import type { StudentProfileCareerInput } from '../../types/studentProfile';
+import type {
+  WorkLocation,
+  WorkLocationRadius,
+} from '../../types/workLocation';
 import type {
   StudentProfileEditField,
   StudentProfileValues,
@@ -41,12 +51,10 @@ type StudentProfileEditPageProps = {
   careers: readonly StudentCareerResponse[];
   field: StudentProfileEditField;
   onBack: () => void;
-  onCareersChange: (careers: readonly StudentCareerResponse[]) => void;
-  onPhoneChange: (phoneNumber: string) => void;
-  onProfileSave: (
-    view: 'basic',
-    values: readonly string[],
-  ) => Promise<boolean>;
+  onCareersSave: (
+    careers: readonly StudentProfileCareerInput[],
+  ) => Promise<readonly StudentCareerResponse[] | null>;
+  onProfileSave: (view: 'basic', values: readonly string[]) => Promise<boolean>;
   onPreferredLocationChange: (location: StudentPreferredLocation) => void;
   preferredLocation: StudentPreferredLocation | null;
   profileValues: StudentProfileValues;
@@ -111,7 +119,9 @@ function LocationAddressEditor({
       question={title}
     >
       <label className="mt-[39px] block">
-        <span className="block text-[17px] leading-[1.5]">{t('my.edit.searchAddress')}</span>
+        <span className="block text-[17px] leading-[1.5]">
+          {t('my.edit.searchAddress')}
+        </span>
         <span className="flex h-[58px] items-center gap-3 border-b border-[#B0B8C1] focus-within:border-[#00B894]">
           <img alt="" className="size-6" src={locationIcon} />
           <input
@@ -125,7 +135,9 @@ function LocationAddressEditor({
       <button
         className="mt-6 h-[54px] w-full rounded-[15px] border-[0.7px] border-[#B3B8B9] bg-transparent text-[17px] leading-[1.5]"
         type="button"
-        onClick={() => navigator.geolocation?.getCurrentPosition(() => undefined)}
+        onClick={() =>
+          navigator.geolocation?.getCurrentPosition(() => undefined)
+        }
       >
         {t('my.edit.currentLocation')}
       </button>
@@ -143,21 +155,11 @@ function toExperience(career: StudentCareerResponse): Experience {
   };
 }
 
-function toCareerDraft(draft: ExperienceDraft) {
-  return {
-    careerName: draft.workplace.trim(),
-    description: draft.duties.trim() || null,
-    endMonth: draft.endMonth.replace('.', '-'),
-    startMonth: draft.startMonth.replace('.', '-'),
-  };
-}
-
 export default function StudentProfileEditPage({
   careers,
   field,
   onBack,
-  onCareersChange,
-  onPhoneChange,
+  onCareersSave,
   onPreferredLocationChange,
   onProfileSave,
   preferredLocation,
@@ -180,22 +182,24 @@ export default function StudentProfileEditPage({
     preferredLocation?.radiusM ?? 500,
   );
   const [isRadiusStep, setIsRadiusStep] = useState(false);
+  const [locationSaveError, setLocationSaveError] = useState('');
   const [selectedKoreanLevel, setSelectedKoreanLevel] = useState(
     () =>
       KOREAN_LEVELS.find((option) => option.label === basicValues[4])?.value ??
       KOREAN_LEVELS[0].value,
   );
-  const [careerItems, setCareerItems] = useState(() => careers.map(toExperience));
-  const [careerDraft, setCareerDraft] = useState<ExperienceDraft>(EMPTY_EXPERIENCE);
+  const [careerItems, setCareerItems] = useState(() =>
+    careers.map(toExperience),
+  );
+  const [careerDraft, setCareerDraft] =
+    useState<ExperienceDraft>(EMPTY_EXPERIENCE);
   const [editingCareerId, setEditingCareerId] = useState<string | null>(null);
   const [isCareerFormOpen, setIsCareerFormOpen] = useState(false);
+  const [hasCareerChanges, setHasCareerChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const isCareerDraftInvalid = useMemo(
-    () =>
-      !careerDraft.workplace.trim() ||
-      !/^\d{4}\.\d{2}$/.test(careerDraft.startMonth) ||
-      !/^\d{4}\.\d{2}$/.test(careerDraft.endMonth),
+    () => !isExperienceDraftValid(careerDraft) || !careerDraft.duties.trim(),
     [careerDraft],
   );
 
@@ -203,6 +207,30 @@ export default function StudentProfileEditPage({
     const values = [...basicValues];
     values[index] = value;
     if (await onProfileSave('basic', values)) onBack();
+  };
+
+  const saveCareerItems = async (items: Experience[]) => {
+    if (isSaving) return false;
+    const mapped = items.map(mapExperienceDraftToCreateRequest);
+    if (mapped.some((career) => !career?.description)) {
+      window.alert('모든 경력의 근무 내용을 입력한 뒤 다시 저장해 주세요.');
+      return false;
+    }
+    const request = mapped.map((career) => ({
+      careerName: career!.careerName,
+      startMonth: career!.startMonth,
+      endMonth: career!.endMonth,
+      description: career!.description!,
+    }));
+    setIsSaving(true);
+    try {
+      const saved = await onCareersSave(request);
+      if (!saved) return false;
+      setCareerItems(saved.map(toExperience));
+      return true;
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (field === 'birth-date') {
@@ -219,7 +247,9 @@ export default function StudentProfileEditPage({
             type="button"
             onClick={() => setIsCalendarOpen(true)}
           >
-            <span className="text-[17px] leading-[1.5]">{t('my.profile.birthDate')}</span>
+            <span className="text-[17px] leading-[1.5]">
+              {t('my.profile.birthDate')}
+            </span>
             <span className="flex h-[58px] w-full items-center border-b border-[#B0B8C1] text-[26px] leading-[1.5] font-semibold">
               {birthDate.replaceAll('-', '.')}
               <img alt="" className="ml-auto size-6" src={calendarIcon} />
@@ -271,10 +301,14 @@ export default function StudentProfileEditPage({
       setIsPhonePending(true);
       try {
         if (!IS_DEMO_MODE) {
-          await confirmPhoneVerification({ code: verificationCode, phoneNumber: phone });
+          await confirmPhoneVerification({
+            code: verificationCode,
+            phoneNumber: phone,
+          });
         }
-        onPhoneChange(phone);
-        onBack();
+        const values = [...basicValues];
+        values[5] = phone;
+        if (await onProfileSave('basic', values)) onBack();
       } catch {
         setPhoneError(t('my.edit.codeError'));
       } finally {
@@ -283,10 +317,18 @@ export default function StudentProfileEditPage({
     };
     return (
       <ProfileEditScaffold
-        ctaLabel={phoneStep === 'phone' ? t('my.edit.requestCode') : t('common.confirm')}
+        ctaLabel={
+          phoneStep === 'phone' ? t('my.edit.requestCode') : t('common.confirm')
+        }
         disabled={isPhonePending}
-        onBack={phoneStep === 'verification' ? () => setPhoneStep('phone') : onBack}
-        onSubmit={() => void (phoneStep === 'phone' ? requestVerification() : confirmVerification())}
+        onBack={
+          phoneStep === 'verification' ? () => setPhoneStep('phone') : onBack
+        }
+        onSubmit={() =>
+          void (phoneStep === 'phone'
+            ? requestVerification()
+            : confirmVerification())
+        }
         question={t('my.edit.phoneQuestion')}
       >
         <OnboardingField
@@ -295,7 +337,9 @@ export default function StudentProfileEditPage({
           label={t('my.profile.phone')}
           spacing="first"
           value={phone}
-          onChange={(event) => setPhone(event.target.value.replace(/[^\d-]/g, ''))}
+          onChange={(event) =>
+            setPhone(event.target.value.replace(/[^\d-]/g, ''))
+          }
         />
         {phoneStep === 'verification' ? (
           <OnboardingField
@@ -305,7 +349,9 @@ export default function StudentProfileEditPage({
             maxLength={6}
             spacing="next"
             value={verificationCode}
-            onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, ''))}
+            onChange={(event) =>
+              setVerificationCode(event.target.value.replace(/\D/g, ''))
+            }
           />
         ) : null}
       </ProfileEditScaffold>
@@ -329,15 +375,45 @@ export default function StudentProfileEditPage({
       return (
         <WorkLocationRadiusMap
           address={preferredAddress}
+          errorMessage={locationSaveError}
           isConfirming={isSaving}
           onBack={() => setIsRadiusStep(false)}
           onConfirm={() => {
+            if (isSaving) return;
+            const unchangedAddress =
+              preferredLocation &&
+              preferredAddress.trim() === preferredLocation.locationName.trim();
             const location: WorkLocation = {
               address: preferredAddress,
               radius: preferredRadius,
+              latitude: unchangedAddress
+                ? preferredLocation.latitude
+                : undefined,
+              longitude: unchangedAddress
+                ? preferredLocation.longitude
+                : undefined,
             };
             const request = mapWorkLocationToUpdateRequest(location);
-            if (!request || !('preferredLocation' in request)) return;
+            if (
+              !request ||
+              !('preferredLocation' in request) ||
+              typeof location.latitude !== 'number' ||
+              !Number.isFinite(location.latitude) ||
+              location.latitude < -90 ||
+              location.latitude > 90 ||
+              typeof location.longitude !== 'number' ||
+              !Number.isFinite(location.longitude) ||
+              location.longitude < -180 ||
+              location.longitude > 180
+            ) {
+              setLocationSaveError(
+                i18n.resolvedLanguage === 'en'
+                  ? 'Location coordinates are unavailable. Please try again when location search is available.'
+                  : '위치 좌표를 확인할 수 없어요. 위치 검색 기능이 준비되면 다시 시도해 주세요.',
+              );
+              return;
+            }
+            setLocationSaveError('');
             setIsSaving(true);
             void studentDataSource
               .updateMatchingPreferences(request)
@@ -347,9 +423,18 @@ export default function StudentProfileEditPage({
                 }
                 onBack();
               })
+              .catch((error: unknown) => {
+                setLocationSaveError(
+                  getApiErrorResponse(error)?.message ??
+                    t('my.matchingConditions.saveError'),
+                );
+              })
               .finally(() => setIsSaving(false));
           }}
-          onRadiusChange={setPreferredRadius}
+          onRadiusChange={(radius) => {
+            setPreferredRadius(radius);
+            setLocationSaveError('');
+          }}
           radius={preferredRadius}
           radiusOptions={RADIUS_OPTIONS}
         />
@@ -358,7 +443,10 @@ export default function StudentProfileEditPage({
     return (
       <LocationAddressEditor
         address={preferredAddress}
-        onAddressChange={setPreferredAddress}
+        onAddressChange={(address) => {
+          setPreferredAddress(address);
+          setLocationSaveError('');
+        }}
         onBack={onBack}
         onSubmit={() => setIsRadiusStep(true)}
         title={t('my.edit.preferredRegionQuestion')}
@@ -371,7 +459,9 @@ export default function StudentProfileEditPage({
       <ProfileEditScaffold
         onBack={onBack}
         onSubmit={() => {
-          const label = KOREAN_LEVELS.find((option) => option.value === selectedKoreanLevel)?.label;
+          const label = KOREAN_LEVELS.find(
+            (option) => option.value === selectedKoreanLevel,
+          )?.label;
           if (label) void saveBasicValue(4, label);
         }}
         question={t('my.edit.koreanQuestion')}
@@ -399,36 +489,20 @@ export default function StudentProfileEditPage({
         isEditing={editingCareerId !== null}
         isSubmitDisabled={isCareerDraftInvalid || isSaving}
         onBack={() => setIsCareerFormOpen(false)}
-        onChange={(key, value) => setCareerDraft((current) => ({ ...current, [key]: value }))}
+        onChange={(key, value) =>
+          setCareerDraft((current) => ({ ...current, [key]: value }))
+        }
         onSubmit={() => {
-          setIsSaving(true);
-          const request = toCareerDraft(careerDraft);
-          if (IS_DEMO_MODE) {
-            const next = editingCareerId
-              ? careerItems.map((item) =>
-                  item.id === editingCareerId ? { ...item, ...careerDraft } : item,
-                )
-              : [...careerItems, { ...careerDraft, id: `demo-${Date.now()}` }];
-            setCareerItems(next);
-            setIsCareerFormOpen(false);
-            setIsSaving(false);
-            return;
-          }
-          const operation = editingCareerId
-            ? updateStudentCareer(editingCareerId, request)
-            : createStudentCareer(request);
-          void operation
-            .then((saved) => {
-              const next = editingCareerId
-                ? careers.map((career) =>
-                    career.careerId === Number(editingCareerId) ? saved : career,
-                  )
-                : [...careers, saved];
-              onCareersChange(next);
-              setCareerItems(next.map(toExperience));
-              setIsCareerFormOpen(false);
-            })
-            .finally(() => setIsSaving(false));
+          const next = editingCareerId
+            ? careerItems.map((item) =>
+                item.id === editingCareerId
+                  ? { ...item, ...careerDraft }
+                  : item,
+              )
+            : [...careerItems, { ...careerDraft, id: `new-${Date.now()}` }];
+          setCareerItems(next);
+          setHasCareerChanges(true);
+          setIsCareerFormOpen(false);
         }}
       />
     );
@@ -437,20 +511,16 @@ export default function StudentProfileEditPage({
   return (
     <ProfileEditScaffold
       ctaLabel={t('my.edit.save')}
+      disabled={isSaving}
       onBack={onBack}
       onSubmit={() => {
-        if (IS_DEMO_MODE) {
-          onCareersChange(
-            careerItems.map((item, index) => ({
-              careerId: Number(item.id.replace(/\D/g, '')) || index + 1,
-              careerName: item.workplace,
-              description: item.duties || null,
-              endMonth: item.endMonth.replace('.', '-'),
-              startMonth: item.startMonth.replace('.', '-'),
-            })),
-          );
+        if (!hasCareerChanges) {
+          onBack();
+          return;
         }
-        onBack();
+        void saveCareerItems(careerItems).then((saved) => {
+          if (saved) onBack();
+        });
       }}
       question={t('my.edit.careerQuestion')}
     >
@@ -469,17 +539,11 @@ export default function StudentProfileEditPage({
         {careerItems.map((experience) => (
           <ExperienceCard
             experience={experience}
+            isDeleting={isSaving}
             key={experience.id}
             onDelete={(id) => {
-              if (IS_DEMO_MODE) {
-                setCareerItems((items) => items.filter((item) => item.id !== id));
-                return;
-              }
-              void deleteStudentCareer(id).then(() => {
-                const next = careers.filter((career) => career.careerId !== Number(id));
-                onCareersChange(next);
-                setCareerItems(next.map(toExperience));
-              });
+              setCareerItems((items) => items.filter((item) => item.id !== id));
+              setHasCareerChanges(true);
             }}
             onEdit={(id) => {
               const selected = careerItems.find((item) => item.id === id);

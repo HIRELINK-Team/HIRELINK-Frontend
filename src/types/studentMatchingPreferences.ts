@@ -33,13 +33,12 @@ export type StudentMatchingPreferencesResponse = {
   preferredJobs: StudentPreferredJob[];
   preferredWorkTimes: StudentPreferredWorkTime[];
   preferredLocation: StudentPreferredLocation | null;
-  minimumHourlyWage: number | null;
   priorities: StudentMatchingPriority[];
 };
 
 export type StudentPreferredJobUpdate = {
   businessTypeId: number;
-  otherJobName: string | null;
+  otherJobName?: string | null;
 };
 
 export type StudentMatchingPriorityUpdate = {
@@ -47,26 +46,10 @@ export type StudentMatchingPriorityUpdate = {
   priorityOrder: number;
 };
 
-export type StudentMatchingIndustryUpdateRequest =
-  | {
-      businessTypeFlexible: true;
-      preferredJobs: [];
-    }
-  | {
-      businessTypeFlexible: false;
-      preferredJobs: [StudentPreferredJobUpdate, ...StudentPreferredJobUpdate[]];
-    };
-
-export type StudentMatchingPreferencesUpdateRequest =
-  | StudentMatchingIndustryUpdateRequest
-  | {
-      minimumHourlyWage?: number | null;
-      preferredLocation?: StudentPreferredLocation;
-      preferredWorkTimes?: StudentPreferredWorkTime[];
-      priorities?: [
-        StudentMatchingPriorityUpdate,
-        StudentMatchingPriorityUpdate,
-        StudentMatchingPriorityUpdate,
-        StudentMatchingPriorityUpdate,
-      ];
-    };
+export type StudentMatchingPreferencesUpdateRequest = {
+  businessTypeFlexible?: boolean;
+  preferredJobs?: StudentPreferredJobUpdate[];
+  preferredLocation?: StudentPreferredLocation;
+  preferredWorkTimes?: StudentPreferredWorkTime[];
+  priorities?: StudentMatchingPriorityUpdate[];
+};

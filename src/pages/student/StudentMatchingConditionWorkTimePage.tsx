@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
 import { WorkTimeGrid } from '../../components/student/onboarding/WorkTimeGrid';
+import { syncWorkAvailability } from '../../utils/syncWorkAvailability';
 import type {
   Weekday,
   WorkAvailability,
@@ -57,13 +58,9 @@ export default function StudentMatchingConditionWorkTimePage({
   const [saveError, setSaveError] = useState('');
 
   const handleSlotsChange = (day: Weekday, slots: number[]) => {
-    setDraftWorkAvailability((currentAvailability) => ({
-      ...currentAvailability,
-      [workTimeMode]: {
-        ...currentAvailability[workTimeMode],
-        [day]: slots,
-      },
-    }));
+    setDraftWorkAvailability((currentAvailability) =>
+      syncWorkAvailability(currentAvailability, workTimeMode, day, slots),
+    );
     setSaveError('');
   };
 
