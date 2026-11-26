@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import backIcon from '../../assets/icons/student/documents/back.svg';
@@ -34,7 +34,17 @@ import {
   STUDENT_BASIC_DOCUMENTS,
 } from '../../mocks/studentDocuments';
 import type { StudentNavigationTab } from '../../types/studentHome';
-import type { StudentDocument } from '../../types/studentDocument';
+import {
+  confirmEnrollmentCertificate,
+  getEnrollmentCertificate,
+  previewEnrollmentCertificate,
+} from '../../api/studentEnrollment';
+import { getApiErrorResponse, getApiErrorStatus } from '../../api/errors';
+import type {
+  EnrollmentPreviewResponse,
+  EnrollmentDocumentResponse,
+  StudentDocument,
+} from '../../types/studentDocument';
 
 export type StudentDocumentManagementView =
   | 'guide'
@@ -108,6 +118,140 @@ export default function StudentDocumentManagementPage({
 }: StudentDocumentManagementPageProps) {
   const { t } = useTranslation();
   const [view, setView] = useState<StudentDocumentManagementView>(initialView);
+  const [enrollmentLookup, setEnrollmentLookup] = useState<
+    | { status: 'loading' | 'error'; document: null }
+    | { status: 'loaded'; document: EnrollmentDocumentResponse | null }
+  >({ status: 'loading', document: null });
+
+  useEffect(() => {
+    if (initialView !== 'guide' && initialView !== 'registration') return;
+    let active = true;
+    getEnrollmentCertificate()
+      .then((document) => {
+        if (active) setEnrollmentLookup({ status: 'loaded', document });
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        if (getApiErrorStatus(error) === 404) {
+          setEnrollmentLookup({ status: 'loaded', document: null });
+        } else {
+          setEnrollmentLookup({ status: 'error', document: null });
+          window.alert(
+            getApiErrorResponse(error)?.message ??
+              '재학증명서 정보를 불러오지 못했어요. 다시 시도해주세요.',
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [initialView]);
+  const [enrollmentPreview, setEnrollmentPreview] =
+    useState<EnrollmentPreviewResponse | null>(null);
+  const [enrollmentError, setEnrollmentError] = useState<string | null>(null);
+  const [confirmedEnrollment, setConfirmedEnrollment] =
+    useState<EnrollmentDocumentResponse | null>(null);
+  const [enrollmentConfirmError, setEnrollmentConfirmError] = useState<
+    string | null
+  >(null);
+  const [isEnrollmentConfirming, setIsEnrollmentConfirming] = useState(false);
+  const enrollmentConfirming = useRef(false);
+  const [isEnrollmentUploading, setIsEnrollmentUploading] = useState(false);
+  const enrollmentRequestId = useRef(0);
+  const enrollmentUploading = useRef(false);
+  const documentCompletionPending = useRef(false);
+
+  const handleEnrollmentConfirm = async () => {
+    if (!enrollmentPreview || enrollmentConfirming.current) return;
+    if (confirmedEnrollment) {
+      setView('enrollment-complete');
+      return;
+    }
+    enrollmentConfirming.current = true;
+    setIsEnrollmentConfirming(true);
+    setEnrollmentConfirmError(null);
+    try {
+      const result = await confirmEnrollmentCertificate(
+        enrollmentPreview.draftId,
+      );
+      setConfirmedEnrollment(result);
+      setView('enrollment-complete');
+    } catch (error) {
+      const status = getApiErrorStatus(error);
+      const message = getApiErrorResponse(error)?.message;
+      const messages: Record<number, string> = {
+        400: '인식 결과가 올바르지 않아요. 다시 업로드해주세요.',
+        401: '로그인 후 다시 시도해주세요.',
+        403: '등록 권한을 확인해주세요. 온보딩을 완료해야 할 수 있어요.',
+        404: '등록에 필요한 정보를 찾을 수 없어요.',
+        409: '인식 결과가 만료되었거나 이미 등록되었어요. 다시 업로드해주세요.',
+        422: '서류 정보를 확인할 수 없어요. 다시 업로드해주세요.',
+      };
+      setEnrollmentConfirmError(
+        status === 422 && message
+          ? message
+          : (status && messages[status]) ||
+              '등록하지 못했어요. 다시 시도해주세요.',
+      );
+    } finally {
+      enrollmentConfirming.current = false;
+      setIsEnrollmentConfirming(false);
+    }
+  };
+
+  const handleEnrollmentUpload = async (file: File) => {
+    if (enrollmentUploading.current) return;
+    setEnrollmentError(null);
+    if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) {
+      setEnrollmentError('PDF, JPG, PNG 파일만 업로드할 수 있어요.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setEnrollmentError('파일 크기는 5MB 이하여야 해요.');
+      return;
+    }
+    const requestId = ++enrollmentRequestId.current;
+    enrollmentUploading.current = true;
+    setIsEnrollmentUploading(true);
+    try {
+      const preview = await previewEnrollmentCertificate(file);
+      if (requestId !== enrollmentRequestId.current) return;
+      setEnrollmentPreview(preview);
+      setConfirmedEnrollment(null);
+      setEnrollmentConfirmError(null);
+      setView('enrollment-review');
+    } catch (error) {
+      if (requestId !== enrollmentRequestId.current) return;
+      const status = getApiErrorStatus(error);
+      const serverMessage = getApiErrorResponse(error)?.message;
+      const messages: Record<number, string> = {
+        400: '파일을 확인하고 다시 업로드해주세요.',
+        413: '파일 크기는 5MB 이하여야 해요.',
+        415: 'PDF, JPG, PNG 파일만 업로드할 수 있어요.',
+        422: '서류를 인식할 수 없어요. 선명한 파일로 다시 시도해주세요.',
+        502: '서류 인식 서비스에 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
+      };
+      setEnrollmentError(
+        status === 422 && serverMessage
+          ? serverMessage
+          : (status && messages[status]) ||
+              '업로드에 실패했어요. 다시 시도해주세요.',
+      );
+    } finally {
+      if (requestId === enrollmentRequestId.current) {
+        enrollmentUploading.current = false;
+        setIsEnrollmentUploading(false);
+      }
+    }
+  };
+
+  const handleEnrollmentCameraBack = () => {
+    enrollmentRequestId.current += 1;
+    enrollmentUploading.current = false;
+    setIsEnrollmentUploading(false);
+    setEnrollmentError(null);
+    setView('enrollment-information');
+  };
   const [isAlienRegistrationComplete, setIsAlienRegistrationComplete] =
     useState(true);
   const [isEnrollmentCertificateComplete, setIsEnrollmentCertificateComplete] =
@@ -140,11 +284,41 @@ export default function StudentDocumentManagementPage({
     setView('registration');
   };
 
-  const handleDocumentComplete = (documentId: StudentDocument['id']) => {
-    const now = new Date();
-    const registeredAt = t('my.documents.registeredAt', { date: `${String(now.getFullYear()).slice(-2)}.${String(
-      now.getMonth() + 1,
-    ).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}` });
+  const handleDocumentComplete = async (documentId: StudentDocument['id']) => {
+    if (documentCompletionPending.current) return;
+    documentCompletionPending.current = true;
+    let enrollmentRegistered = isEnrollmentCertificateRegistered;
+    if (
+      documentId !== 'enrollment-certificate' &&
+      enrollmentLookup.status !== 'loaded'
+    ) {
+      try {
+        const document = await getEnrollmentCertificate();
+        enrollmentRegistered = true;
+        setEnrollmentLookup({ status: 'loaded', document });
+      } catch (error) {
+        if (getApiErrorStatus(error) === 404) {
+          enrollmentRegistered = false;
+          setEnrollmentLookup({ status: 'loaded', document: null });
+        } else {
+          window.alert(
+            getApiErrorResponse(error)?.message ??
+              '재학증명서 정보를 불러오지 못했어요. 다시 시도해주세요.',
+          );
+          documentCompletionPending.current = false;
+          return;
+        }
+      }
+    }
+    const now =
+      documentId === 'enrollment-certificate' && confirmedEnrollment
+        ? new Date(confirmedEnrollment.registeredAt)
+        : new Date();
+    const registeredAt = t('my.documents.registeredAt', {
+      date: `${String(now.getFullYear()).slice(-2)}.${String(
+        now.getMonth() + 1,
+      ).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`,
+    });
 
     if (documentId === 'alien-registration-card') {
       setIsAlienRegistrationComplete(true);
@@ -170,17 +344,19 @@ export default function StudentDocumentManagementPage({
 
     const nextCompletion = {
       'alien-registration-card': isAlienRegistrationRegistered,
-      'enrollment-certificate': isEnrollmentCertificateRegistered,
+      'enrollment-certificate': enrollmentRegistered,
       transcript: isTranscriptRegistered,
       'topik-transcript': isTopikRegistered,
       [documentId]: true,
     };
 
     if (Object.values(nextCompletion).every(Boolean)) {
+      documentCompletionPending.current = false;
       setView('badge-issued');
       return;
     }
 
+    documentCompletionPending.current = false;
     handleDocumentFlowExit();
   };
 
@@ -215,8 +391,9 @@ export default function StudentDocumentManagementPage({
     documentCompletion?.['alien-registration-card'] ??
     isAlienRegistrationComplete;
   const isEnrollmentCertificateRegistered =
-    documentCompletion?.['enrollment-certificate'] ??
-    isEnrollmentCertificateComplete;
+    enrollmentLookup.status === 'loaded'
+      ? enrollmentLookup.document !== null
+      : isEnrollmentCertificateComplete;
   const isTranscriptRegistered =
     documentCompletion?.transcript ?? isTranscriptComplete;
   const isTopikRegistered =
@@ -247,13 +424,19 @@ export default function StudentDocumentManagementPage({
     }
 
     if (document.id === 'enrollment-certificate') {
+      const enrollmentDocument = enrollmentLookup.document;
+      const registrationDate = enrollmentDocument
+        ? new Date(enrollmentDocument.registeredAt)
+        : null;
       return {
         ...document,
         status: isEnrollmentCertificateRegistered
           ? ('registered' as const)
           : ('required' as const),
-        registeredAt: isEnrollmentCertificateRegistered
-          ? registeredAt
+        registeredAt: registrationDate
+          ? t('my.documents.registeredAt', {
+              date: `${String(registrationDate.getFullYear()).slice(-2)}.${String(registrationDate.getMonth() + 1).padStart(2, '0')}.${String(registrationDate.getDate()).padStart(2, '0')}`,
+            })
           : undefined,
       };
     }
@@ -374,17 +557,28 @@ export default function StudentDocumentManagementPage({
   if (view === 'enrollment-camera') {
     return (
       <EnrollmentCertificateCamera
-        onBack={() => setView('enrollment-information')}
-        onCapture={() => setView('enrollment-review')}
+        onBack={handleEnrollmentCameraBack}
+        onCapture={() => {}}
+        onFileUpload={handleEnrollmentUpload}
+        isUploading={isEnrollmentUploading}
+        errorMessage={enrollmentError}
       />
     );
   }
 
-  if (view === 'enrollment-review') {
+  if (view === 'enrollment-review' && enrollmentPreview) {
     return (
       <EnrollmentCertificateReview
+        preview={
+          confirmedEnrollment
+            ? { ...enrollmentPreview, ...confirmedEnrollment }
+            : enrollmentPreview
+        }
+        registeredAt={confirmedEnrollment?.registeredAt}
+        isConfirming={isEnrollmentConfirming}
+        errorMessage={enrollmentConfirmError}
         onBack={() => setView('enrollment-camera')}
-        onConfirm={() => setView('enrollment-complete')}
+        onConfirm={handleEnrollmentConfirm}
         onRetry={() => setView('enrollment-camera')}
       />
     );
@@ -490,6 +684,8 @@ export default function StudentDocumentManagementPage({
         <div className="mt-[8px]">
           <DocumentRegistrationList
             basicDocuments={basicDocuments}
+            enrollmentDocument={enrollmentLookup.document}
+            enrollmentLookupStatus={enrollmentLookup.status}
             onDocumentClick={handleDocumentClick}
           />
         </div>

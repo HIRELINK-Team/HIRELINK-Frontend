@@ -6,6 +6,9 @@ import { DocumentCapturePage } from './DocumentCapturePage';
 type EnrollmentCertificateCameraProps = {
   onBack: () => void;
   onCapture: () => void;
+  onFileUpload: (file: File) => void;
+  isUploading: boolean;
+  errorMessage: string | null;
 };
 
 export function EnrollmentCertificateCamera(
@@ -13,6 +16,7 @@ export function EnrollmentCertificateCamera(
 ) {
   return (
     <DocumentCapturePage
+      captureFile
       cornersIcon={cornersIcon}
       fileIcon={fileIcon}
       scanIcon={scanIcon}
