@@ -27,6 +27,8 @@ const DAY_LABELS: Record<
 function mapApplicationStatus(
   application: StudentApplication,
 ): StudentApplicationStatus {
+  if (application.status === 'ENDED')
+    return mapEndedStatus(application.endReason);
   const statusMap: Record<
     StudentApplication['status'],
     StudentApplicationStatus
@@ -34,9 +36,20 @@ function mapApplicationStatus(
     COMPLETED: 'HIRED',
     OFFERED: 'OFFER_WAITING',
     WAITING_RESPONSE: 'REVIEWING',
+    ENDED: 'CANCELED',
   };
 
   return statusMap[application.status];
+}
+
+function mapEndedStatus(
+  reason: string | null | undefined,
+): StudentApplicationStatus {
+  if (reason === 'EMPLOYER_REJECTED' || reason === 'STUDENT_REJECTED')
+    return 'REJECTED';
+  if (reason === 'EMPLOYER_RESPONSE_EXPIRED') return 'EMPLOYER_EXPIRED';
+  if (reason === 'STUDENT_RESPONSE_EXPIRED') return 'STUDENT_EXPIRED';
+  return 'CANCELED';
 }
 
 function formatDeadline(deadline: string | null) {
@@ -66,8 +79,10 @@ export function mapStudentApplicationToCardModel(
     applicationId: application.applicationId,
     appliedAt: application.appliedAt,
     desiredStartDate: application.desiredStartDate,
-    employerResponseDeadline: application.employerResponseDeadline,
-    expiresAt: responseDeadline,
+    employerResponseDeadline: application.employerResponseDeadline ?? undefined,
+    endReason: application.endReason,
+    endedAt: application.endedAt,
+    expiresAt: responseDeadline ?? undefined,
     id: String(application.applicationId),
     job: {
       countdownLabel: '',
@@ -148,10 +163,7 @@ function mapDetailStatus(
   if (application.status === 'COMPLETED') return 'HIRED';
   if (application.status === 'OFFERED') return 'OFFER_WAITING';
   if (application.status === 'WAITING_RESPONSE') return 'REVIEWING';
-  if (application.offerStatus === 'REJECTED') return 'REJECTED';
-  if (application.offerStatus === 'EXPIRED') return 'STUDENT_EXPIRED';
-
-  return 'CANCELED';
+  return mapEndedStatus(application.endReason);
 }
 
 export function mapStudentApplicationDetailToCardModel(

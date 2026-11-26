@@ -85,8 +85,12 @@ function getWaitingApplicationForRecommendation(
     .reduce<RecommendationApplication | undefined>((latest, application) => {
       if (!latest) return application;
 
-      return new Date(application.employerResponseDeadline).getTime() >
-        new Date(latest.employerResponseDeadline).getTime()
+      return (application.employerResponseDeadline
+        ? new Date(application.employerResponseDeadline).getTime()
+        : -Infinity) >
+        (latest.employerResponseDeadline
+          ? new Date(latest.employerResponseDeadline).getTime()
+          : -Infinity)
         ? application
         : latest;
     }, undefined);
