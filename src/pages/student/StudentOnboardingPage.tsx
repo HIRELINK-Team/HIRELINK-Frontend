@@ -772,6 +772,22 @@ export default function StudentOnboardingPage({
       return;
     }
 
+    if (
+      !IS_DEMO_MODE &&
+      (typeof workLocation.latitude !== 'number' ||
+        !Number.isFinite(workLocation.latitude) ||
+        workLocation.latitude < -90 ||
+        workLocation.latitude > 90 ||
+        typeof workLocation.longitude !== 'number' ||
+        !Number.isFinite(workLocation.longitude) ||
+        workLocation.longitude < -180 ||
+        workLocation.longitude > 180)
+    ) {
+      window.alert(
+        '희망 근무지의 좌표를 확인할 수 없어요. 위치 선택 기능이 준비되면 다시 시도해 주세요.',
+      );
+      return;
+    }
     const requestBody = mapStudentOnboardingRequest({
       birthDate: info.birthDate,
       currentRegion: info.location,

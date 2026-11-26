@@ -5,6 +5,7 @@ import {
   confirmPhoneVerification,
   requestPhoneVerification,
 } from '../../api/student';
+import { getApiErrorResponse } from '../../api/errors';
 import {
   isExperienceDraftValid,
   mapExperienceDraftToCreateRequest,
@@ -118,7 +119,9 @@ function LocationAddressEditor({
       question={title}
     >
       <label className="mt-[39px] block">
-        <span className="block text-[17px] leading-[1.5]">{t('my.edit.searchAddress')}</span>
+        <span className="block text-[17px] leading-[1.5]">
+          {t('my.edit.searchAddress')}
+        </span>
         <span className="flex h-[58px] items-center gap-3 border-b border-[#B0B8C1] focus-within:border-[#00B894]">
           <img alt="" className="size-6" src={locationIcon} />
           <input
@@ -179,6 +182,7 @@ export default function StudentProfileEditPage({
     preferredLocation?.radiusM ?? 500,
   );
   const [isRadiusStep, setIsRadiusStep] = useState(false);
+  const [locationSaveError, setLocationSaveError] = useState('');
   const [selectedKoreanLevel, setSelectedKoreanLevel] = useState(
     () =>
       KOREAN_LEVELS.find((option) => option.label === basicValues[4])?.value ??
@@ -243,7 +247,9 @@ export default function StudentProfileEditPage({
             type="button"
             onClick={() => setIsCalendarOpen(true)}
           >
-            <span className="text-[17px] leading-[1.5]">{t('my.profile.birthDate')}</span>
+            <span className="text-[17px] leading-[1.5]">
+              {t('my.profile.birthDate')}
+            </span>
             <span className="flex h-[58px] w-full items-center border-b border-[#B0B8C1] text-[26px] leading-[1.5] font-semibold">
               {birthDate.replaceAll('-', '.')}
               <img alt="" className="ml-auto size-6" src={calendarIcon} />
@@ -311,7 +317,9 @@ export default function StudentProfileEditPage({
     };
     return (
       <ProfileEditScaffold
-        ctaLabel={phoneStep === 'phone' ? t('my.edit.requestCode') : t('common.confirm')}
+        ctaLabel={
+          phoneStep === 'phone' ? t('my.edit.requestCode') : t('common.confirm')
+        }
         disabled={isPhonePending}
         onBack={
           phoneStep === 'verification' ? () => setPhoneStep('phone') : onBack
@@ -367,15 +375,45 @@ export default function StudentProfileEditPage({
       return (
         <WorkLocationRadiusMap
           address={preferredAddress}
+          errorMessage={locationSaveError}
           isConfirming={isSaving}
           onBack={() => setIsRadiusStep(false)}
           onConfirm={() => {
+            if (isSaving) return;
+            const unchangedAddress =
+              preferredLocation &&
+              preferredAddress.trim() === preferredLocation.locationName.trim();
             const location: WorkLocation = {
               address: preferredAddress,
               radius: preferredRadius,
+              latitude: unchangedAddress
+                ? preferredLocation.latitude
+                : undefined,
+              longitude: unchangedAddress
+                ? preferredLocation.longitude
+                : undefined,
             };
             const request = mapWorkLocationToUpdateRequest(location);
-            if (!request || !('preferredLocation' in request)) return;
+            if (
+              !request ||
+              !('preferredLocation' in request) ||
+              typeof location.latitude !== 'number' ||
+              !Number.isFinite(location.latitude) ||
+              location.latitude < -90 ||
+              location.latitude > 90 ||
+              typeof location.longitude !== 'number' ||
+              !Number.isFinite(location.longitude) ||
+              location.longitude < -180 ||
+              location.longitude > 180
+            ) {
+              setLocationSaveError(
+                i18n.resolvedLanguage === 'en'
+                  ? 'Location coordinates are unavailable. Please try again when location search is available.'
+                  : '위치 좌표를 확인할 수 없어요. 위치 검색 기능이 준비되면 다시 시도해 주세요.',
+              );
+              return;
+            }
+            setLocationSaveError('');
             setIsSaving(true);
             void studentDataSource
               .updateMatchingPreferences(request)
@@ -385,9 +423,18 @@ export default function StudentProfileEditPage({
                 }
                 onBack();
               })
+              .catch((error: unknown) => {
+                setLocationSaveError(
+                  getApiErrorResponse(error)?.message ??
+                    t('my.matchingConditions.saveError'),
+                );
+              })
               .finally(() => setIsSaving(false));
           }}
-          onRadiusChange={setPreferredRadius}
+          onRadiusChange={(radius) => {
+            setPreferredRadius(radius);
+            setLocationSaveError('');
+          }}
           radius={preferredRadius}
           radiusOptions={RADIUS_OPTIONS}
         />
@@ -396,7 +443,10 @@ export default function StudentProfileEditPage({
     return (
       <LocationAddressEditor
         address={preferredAddress}
-        onAddressChange={setPreferredAddress}
+        onAddressChange={(address) => {
+          setPreferredAddress(address);
+          setLocationSaveError('');
+        }}
         onBack={onBack}
         onSubmit={() => setIsRadiusStep(true)}
         title={t('my.edit.preferredRegionQuestion')}
