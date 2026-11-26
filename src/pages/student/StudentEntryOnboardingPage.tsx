@@ -7,8 +7,9 @@ import googleIcon from '../../assets/images/student/entry/figma-social-google.pn
 import kakaoIcon from '../../assets/images/student/entry/figma-social-kakao.png';
 import socialLoginSymbol from '../../assets/images/student/entry/figma-social-symbol.png';
 import socialLoginWordmark from '../../assets/images/student/entry/figma-social-wordmark.png';
-import hirelinkLogoMint from '../../assets/images/student/entry/hirelink-logo-mint.svg';
 import hirelinkWordmark from '../../assets/images/student/entry/hirelink-wordmark.svg';
+import languageEnglishFlag from '../../assets/images/student/entry/language-english.png';
+import languageKoreanFlag from '../../assets/images/student/entry/language-korean.png';
 import { EmployerEntryNotice } from '../../components/student/onboarding/EmployerEntryNotice';
 
 type EntryStep = 'start' | 'language' | 'socialLogin';
@@ -26,14 +27,17 @@ export default function StudentEntryOnboardingPage({
 }: StudentEntryOnboardingPageProps) {
   const { i18n, t } = useTranslation();
   const [entryStep, setEntryStep] = useState<EntryStep>('start');
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(
+    i18n.resolvedLanguage === 'en' ? 'en' : 'ko',
+  );
   const [isEmployerNoticeOpen, setIsEmployerNoticeOpen] = useState(false);
 
   const handleStart = () => {
     setEntryStep('language');
   };
 
-  const handleLanguageSelect = (nextLanguage: Language) => {
-    void i18n.changeLanguage(nextLanguage);
+  const handleLanguageConfirm = () => {
+    void i18n.changeLanguage(selectedLanguage);
     setEntryStep('socialLogin');
   };
 
@@ -72,41 +76,69 @@ export default function StudentEntryOnboardingPage({
 
   if (entryStep === 'language') {
     return (
-      <main className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-[#F5F5F5] px-6 pt-[max(3.75rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
+      <main className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col bg-[#F5F5F5] font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif] tracking-[-0.02em] text-[#1D1F20]">
         <button
           aria-label="이전 화면으로"
-          className="absolute top-[calc(max(3.75rem,env(safe-area-inset-top))+0.5rem)] left-[18px] z-10 grid size-8 place-items-center border-0 bg-transparent p-0"
+          className="absolute top-[max(0.5rem,calc(env(safe-area-inset-top)+0.25rem),min(3.5rem,6.64dvh))] left-[17px] z-10 grid size-8 place-items-center border-0 bg-transparent p-0"
           type="button"
           onClick={() => setEntryStep('start')}
         >
           <img alt="" className="h-4 w-2" src={backIcon} />
         </button>
-        <div className="mt-[clamp(4.25rem,15.2dvh,8rem)] flex items-center justify-center gap-[7px]">
-          <img alt="" className="h-[31px] w-[33px]" src={hirelinkLogoMint} />
-          <img
-            alt="HIRELINK"
-            className="h-auto w-[158px] filter-[brightness(0)_saturate(100%)_invert(48%)_sepia(86%)_saturate(576%)_hue-rotate(120deg)_brightness(93%)_contrast(101%)]"
-            src={hirelinkWordmark}
-          />
-        </div>
-        <section className="mt-auto mb-[clamp(3.5rem,28.8dvh,15.2rem)]">
-          <h1 className="m-0 text-[16px] leading-6 font-medium">
-            {t('entry.language')}
-          </h1>
-          <div className="mt-[11px] grid gap-5">
+        <section className="flex min-h-0 flex-1 flex-col px-[19px] pt-[max(calc(env(safe-area-inset-top)+2.75rem),min(124px,14.7dvh))] pb-[max(env(safe-area-inset-bottom),min(32px,3.8dvh))]">
+          <div>
+            <h1 className="m-0 text-[26px] leading-[1.5] font-semibold tracking-[-0.02em]">
+              본인의 언어를
+              <br />
+              선택해주세요.
+            </h1>
+            <p className="mt-[min(33px,3.9dvh)] mb-0 text-[17px] leading-[1.5] font-normal">
+              언어선택
+            </p>
+            <div className="mt-[min(13px,1.54dvh)] grid gap-[min(10px,1.2dvh)]">
+              <button
+                aria-pressed={selectedLanguage === 'ko'}
+                className={`flex h-[57px] items-center justify-center gap-[6px] rounded-[15px] border-[1.5px] text-[17px] leading-[1.5] font-medium transition-colors ${
+                  selectedLanguage === 'ko'
+                    ? 'border-[#00B894] bg-[#E5F8F3] text-[#009376]'
+                    : 'border-[#B3B8B9] bg-[#F5F5F5] text-[#1D1F20]'
+                }`}
+                type="button"
+                onClick={() => setSelectedLanguage('ko')}
+              >
+                <img
+                  alt=""
+                  className="size-[22px] object-contain"
+                  src={languageKoreanFlag}
+                />
+                한국어
+              </button>
+              <button
+                aria-pressed={selectedLanguage === 'en'}
+                className={`flex h-[57px] items-center justify-center gap-[6px] rounded-[15px] border-[1.5px] text-[17px] leading-[1.5] font-medium transition-colors ${
+                  selectedLanguage === 'en'
+                    ? 'border-[#00B894] bg-[#E5F8F3] text-[#009376]'
+                    : 'border-[#B3B8B9] bg-[#F5F5F5] text-[#1D1F20]'
+                }`}
+                type="button"
+                onClick={() => setSelectedLanguage('en')}
+              >
+                <img
+                  alt=""
+                  className="size-[22px] object-contain"
+                  src={languageEnglishFlag}
+                />
+                ENGLISH
+              </button>
+            </div>
+          </div>
+          <div className="mt-auto pt-[min(40px,4dvh)]">
             <button
-              className="h-16 rounded-[15px] bg-[#B8EBDD] text-[20px] leading-[30px] font-medium text-[#1D1F20]"
+              className="h-[57px] w-full rounded-[15px] bg-[#00B894] text-[20px] leading-[1.5] font-medium text-[#F5F5F5]"
               type="button"
-              onClick={() => handleLanguageSelect('en')}
+              onClick={handleLanguageConfirm}
             >
-              {t('entry.english')}
-            </button>
-            <button
-              className="h-16 rounded-[15px] bg-[#B8EBDD] text-[20px] leading-[30px] font-medium text-[#1D1F20]"
-              type="button"
-              onClick={() => handleLanguageSelect('ko')}
-            >
-              {t('entry.korean')}
+              확인
             </button>
           </div>
         </section>
